@@ -80,14 +80,14 @@ local HKITEM = {
 
 local function Qdmg(target)
     if Ready(_Q) then
-        return CalcPhysicalDamage(myHero,target,(20 + 30 * myHero:GetSpellData(_Q).level) + 1.0 * myHero.totalDamage)
+        return CalcPhysicalDamage(myHero,target,(20 + 30 * myHero:GetSpellData(_Q).level) + 1.2 * myHero.totalDamage)
     end
     return 0
 end
 
 local function Qdmg(minion)
     if Ready(_Q) then
-        return CalcPhysicalDamage(myHero,minion,(20 + 30 * myHero:GetSpellData(_Q).level) + 1.0 * myHero.totalDamage)
+        return CalcPhysicalDamage(myHero,minion,(10 + 30 * myHero:GetSpellData(_Q).level) + 1.2 * myHero.totalDamage)
     end
     return 0
 end
