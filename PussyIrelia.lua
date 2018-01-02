@@ -7,6 +7,10 @@ local function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0
 end
 
+local function PercentHP(unit)
+    return 100 * unit.health / unit.maxHealth
+end
+
 local function PercentHP(target)
     return 100 * target.health / target.maxHealth
 end
@@ -160,8 +164,10 @@ local function GetMode()
 			return "Combo"
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
 			return "Harass"	
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] or _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
+		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] then
 			return "Clear"
+		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
+			return "JClear"
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] then
 			return "LastHit"
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
@@ -198,7 +204,20 @@ function IsFacing(target)
     return false
 end
 
-local PussyIrelia = MenuElement({type = MENU, id = "PussyIrelia", name = "Irelia"})
+function IsUnderTurret(unit)
+    for i = 1, Game.TurretCount() do
+        local turret = Game.Turret(i)
+        local range = (turret.boundingRadius + 750 + unit.boundingRadius / 2)
+        if turret.isEnemy and not turret.dead then
+            if turret.pos:DistanceTo(unit.pos) < range then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local PussyIrelia = MenuElement({type = MENU, id = "PussyIrelia", name = "PussyIrelia"})
 
 PussyIrelia:MenuElement({id = "Combo", name = "Combo", type = MENU})
 	PussyIrelia.Combo:MenuElement({id = "Q", name = "Q - Bladesurge", value = true})
@@ -215,13 +234,31 @@ PussyIrelia:MenuElement({id = "Clear", name = "Clear", type = MENU})
     PussyIrelia.Clear:MenuElement({id = "Q", name = "Q - Bladesurge/only LastHit", value = true})
     PussyIrelia.Clear:MenuElement({id = "W", name = "W - Hiten Style", value = true})
 	PussyIrelia.Clear:MenuElement({id = "MP", name = "Min mana", value = 35, min = 0, max = 100})
-    PussyIrelia.Clear:MenuElement({id = "Key", name = "Enable/Disable", key = string.byte("A"), toggle = true})
+	
+PussyIrelia:MenuElement({id = "JClear", name = "JungleClear", type = MENU})
+    PussyIrelia.JClear:MenuElement({id = "Q", name = "Q - Bladesurge", value = true})
+    PussyIrelia.JClear:MenuElement({id = "W", name = "W - Hiten Style", value = true})
+	PussyIrelia.JClear:MenuElement({id = "E", name = "E - Equilibrium Strike", value = true})
+	PussyIrelia.JClear:MenuElement({id = "MP", name = "Min mana", value = 35, min = 0, max = 100})	
+	
+PussyIrelia:MenuElement({id = "LastHit", name = "LastHit", type = MENU})
+    PussyIrelia.LastHit:MenuElement({id = "Q", name = "Q - Bladesurge", value = true})	
+	PussyIrelia.LastHit:MenuElement({id = "MP", name = "Min mana", value = 35, min = 0, max = 100})
 
+PussyIrelia:MenuElement({id = "Killsteal", name = "Killsteal", type = MENU})
+    PussyIrelia.Killsteal:MenuElement({id = "Q", name = "Q - Bladesurge", value = true})
+    PussyIrelia.Killsteal:MenuElement({id = "R", name = "R - Transcendent Blades", value = true})
+	
 PussyIrelia:MenuElement({type = MENU, id = "Activator", name = "Activator"})
 	PussyIrelia.Activator:MenuElement({type = MENU, id = "P", name = "Potions"})
 	PussyIrelia.Activator.P:MenuElement({id = "Pot", name = "All Potions", value = true})
 	PussyIrelia.Activator.P:MenuElement({id = "HP", name = "Health % to Potion", value = 60, min = 0, max = 100})
-
+	
+	PussyIrelia.Activator:MenuElement({type = MENU, id = "I", name = "Items"})
+	PussyIrelia.Activator.I:MenuElement({id = "Tiamat", name = "Hydra / Tiamat", value = true})
+	PussyIrelia.Activator.I:MenuElement({id = "YG", name = "Youmuu's Ghostblade", value = true})	
+	PussyIrelia.Activator.I:MenuElement({id = "King", name = "Blade of the Ruined King", value = true})
+	
 	PussyIrelia.Activator:MenuElement({type = MENU, id = "S", name = "Summoner Spells"})
 		if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal"
 		or myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" then
@@ -239,7 +276,8 @@ PussyIrelia:MenuElement({type = MENU, id = "Activator", name = "Activator"})
 		end
 		if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust"
 		or myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-			PussyIrelia.Activator.S:MenuElement({id = "Exh", name = "Combo Exhaust", value = true})
+			PussyIrelia.Activator.S:MenuElement({id = "Exhaust", name = "Combo Exhaust", value = true})
+			PussyIrelia.Activator.S:MenuElement({id = "EnemyHP", name = "EnemyHP Under %", value = 25, min = 0, max = 100})
 		end
 
 
@@ -247,7 +285,6 @@ PussyIrelia:MenuElement({id = "Draw", name = "Drawings", type = MENU})
     PussyIrelia.Draw:MenuElement({id = "Q", name = "Q - Bladesurge", value = true})
     PussyIrelia.Draw:MenuElement({id = "E", name = "E - Equilibrium Strike", value = true})
     PussyIrelia.Draw:MenuElement({id = "R", name = "R - Transcendent Blades", value = true})
-	PussyIrelia.Draw:MenuElement({id = "C", name = "Enable Text", value = true})
 
 Callback.Add("Tick", function() Tick() end)
 Callback.Add("Draw", function() Drawings() end)
@@ -260,10 +297,13 @@ function Tick()
 		Harass()
 	elseif Mode == "Clear" then
 		Lane()
-	elseif Mode == "Flee" then
-		Flee()
-    end
-	Activator2()
+	elseif Mode == "LastHit" then
+		LastHit()
+	elseif Mode == "JClear" then
+		JungleClear()
+	end
+	Activator()
+	Killsteal()
 end
 
 local _EnemyHeroes
@@ -412,7 +452,6 @@ function Harass()
 end
 
 function Lane()
-	if PussyIrelia.Clear.Key:Value() == false then return end
 	if PercentMP(myHero) < PussyIrelia.Clear.MP:Value() then return end
 	for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
@@ -424,7 +463,7 @@ function Lane()
 			end
 			if minion.team == 300 - myHero.team then
 				if IsValidTarget(minion,Q.range) and PussyIrelia.Clear.Q:Value() and Ready(_Q) and Qdmg(minion) > minion.health then
-						Control.CastSpell(HK_Q, minion)
+					Control.CastSpell(HK_Q, minion)
 				
 				end
 			end
@@ -432,9 +471,64 @@ function Lane()
 	end
 end
 
+function JungleClear()
+	if PercentMP(myHero) < PussyIrelia.JClear.MP:Value() then return end
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
+        if minion then
+			if IsValidTarget(minion,Q.range) and PussyIrelia.JClear.Q:Value() and Ready(_Q) then
+				Control.CastSpell(HK_Q)
+			
+			end
+			if minion.team == 300 - myHero.team then
+				if IsValidTarget(minion,W.range) and PussyIrelia.JClear.W:Value() and Ready(_W) then
+					Control.CastSpell(HK_W)
+				end
+			end
+			if IsValidTarget(minion,E.range) and PussyIrelia.JClear.E:Value() and Ready(_E) then
+				Control.CastSpell(HK_E)
+				
+			end
+		end
+	end
+end
 
+function LastHit()
+	if PercentMP(myHero) < PussyIrelia.LastHit.MP:Value() then return end
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
+        if minion then
+			if minion.team == 300 - myHero.team then
+				if IsValidTarget(minion,Q.range) and PussyIrelia.LastHit.Q:Value() and Ready(_Q) and Qdmg(minion) > minion.health then
+					Control.CastSpell(HK_Q, minion)
+				
+				end
+			end
+		end
+	end
+end
 
-function Activator2()
+    
+function Killsteal()
+	local target = GetTarget(R.range)
+    if target == nil then return end
+    
+	if PussyIrelia.Killsteal.Q:Value() and Ready(_Q) then
+		local Qdmg = CalcPhysicalDamage(myHero, target, (20 + 30 * myHero:GetSpellData(_Q).level + 1.2 * myHero.totalDamage))
+		if Qdmg > target.health then
+			Control.CastSpell(HK_Q, target)
+		end
+	end
+	if PussyIrelia.Killsteal.R:Value() and Ready(_R) then
+		local Rdmg = CalcPhysicalDamage(myHero, target, (240 + 120 * myHero:GetSpellData(_R).level + 0.7 * myHero.totalDamage))
+		if Rdmg > target.health then
+			Control.CastSpell(HK_R, target)
+		end 
+    end
+end
+	
+
+function Activator()
 	local target = GetTarget(1575)
 	if target == nil then return end
 	local items = {}
@@ -444,21 +538,26 @@ function Activator2()
 			items[id] = slot
 		end
     end
-    local Banner = items[3060]
-    if Banner and myHero:GetSpellData(Banner).currentCd == 0 and PussyIrelia.Activator.I.U.Ban:Value() then
-        for i = 1, Game.MinionCount() do
-            local minion = Game.Minion(i)
-            if minion and minion.team == myHero.team and myHero.pos:DistanceTo(minion.pos) < 1200 then
-                Control.CastSpell(HKITEM[Banner], minion)
-            end
-        end
-    end
 	local Potion = items[2003] or items[2010] or items[2031] or items[2032] or items[2033]
 	if Potion and target and myHero:GetSpellData(Potion).currentCd == 0 and PussyIrelia.Activator.P.Pot:Value() and PercentHP(myHero) < PussyIrelia.Activator.P.HP:Value() and NoPotion() then
 		Control.CastSpell(HKITEM[Potion])
-
-    end
-    if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal"
+	end
+	if GetMode() == "Combo" then	
+		local Tiamat = items[3077] or items[3748] or items[3074]
+		if Tiamat and myHero:GetSpellData(Tiamat).currentCd == 0 and PussyIrelia.Activator.I.Tiamat:Value() and myHero.pos:DistanceTo(target.pos) < 400 and myHero.attackData.state == 2 then
+		Control.CastSpell(HKITEM[Tiamat], target.pos)
+		end
+		local King = items[3153]
+		if King and myHero:GetSpellData(King).currentCd == 0 and PussyIrelia.Activator.I.King:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 then
+		Control.CastSpell(HKITEM[King], target.pos)
+		end
+		local YG = items[3142]
+		if YG and myHero:GetSpellData(YG).currentCd == 0 and PussyIrelia.Activator.I.YG:Value() and myHero.pos:DistanceTo(target.pos) < 1575 then
+		Control.CastSpell(HKITEM[YG])
+		end
+	end
+		
+	if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal"
 	or myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" then
 		if PussyIrelia.Activator.S.Heal:Value() and target then
 			if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and Ready(SUMMONER_1) and PercentHP(myHero) < PussyIrelia.Activator.S.HealHP:Value() then
@@ -478,36 +577,38 @@ function Activator2()
 			end
 		end
 	end
+	
+	if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust"
+	or myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
+		if PussyIrelia.Activator.S.Exhaust:Value() and target then
+			if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" and Ready(SUMMONER_1) and PercentHP(target) < PussyIrelia.Activator.S.EnemyHP:Value() then
+				Control.CastSpell(HK_SUMMONER_1)
+			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and Ready(SUMMONER_2) and PercentHP(target) < PussyIrelia.Activator.S.EnemyHP:Value() then
+				Control.CastSpell(HK_SUMMONER_2)
+			end
+		end
+	end	
 
 
 
-		if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot"
-		or myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-			if PussyIrelia.Activator.S.Ignite:Value() then
-				local IgDamage = IGdmg(target)
-				if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) and IgDamage > target.health
-				and myHero.pos:DistanceTo(target.pos) < 600 then
-					Control.CastSpell(HK_SUMMONER_1, target)
-				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) and IgDamage > target.health
-				and myHero.pos:DistanceTo(target.pos) < 600 then
-					Control.CastSpell(HK_SUMMONER_2, target)
-				end
+	if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot"
+	or myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
+		if PussyIrelia.Activator.S.Ignite:Value() then
+			local IgDamage = IGdmg(target)
+			if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) and IgDamage > target.health
+			and myHero.pos:DistanceTo(target.pos) < 600 then
+				Control.CastSpell(HK_SUMMONER_1, target)
+			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) and IgDamage > target.health
+			and myHero.pos:DistanceTo(target.pos) < 600 then
+				Control.CastSpell(HK_SUMMONER_2, target)
 			end
 		end
 	end
-
+end	
 
 function Drawings()
     if myHero.dead then return end
 	if PussyIrelia.Draw.Q:Value() and Ready(_Q) then Draw.Circle(myHero.pos, Q.range, 1,  Draw.Color(255, 000, 222, 255)) end
 	if PussyIrelia.Draw.E:Value() and Ready(_E) then Draw.Circle(myHero.pos, E.range, 1,  Draw.Color(255, 000, 150, 255)) end
     if PussyIrelia.Draw.R:Value() and Ready(_R) then Draw.Circle(myHero.pos, R.range, 1,  Draw.Color(255, 000, 043, 255)) end
-	if PussyIrelia.Draw.C:Value() then
-		local textPos = myHero.pos:To2D()
-		if PussyIrelia.Clear.Key:Value() then
-			Draw.Text("CLEAR ENABLED", 20, textPos.x - 57, textPos.y + 40, Draw.Color(255, 000, 255, 000)) 
-		else
-			Draw.Text("CLEAR DISABLED", 20, textPos.x - 57, textPos.y + 40, Draw.Color(255, 225, 000, 000)) 
-		end
 	end
-end
