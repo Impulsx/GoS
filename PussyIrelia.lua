@@ -250,7 +250,7 @@ PussyIrelia:MenuElement({type = MENU, id = "Activator", name = "Activator"})
 	PussyIrelia.Activator.I:MenuElement({id = "Tiamat", name = "Hydra / Tiamat", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3077.png","http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3074.png"})
 	PussyIrelia.Activator.I:MenuElement({id = "YG", name = "Youmuu's Ghostblade", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3153.png"})	
 	PussyIrelia.Activator.I:MenuElement({id = "King", name = "Blade of the Ruined King", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3142.png"})
-	PuusyIrelia.Activator.I:MenuElement({id = "RO", name = "Randuin's Omen", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3143.png"})
+	PussyIrelia.Activator.I:MenuElement({id = "RO", name = "Randuin's Omen", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3143.png"})
 	
 	PussyIrelia.Activator:MenuElement({type = MENU, id = "S", name = "Summoner Spells"})
 		if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal"
