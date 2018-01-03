@@ -63,10 +63,10 @@ local function IsValidTarget(target, range)
 	return target ~= nil and target.valid and target.visible and not target.dead and target.distance <= range and IsImmune(target) == false
 end
 
-local Q = {range = 650, speed = 2200, delay = 0.79}
-local W = {speed = 347, delay = 0.30}
-local E = {range = 325, speed = 20, delay = 0.75}
-local R = {range = 1000, speed = 779, delay = 0.75}
+local Q = {range = 650, speed = 2200, delay = 0.79, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaGatotsu.png"}
+local W = {speed = 347, delay = 0.30, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaHitenStyle.png"}
+local E = {range = 325, speed = 20, delay = 0.75, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaEquilibriumStrike.png"}
+local R = {range = 1000, speed = 779, delay = 0.75, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaTranscendentBlades.png"}
 
 local HKITEM = {
 	[ITEM_1] = HK_ITEM_1,
@@ -80,22 +80,14 @@ local HKITEM = {
 
 local function Qdmg(target)
     if Ready(_Q) then
-        return CalcPhysicalDamage(myHero,target,(20 + 30 * myHero:GetSpellData(_Q).level) + 1.2 * myHero.totalDamage)
+        return CalcPhysicalDamage(myHero,target,(20 + 30 * myHero:GetSpellData(_Q).level + 1.2 * myHero.totalDamage))
     end
     return 0
 end
-
-local function Qdmg(minion)
-    if Ready(_Q) then
-        return CalcPhysicalDamage(myHero,minion,(10 + 30 * myHero:GetSpellData(_Q).level) + 1.2 * myHero.totalDamage)
-    end
-    return 0
-end
-
 
 local function Rdmg(target)
     if Ready(_R) then
-        return CalcPhysicalDamage(myHero,target,(80 + 40 * myHero:GetSpellData(_R).level) + 0.7 * myHero.totalDamage + 0.5 * myHero.ap)
+        return CalcPhysicalDamage(myHero,target,(80 + 40 * myHero:GetSpellData(_R).level + 0.7 * myHero.totalDamage + 0.5 * myHero.ap))
     end
     return 0
 end
@@ -217,66 +209,66 @@ function IsUnderTurret(unit)
     return false
 end
 
-local PussyIrelia = MenuElement({type = MENU, id = "PussyIrelia", name = "PussyIrelia"})
+local PussyIrelia = MenuElement({type = MENU, id = "PussyIrelia", name = "PussyIrelia", leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/Woman.jpg"})
 
 PussyIrelia:MenuElement({id = "Combo", name = "Combo", type = MENU})
-	PussyIrelia.Combo:MenuElement({id = "Q", name = "Q - Bladesurge", value = true})
-	PussyIrelia.Combo:MenuElement({id = "W", name = "W - Hiten Style", value = true})
-	PussyIrelia.Combo:MenuElement({id = "E", name = "E - Equilibrium Strike", value = true})
-	PussyIrelia.Combo:MenuElement({id = "R", name = "R - Transcendent Blades", value = true})
+	PussyIrelia.Combo:MenuElement({id = "Q", name = "Q", value = true, leftIcon = Q.icon})
+	PussyIrelia.Combo:MenuElement({id = "W", name = "W", value = true, leftIcon = W.icon})
+	PussyIrelia.Combo:MenuElement({id = "E", name = "E", value = true, leftIcon = E.icon})
+	PussyIrelia.Combo:MenuElement({id = "R", name = "R", value = true, leftIcon = R.icon})
 
 PussyIrelia:MenuElement({id = "Harass", name = "Harass", type = MENU})
-    PussyIrelia.Harass:MenuElement({id = "Q", name = "Q - Bladesurge", value = true})
-    PussyIrelia.Harass:MenuElement({id = "W", name = "W - Hiten Style", value = true})
-	PussyIrelia.Harass:MenuElement({id = "E", name = "E - Equilibrium Strike", value = true})
+    PussyIrelia.Harass:MenuElement({id = "Q", name = "Q", value = true, leftIcon = Q.icon})
+    PussyIrelia.Harass:MenuElement({id = "W", name = "W", value = true, leftIcon = W.icon})
+	PussyIrelia.Harass:MenuElement({id = "E", name = "E-Only Stun", value = true, leftIcon = E.icon})
 
 PussyIrelia:MenuElement({id = "Clear", name = "Clear", type = MENU})
-    PussyIrelia.Clear:MenuElement({id = "Q", name = "Q - Bladesurge/only LastHit", value = true})
-    PussyIrelia.Clear:MenuElement({id = "W", name = "W - Hiten Style", value = true})
+    PussyIrelia.Clear:MenuElement({id = "Q", name = "Q-Only LastHit", value = true, leftIcon = Q.icon})
+    PussyIrelia.Clear:MenuElement({id = "W", name = "W", value = true, leftIcon = W.icon})
 	PussyIrelia.Clear:MenuElement({id = "MP", name = "Min mana", value = 35, min = 0, max = 100})
 	
-PussyIrelia:MenuElement({id = "JClear", name = "JungleClear", type = MENU})
-    PussyIrelia.JClear:MenuElement({id = "Q", name = "Q - Bladesurge", value = true})
-    PussyIrelia.JClear:MenuElement({id = "W", name = "W - Hiten Style", value = true})
-	PussyIrelia.JClear:MenuElement({id = "E", name = "E - Equilibrium Strike", value = true})
+PussyIrelia:MenuElement({id = "JClear", name = "JungleClear/Change JungleClear Key inside OrbW.", type = MENU})
+    PussyIrelia.JClear:MenuElement({id = "Q", name = "Q", value = true, leftIcon = Q.icon})
+    PussyIrelia.JClear:MenuElement({id = "W", name = "W", value = true, leftIcon = W.icon})
+	PussyIrelia.JClear:MenuElement({id = "E", name = "E", value = true, leftIcon = E.icon})
 	PussyIrelia.JClear:MenuElement({id = "MP", name = "Min mana", value = 35, min = 0, max = 100})	
 	
 PussyIrelia:MenuElement({id = "LastHit", name = "LastHit", type = MENU})
-    PussyIrelia.LastHit:MenuElement({id = "Q", name = "Q - Bladesurge", value = true})	
+    PussyIrelia.LastHit:MenuElement({id = "Q", name = "Q", value = true, leftIcon = Q.icon})	
 	PussyIrelia.LastHit:MenuElement({id = "MP", name = "Min mana", value = 35, min = 0, max = 100})
 
 PussyIrelia:MenuElement({id = "Killsteal", name = "Killsteal", type = MENU})
-    PussyIrelia.Killsteal:MenuElement({id = "Q", name = "Q - Bladesurge", value = true})
-    PussyIrelia.Killsteal:MenuElement({id = "R", name = "R - Transcendent Blades", value = true})
+    PussyIrelia.Killsteal:MenuElement({id = "Q", name = "Q", value = true, leftIcon = Q.icon})
+    PussyIrelia.Killsteal:MenuElement({id = "R", name = "R", value = true, leftIcon = R.icon})
 	
 PussyIrelia:MenuElement({type = MENU, id = "Activator", name = "Activator"})
 	PussyIrelia.Activator:MenuElement({type = MENU, id = "P", name = "Potions"})
-	PussyIrelia.Activator.P:MenuElement({id = "Pot", name = "All Potions", value = true})
+	PussyIrelia.Activator.P:MenuElement({id = "Pot", name = "All Potions", value = true, leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/836591686.jpg"})
 	PussyIrelia.Activator.P:MenuElement({id = "HP", name = "Health % to Potion", value = 60, min = 0, max = 100})
 	
 	PussyIrelia.Activator:MenuElement({type = MENU, id = "I", name = "Items"})
-	PussyIrelia.Activator.I:MenuElement({id = "Tiamat", name = "Hydra / Tiamat", value = true})
-	PussyIrelia.Activator.I:MenuElement({id = "YG", name = "Youmuu's Ghostblade", value = true})	
-	PussyIrelia.Activator.I:MenuElement({id = "King", name = "Blade of the Ruined King", value = true})
+	PussyIrelia.Activator.I:MenuElement({id = "Tiamat", name = "Hydra / Tiamat", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3077.png","http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3074.png"})
+	PussyIrelia.Activator.I:MenuElement({id = "YG", name = "Youmuu's Ghostblade", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3153.png"})	
+	PussyIrelia.Activator.I:MenuElement({id = "King", name = "Blade of the Ruined King", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3142.png"})
 	
 	PussyIrelia.Activator:MenuElement({type = MENU, id = "S", name = "Summoner Spells"})
 		if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal"
 		or myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" then
-			PussyIrelia.Activator.S:MenuElement({id = "Heal", name = "Heal", value = true})
+			PussyIrelia.Activator.S:MenuElement({id = "Heal", name = "Heal", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/spell/SummonerHeal.png"})
 			PussyIrelia.Activator.S:MenuElement({id = "HealHP", name = "HP Under %", value = 25, min = 0, max = 100})
 		end
 		if myHero:GetSpellData(SUMMONER_1).name == "SummonerBarrier"
 		or myHero:GetSpellData(SUMMONER_2).name == "SummonerBarrier" then
-			PussyIrelia.Activator.S:MenuElement({id = "Barrier", name = "Barrier", value = true})
+			PussyIrelia.Activator.S:MenuElement({id = "Barrier", name = "Barrier", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/spell/SummonerBarrier.png"})
 			PussyIrelia.Activator.S:MenuElement({id = "BarrierHP", name = "HP Under %", value = 25, min = 0, max = 100})
 		end
 		if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot"
 		or myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-			PussyIrelia.Activator.S:MenuElement({id = "Ignite", name = "Combo Ignite", value = true})
+			PussyIrelia.Activator.S:MenuElement({id = "Ignite", name = "Combo Ignite", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/spell/SummonerDot.png"})
 		end
 		if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust"
 		or myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-			PussyIrelia.Activator.S:MenuElement({id = "Exhaust", name = "Combo Exhaust", value = true})
+			PussyIrelia.Activator.S:MenuElement({id = "Exhaust", name = "Combo Exhaust", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/spell/SummonerExhaust.png"})
 			PussyIrelia.Activator.S:MenuElement({id = "EnemyHP", name = "EnemyHP Under %", value = 25, min = 0, max = 100})
 		end
 
@@ -436,32 +428,37 @@ end
 function Harass()
 	local target = GetTarget(Q.range)
 	if target == nil then return end
-    
-		if IsValidTarget(target,W.range) and PussyIrelia.Combo.W:Value() and Ready(_W) then
+		if IsValidTarget(target,W.range) and PussyIrelia.Harass.W:Value() and Ready(_W) then
 			Control.CastSpell(HK_W)
 		
 		end
-		if IsValidTarget(target,Q.range) and PussyIrelia.Combo.Q:Value() and Ready(_Q) then
+		if IsValidTarget(target,Q.range) and PussyIrelia.Harass.Q:Value() and Ready(_Q) then 
 			Control.CastSpell(HK_Q, target)
-		
 		end
-		if IsValidTarget(target,E.range) and PussyIrelia.Combo.E:Value() and Ready(_E) then
+			local function PercentHP(source)
+			local source = source or myHero
+			return 100 * source.health / source.maxHealth
+			end
+		if IsValidTarget(target,E.range) and PussyIrelia.Harass.E:Value() and Ready(_E) and PercentHP(target) > PercentHP() then
 			Control.CastSpell(HK_E, target)
-		
+			
 		end
-end
+	end
+	
+	
+	
 
 function Lane()
 	if PercentMP(myHero) < PussyIrelia.Clear.MP:Value() then return end
 	for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
-        if minion then
-			if minion.team == 300 - myHero.team then
+			local minion = Game.Minion(i)
+			if minion.team == 300 - myHero.team and not minion.dead then
                 if IsValidTarget(minion,W.range) and PussyIrelia.Clear.W:Value() and Ready(_W) then
-                    Control.CastSpell(HK_W)
+					Control.CastSpell(HK_W)
+					
 				end
 			end
-			if minion.team == 300 - myHero.team then
+			if minion.team == 300 - myHero.team and not minion.dead then
 				if IsValidTarget(minion,Q.range) and PussyIrelia.Clear.Q:Value() and Ready(_Q) and Qdmg(minion) > minion.health then
 					Control.CastSpell(HK_Q, minion)
 				
@@ -469,7 +466,6 @@ function Lane()
 			end
 		end
 	end
-end
 
 function JungleClear()
 	if PercentMP(myHero) < PussyIrelia.JClear.MP:Value() then return end
@@ -480,29 +476,39 @@ function JungleClear()
 				Control.CastSpell(HK_Q)
 			
 			end
-			if minion.team == 300 - myHero.team then
+			if minion then
 				if IsValidTarget(minion,W.range) and PussyIrelia.JClear.W:Value() and Ready(_W) then
 					Control.CastSpell(HK_W)
 				end
 			end
-			if IsValidTarget(minion,E.range) and PussyIrelia.JClear.E:Value() and Ready(_E) then
-				Control.CastSpell(HK_E)
-				
+			if minion then
+				if IsValidTarget(minion,E.range) and PussyIrelia.JClear.E:Value() and Ready(_E) then
+					Control.CastSpell(HK_E)
+				end
 			end
 		end
 	end
+end
+
+local function HpPred(unit, delay)
+    if _G.GOS then
+    hp =  GOS:HP_Pred(unit,delay)
+    else
+    hp = unit.health
+    end
+    return hp
 end
 
 function LastHit()
 	if PercentMP(myHero) < PussyIrelia.LastHit.MP:Value() then return end
 	for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
-        if minion then
-			if minion.team == 300 - myHero.team then
-				if IsValidTarget(minion,Q.range) and PussyIrelia.LastHit.Q:Value() and Ready(_Q) and Qdmg(minion) > minion.health then
-					Control.CastSpell(HK_Q, minion)
+		local HpPred = minion.health
+		if minion.team == 300 - myHero.team and not minion.dead then
+			if IsValidTarget(minion,Q.range) and PussyIrelia.LastHit.Q:Value() and Ready(_Q) and Qdmg(minion) > minion.health then
+				Control.CastSpell(HK_Q, minion)
 				
-				end
+				
 			end
 		end
 	end
@@ -526,7 +532,7 @@ function Killsteal()
 		end 
     end
 end
-	
+
 
 function Activator()
 	local target = GetTarget(1575)
