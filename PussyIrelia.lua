@@ -465,13 +465,13 @@ function Lane()
 	if PercentMP(myHero) < PussyIrelia.Clear.MP:Value() then return end
 	for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
-		if minion.team == 200 and not minion.dead then
+		if minion and minion.team == 200 and not minion.dead then
 			if IsValidTarget(minion,W.range) and PussyIrelia.Clear.W:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 350 then
 				Control.CastSpell(HK_W)
 					
 			end
 		end
-		if minion.team == 200 and not minion.dead then
+		if minion and minion.team == 200 and not minion.dead then
 			if IsValidTarget(minion,Q.range) and PussyIrelia.LastHit.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 then
 				if Qdmg(minion) >= minion.health then
 					Control.CastSpell(HK_Q, minion)
@@ -485,7 +485,7 @@ function JungleClear()
 	if PercentMP(myHero) < PussyIrelia.JClear.MP:Value() then return end
 	for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
-        if minion.team == 300 and not minion.dead then
+        if minion and minion.team == 300 and not minion.dead then
 			if IsValidTarget(minion,Q.range) and PussyIrelia.JClear.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 then
 				Control.CastSpell(HK_Q)
 			
@@ -511,7 +511,7 @@ function LastHit()
     local level = myHero:GetSpellData(_Q).level
 		for i = 1, Game.MinionCount() do
         local minion = Game.Minion(i)
-        if  minion.team == 200 and not minion.dead then
+        if minion and minion.team == 200 and not minion.dead then
 			if IsValidTarget(minion,Q.range) and PussyIrelia.LastHit.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 then
                 if Qdmg(minion) >= minion.health then
                     Control.CastSpell(HK_Q, minion)
