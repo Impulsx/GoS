@@ -85,7 +85,7 @@ local function Qdmg(target)
     return 0
 end
 
-
+--calc.Rdmg only for KS
 local function Rdmg(target)
     if Ready(_R) then
         return CalcPhysicalDamage(myHero,target,(4 *(40 + 40 * myHero:GetSpellData(_R).level + 0.7 * myHero.bonusDamage + 0.5 * myHero.ap)))
