@@ -1,5 +1,8 @@
 if myHero.charName ~= "Irelia" then return end
 
+if FileExist(COMMON_PATH .. "RomanovPred.lua") then
+    require 'RomanovPred'
+end
 require "DamageLib"
 
 
@@ -64,7 +67,7 @@ local function IsValidTarget(target, range)
 end
 
 local Q = {range = 650, speed = 2200, delay = 0.79, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaGatotsu.png"}
-local W = {speed = 347, delay = 0.30, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaHitenStyle.png"}
+local W = {speed = 400, delay = 0.30, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaHitenStyle.png"}
 local E = {range = 325, speed = 20, delay = 0.75, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaEquilibriumStrike.png"}
 local R = {range = 1000, speed = 779, delay = 0.75, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaTranscendentBlades.png"}
 
@@ -140,6 +143,8 @@ local function NoPotion()
 	end
 	return true
 end
+
+
 
 local function GetMode()
 	if _G.EOWLoaded then
@@ -406,11 +411,25 @@ local ticker = GetTickCount()
 	end
 end
 
+function QCast(HK_Q,Q,target,myHero)
+    local pred = RomanovPredPos(myHero,target,Q.speed,Q.delay,Q.width)
+    if RomanovHitchance(myHero,target,Q.speed,Q.delay,Q.range,Q.width) >= 3 then
+        Control.CastSpell(HK_Q, pred)
+    end
+end
+
+function QCast(HK_R,R,target,myHero)
+    local pred = RomanovPredPos(myHero,target,R.speed,R.delay,R.width)
+    if RomanovHitchance(myHero,target,R.speed,R.delay,R.range,R.width) >= 2 then
+        Control.CastSpell(HK_R, pred)
+    end
+end
+
 
 function Combo()
     local target = GetTarget(R.range)
 	if target == nil then return end
-		if IsValidTarget(target,W.range) and PussyIrelia.Combo.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 350 then
+		if IsValidTarget(target,W.range) and PussyIrelia.Combo.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 4000 then
 			Control.CastSpell(HK_W)
 		
 		end
@@ -422,8 +441,8 @@ function Combo()
 			Control.CastSpell(HK_E, target)
 		
 		end
-		if IsValidTarget(target,R.range) and PussyIrelia.Combo.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 1400 then
-			Control.CastSpell(HK_R, target)
+		if IsValidTarget(target,R.range) and PussyIrelia.Combo.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 1000 then
+			Control.CastSpell(HK_R, target, pred)
 		end
 	end
 end
@@ -432,7 +451,7 @@ end
 function Harass()
 	local target = GetTarget(Q.range)
 	if target == nil then return end
-		if IsValidTarget(target,W.range) and PussyIrelia.Harass.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 350 then
+		if IsValidTarget(target,W.range) and PussyIrelia.Harass.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 400 then
 			Control.CastSpell(HK_W)
 		end
 		if IsValidTarget(target,Q.range) and PussyIrelia.Harass.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 650 then
@@ -467,7 +486,7 @@ function Lane()
 		local minion = Game.Minion(i)
 		if minion then
 			if minion.team == 300 - myHero.team then
-				if IsValidTarget(minion,W.range) and PussyIrelia.Clear.W:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 350 then
+				if IsValidTarget(minion,W.range) and PussyIrelia.Clear.W:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 400 then
 					Control.CastSpell(HK_W)
 					
 				end
@@ -477,7 +496,7 @@ function Lane()
 			if minion.team == 300 - myHero.team then
 				if IsValidTarget(minion,Q.range) and PussyIrelia.LastHit.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 then
 					if Qdmg(minion) >= minion.health then
-						Control.CastSpell(HK_Q, minion)
+						Control.CastSpell(HK_Q, minion, pred)
 					end
 				end
 			end
@@ -495,7 +514,7 @@ function JungleClear()
 			
 			end
 			if minion then
-				if IsValidTarget(minion,W.range) and PussyIrelia.JClear.W:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 350 then
+				if IsValidTarget(minion,W.range) and PussyIrelia.JClear.W:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 400 then
 					Control.CastSpell(HK_W)
 				end
 			end
@@ -512,15 +531,14 @@ end
 
 function LastHit()
     if PercentMP(myHero) < PussyIrelia.LastHit.MP:Value() then return end
-    local level = myHero:GetSpellData(_Q).level
-		for i = 1, Game.MinionCount() do
-        local minion = Game.Minion(i)
-        if minion then
+	for i = 1, Game.MinionCount() do
+	local minion = Game.Minion(i)
+	local level = myHero:GetSpellData(_Q).level
+		if minion then
 			if minion.team == 300 - myHero.team then
 				if IsValidTarget(minion,Q.range) and PussyIrelia.LastHit.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 then
 					if Qdmg(minion) >= minion.health then
-						Control.CastSpell(HK_Q, minion)
-						
+						Control.CastSpell(HK_Q, minion, pred)
 					end
 				end
 			end
@@ -528,7 +546,10 @@ function LastHit()
 	end
 end	
 	
-function Killsteal()
+	
+	
+
+	function Killsteal()
 	local target = GetTarget(Q.range)
 	if target == nil then return end
 	if PussyIrelia.Killsteal.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 650 then
@@ -537,9 +558,9 @@ function Killsteal()
 		end
 	end		
 	if target == nil then return end	
-	if PussyIrelia.Killsteal.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 1400 then
+	if PussyIrelia.Killsteal.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 1000 then
 		if Rdmg(target) > target.health then
-			Control.CastSpell(HK_R, target)
+			Control.CastSpell(HK_R, target, pred)
 		end
 	end
 end	
