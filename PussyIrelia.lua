@@ -418,7 +418,7 @@ function QCast(HK_Q,Q,target,myHero)
     end
 end
 
-function QCast(HK_R,R,target,myHero)
+function RCast(HK_R,R,target,myHero)
     local pred = RomanovPredPos(myHero,target,R.speed,R.delay,R.width)
     if RomanovHitchance(myHero,target,R.speed,R.delay,R.range,R.width) >= 2 then
         Control.CastSpell(HK_R, pred)
