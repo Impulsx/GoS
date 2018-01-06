@@ -442,7 +442,7 @@ function Combo()
 		
 		end
 		if IsValidTarget(target,R.range) and PussyIrelia.Combo.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 1000 then
-			Control.CastSpell(HK_R, target, pred)
+			Control.CastSpell(HK_R, target)
 		end
 	end
 end
@@ -496,7 +496,7 @@ function Lane()
 			if minion.team == 300 - myHero.team then
 				if IsValidTarget(minion,Q.range) and PussyIrelia.LastHit.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 then
 					if Qdmg(minion) >= minion.health then
-						Control.CastSpell(HK_Q, minion, pred)
+						Control.CastSpell(HK_Q, minion)
 					end
 				end
 			end
@@ -538,7 +538,7 @@ function LastHit()
 			if minion.team == 300 - myHero.team then
 				if IsValidTarget(minion,Q.range) and PussyIrelia.LastHit.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 then
 					if Qdmg(minion) >= minion.health then
-						Control.CastSpell(HK_Q, minion, pred)
+						Control.CastSpell(HK_Q, minion)
 					end
 				end
 			end
@@ -560,7 +560,7 @@ end
 	if target == nil then return end	
 	if PussyIrelia.Killsteal.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 1000 then
 		if Rdmg(target) > target.health then
-			Control.CastSpell(HK_R, target, pred)
+			Control.CastSpell(HK_R, target)
 		end
 	end
 end	
