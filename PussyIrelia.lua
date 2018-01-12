@@ -1,6 +1,6 @@
 if myHero.charName ~= "Irelia" then return end
 
-
+--Version 120118--
 
 require "DamageLib"
 require "2DGeometry"
