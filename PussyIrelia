@@ -1,8 +1,7 @@
 if myHero.charName ~= "Irelia" then return end
 
-if FileExist(COMMON_PATH .. "RomanovPred.lua") then
-    require "RomanovPred"
-end
+--Version 120118--
+
 require "DamageLib"
 require "2DGeometry"
 require "MapPositionGOS"
@@ -13,6 +12,10 @@ local function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0
 end
 
+local function PercentHP(unit)
+    return 100 * unit.health / unit.maxHealth
+end
+
 local function PercentHP(target)
     return 100 * target.health / target.maxHealth
 end
@@ -21,35 +24,20 @@ local function PercentMP(target)
     return 100 * target.mana / target.maxMana
 end
 
-local function OnScreen(unit)
-	return unit.pos:To2D().onScreen;
+local function IsImmune(unit)
+    for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+        if (buff.name == "KindredRNoDeathBuff" or buff.name == "UndyingRage") and PercentHP(unit) <= 10 then
+            return true
+        end
+        if buff.name == "VladimirSanguinePool" or buff.name == "JudicatorIntervention" then 
+            return true
+        end
+    end
+    return false
 end
 
-local function MinionsAround(range, pos, team)
-    local pos = pos or myHero.pos
-    local team = team or 300 - myHero.team
-    local Count = 0
-	for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
-		if minion and minion.team == team and not minion.dead and pos:DistanceTo(minion.pos) <= range then
-			Count = Count + 1
-		end
-	end
-	return Count
-end
-
-local function HeroesAround(range, pos, team)
-    local pos = pos or myHero.pos
-    local team = team or 300 - myHero.team
-    local Count = 0
-	for i = 1, Game.HeroCount() do
-		local hero = Game.Hero(i)
-		if hero and hero.team == team and not hero.dead and hero.pos:DistanceTo(pos, hero.pos) < range then
-			Count = Count + 1
-		end
-	end
-	return Count
-end
+local sqrt = math.sqrt
 
 local function GetDistanceSqr(p1, p2)
     local dx = p1.x - p2.x
@@ -57,47 +45,12 @@ local function GetDistanceSqr(p1, p2)
     return (dx * dx + dz * dz)
 end
 
+local function GetDistance(p1, p2)
+    return p1:DistanceTo(p2)
+end
 
 local function GetDistance2D(p1,p2)
     return sqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y))
-end
-
-local function GetTarget(range)
-	local target = nil
-	if _G.EOWLoaded then
-		target = EOW:GetTarget(range)
-	elseif _G.SDK and _G.SDK.Orbwalker then
-		target = _G.SDK.TargetSelector:GetTarget(range)
-	else
-		target = GOS:GetTarget(range)
-	end
-	return target
-end
-
-
-local Q = {range = 650, speed = 2200, delay = 0.79, width = myHero:GetSpellData(_Q).width, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaGatotsu.png"}
-local W = {range = myHero:GetSpellData(_W).range, speed = 400, delay = 0.30,  width = myHero:GetSpellData(_W).width, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaHitenStyle.png"}
-local E = {range = 325, speed = 20, delay = 0.75, width = myHero:GetSpellData(_E).width, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaEquilibriumStrike.png"}
-local R = {range = 1000, speed = 779, delay = 0.75, width = myHero:GetSpellData(_R).width, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaTranscendentBlades.png"}
-
-local HKITEM = {
-	[ITEM_1] = HK_ITEM_1,
-	[ITEM_2] = HK_ITEM_2,
-	[ITEM_3] = HK_ITEM_3,
-	[ITEM_4] = HK_ITEM_4,
-	[ITEM_5] = HK_ITEM_5,
-	[ITEM_6] = HK_ITEM_6,
-	[ITEM_7] = HK_ITEM_7,
-}
-
-local function HasBuff(unit, buffname)
-	for i = 0, unit.buffCount do
-		local buff = unit:GetBuff(i)
-		if buff.name == buffname and buff.count > 0 then 
-			return true
-		end
-	end
-	return false
 end
 
 local function IsImmobileTarget(unit)
@@ -110,7 +63,25 @@ local function IsImmobileTarget(unit)
 	return false	
 end
 
---KS calc.
+local function IsValidTarget(target, range)
+	range = range and range or math.huge
+	return target ~= nil and target.valid and target.visible and not target.dead and target.distance <= range and IsImmune(target) == false
+end
+
+local Q = {range = 650, speed = 2200, delay = 0.79, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaGatotsu.png"}
+local W = {speed = 400, delay = 0.30, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaHitenStyle.png"}
+local E = {range = 325, speed = 20, delay = 0.75, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaEquilibriumStrike.png"}
+local R = {range = 1000, speed = 779, delay = 0.75, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaTranscendentBlades.png"}
+
+local HKITEM = {
+	[ITEM_1] = HK_ITEM_1,
+	[ITEM_2] = HK_ITEM_2,
+	[ITEM_3] = HK_ITEM_3,
+	[ITEM_4] = HK_ITEM_4,
+	[ITEM_5] = HK_ITEM_5,
+	[ITEM_6] = HK_ITEM_6,
+	[ITEM_7] = HK_ITEM_7,
+}
 
 local function Qdmg(target)
 	if Ready(_Q) then	
@@ -119,26 +90,51 @@ local function Qdmg(target)
     return 0
 end
 
+--calc.Rdmg only for KS
 local function Rdmg(target)
     if Ready(_R) then
-        return CalcPhysicalDamage(myHero,target,({320, 480, 640})[myHero:GetSpellData(_R).level] + 28.0 * myHero.bonusDamage + 20.0 * myHero.ap)
+        return CalcPhysicalDamage(myHero,target,(4 *(40 + 40 * myHero:GetSpellData(_R).level + 0.7 * myHero.bonusDamage + 0.5 * myHero.ap)))
     end
     return 0
 end
 
 local function IGdmg(target)
-	if Ready(SUMMONER_1) and Ready(SUMMONER_2) then	
-		return 50 + 20 * myHero.levelData.lvl - (target.hpRegen*3)
-	end
-	return 0
+    return 50 + 20 * myHero.levelData.lvl - (target.hpRegen*3)
 end
 
-local function KSdmg(target)
-	return Qdmg(target) + Rdmg(target) + IGdmg(target)
-end	
+local function HeroesAround(pos, range, team)
+	local Count = 0
+	for i = 1, Game.HeroCount() do
+		local minion = Game.Hero(i)
+		if minion and minion.team == team and not minion.dead and pos:DistanceTo(minion.pos) <= range then
+			Count = Count + 1
+		end
+	end
+	return Count
+end
 
+local function MinionsAround(pos, range, team)
+	local Count = 0
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
+		if minion and minion.team == team and not minion.dead and pos:DistanceTo(minion.pos) <= range then
+			Count = Count + 1
+		end
+	end
+	return Count
+end
 
---KS calc.end
+local function GetTarget(range)
+	local target = nil 
+	if _G.EOWLoaded then
+		target = EOW:GetTarget(range)
+	elseif _G.SDK and _G.SDK.Orbwalker then 
+		target = _G.SDK.TargetSelector:GetTarget(range)
+	else
+		target = _G.GOS:GetTarget(range)
+	end
+	return target
+end
 
 local function NoPotion()
 	for i = 0, myHero.buffCount do 
@@ -195,6 +191,18 @@ local function EnableOrb(bool)
 	end
 end
 
+local abs = math.abs 
+local deg = math.deg 
+local acos = math.acos
+function IsFacing(target)
+    local V = Vector((target.pos - myHero.pos))
+    local D = Vector(target.dir)
+    local Angle = 180 - deg(acos(V*D/(V:Len()*D:Len())))
+    if abs(Angle) < 80 then 
+        return true  
+    end
+    return false
+end
 
 function IsUnderTurret(unit)
     for i = 1, Game.TurretCount() do
@@ -240,7 +248,6 @@ PussyIrelia:MenuElement({id = "LastHit", name = "LastHit", type = MENU})
 PussyIrelia:MenuElement({id = "Killsteal", name = "Killsteal", type = MENU})
     PussyIrelia.Killsteal:MenuElement({id = "Q", name = "Q", value = true, leftIcon = Q.icon})
     PussyIrelia.Killsteal:MenuElement({id = "R", name = "R", value = true, leftIcon = R.icon})
-	PussyIrelia.Killsteal:MenuElement({id = "QRIGKS", name = "Q,R,IgniteKS", value = true})
 	
 PussyIrelia:MenuElement({id = "AutoStun", name = "AutoStun E", type = MENU})
     PussyIrelia.AutoStun:MenuElement({id = "E", name = "E", value = true, leftIcon = E.icon})	
@@ -303,55 +310,146 @@ function Tick()
 	AutoStun()
 end
 
-function QCast(HK_Q,Q,target,myHero)
-    local pred = RomanovPredPos(myHero,target,Q.speed,Q.delay,Q.width)
-    if RomanovHitchance(myHero,target,Q.speed,Q.delay,Q.range,Q.width) >= 2 then
-        Control.CastSpell(HK_Q, pred)
-    end
+local _EnemyHeroes
+local function GetEnemyHeroes()
+	if _EnemyHeroes then return _EnemyHeroes end
+	_EnemyHeroes = {}
+	for i = 1, Game.HeroCount() do
+		local unit = Game.Hero(i)
+		if unit.isEnemy then
+			table.insert(_EnemyHeroes, unit)
+		end
+	end
+	return _EnemyHeroes
 end
 
-function RCast(HK_R,R,target,myHero)
-    local pred = RomanovPredPos(myHero,target,R.speed,R.delay,R.width)
-    if RomanovHitchance(myHero,target,R.speed,R.delay,R.range,R.width) >= 2 then
-        Control.CastSpell(HK_R, pred)
-    end
+local _OnVision = {}
+function OnVision(unit)
+	if _OnVision[unit.networkID] == nil then _OnVision[unit.networkID] = {state = unit.visible , tick = GetTickCount(), pos = unit.pos} end
+	if _OnVision[unit.networkID].state == true and not unit.visible then _OnVision[unit.networkID].state = false _OnVision[unit.networkID].tick = GetTickCount() end
+	if _OnVision[unit.networkID].state == false and unit.visible then _OnVision[unit.networkID].state = true _OnVision[unit.networkID].tick = GetTickCount() end
+	return _OnVision[unit.networkID]
 end
+Callback.Add("Tick", function() OnVisionF() end)
+local visionTick = GetTickCount()
+function OnVisionF()
+	if GetTickCount() - visionTick > 100 then
+		for i,v in pairs(GetEnemyHeroes()) do
+			OnVision(v)
+		
+	end
+end
+
+local _OnWaypoint = {}
+function OnWaypoint(unit)
+	if _OnWaypoint[unit.networkID] == nil then _OnWaypoint[unit.networkID] = {pos = unit.posTo , speed = unit.ms, time = Game.Timer()} end
+	if _OnWaypoint[unit.networkID].pos ~= unit.posTo then 
+		-- print("OnWayPoint:"..unit.charName.." | "..math.floor(Game.Timer()))
+		_OnWaypoint[unit.networkID] = {startPos = unit.pos, pos = unit.posTo , speed = unit.ms, time = Game.Timer()}
+			DelayAction(function()
+				local time = (Game.Timer() - _OnWaypoint[unit.networkID].time)
+				local speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(Game.Timer() - _OnWaypoint[unit.networkID].time)
+				if speed > 1250 and time > 0 and unit.posTo == _OnWaypoint[unit.networkID].pos and GetDistance(unit.pos,_OnWaypoint[unit.networkID].pos) > 200 then
+					_OnWaypoint[unit.networkID].speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(Game.Timer() - _OnWaypoint[unit.networkID].time)
+					-- print("OnDash: "..unit.charName)
+				end
+			end,0.05)
+	end
+	return _OnWaypoint[unit.networkID]
+end
+
+local function GetPred(unit,speed,delay,sourcePos)
+	local speed = speed or math.huge
+	local delay = delay or 0.25
+	local sourcePos = sourcePos or myHero.pos
+	local unitSpeed = unit.ms
+	if OnWaypoint(unit).speed > unitSpeed then unitSpeed = OnWaypoint(unit).speed end
+	if OnVision(unit).state == false then
+		local unitPos = unit.pos + Vector(unit.pos,unit.posTo):Normalized() * ((GetTickCount() - OnVision(unit).tick)/1000 * unitSpeed)
+		local predPos = unitPos + Vector(unit.pos,unit.posTo):Normalized() * (unitSpeed * (delay + (GetDistance(sourcePos,unitPos)/speed)))
+		if GetDistance(unit.pos,predPos) > GetDistance(unit.pos,unit.posTo) then predPos = unit.posTo end
+		return predPos
+	else
+		if unitSpeed > unit.ms then
+			local predPos = unit.pos + Vector(OnWaypoint(unit).startPos,unit.posTo):Normalized() * (unitSpeed * (delay + (GetDistance(sourcePos,unit.pos)/speed)))
+			if GetDistance(unit.pos,predPos) > GetDistance(unit.pos,unit.posTo) then predPos = unit.posTo end
+			return predPos
+		elseif IsImmobileTarget(unit) then
+			return unit.pos
+		else
+			return unit:GetPrediction(speed,delay)
+		end
+	end
+end
+
+local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
+local function CastSpell(spell,pos,range,delay)
+local range = range or math.huge
+local delay = delay or 250
+local ticker = GetTickCount()
+
+	if castSpell.state == 0 and GetDistance(myHero.pos,pos) < range and ticker - castSpell.casting > delay + Game.Latency() and pos:ToScreen().onScreen then
+		castSpell.state = 1
+		castSpell.mouse = mousePos
+		castSpell.tick = ticker
+	end
+	if castSpell.state == 1 then
+		if ticker - castSpell.tick < Game.Latency() then
+			Control.SetCursorPos(pos)
+			Control.KeyDown(spell)
+			Control.KeyUp(spell)
+			castSpell.casting = ticker + delay
+			DelayAction(function()
+				if castSpell.state == 1 then
+					Control.SetCursorPos(castSpell.mouse)
+					castSpell.state = 0
+				end
+			end,Game.Latency()/1000)
+		end
+		if ticker - castSpell.casting > Game.Latency() then
+			Control.SetCursorPos(castSpell.mouse)
+			castSpell.state = 0
+		end
+	end
+end
+
 
 
 function Combo()
     local target = GetTarget(R.range)
 	if target == nil then return end
-		if PussyIrelia.Combo.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 400 then
+		if IsValidTarget(target,W.range) and PussyIrelia.Combo.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 4000 then
 			Control.CastSpell(HK_W)
 		
 		end
-		if PussyIrelia.Combo.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 650 then
+		if IsValidTarget(target,Q.range) and PussyIrelia.Combo.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 650 then
 			Control.CastSpell(HK_Q, target)
 		
 		end
-		if PussyIrelia.Combo.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 325 then
+		if IsValidTarget(target,E.range) and PussyIrelia.Combo.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 325 then
 			Control.CastSpell(HK_E, target)
 		
 		end
-		local pred = target:GetPrediction(R.speed,R.delay,R.width)
-		if PussyIrelia.Combo.R:Value() and Ready(_R) and 
-		GetDistance(pred) < Q.range then	
-			Control.CastSpell(HK_R, pred)
+		if IsValidTarget(target,R.range) and PussyIrelia.Combo.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 1000 then
+			Control.CastSpell(HK_R, target)
+		
 		end
 	end
-
+end
+				
+					
 
 
 function Harass()
 	local target = GetTarget(Q.range)
 	if target == nil then return end
-		if PussyIrelia.Harass.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 400 then
+		if IsValidTarget(target,W.range) and PussyIrelia.Harass.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 400 then
 			Control.CastSpell(HK_W)
 		end
-		if PussyIrelia.Harass.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 650 then
+		if IsValidTarget(target,Q.range) and PussyIrelia.Harass.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 650 then
 			Control.CastSpell(HK_Q, target)
 		end
-		if PussyIrelia.Harass.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 325 then
+		if IsValidTarget(target,E.range) and PussyIrelia.Harass.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 325 then
 			Control.CastSpell(HK_E, target)
 			
 		end
@@ -366,7 +464,7 @@ function AutoStun()
 	local source = source or myHero
 	return 100 * source.health / source.maxHealth
 	end
-	if PussyIrelia.AutoStun.E:Value() and Ready(_E) and PercentHP(target) > PercentHP() and myHero.pos:DistanceTo(target.pos) < 325 then
+	if IsValidTarget(target,E.range) and PussyIrelia.AutoStun.E:Value() and Ready(_E) and PercentHP(target) > PercentHP() and myHero.pos:DistanceTo(target.pos) < 325 then
 				Control.CastSpell(HK_E, target)
 			
 		
@@ -377,10 +475,10 @@ end
 function Lane()
 	if PercentMP(myHero) < PussyIrelia.Clear.MP:Value() then return end
 	for i = 1, Game.MinionCount() do
-	local minion = Game.Minion(i)
+		local minion = Game.Minion(i)
 		if minion then
 			if minion.team == 300 - myHero.team then
-				if PussyIrelia.Clear.W:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 400 then
+				if IsValidTarget(minion,W.range) and PussyIrelia.Clear.W:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 400 then
 					Control.CastSpell(HK_W)
 					
 				end
@@ -388,10 +486,9 @@ function Lane()
 		end
 		if minion then
 			if minion.team == 300 - myHero.team then
-				local pred = minion:GetPrediction(Q.speed,Q.delay,Q.width)
-				if PussyIrelia.LastHit.Q:Value() and Ready(_Q) and GetDistance(pred) < Q.range then
+				if IsValidTarget(minion,Q.range) and PussyIrelia.LastHit.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 then
 					if Qdmg(minion) >= minion.health then
-						Control.CastSpell(HK_Q, pred)
+						Control.CastSpell(HK_Q, minion)
 					end
 				end
 			end
@@ -402,19 +499,19 @@ end
 function JungleClear()
 	if PercentMP(myHero) < PussyIrelia.JClear.MP:Value() then return end
 	for i = 1, Game.MinionCount() do
-	local minion = Game.Minion(i)
+		local minion = Game.Minion(i)
         if minion.team == 300 and not minion.dead then
-			if PussyIrelia.JClear.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 then
+			if IsValidTarget(minion,Q.range) and PussyIrelia.JClear.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 then
 				Control.CastSpell(HK_Q)
 			
 			end
 			if minion then
-				if PussyIrelia.JClear.W:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 400 then
+				if IsValidTarget(minion,W.range) and PussyIrelia.JClear.W:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 400 then
 					Control.CastSpell(HK_W)
 				end
 			end
 			if minion then
-				if PussyIrelia.JClear.E:Value() and Ready(_E) and myHero.pos:DistanceTo(minion.pos) < 325 then
+				if IsValidTarget(minion,E.range) and PussyIrelia.JClear.E:Value() and Ready(_E) and myHero.pos:DistanceTo(minion.pos) < 325 then
 					Control.CastSpell(HK_E)
 				end
 			end
@@ -426,22 +523,25 @@ end
 
 function LastHit()
     if PercentMP(myHero) < PussyIrelia.LastHit.MP:Value() then return end
-		for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
-		local pred = minion:GetPrediction(Q.speed,Q.delay,Q.width)
-		if PussyIrelia.LastHit.Q:Value() and Ready(_Q) and GetDistance(pred) < Q.range then
-			if Qdmg(minion) > minion.health then
-				if minion then	
-					if minion.team == 300 - myHero.team then
-						Control.CastSpell(HK_Q, pred)
-						end
+	for i = 1, Game.MinionCount() do
+	local minion = Game.Minion(i)
+	local level = myHero:GetSpellData(_Q).level
+		if minion then
+			if minion.team == 300 - myHero.team then
+				if IsValidTarget(minion,Q.range) and PussyIrelia.LastHit.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 then
+					if Qdmg(minion) >= minion.health then
+						Control.CastSpell(HK_Q, minion)
 					end
 				end
 			end
 		end
-	end	
+	end
+end	
 	
-function Killsteal()
+	
+	
+
+	function Killsteal()
 	local target = GetTarget(Q.range)
 	if target == nil then return end
 	if PussyIrelia.Killsteal.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 650 then
@@ -449,45 +549,13 @@ function Killsteal()
 			Control.CastSpell(HK_Q, target)
 		end
 	end		
-		if target == nil then return end
-		local target = GetTarget(R.range)
-		local pred = target:GetPrediction(R.speed,R.delay,R.width)
-		if PussyIrelia.Killsteal.R:Value() and Ready(_R) and GetDistance(pred) < R.range then
-			if Rdmg(target) > target.health then
-				ontrol.CastSpell(HK_R, target, pred)
-			end
-		end
-end	
-
-function Killsteal()
-	local target = GetTarget(Q.range)
-	if target == nil then return end
-		if KSdmg(target) > target.health then	
-			if PussyIrelia.Killsteal.QRIGKS:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 650 then
-					Control.CastSpell(HK_Q, target)
-			end
-			local pred = target:GetPrediction(R.speed,R.delay,R.width)
-			if PussyIrelia.Killsteal.QRIGKS:Value() and Ready(_R) and
-				GetDistance(pred) < R.range then
-					Control.CastSpell(HK_R, pred)
-			
-				if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot"
-				or myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-					if PussyIrelia.Killsteal.QRIGKS:Value() then
-						if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) and
-						myHero.pos:DistanceTo(target.pos) < 600 then
-							Control.CastSpell(HK_SUMMONER_1, target)
-						elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) and 
-						myHero.pos:DistanceTo(target.pos) < 600 then
-							Control.CastSpell(HK_SUMMONER_2, target)
-		
-						end
-					end
-				end
-			end
+	if target == nil then return end	
+	if PussyIrelia.Killsteal.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 1000 then
+		if Rdmg(target) > target.health then
+			Control.CastSpell(HK_R, target)
 		end
 	end
-
+end	
 	
 
 
