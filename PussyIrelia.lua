@@ -1,6 +1,6 @@
 if myHero.charName ~= "Irelia" then return end
 
---Version 120118--
+--Version 190118--
 
 require "DamageLib"
 require "2DGeometry"
@@ -221,6 +221,7 @@ local PussyIrelia = MenuElement({type = MENU, id = "PussyIrelia", name = "PussyI
 
 PussyIrelia:MenuElement({id = "Combo", name = "Combo", type = MENU})
 	PussyIrelia.Combo:MenuElement({id = "Q", name = "Q", value = true, leftIcon = Q.icon})
+	PussyIrelia.Combo:MenuElement({id = "QGab", name = "Q-GapCloser", value = true, leftIcon = Q.icon})
 	PussyIrelia.Combo:MenuElement({id = "W", name = "W", value = true, leftIcon = W.icon})
 	PussyIrelia.Combo:MenuElement({id = "E", name = "E", value = true, leftIcon = E.icon})
 	PussyIrelia.Combo:MenuElement({id = "R", name = "R", value = true, leftIcon = R.icon})
@@ -422,7 +423,7 @@ function Combo()
 			Control.CastSpell(HK_W)
 		
 		end
-		if IsValidTarget(target,Q.range) and PussyIrelia.Combo.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 650 then
+		if IsValidTarget(target,Q.range) and PussyIrelia.Combo.Q:Value(true) and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 650 then
 			Control.CastSpell(HK_Q, target)
 		
 		end
@@ -433,6 +434,18 @@ function Combo()
 		if IsValidTarget(target,R.range) and PussyIrelia.Combo.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 1000 then
 			Control.CastSpell(HK_R, target)
 		
+		end
+		if PussyIrelia.Combo.QGab:Value() then
+			for i = 1, Game.MinionCount() do
+			local minion = Game.Minion(i)
+				if minion.team == 300 - myHero.team or minion.team == 300 then
+					if myHero.pos:DistanceTo(target.pos) > 650 and target.pos:DistanceTo(minion.pos) < 650 and myHero.pos:DistanceTo(minion.pos) < 650 then
+						if Ready(_E) and Ready(_Q) and Qdmg(minion) > minion.health then
+							Control.CastSpell(HK_Q, minion)	
+						end
+					end
+				end
+			end
 		end
 	end
 end
@@ -487,7 +500,7 @@ function Lane()
 		if minion then
 			if minion.team == 300 - myHero.team then
 				if IsValidTarget(minion,Q.range) and PussyIrelia.LastHit.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 then
-					if Qdmg(minion) >= minion.health then
+					if Qdmg(minion) > minion.health then
 						Control.CastSpell(HK_Q, minion)
 					end
 				end
@@ -529,7 +542,7 @@ function LastHit()
 		if minion then
 			if minion.team == 300 - myHero.team then
 				if IsValidTarget(minion,Q.range) and PussyIrelia.LastHit.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 then
-					if Qdmg(minion) >= minion.health then
+					if Qdmg(minion) > minion.health then
 						Control.CastSpell(HK_Q, minion)
 					end
 				end
