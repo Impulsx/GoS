@@ -1,4 +1,4 @@
-if myHero.charName ~= "PussyWarwick" then return end
+if myHero.charName ~= "Warwick" then return end
 
 --20.01.2018--
 
