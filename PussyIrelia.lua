@@ -419,7 +419,7 @@ end
 function Combo()
     local target = GetTarget(R.range)
 	if target == nil then return end
-		if IsValidTarget(target,W.range) and PussyIrelia.Combo.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 4000 then
+		if IsValidTarget(target,W.range) and PussyIrelia.Combo.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 400 then
 			Control.CastSpell(HK_W)
 		
 		end
