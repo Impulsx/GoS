@@ -2,7 +2,7 @@ if myHero.charName ~= "Nunu" then return end
 
 --Version 190118--
 
-require "DamageLib"
+
 require "2DGeometry"
 require "MapPositionGOS"
 require "Collision"
@@ -341,7 +341,7 @@ function OnVisionF()
 	if GetTickCount() - visionTick > 100 then
 		for i,v in pairs(GetEnemyHeroes()) do
 			OnVision(v)
-		
+		end
 	end
 end
 
@@ -349,19 +349,18 @@ local _OnWaypoint = {}
 function OnWaypoint(unit)
 	if _OnWaypoint[unit.networkID] == nil then _OnWaypoint[unit.networkID] = {pos = unit.posTo , speed = unit.ms, time = Game.Timer()} end
 	if _OnWaypoint[unit.networkID].pos ~= unit.posTo then 
-		-- print("OnWayPoint:"..unit.charName.." | "..math.floor(Game.Timer()))
 		_OnWaypoint[unit.networkID] = {startPos = unit.pos, pos = unit.posTo , speed = unit.ms, time = Game.Timer()}
-			DelayAction(function()
-				local time = (Game.Timer() - _OnWaypoint[unit.networkID].time)
-				local speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(Game.Timer() - _OnWaypoint[unit.networkID].time)
-				if speed > 1250 and time > 0 and unit.posTo == _OnWaypoint[unit.networkID].pos and GetDistance(unit.pos,_OnWaypoint[unit.networkID].pos) > 200 then
-					_OnWaypoint[unit.networkID].speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(Game.Timer() - _OnWaypoint[unit.networkID].time)
-					-- print("OnDash: "..unit.charName)
-				end
-			end,0.05)
+		DelayAction(function()
+			local time = (Game.Timer() - _OnWaypoint[unit.networkID].time)
+			local speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(Game.Timer() - _OnWaypoint[unit.networkID].time)
+			if speed > 1250 and time > 0 and unit.posTo == _OnWaypoint[unit.networkID].pos and GetDistance(unit.pos,_OnWaypoint[unit.networkID].pos) > 200 then
+				_OnWaypoint[unit.networkID].speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(Game.Timer() - _OnWaypoint[unit.networkID].time)
+			end
+		end,0.05)
 	end
 	return _OnWaypoint[unit.networkID]
 end
+
 
 local function GetPred(unit,speed,delay,sourcePos)
 	local speed = speed or math.huge
@@ -383,6 +382,7 @@ local function GetPred(unit,speed,delay,sourcePos)
 			return unit.pos
 		else
 			return unit:GetPrediction(speed,delay)
+			
 		end
 	end
 end
@@ -435,14 +435,14 @@ function Combo()
 			DelayAction(function() EnableOrb(true) end, 0.3)
 		
 		end
-		if IsValidTarget(target,R.range) and PussyNunu.Combo.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 400 then
+		if IsValidTarget(target,R.range) and PussyNunu.Combo.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 200 then
 			EnableOrb(false)
 			Control.CastSpell(HK_R)
 			DelayAction(function() EnableOrb(true) end, 3.0)
 		
 		end
 	end
-end
+
 				
 function Harass()
 	local target = GetTarget(E.range)
