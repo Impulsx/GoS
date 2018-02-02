@@ -24,6 +24,24 @@ local function PercentMP(target)
     return 100 * target.mana / target.maxMana
 end
 
+local _OnVision = {}
+function OnVision(unit)
+	if _OnVision[unit.networkID] == nil then _OnVision[unit.networkID] = {state = unit.visible , tick = GetTickCount(), pos = unit.pos} end
+	if _OnVision[unit.networkID].state == true and not unit.visible then _OnVision[unit.networkID].state = false _OnVision[unit.networkID].tick = GetTickCount() end
+	if _OnVision[unit.networkID].state == false and unit.visible then _OnVision[unit.networkID].state = true _OnVision[unit.networkID].tick = GetTickCount() end
+	return _OnVision[unit.networkID]
+end
+Callback.Add("Tick", function() OnVisionF() end)
+local visionTick = GetTickCount()
+function OnVisionF()
+	if GetTickCount() - visionTick > 100 then
+		for i,v in pairs(GetEnemyHeroes()) do
+			OnVision(v)
+		end
+	end
+end
+
+
 local function IsImmune(unit)
     for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
@@ -68,10 +86,10 @@ local function IsValidTarget(target, range)
 	return target ~= nil and target.valid and target.visible and not target.dead and target.distance <= range and IsImmune(target) == false
 end
 
-local Q = {range = 200, speed = 2200, delay = 0.79, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaGatotsu.png"}
-local W = {speed = 700, delay = 0.30, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaHitenStyle.png"}
-local E = {range = 550, speed = 20, delay = 0.75, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaEquilibriumStrike.png"}
-local R = {range = 600, speed = 779, delay = 0.75, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaTranscendentBlades.png"}
+local Q = {range = 300, speed = 500, delay = 25,44, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaGatotsu.png"}
+local W = {speed = 700, delay = 0.60, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaHitenStyle.png"}
+local E = {range = 550, speed = 1000, delay = 15,44, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaEquilibriumStrike.png"}
+local R = {range = 650, speed = 828, delay = 5,17, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaTranscendentBlades.png"}
 
 
 local HKITEM = {
@@ -84,23 +102,23 @@ local HKITEM = {
 	[ITEM_7] = HK_ITEM_7,
 }
 
-local function Edmg(minion)
+local function Edmg(target)
 	if Ready(_E) then	
-		return CalcMagicalDamage(myHero,minion,({80, 120, 160, 200, 240})[myHero:GetSpellData(_E).level] + 0.9 * myHero.totalDamage)
+		return CalcMagicalDamage(myHero,target,({80, 120, 160, 200, 240})[myHero:GetSpellData(_E).level] + 0.9 * myHero.totalDamage)
     end
     return 0
 end
 
-local function Qdmg(minion)
+local function Qdmg(target)
 	if Ready(_Q) then	
-		return CalcMagicalDamage(myHero,minion,({340, 500, 660, 820, 980})[myHero:GetSpellData(_Q).level])
+		return CalcMagicalDamage(myHero,target,({340, 500, 660, 820, 980})[myHero:GetSpellData(_Q).level])
     end
     return 0
 end
 
-local function Rdmg(minion)
+local function Rdmg(target)
 	if Ready(_R) then	
-		return CalcMagicalDamage(myHero,minion,({625, 875, 1125})[myHero:GetSpellData(_R).level + 2.5 * myHero.totalDamage])
+		return CalcMagicalDamage(myHero,target,({625, 875, 1125})[myHero:GetSpellData(_R).level + 2.5 * myHero.totalDamage])
     end
     return 0
 end
@@ -143,6 +161,19 @@ local function GetTarget(range)
 		target = _G.GOS:GetTarget(range)
 	end
 	return target
+end
+
+local _AllyHeroes
+function GetAllyHeroes()
+  if _AllyHeroes then return _AllyHeroes end
+  _AllyHeroes = {}
+  for i = 1, Game.HeroCount() do
+    local unit = Game.Hero(i)
+    if unit.isAlly then
+      table.insert(_AllyHeroes, unit)
+    end
+  end
+  return _AllyHeroes
 end
 
 local function NoPotion()
@@ -229,14 +260,10 @@ end
 local PussyNunu = MenuElement({type = MENU, id = "PussyNunu", name = "PussyNunu", leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/Woman.jpg"})
 
 PussyNunu:MenuElement({id = "Combo", name = "Combo", type = MENU})
-	PussyNunu.Combo:MenuElement({id = "Q", name = "Q", value = true, leftIcon = Q.icon})
-	PussyNunu.Combo:MenuElement({id = "W", name = "W", value = true, leftIcon = W.icon})
 	PussyNunu.Combo:MenuElement({id = "E", name = "E", value = true, leftIcon = E.icon})
 	PussyNunu.Combo:MenuElement({id = "R", name = "R", value = true, leftIcon = R.icon})
 
 PussyNunu:MenuElement({id = "Harass", name = "Harass", type = MENU})
-    PussyNunu.Harass:MenuElement({id = "Q", name = "Q", value = true, leftIcon = Q.icon})
-    PussyNunu.Harass:MenuElement({id = "W", name = "W", value = true, leftIcon = W.icon})
 	PussyNunu.Harass:MenuElement({id = "E", name = "E", value = true, leftIcon = E.icon})
 
 PussyNunu:MenuElement({id = "Clear", name = "Clear", type = MENU})
@@ -257,6 +284,14 @@ PussyNunu:MenuElement({id = "LastHit", name = "LastHit", type = MENU})
 PussyNunu:MenuElement({id = "Killsteal", name = "Killsteal", type = MENU})
     PussyNunu.Killsteal:MenuElement({id = "E", name = "E", value = true, leftIcon = Q.icon})
     PussyNunu.Killsteal:MenuElement({id = "R", name = "R", value = true, leftIcon = R.icon})
+	
+PussyNunu:MenuElement({id = "Buff", name = "Buff Settings", type = MENU})
+	PussyNunu.Buff:MenuElement({id = "W", name = "Use [W]", value = true})
+	PussyNunu.Buff:MenuElement({type = MENU, id = "Wlist", name = "Auto use [W] Whitelist"})
+	for i,ally in pairs(GetAllyHeroes()) do
+		PussyNunu.Buff.Wlist:MenuElement({id = ally.networkID, name = ally.charName, value = true})
+	end
+	PussyNunu.Buff:MenuElement({id = "spellsW", name = "Auto Use [W]", value = true})	
 	
 PussyNunu:MenuElement({type = MENU, id = "Activator", name = "Activator"})
 	PussyNunu.Activator:MenuElement({type = MENU, id = "P", name = "Potions"})
@@ -313,7 +348,10 @@ function Tick()
 	end
 	Activator()
 	Killsteal()
+	AutoBuff()
 end
+
+
 
 local _EnemyHeroes
 local function GetEnemyHeroes()
@@ -328,13 +366,6 @@ local function GetEnemyHeroes()
 	return _EnemyHeroes
 end
 
-local _OnVision = {}
-function OnVision(unit)
-	if _OnVision[unit.networkID] == nil then _OnVision[unit.networkID] = {state = unit.visible , tick = GetTickCount(), pos = unit.pos} end
-	if _OnVision[unit.networkID].state == true and not unit.visible then _OnVision[unit.networkID].state = false _OnVision[unit.networkID].tick = GetTickCount() end
-	if _OnVision[unit.networkID].state == false and unit.visible then _OnVision[unit.networkID].state = true _OnVision[unit.networkID].tick = GetTickCount() end
-	return _OnVision[unit.networkID]
-end
 Callback.Add("Tick", function() OnVisionF() end)
 local visionTick = GetTickCount()
 function OnVisionF()
@@ -344,6 +375,7 @@ function OnVisionF()
 		end
 	end
 end
+
 
 local _OnWaypoint = {}
 function OnWaypoint(unit)
@@ -418,28 +450,41 @@ local ticker = GetTickCount()
 	end
 end
 
+function AutoBuff()
+	local target = GetTarget(W.range)
+	if target == nil then return end
+	if PussyNunu.Buff.W:Value() == false then return end
+	if not Ready(_W) then return end
+	for i,ally in pairs(GetAllyHeroes()) do
+		if myHero.pos:DistanceTo(ally.pos) < 600 and not ally.dead then
+			if PussyNunu.Buff.Wlist[ally.networkID]:Value()then
+				if Ready(_E) and (HeroesAround(ally.pos,600,200) or MinionsAround(ally.pos,350,300) > 0)and ally.pos:DistanceTo(target.pos) < 600 then
+				Control.CastSpell(HK_W,ally)
+				end
+				if Ready(_E) and (HeroesAround(myHero.pos,600,200) or MinionsAround(ally.pos,350,300) > 0) and myHero.pos:DistanceTo(target.pos) < 600 then
+				Control.CastSpell(HK_W,myHero)
+				end
+			end
+		end
+	end
+end	
+
 
 
 function Combo()
     local target = GetTarget(E.range)
 	if target == nil then return end
-		if IsValidTarget(target,W.range) and PussyNunu.Combo.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 600 then
-			EnableOrb(false)
-			Control.CastSpell(HK_W, myHero)
-			DelayAction(function() EnableOrb(true) end, 0.3)
-		
-		end
 		if IsValidTarget(target,E.range) and PussyNunu.Combo.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 550 then
-			EnableOrb(false)
 			Control.CastSpell(HK_E, target)
-			DelayAction(function() EnableOrb(true) end, 0.3)
-		
+			
 		end
 		if IsValidTarget(target,R.range) and PussyNunu.Combo.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 200 then
 			EnableOrb(false)
 			Control.CastSpell(HK_R)
 			DelayAction(function() EnableOrb(true) end, 3.0)
-		
+			if myHero.pos:DistanceTo(target.pos) > 600 then
+			EnableOrb(true)
+			end
 		end
 	end
 
@@ -447,16 +492,8 @@ function Combo()
 function Harass()
 	local target = GetTarget(E.range)
 	if target == nil then return end
-		if IsValidTarget(target,W.range) and PussyNunu.Harass.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 700 then
-			EnableOrb(false)
-			Control.CastSpell(HK_W, myHero)
-			DelayAction(function() EnableOrb(true) end, 0.3)
-		end
 		if IsValidTarget(target,E.range) and PussyNunu.Harass.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 550 then
-			EnableOrb(false)
 			Control.CastSpell(HK_E, target)
-			DelayAction(function() EnableOrb(true) end, 0.3)
-			
 		end
 	end
 	
@@ -468,21 +505,19 @@ function Lane()
 		if minion then
 			if minion.team == 300 - myHero.team then
 				if IsValidTarget(minion,E.range) and PussyNunu.Clear.E:Value() and Ready(_E) and myHero.pos:DistanceTo(minion.pos) < 550 then
-					EnableOrb(false)
 					if Edmg(minion) > minion.health then
 					Control.CastSpell(HK_E, minion)
-					DelayAction(function() EnableOrb(true) end, 0.4)
+
 					end
 				end
 			end
 		end
 		if minion then
 			if minion.team == 300 - myHero.team then
-				if IsValidTarget(minion,Q.range) and PussyNunu.LastHit.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 200 then
-					EnableOrb(false)
+				if IsValidTarget(minion,Q.range) and PussyNunu.LastHit.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 300 then
 					if Qdmg(minion) > minion.health then
 						Control.CastSpell(HK_Q, minion)
-						DelayAction(function() EnableOrb(true) end, 0.4)
+						
 					end
 				end
 			end
@@ -495,23 +530,20 @@ function JungleClear()
 	for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
         if minion.team == 300 and not minion.dead then
-			if IsValidTarget(minion,Q.range) and PussyNunu.JClear.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 190 then
-				EnableOrb(false)
+			if IsValidTarget(minion,Q.range) and PussyNunu.JClear.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 300 and Qdmg(minion) > minion.health then 
 				Control.CastSpell(HK_Q)
-				DelayAction(function() EnableOrb(true) end, 0.4)
+
 			end
 			if minion then
-				if IsValidTarget(minion,W.range) and PussyNunu.JClear.W:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 550 then
-					EnableOrb(false)
+				if IsValidTarget(minion,W.range) and PussyNunu.JClear.W:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 700 then
 					Control.CastSpell(HK_W, myHero)
-					DelayAction(function() EnableOrb(true) end, 0.4)
+
 				end
 			end
 			if minion then
 				if IsValidTarget(minion,E.range) and PussyNunu.JClear.E:Value() and Ready(_E) and myHero.pos:DistanceTo(minion.pos) < 550 then
-					EnableOrb(false)
 					Control.CastSpell(HK_E)
-					DelayAction(function() EnableOrb(true) end, 0.4)
+
 				end
 			end
 		end
@@ -527,11 +559,10 @@ function LastHit()
 	local level = myHero:GetSpellData(_Q).level
 		if minion then
 			if minion.team == 300 - myHero.team then
-				if IsValidTarget(minion,Q.range) and PussyNunu.LastHit.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 200 then
-					EnableOrb(false)
+				if IsValidTarget(minion,Q.range) and PussyNunu.LastHit.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 300 then
 					if Qdmg(minion) > minion.health then
 					Control.CastSpell(HK_Q, minion)
-					DelayAction(function() EnableOrb(true) end, 0.3)
+					
 					end
 				end
 			end
@@ -540,29 +571,17 @@ function LastHit()
 end	
 	
 
-	function Killsteal()
+function Killsteal()
 	local target = GetTarget(E.range)
 	if target == nil then return end
 	if PussyNunu.Killsteal.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 550 then
 		if Qdmg(target) >= target.health then
-			EnableOrb(false)
-			if Edmg(minion) > minion.health then
-			Control.CastSpell(HK_E, target)
-			DelayAction(function() EnableOrb(true) end, 0.3)
-			end
-		end
-	end		
-	if target == nil then return end	
-	if PussyNunu.Killsteal.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 600 then
-		if Rdmg(target) > target.health then
-			EnableOrb(false)
-			if Edmg(minion) > minion.health then
-			Control.CastSpell(HK_E)
-			DelayAction(function() EnableOrb(true) end, 3.0)
+			if Edmg(target) > target.health then
+				Control.CastSpell(HK_E, target)
 			end
 		end
 	end
-end		
+end	
 
 
 function Activator()
