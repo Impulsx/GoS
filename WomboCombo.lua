@@ -110,16 +110,9 @@ OnTick(function(myHero)
 end
 
 OnUpdateBuff(function(unit,buff)
-  if GetTeam(unit) ~= GetTeam(myHero) and buff.Name == "kalistaexpungemarker" then
-  Estack[GetNetworkID(unit)] = buff.Count
-  end
   if GetTeam(unit) == GetTeam(myHero) and buff.Name == "kalistacoopstrikeally" then
   soulboundhero = unit
   end
 end)
 
-OnRemoveBuff(function(unit,buff)
-  if GetTeam(unit) ~= GetTeam(myHero) and buff.Name == "kalistaexpungemarker" then
-  Estack[GetNetworkID(unit)] = 0
-  end
-end)	
+	
