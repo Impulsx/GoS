@@ -86,10 +86,10 @@ local function IsValidTarget(target, range)
 	return target ~= nil and target.valid and target.visible and not target.dead and target.distance <= range and IsImmune(target) == false
 end
 
-local Q = {range = 300, speed = 500, delay = 25,44, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaGatotsu.png"}
-local W = {speed = 700, delay = 0.60, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaHitenStyle.png"}
-local E = {range = 550, speed = 1000, delay = 15,44, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaEquilibriumStrike.png"}
-local R = {range = 650, speed = 828, delay = 5,17, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaTranscendentBlades.png"}
+local Q = {range = 300, speed = 500, delay = 0.5, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaGatotsu.png"}
+local W = {speed = 700, delay = 0.5, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaHitenStyle.png"}
+local E = {range = 550, speed = 1000, delay = 0.55, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaEquilibriumStrike.png"}
+local R = {range = 650, speed = 828, delay = 0.25, icon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/spell/IreliaTranscendentBlades.png"}
 
 
 local HKITEM = {
