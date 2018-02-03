@@ -481,12 +481,14 @@ function Combo()
 		if IsValidTarget(target,R.range) and PussyNunu.Combo.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 200 then
 			EnableOrb(false)
 			Control.CastSpell(HK_R)
+		if myHero.pos:DistanceTo(target.pos) < 600 then
 			DelayAction(function() EnableOrb(true) end, 3.0)
-			if myHero.pos:DistanceTo(target.pos) > 600 then
+		eiself myHero.pos:DistanceTo(target.pos) > 600 then
 			EnableOrb(true)
 			end
 		end
 	end
+end
 
 				
 function Harass()
