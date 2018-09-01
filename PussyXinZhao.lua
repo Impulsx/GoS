@@ -2,7 +2,7 @@ class "XinZhao"
 
 function OnLoad()
 	if myHero.charName ~= "XinZhao" then return end
-
+	
 	PrintChat("XinZhao by Pussykate")
 end
 
@@ -24,7 +24,7 @@ end
 
 function XinZhao:LoadMenu()
 	--Main Menu
-	self.Menu = MenuElement({type = MENU, id = "Menu", name = "XinZhao"})
+	self.Menu = MenuElement({type = MENU, id = "Menu", name = "PussyXinZhao"})
 	
 	--Main Menu-- PussyXinZhao
 	self.Menu:MenuElement({type = MENU, id = "Mode", name = "PussyXinZhao"})
@@ -166,7 +166,7 @@ function XinZhao:Combo()
 		if self:IsValidTarget(target,650) and self.Menu.Mode.Combo.E:Value() and self:isReady(_E) and not myHero.isChanneling  then
 		Control.CastSpell(HK_E,target)
 	    	if self:IsValidTarget(target,900) and self.Menu.Mode.Combo.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
-		Control.CastSpell(HK_W)
+		Control.CastSpell(HK_W,target)
 	    	end
 	    	if self:IsValidTarget(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
 		Control.CastSpell(HK_Q)
@@ -176,7 +176,7 @@ function XinZhao:Combo()
 	    	end
 	    end		
 		if self:IsValidTarget(target,900) and self.Menu.Mode.Combo.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
-		Control.CastSpell(HK_W)
+		Control.CastSpell(HK_W,target)
 	    	if self:IsValidTarget(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
 		Control.CastSpell(HK_Q)
 	    	end
@@ -280,7 +280,7 @@ function XinZhao:Clear()
 		if  minion.team == 200 then
 			if self:IsValidTarget(minion,W.range) and self.Menu.Mode.LaneClear.W:Value() and self:isReady(_W) then
 				if self:CountEnemyMinions(W.range) >= self.Menu.Mode.LaneClear.WMinion:Value() then
-					Control.CastSpell(HK_W)
+					Control.CastSpell(HK_W,minion)
 				
 			
 			if self:IsValidTarget(minion,Q.range) and self.Menu.Mode.LaneClear.Q:Value() and self:isReady(_Q) then
@@ -288,25 +288,26 @@ function XinZhao:Clear()
 				
 			
 			if self:IsValidTarget(minion,E.range) and self.Menu.Mode.LaneClear.E:Value() and self:isReady(_E) then
-					Control.CastSpell(HK_E)
+					Control.CastSpell(HK_E,minion)
 				
 			end
 			end
 			end
 		end
 		elseif minion.team == 300 then
+			if  self:IsValidTarget(minion,E.range) and self.Menu.Mode.JungleClear.E:Value() and self:isReady(_E) then
+				Control.CastSpell(HK_E,minion)
+				break
+			end
 			if self:IsValidTarget(minion,Q.range) and self.Menu.Mode.JungleClear.Q:Value() and self:isReady(_Q) then
 				Control.CastSpell(HK_Q)
 				break
 			end 
 			if  self:IsValidTarget(minion,W.range) and self.Menu.Mode.JungleClear.W:Value() and self:isReady(_W) then
-				Control.CastSpell(HK_W)
+				Control.CastSpell(HK_W,minion)
 				break
 			end	
-			if  self:IsValidTarget(minion,E.range) and self.Menu.Mode.JungleClear.E:Value() and self:isReady(_E) then
-				Control.CastSpell(HK_E)
-				break
-			end	
+	
 		end		
 	end
 end
@@ -327,5 +328,8 @@ function XinZhao:Draw()
 		if self.Menu.Drawing.E:Value() then Draw.Circle(myHero.pos, 650, self.Menu.Drawing.Width:Value(), self.Menu.Drawing.Color:Value())	
 		end	
 end
+
+
+
 
 
