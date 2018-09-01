@@ -2,7 +2,7 @@ class "XinZhao"
 
 function OnLoad()
 	if myHero.charName ~= "XinZhao" then return end
-	XinZhao()
+
 	PrintChat("XinZhao by Pussykate")
 end
 
