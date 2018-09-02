@@ -47,9 +47,9 @@ function XinZhao:LoadMenu()
 	self.Menu.Mode.Combo.Spell:MenuElement({id = "EXHP", name = "Exhaust when target HP%", value = 50, min = 0, max = 100, step = 1})
 	--Main Menu-- PussyXinZhao -- Harass
 	self.Menu.Mode:MenuElement({type = MENU, id = "Harass", name = "Harass"})
-	self.Menu.Mode.Harass:MenuElement({id = "E", name = "Use E", value = true})
+	self.Menu.Mode.Harass:MenuElement({id = "W", name = "Use W", value = true})
 	self.Menu.Mode.Harass:MenuElement({type = MENU, id = "MM", name = "Mana Manager"})
-	self.Menu.Mode.Harass.MM:MenuElement({id = "EMana", name = "Min Mana to E in Harass(%)", value = 40, min = 0, max = 100, step = 1})
+	self.Menu.Mode.Harass.MM:MenuElement({id = "WMana", name = "Min Mana to W in Harass(%)", value = 40, min = 0, max = 100, step = 1})
 	--Main Menu-- PussyXinZhao -- LaneClear
 	self.Menu.Mode:MenuElement({type = MENU, id = "LaneClear", name = "Lane Clear"})
 	self.Menu.Mode.LaneClear:MenuElement({id = "W", name = "Use W", value = true})
@@ -111,6 +111,18 @@ function XinZhao:HasBuff(unit, buffname)
 	return false
 end
 
+local function GetTarget(range)
+	local target = nil 
+	if _G.EOWLoaded then
+		target = EOW:GetTarget(range)
+	elseif _G.SDK and _G.SDK.Orbwalker then 
+		target = _G.SDK.TargetSelector:GetTarget(range)
+	else
+		target = _G.GOS:GetTarget(range)
+	end
+	return target
+end
+
 function XinZhao:GetValidEnemy(range)
     for i = 1,Game.HeroCount() do
         local enemy = Game.Hero(i)
@@ -155,6 +167,10 @@ function XinZhao:IsValidTarget(unit,range)
     return unit ~= nil and unit.valid and unit.visible and not unit.dead and unit.isTargetable and not unit.isImmortal and unit.pos:DistanceTo(myHero.pos) <= Q.range
 end
 
+function XinZhao:IsValidTarget(unit,range)
+    return unit ~= nil and unit.valid and unit.visible and not unit.dead and unit.isTargetable and not unit.isImmortal and unit.pos:DistanceTo(myHero.pos) <= E.range
+end
+
 function XinZhao:Combo()
 
 	if self:GetValidEnemy(800) == false then return end
@@ -163,16 +179,16 @@ function XinZhao:Combo()
 	
 	local target =  (_G.SDK and _G.SDK.TargetSelector:GetTarget(800, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(800,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
 		
-		if myHero.pos:DistanceTo(target.pos) <= E.range and self.Menu.Mode.Combo.E:Value() and self:isReady(_E) and not myHero.isChanneling  then
-		Control.CastSpell(HK_E)
+			if myHero.pos:DistanceTo(target.pos) <= 650 and self.Menu.Mode.Combo.E:Value() and self:isReady(_E) and not myHero.isChanneling  then
+			Control.CastSpell(HK_E,target)
 	    	if self:IsValidTarget(target,900) and self.Menu.Mode.Combo.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
-		Control.CastSpell(HK_W,target)
+			Control.CastSpell(HK_W,target)
 	    	end
 	    	if self:IsValidTarget(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
-		Control.CastSpell(HK_Q)
+			Control.CastSpell(HK_Q)
 	    	end 
 	    	if self:IsValidTarget(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
-		Control.CastSpell(HK_R)
+			Control.CastSpell(HK_R)
 	    	end
 	    end		
 		if self:IsValidTarget(target,900) and self.Menu.Mode.Combo.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
@@ -267,8 +283,8 @@ function XinZhao:Harass()
 	
 	local target =  (_G.SDK and _G.SDK.TargetSelector:GetTarget(800, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(800,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
 		
-	    if target.pos:DistanceTo(myHero.pos) <= E.range and (myHero.mana/myHero.maxMana >= self.Menu.Mode.Harass.MM.EMana:Value() / 100) and self.Menu.Mode.Harass.E:Value() and self:isReady(_E) and not myHero.isChanneling  then
-		Control.CastSpell(HK_E,target)
+	    if target.pos:DistanceTo(myHero.pos) <= W.range and (myHero.mana/myHero.maxMana >= self.Menu.Mode.Harass.MM.WMana:Value() / 100) and self.Menu.Mode.Harass.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
+		Control.CastSpell(HK_W,target)
 	end
 end
 
@@ -325,6 +341,12 @@ function XinZhao:Draw()
 		if self.Menu.Drawing.E:Value() then Draw.Circle(myHero.pos, 650, self.Menu.Drawing.Width:Value(), self.Menu.Drawing.Color:Value())	
 		end	
 end
+
+
+
+
+
+
 
 
 
