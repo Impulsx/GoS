@@ -163,8 +163,8 @@ function XinZhao:Combo()
 	
 	local target =  (_G.SDK and _G.SDK.TargetSelector:GetTarget(800, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(800,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
 		
-		if self:IsValidTarget(target,650) and self.Menu.Mode.Combo.E:Value() and self:isReady(_E) and not myHero.isChanneling  then
-		Control.CastSpell(HK_E,target)
+		if target.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.Combo.E:Value() and self:isReady(_E) and not myHero.isChanneling  then
+		Control.CastSpell(HK_E)
 	    	if self:IsValidTarget(target,900) and self.Menu.Mode.Combo.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
 		Control.CastSpell(HK_W,target)
 	    	end
@@ -267,7 +267,7 @@ function XinZhao:Harass()
 	
 	local target =  (_G.SDK and _G.SDK.TargetSelector:GetTarget(800, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(800,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
 		
-	    if self:IsValidTarget(target,E.range) and (myHero.mana/myHero.maxMana >= self.Menu.Mode.Harass.MM.EMana:Value() / 100) and self.Menu.Mode.Harass.E:Value() and self:isReady(_E) and not myHero.isChanneling  then
+	    if target.pos:DistanceTo(myHero.pos) <= E.range and (myHero.mana/myHero.maxMana >= self.Menu.Mode.Harass.MM.EMana:Value() / 100) and self.Menu.Mode.Harass.E:Value() and self:isReady(_E) and not myHero.isChanneling  then
 		Control.CastSpell(HK_E,target)
 	end
 end
@@ -278,24 +278,22 @@ function XinZhao:Clear()
 		for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
 		if  minion.team == 200 then
+			if minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.LaneClear.E:Value() and self:isReady(_E) then
+				Control.CastSpell(HK_E,minion)
+				break
+			end	
 			if self:IsValidTarget(minion,W.range) and self.Menu.Mode.LaneClear.W:Value() and self:isReady(_W) then
 				if self:CountEnemyMinions(W.range) >= self.Menu.Mode.LaneClear.WMinion:Value() then
 					Control.CastSpell(HK_W,minion)
-				
-			
+					break
+				end	
+			end
 			if self:IsValidTarget(minion,Q.range) and self.Menu.Mode.LaneClear.Q:Value() and self:isReady(_Q) then
-					Control.CastSpell(HK_Q)
-				
-			
-			if self:IsValidTarget(minion,E.range) and self.Menu.Mode.LaneClear.E:Value() and self:isReady(_E) then
-					Control.CastSpell(HK_E,minion)
-				
-			end
-			end
-			end
-		end
+				Control.CastSpell(HK_Q)
+				break
+			end	
 		elseif minion.team == 300 then
-			if  self:IsValidTarget(minion,E.range) and self.Menu.Mode.JungleClear.E:Value() and self:isReady(_E) then
+			if  minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.JungleClear.E:Value() and self:isReady(_E) then
 				Control.CastSpell(HK_E,minion)
 				break
 			end
@@ -307,8 +305,7 @@ function XinZhao:Clear()
 				Control.CastSpell(HK_W,minion)
 				break
 			end	
-	
-		end		
+		end
 	end
 end
 
@@ -328,6 +325,7 @@ function XinZhao:Draw()
 		if self.Menu.Drawing.E:Value() then Draw.Circle(myHero.pos, 650, self.Menu.Drawing.Width:Value(), self.Menu.Drawing.Color:Value())	
 		end	
 end
+
 
 
 
