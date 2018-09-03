@@ -22,6 +22,8 @@ function XinZhao:LoadSpells()
 	R = {range = 500}
 end
 
+
+
 function XinZhao:LoadMenu()
 	--Main Menu
 	self.Menu = MenuElement({type = MENU, id = "Menu", name = "PussyXinZhao"})
@@ -36,7 +38,7 @@ function XinZhao:LoadMenu()
 	self.Menu.Mode.Combo:MenuElement({id = "R", name = "Use R", value = true})
 	self.Menu.Mode.Combo:MenuElement({id = "RHP", name = "R when target HP%", value = 20, min = 0, max = 100, step = 1})
 	self.Menu.Mode.Combo:MenuElement({id = "myRHP", name = "R when XinZhao HP%", value = 30, min = 0, max = 100, step = 1})
-	self.Menu.Mode.Combo:MenuElement({type = MENU, id = "Spell", name = "Summoner Spells"})
+	self.Menu.Mode.Combo:MenuElement({type = MENU, id = "Spell", name = "Summoners and Activator"})
 	self.Menu.Mode.Combo.Spell:MenuElement({id = "I", name = "Use Ignite", value = true})		
 	self.Menu.Mode.Combo.Spell:MenuElement({id = "IMode", name = "Ignite Mode", drop = {"Killable", "Custom"}})
 	self.Menu.Mode.Combo.Spell:MenuElement({id = "IHP", name = "Ignite when target HP%", value = 50, min = 0, max = 100, step = 1})
@@ -45,6 +47,9 @@ function XinZhao:LoadMenu()
 	self.Menu.Mode.Combo.Spell:MenuElement({id = "SHP", name = "Smite when target HP%", value = 50, min = 0, max = 100, step = 1})
 	self.Menu.Mode.Combo.Spell:MenuElement({id = "EX", name = "Use Exhaust", value = true})
 	self.Menu.Mode.Combo.Spell:MenuElement({id = "EXHP", name = "Exhaust when target HP%", value = 50, min = 0, max = 100, step = 1})
+	self.Menu.Mode.Combo.Spell:MenuElement({id = "Hydra", name = "Use Hydra or Tiamat", value = true})
+	self.Menu.Mode.Combo.Spell:MenuElement({id = "King", name = "Use Botrk", value = true})	
+	self.Menu.Mode.Combo.Spell:MenuElement({id = "Cutless", name = "Use Cutless", value = true})	
 	--Main Menu-- PussyXinZhao -- Harass
 	self.Menu.Mode:MenuElement({type = MENU, id = "Harass", name = "Harass"})
 	self.Menu.Mode.Harass:MenuElement({id = "W", name = "Use W", value = true})
@@ -90,6 +95,7 @@ local ItemHotKey = {
     [ITEM_4] = HK_ITEM_4,
     [ITEM_5] = HK_ITEM_5,
     [ITEM_6] = HK_ITEM_6,
+	[ITEM_7] = HK_ITEM_7,
 }
 
 local function GetItemSlot(unit, id)
@@ -179,7 +185,7 @@ function XinZhao:Combo()
 	
 	local target =  (_G.SDK and _G.SDK.TargetSelector:GetTarget(800, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(800,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
 		
-			if myHero.pos:DistanceTo(target.pos) <= 650 and self.Menu.Mode.Combo.E:Value() and self:isReady(_E) and not myHero.isChanneling  then
+			if self:IsValidTarget(target,650) and myHero.pos:DistanceTo(target.pos) <= 650 and self.Menu.Mode.Combo.E:Value() and self:isReady(_E) and not myHero.isChanneling  then
 			Control.CastSpell(HK_E,target)
 	    	if self:IsValidTarget(target,900) and self.Menu.Mode.Combo.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
 			Control.CastSpell(HK_W,target)
@@ -213,6 +219,29 @@ function XinZhao:Combo()
 		myHero.health/myHero.maxHealth <= self.Menu.Mode.Combo.myRHP:Value()/100 then
 		Control.CastSpell(HK_R)
 		end
+		
+		if target == nil then return end
+		local items = {}
+		for slot = ITEM_1,ITEM_7 do
+		local id = myHero:GetItemData(slot).itemID 
+		if id > 0 then
+			items[id] = slot
+		end
+		end
+		local Tiamat = items [3077] or items [3748] or items [3074]
+		if self.Menu.Mode.Combo.Spell.Hydra:Value() and myHero.pos:DistanceTo(target.pos) < 300 and myHero.attackData.state == 2 and self:isReady(Tiamat) then
+		Control.CastSpell(Hydra, target.pos)
+		end
+		local King = items[3153]
+		if self.Menu.Mode.Combo.Spell.King:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 and self:isReady(King) then
+		Control.CastSpell(King, target.pos)
+		end	
+		local Cutless = items[3144]
+		if self.Menu.Mode.Combo.Spell.Cutless:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 and self:isReady(Cutless) then
+		Control.CastSpell(Cutless, target.pos)
+		end		
+		
+		
 	if self.Menu.Mode.Combo.Spell.I:Value() then 
    		if self.Menu.Mode.Combo.Spell.IMode:Value() == 2 and myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and self:isReady(SUMMONER_1) then
        		if self:IsValidTarget(target, 600, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.IHP:Value()/100 then
@@ -223,11 +252,11 @@ function XinZhao:Combo()
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end
 		elseif  self.Menu.Mode.Combo.Spell.IMode:Value() == 1 and myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and self:isReady(SUMMONER_1) then
-       	 	if self:IsValidTarget(target, 600, true, myHero) and 50+20*myHero.levelData.lvl > target.health*1.1 then
+       	 	if self:IsValidTarget(target, 600, true, myHero) and 50+20*myHero.levelData.lvl -(target.hpRegen*3) > target.health*1.1 then
            		Control.CastSpell(HK_SUMMONER_1, target)
        	 	end
 		elseif self.Menu.Mode.Combo.Spell.IMode:Value() == 1  and myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and self:isReady(SUMMONER_2) then
-       		 if self:IsValidTarget(target, 600, true, myHero) and 50+20*myHero.levelData.lvl > target.health*1.1 then
+       		 if self:IsValidTarget(target, 600, true, myHero) and 50+20*myHero.levelData.lvl - (target.hpRegen*3) > target.health*1.1 then
            		Control.CastSpell(HK_SUMMONER_2, target)
         	end
     	end 
@@ -291,39 +320,40 @@ end
 function XinZhao:Clear()
 
 	if self:GetValidMinion(600) == false then return end
-		for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
-		if minion.team == 300 - myHero.team then
-			if minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.LaneClear.E:Value() and self:isReady(_E) then
-				Control.CastSpell(HK_E,minion)
+	for i = 1, Game.MinionCount() do
+	local minion = Game.Minion(i)
+			if minion.team == 300 - myHero.team then
+				if minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.LaneClear.E:Value() and self:isReady(_E) then
+					Control.CastSpell(HK_E,minion)
+					break
+				end	
+				if self:IsValidTarget(minion,W.range) and self.Menu.Mode.LaneClear.W:Value() and self:isReady(_W) then
+					if self:CountEnemyMinions(W.range) >= self.Menu.Mode.LaneClear.WMinion:Value() then
+						Control.CastSpell(HK_W,minion)
+						break
+					end	
+				end
+				if self:IsValidTarget(minion,Q.range) and self.Menu.Mode.LaneClear.Q:Value() and self:isReady(_Q) then
+					Control.CastSpell(HK_Q)
+					break
+				end
+
+			elseif minion.team == 300 then
+				if  minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.JungleClear.E:Value() and self:isReady(_E) then
+					Control.CastSpell(HK_E,minion)
+					break
+				end
+				if self:IsValidTarget(minion,Q.range) and self.Menu.Mode.JungleClear.Q:Value() and self:isReady(_Q) then
+				Control.CastSpell(HK_Q)
 				break
-			end	
-			if self:IsValidTarget(minion,W.range) and self.Menu.Mode.LaneClear.W:Value() and self:isReady(_W) then
-				if self:CountEnemyMinions(W.range) >= self.Menu.Mode.LaneClear.WMinion:Value() then
+				end 
+				if self:IsValidTarget(minion,W.range) and self.Menu.Mode.JungleClear.W:Value() and self:isReady(_W) then
 					Control.CastSpell(HK_W,minion)
 					break
 				end	
 			end
-			if self:IsValidTarget(minion,Q.range) and self.Menu.Mode.LaneClear.Q:Value() and self:isReady(_Q) then
-				Control.CastSpell(HK_Q)
-				break
-			end	
-		elseif minion.team == 300 then
-			if  minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.JungleClear.E:Value() and self:isReady(_E) then
-				Control.CastSpell(HK_E,minion)
-				break
-			end
-			if self:IsValidTarget(minion,Q.range) and self.Menu.Mode.JungleClear.Q:Value() and self:isReady(_Q) then
-				Control.CastSpell(HK_Q)
-				break
-			end 
-			if  self:IsValidTarget(minion,W.range) and self.Menu.Mode.JungleClear.W:Value() and self:isReady(_W) then
-				Control.CastSpell(HK_W,minion)
-				break
-			end	
 		end
 	end
-end
 
 function XinZhao:HpPred(unit, delay)
 	if _G.GOS then
@@ -341,10 +371,6 @@ function XinZhao:Draw()
 		if self.Menu.Drawing.E:Value() then Draw.Circle(myHero.pos, 650, self.Menu.Drawing.Width:Value(), self.Menu.Drawing.Color:Value())	
 		end	
 end
-
-
-
-
 
 
 
