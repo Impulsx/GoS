@@ -99,13 +99,17 @@ local ItemHotKey = {
 }
 
 local function GetItemSlot(unit, id)
-  for i = ITEM_1, ITEM_7 do
-    if unit:GetItemData(i).itemID == id then
-      return i
-    end
-  end
-  return 0 
-end
+	if target == nil then return end
+	local items = {}
+	for slot = ITEM_1,ITEM_7 do
+	local id = myHero:GetItemData(slot).itemID 
+		if id > 0 then
+		items[id] = slot
+		end
+	end
+end	
+
+	
 
 function XinZhao:HasBuff(unit, buffname)
 	for i = 0, unit.buffCount do
@@ -220,26 +224,22 @@ function XinZhao:Combo()
 		Control.CastSpell(HK_R)
 		end
 		
-		if target == nil then return end
-		local items = {}
-		for slot = ITEM_1,ITEM_7 do
-		local id = myHero:GetItemData(slot).itemID 
-		if id > 0 then
-			items[id] = slot
-		end
-		end
-		local Tiamat = items [3077] or items [3748] or items [3074]
-		if self.Menu.Mode.Combo.Spell.Hydra:Value() and myHero.pos:DistanceTo(target.pos) < 300 and myHero.attackData.state == 2 and self:isReady(Tiamat) then
-		Control.CastSpell(Hydra, target.pos)
-		end
-		local King = items[3153]
-		if self.Menu.Mode.Combo.Spell.King:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 and self:isReady(King) then
-		Control.CastSpell(King, target.pos)
-		end	
-		local Cutless = items[3144]
-		if self.Menu.Mode.Combo.Spell.Cutless:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 and self:isReady(Cutless) then
-		Control.CastSpell(Cutless, target.pos)
-		end		
+	local items = {}
+	local Tiamat = items [3077] or items [3748] or items [3074]
+	if self.Menu.Mode.Combo.Spell.Hydra:Value() and myHero.pos:DistanceTo(target.pos) < 300 and myHero.attackData.state == 2 and self:isReady(Tiamat) then
+	Control.CastSpell(HK_, target.pos)
+	end
+	local King = items[3153]
+	if self.Menu.Mode.Combo.Spell.King:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 and self:isReady(King) then
+	Control.CastSpell(HK_, target.pos)
+	end	
+	local Cutless = items[3144]
+	if self.Menu.Mode.Combo.Spell.Cutless:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 and self:isReady(Cutless) then
+	Control.CastSpell(HK_, target.pos)
+	end
+		
+			
+		
 		
 		
 	if self.Menu.Mode.Combo.Spell.I:Value() then 
