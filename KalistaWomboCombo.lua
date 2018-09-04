@@ -36,13 +36,17 @@ local function getPercentHP(unit)
 	return unit.health * 100 / unit.maxHealth
 end
 
- 
--- Ballista
+	
+
+
+
+
 local function GetSwornAlly()   
     for i = 1, HeroCount() do
         local hero = Hero(i)
         if hero and hero.isAlly and GotBuff(hero, "kalistacoopstrikeally") == 1 then            
-            return hero.charName == "Blitzcrank" and hero or "Wrong Oath" 
+            return hero.charName == "Blitzcrank" and hero or "Wrong Oath" or
+			hero.charName == "Skarner" and hero or "Wrong Oath" 
 			
 		end
     end 
@@ -56,19 +60,9 @@ local function ExecuteBalista()
             return
         end
     end 
-end
+end	
 
---Skarlista
-local function GetSwornAlly()   
-    for i = 1, HeroCount() do
-        local hero = Hero(i)
-        if hero and hero.isAlly and GotBuff(hero, "kalistacoopstrikeally") == 1 then            
-            return hero.charName == "Skarner" and hero or "Wrong Oath" 
-			
-		end
-    end 
-end
- 
+
 local function ExecuteSkarlista()
     for i = 1, HeroCount() do
         local enemy = Hero(i)
@@ -78,18 +72,29 @@ local function ExecuteSkarlista()
         end
     end 
 end
- 
+
+
+
+
 local function OnTick()
     if not swornAlly then
         swornAlly = GetSwornAlly()
     end
     --
     if swornAlly and Menu.Blitz:Value() and Ready(_R) and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange and getPercentHP(myHero) >= Menu.BlitzHP:Value() then
-        ExecuteBalista()
+        ExecuteBalista() 
     end
 	if swornAlly and Menu.Skarner:Value() and Ready(_R) and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange and getPercentHP(myHero) >= Menu.SkarnerHP:Value() then
         ExecuteSkarlista()
     end
-end
+end	
+
+
+
+
+
+
+
  
 Callback.Add("Tick", OnTick)
+
