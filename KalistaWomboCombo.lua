@@ -1,6 +1,6 @@
 if myHero.charName ~= "Kalista" then return end
 
---PrintChat("WomboCombo by Pussykate and RMAN") 
+ 
 
 --Locals
 local CastSpell     = Control.CastSpell
