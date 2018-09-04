@@ -87,7 +87,7 @@ local function OnTick()
     if swornAlly and Menu.Blitz:Value() and Ready(_R) and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange and getPercentHP(myHero) >= Menu.BlitzHP:Value() then
         ExecuteBalista()
     end
-	    if swornAlly and Menu.Skarner:Value() and Ready(_R) and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange and getPercentHP(myHero) >= Menu.SkarnerHP:Value() then
+	if swornAlly and Menu.Skarner:Value() and Ready(_R) and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange and getPercentHP(myHero) >= Menu.SkarnerHP:Value() then
         ExecuteSkarlista()
     end
 end
