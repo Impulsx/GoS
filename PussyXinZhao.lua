@@ -1,9 +1,10 @@
+if myHero.charName ~= "XinZhao" then return end
 class "XinZhao"
 
 function OnLoad()
-	if myHero.charName ~= "XinZhao" then return end
-	
 	PrintChat("XinZhao by Pussykate")
+	XinZhao()
+	require 'Collision'
 end
 
 
@@ -73,7 +74,7 @@ function XinZhao:LoadMenu()
 	self.Menu.Drawing:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
 	self.Menu.Drawing:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 255, 255, 255)})
 end
-XinZhao()
+
 function XinZhao:Tick()
 	local Combo = (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO]) or (_G.GOS and _G.GOS:GetMode() == "Combo") or (_G.EOWLoaded and EOW:Mode() == "Combo")
 	local Clear = (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR]) or (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR]) or (_G.GOS and _G.GOS:GetMode() == "Clear") or (_G.EOWLoaded and EOW:Mode() == "LaneClear")
@@ -165,11 +166,15 @@ function XinZhao:CountEnemyMinions(range)
 end
 
 local function Ready(spell) 
-  	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
+  	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana 
 end
 
 function XinZhao:isReady (spell)
 	return Game.CanUseSpell(spell) == 0 
+end
+
+function XinZhao:Ready(spellSlot)
+	return Game.CanUseSpell(spellSlot) == 0
 end
 
 function XinZhao:IsValidTarget(unit,range)
@@ -225,11 +230,11 @@ function XinZhao:Combo()
 		
 	local items = {}
 	local Tiamat = items [3077] or items [3748] or items [3074]
-	if self.Menu.Mode.Combo.Spell.Hydra:Value() and myHero.pos:DistanceTo(target.pos) < 300 and myHero.attackData.state == 2 then
+	if self.Menu.Mode.Combo.Spell.Hydra:Value() and myHero.pos:DistanceTo(target.pos) < 300 and myHero.attackData.state == 2  then
 	Control.CastSpell(HK_, target.pos)
 	end
 	local King = items[3153]
-	if self.Menu.Mode.Combo.Spell.King:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 then
+	if self.Menu.Mode.Combo.Spell.King:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2  then
 	Control.CastSpell(HK_, target.pos)
 	end	
 	local Cutless = items[3144]
@@ -370,6 +375,7 @@ function XinZhao:Draw()
 		if self.Menu.Drawing.E:Value() then Draw.Circle(myHero.pos, 650, self.Menu.Drawing.Width:Value(), self.Menu.Drawing.Color:Value())	
 		end	
 end
+
 
 
 
