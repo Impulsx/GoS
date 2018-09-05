@@ -230,15 +230,15 @@ function XinZhao:Combo()
 		
 	local items = {}
 	local Tiamat = items [3077] or items [3748] or items [3074]
-	if self.Menu.Mode.Combo.Spell.Hydra:Value() and myHero.pos:DistanceTo(target.pos) < 300 and myHero.attackData.state == 2  then
+	if self.Menu.Mode.Combo.Spell.Hydra:Value() and myHero.pos:DistanceTo(target.pos) < 300 and myHero.attackData.state == 2 and self:isReady(Spell) then
 	Control.CastSpell(HK_, target.pos)
 	end
 	local King = items[3153]
-	if self.Menu.Mode.Combo.Spell.King:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2  then
+	if self.Menu.Mode.Combo.Spell.King:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 and self:isReady(Spell) then
 	Control.CastSpell(HK_, target.pos)
 	end	
 	local Cutless = items[3144]
-	if self.Menu.Mode.Combo.Spell.Cutless:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 then
+	if self.Menu.Mode.Combo.Spell.Cutless:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 and self:isReady(Spell) then
 	Control.CastSpell(HK_, target.pos)
 	end
 		
@@ -375,6 +375,8 @@ function XinZhao:Draw()
 		if self.Menu.Drawing.E:Value() then Draw.Circle(myHero.pos, 650, self.Menu.Drawing.Width:Value(), self.Menu.Drawing.Color:Value())	
 		end	
 end
+
+
 
 
 
