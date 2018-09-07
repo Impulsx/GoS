@@ -1,7 +1,10 @@
 if myHero.charName ~= "Kalista" then return end
 
- 
+function OnLoad()
+	PrintChat("WOMBOCOMBO by Pussykate")
+end	
 
+ 
 --Locals
 local CastSpell     = Control.CastSpell
 local CanUseSpell   = Game.CanUseSpell
@@ -17,10 +20,9 @@ local swornAlly = nil
  -- Menu
 local Menu = MenuElement({type = MENU, id = "WomboCombo by RMAN and Pussykate", name = "PussyWomboCombo"})
 Menu:MenuElement({id = "Blitz", name = "Use R on Blitzcrank Grab", value = true})
-Menu:MenuElement({id = "BlitzHP", name = "min.Hp to Use R",  value = 30, min = 0, max = 100, step = 1})
 Menu:MenuElement({id = "Skarner", name = "Use R on Skarner Ult", value = true})
-Menu:MenuElement({id = "SkarnerHP", name = "min.Hp to Use R",  value = 30, min = 0, max = 100, step = 1})
-
+Menu:MenuElement({id = "MyHP", name = "Kalista min.Hp to UseR",  value = 40, min = 0, max = 100, step = 1})
+Menu:MenuElement({id = "TargetHP", name = "Target min.Hp to UseR",  value = 30, min = 0, max = 100, step = 1})
 
 -- Common
 local function Ready(slot)
@@ -37,10 +39,6 @@ local function getPercentHP(unit)
 end
 
 	
-
-
-
-
 local function GetSwornAlly()   
     for i = 1, HeroCount() do
         local hero = Hero(i)
@@ -55,7 +53,7 @@ end
 local function ExecuteBalista()
     for i = 1, HeroCount() do
         local enemy = Hero(i)
-        if enemy and enemy.isEnemy and GotBuff(enemy, "rocketgrab2") == 1 then          
+        if enemy and enemy.isEnemy and GotBuff(enemy, "rocketgrab2") == 1  then          
             CastSpell(HK_R)
             return
         end
@@ -66,7 +64,7 @@ end
 local function ExecuteSkarlista()
     for i = 1, HeroCount() do
         local enemy = Hero(i)
-        if enemy and enemy.isEnemy and GotBuff(enemy, "SkarnerImpale") == 1 then          
+        if enemy and enemy.isEnemy and GotBuff(enemy, "SkarnerImpale") == 1  then          
             CastSpell(HK_R)
             return
         end
@@ -80,13 +78,16 @@ local function OnTick()
     if not swornAlly then
         swornAlly = GetSwornAlly()
     end
+	for i = 1, HeroCount() do
+    local enemy = Hero(i)
     --
-    if swornAlly and Menu.Blitz:Value() and Ready(_R) and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange and getPercentHP(myHero) >= Menu.BlitzHP:Value() then
+    if swornAlly and Menu.Blitz:Value() and Ready(_R) and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange and getPercentHP(myHero) >= Menu.MyHP:Value() and getPercentHP(enemy) >= Menu.TargetHP:Value() then
         ExecuteBalista() 
     end
-	if swornAlly and Menu.Skarner:Value() and Ready(_R) and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange and getPercentHP(myHero) >= Menu.SkarnerHP:Value() then
+	if swornAlly and Menu.Skarner:Value() and Ready(_R) and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange and getPercentHP(myHero) >= Menu.MyHP:Value() and getPercentHP(enemy) >= Menu.TargetHP:Value() then
         ExecuteSkarlista()
     end
+end
 end	
 
 
@@ -97,4 +98,3 @@ end
 
  
 Callback.Add("Tick", OnTick)
-
