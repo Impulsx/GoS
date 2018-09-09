@@ -23,7 +23,7 @@ local swornAlly = nil
 local Menu = MenuElement({type = MENU, id = "WomboCombo by RMAN and Pussykate", name = "KalistaWomboCombo"})
 Menu:MenuElement({id = "Blitz", name = "Use R on Grab", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/champion/Blitzcrank.png"})
 Menu:MenuElement({id = "Skarner", name = "Use R on Skarner Ult", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/champion/Skarner.png"})
-Menu:MenuElement({id = "Tham", name = "Next Update !!!", value = false, leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/Tahm_KenchSquare.png"})
+Menu:MenuElement({id = "Tham", name = "Use R on Devour", value = true, leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/Tahm_KenchSquare.png"})
 Menu:MenuElement({id = "MyHP", name = "Kalista min.Hp to UseR",  value = 40, min = 0, max = 100, step = 1})
 Menu:MenuElement({id = "TargetHP", name = "Target min.Hp to UseR",  value = 30, min = 0, max = 100, step = 1})
 
@@ -98,8 +98,8 @@ local function OnTick()
 		elseif (swornAlly and hero.charName == "Skarner") and Menu.Skarner:Value() and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange then
 		ExecuteSkarlista()
 	
-		--elseif (swornAlly and hero.charName == "TahmKench") and Menu.Tham:Value() and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange then
-		--ExecuteThamlista()
+		elseif (swornAlly and hero.charName == "TahmKench") and Menu.Tham:Value() and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange then
+		ExecuteThamlista()
 		end
 	end
 end
@@ -116,8 +116,8 @@ function delayload()
 			PrintChat("Blitzcrank found !!!!!!!! Lets Rock and Roll !!!!!!")
 		elseif (swornAlly and hero.charName == "Skarner") then
 			PrintChat("Skarner found !!!!!!!! Lets Rock and Roll !!!!!!")
-		--elseif (swornAlly and hero.charName == "TahmKench") then
-			--PrintChat("ThamKench found !!!!!!!! Lets Rock and Roll !!!!!!")
+		elseif (swornAlly and hero.charName == "TahmKench") then
+			PrintChat("ThamKench found !!!!!!!! Lets Rock and Roll !!!!!!")
 		end
 	end
 end
@@ -129,4 +129,4 @@ end
  
 Callback.Add("Tick", OnTick)
 
---Use R on Devour
+
