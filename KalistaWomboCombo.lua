@@ -90,14 +90,17 @@ local function OnTick()
     end
     for i = 1, HeroCount() do
         local hero = Hero(i)
-	if (swornAlly and hero.charName == "Blitzcrank") and Menu.Blitz:Value() and Ready(_R) and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange and getPercentHP(myHero) >= Menu.MyHP:Value() then
+	if Ready(_R) and getPercentHP(myHero) >= Menu.MyHP:Value() then
+	
+		if (swornAlly and hero.charName == "Blitzcrank") and Menu.Blitz:Value() and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange then
 		ExecuteBalista() 
 	
-	elseif (swornAlly and hero.charName == "Skarner") and Menu.Skarner:Value() and Ready(_R) and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange and getPercentHP(myHero) >= Menu.MyHP:Value() then
+		elseif (swornAlly and hero.charName == "Skarner") and Menu.Skarner:Value() and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange then
 		ExecuteSkarlista()
 	
-	--elseif (swornAlly and hero.charName == "TahmKench") and Menu.Tham:Value() and Ready(_R) and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange and getPercentHP(myHero) >= Menu.MyHP:Value() then
+		--elseif (swornAlly and hero.charName == "TahmKench") and Menu.Tham:Value() and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange then
 		--ExecuteThamlista()
+		end
 	end
 end
 end
