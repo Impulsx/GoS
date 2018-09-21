@@ -8,11 +8,13 @@ end
 
 require "DamageLib"
 
+
+
 local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
-local barHeight = 8
-local barWidth = 103
-local barXOffset = 24
-local barYOffset = -8
+--local barHeight = 8
+--local barWidth = 103
+--local barXOffset = 24
+--local barYOffset = -8
 
 
 keybindings = { [ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6}
@@ -44,9 +46,9 @@ end
 
 
 
+class "Veigar"
 
-
-local function LoadSpells()
+function Veigar:LoadSpells()
 
 	Q = {Range = 950, Width = 70, Delay = 0.25, Speed = 2200, Collision = true, aoe = true, Type = "line"}
 	W = {Range = 900, Width = 225, Delay = 1.25, Speed = math.huge, Collision = false, aoe = true, Type = "circle"}
@@ -55,68 +57,11 @@ local function LoadSpells()
 
 end
 
-function Veigar:LoadMenu()
-	self.Menu = MenuElement({type = MENU, id = "Veigar", name = "PussyVeigar", leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/champion/Veigar.png"})
-	self.Menu:MenuElement({id = "Combo", name = "Combo", type = MENU})
-	self.Menu.Combo:MenuElement({id = "UseQ", name = "Q", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/fd/Baleful_Strike.png/revision/latest?cb=20171223040029"})
-	self.Menu.Combo:MenuElement({id = "UseW", name = "W", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/1/17/Dark_Matter.png/revision/latest?cb=20171223040046"})
-	self.Menu.Combo:MenuElement({id = "UseE", name = "E", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/8/81/Event_Horizon.png/revision/latest?cb=20171223040100"})
-	self.Menu.Combo:MenuElement({id = "WWait", name = "Only W when stunned", value = true})
-	self.Menu.Combo:MenuElement({id = "EMode", name = "E Mode", drop = {"Edge", "Middle"}})
-	self.Menu.Combo:MenuElement({id = "comboActive", name = "Combo key", key = string.byte(" ")})
-		
-	self.Menu:MenuElement({id = "Harass", name = "Harass", type = MENU})
-	self.Menu.Harass:MenuElement({id = "UseQ", name = "Q", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/fd/Baleful_Strike.png/revision/latest?cb=20171223040029"})
-	self.Menu.Harass:MenuElement({id = "AutoQ", name = "Auto Q Toggle", value = false, toggle = true, key = string.byte("U")})
-	self.Menu.Harass:MenuElement({id = "UseW", name = "W", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/1/17/Dark_Matter.png/revision/latest?cb=20171223040046"})
-	self.Menu.Harass:MenuElement({id = "harassActive", name = "Harass key", key = string.byte("C")})
-	
-	self.Menu:MenuElement({id = "Lasthit", name = "Lasthit", type = MENU})
-	self.Menu.Lasthit:MenuElement({id = "UseQ", name = "Q", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/fd/Baleful_Strike.png/revision/latest?cb=20171223040029"})
-	self.Menu.Lasthit:MenuElement({id = "AutoQFarm", name = "Auto Q Farm", value = false, toggle = true, key = string.byte("Z")})
-	self.Menu.Lasthit:MenuElement({id = "lasthitActive", name = "Lasthit key", key = string.byte("X")})
-	
-	self.Menu:MenuElement({id = "Clear", name = "Clear", type = MENU})
-	self.Menu.Clear:MenuElement({id = "UseW", name = "W", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/1/17/Dark_Matter.png/revision/latest?cb=20171223040046"})
-	self.Menu.Clear:MenuElement({id = "WHit", name = "W hits x minions", value = 3,min = 1, max = 6, step = 1})
-	self.Menu.Clear:MenuElement({id = "clearActive", name = "Clear key", key = string.byte("V")})
-	
-	self.Menu:MenuElement({id = "Mana", name = "Mana", type = MENU})
-	self.Menu.Mana:MenuElement({id = "QMana", name = "Min mana to use Q", value = 35, min = 0, max = 100, step = 1, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/fd/Baleful_Strike.png/revision/latest?cb=20171223040029"})
-	self.Menu.Mana:MenuElement({id = "WMana", name = "Min mana to use W", value = 40, min = 0, max = 100, step = 1, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/1/17/Dark_Matter.png/revision/latest?cb=20171223040046"})
-	
-	self.Menu:MenuElement({id = "Killsteal", name = "Killsteal", type = MENU})
-	self.Menu.Killsteal:MenuElement({id = "UseQ", name = "Q", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/fd/Baleful_Strike.png/revision/latest?cb=20171223040029"})
-	self.Menu.Killsteal:MenuElement({id = "UseW", name = "W", value = false, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/1/17/Dark_Matter.png/revision/latest?cb=20171223040046"})
-	self.Menu.Killsteal:MenuElement({id = "UseIG", name = "Use Ignite", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/f4/Ignite.png/revision/latest?cb=20180514003345"})
-	
-	self.Menu.Killsteal:MenuElement({id = "RR", name = "R KS on:", value = true, type = MENU})
-	for i, hero in pairs(self:GetEnemyHeroes()) do
-	self.Menu.Killsteal.RR:MenuElement({id = "UseR"..hero.charName, name = "Use R on: "..hero.charName, value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e7/Primordial_Burst.png/revision/latest?cb=20171223040128"})
-	end
-
-
-	self.Menu:MenuElement({id = "isCC", name = "CC Settings", type = MENU})
-	self.Menu.isCC:MenuElement({id = "UseQ", name = "Q", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/fd/Baleful_Strike.png/revision/latest?cb=20171223040029"})
-	self.Menu.isCC:MenuElement({id = "UseW", name = "W", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/1/17/Dark_Matter.png/revision/latest?cb=20171223040046"})
-	self.Menu.isCC:MenuElement({id = "UseE", name = "E", value = false, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/8/81/Event_Horizon.png/revision/latest?cb=20171223040100"})
-	self.Menu.isCC:MenuElement({id = "EMode", name = "E Mode", drop = {"Edge", "Middle"}})
-
-
-
-	self.Menu:MenuElement({id = "CustomSpellCast", name = "Use custom spellcast", tooltip = "Can fix some casting problems with wrong directions and so", value = true})
-	self.Menu:MenuElement({id = "delay", name = "Custom spellcast delay", value = 50, min = 0, max = 200, step = 5,tooltip = "increase this one if spells is going completely wrong direction", identifier = ""})
-	
-
-end
-
-
 function Veigar:__init()
 	
 	self:LoadSpells()
 	self:LoadMenu()
 	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("Draw", function() self:Draw() end)
 	local orbwalkername = ""
 	if _G.SDK then
 		orbwalkername = "IC'S orbwalker"		
@@ -128,6 +73,66 @@ function Veigar:__init()
 		orbwalkername = "Orbwalker not found"
 	end
 end
+
+
+
+function Veigar:LoadMenu()
+	self.Menu = MenuElement({type = MENU, id = "Veigar", name = "PussyVeigar"})
+	self.Menu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.Menu.Combo:MenuElement({id = "UseQ", name = "Q", value = true})
+	self.Menu.Combo:MenuElement({id = "UseW", name = "W", value = true})
+	self.Menu.Combo:MenuElement({id = "UseE", name = "E", value = true})
+	self.Menu.Combo:MenuElement({id = "WWait", name = "Only W when stunned", value = true})
+	self.Menu.Combo:MenuElement({id = "EMode", name = "E Mode", drop = {"Edge", "Middle"}})
+	self.Menu.Combo:MenuElement({id = "comboActive", name = "Combo key", key = string.byte(" ")})
+		
+	self.Menu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.Menu.Harass:MenuElement({id = "UseQ", name = "Q", value = true})
+	self.Menu.Harass:MenuElement({id = "AutoQ", name = "Auto Q Toggle", value = false, toggle = true, key = string.byte("U")})
+	self.Menu.Harass:MenuElement({id = "UseW", name = "W", value = true})
+	self.Menu.Harass:MenuElement({id = "harassActive", name = "Harass key", key = string.byte("C")})
+	
+	self.Menu:MenuElement({id = "Lasthit", name = "Lasthit", type = MENU})
+	self.Menu.Lasthit:MenuElement({id = "UseQ", name = "Q", value = true})
+	self.Menu.Lasthit:MenuElement({id = "AutoQFarm", name = "Auto Q Farm", value = false, toggle = true, key = string.byte("Z")})
+	self.Menu.Lasthit:MenuElement({id = "lasthitActive", name = "Lasthit key", key = string.byte("X")})
+	
+	self.Menu:MenuElement({id = "Clear", name = "Clear", type = MENU})
+	self.Menu.Clear:MenuElement({id = "UseW", name = "W", value = true})
+	self.Menu.Clear:MenuElement({id = "WHit", name = "W hits x minions", value = 3,min = 1, max = 6, step = 1})
+	self.Menu.Clear:MenuElement({id = "clearActive", name = "Clear key", key = string.byte("V")})
+	
+	self.Menu:MenuElement({id = "Mana", name = "Mana", type = MENU})
+	self.Menu.Mana:MenuElement({id = "QMana", name = "Min mana to use Q", value = 35, min = 0, max = 100, step = 1})
+	self.Menu.Mana:MenuElement({id = "WMana", name = "Min mana to use W", value = 40, min = 0, max = 100, step = 1})
+	
+	self.Menu:MenuElement({id = "Killsteal", name = "Killsteal", type = MENU})
+	self.Menu.Killsteal:MenuElement({id = "UseQ", name = "Q", value = true})
+	self.Menu.Killsteal:MenuElement({id = "UseW", name = "W", value = false})
+	self.Menu.Killsteal:MenuElement({id = "UseIG", name = "Use Ignite", value = true})
+	
+	self.Menu.Killsteal:MenuElement({id = "RR", name = "R KS on:", value = true, type = MENU})
+	for i, hero in pairs(self:GetEnemyHeroes()) do
+	self.Menu.Killsteal.RR:MenuElement({id = "UseR"..hero.charName, name = "Use R on: "..hero.charName, value = true})
+	end
+
+
+	self.Menu:MenuElement({id = "isCC", name = "CC Settings", type = MENU})
+	self.Menu.isCC:MenuElement({id = "UseQ", name = "Q", value = true})
+	self.Menu.isCC:MenuElement({id = "UseW", name = "W", value = true})
+	self.Menu.isCC:MenuElement({id = "UseE", name = "E", value = false})
+	self.Menu.isCC:MenuElement({id = "EMode", name = "E Mode", drop = {"Edge", "Middle"}})
+
+
+
+	self.Menu:MenuElement({id = "CustomSpellCast", name = "Use custom spellcast", tooltip = "Can fix some casting problems with wrong directions and so", value = true})
+	self.Menu:MenuElement({id = "delay", name = "Custom spellcast delay", value = 50, min = 0, max = 200, step = 5,tooltip = "increase this one if spells is going completely wrong direction", identifier = ""})
+	
+
+end
+
+
+
 
 local sqrt = math.sqrt
 local function GetDistanceSqr(p1, p2)
@@ -207,16 +212,16 @@ end
 
 function Veigar:Tick()
     if myHero.dead or Game.IsChatOpen() == true or IsRecalling() == true then return end
-	if Mode() == "Harass" and self.Menu.Harass.harassActive:Value() then
+	if self.Menu.Harass.harassActive:Value() then
 		self:Harass()
 	end
-	if Mode() == "Clear" and self.Menu.Clear.clearActive:Value() then
+	if self.Menu.Clear.clearActive:Value() then
 		self:Clear()
 	end
 	if self.Menu.Lasthit.lasthitActive:Value() then
 		self:Lasthit()
 	end
-	if Mode() == "Combo" and self.Menu.Combo.comboActive:Value() then
+	if self.Menu.Combo.comboActive:Value() then
 		self:Combo()
 	end
 	if self.Menu.Killsteal.UseIG:Value() then
@@ -496,7 +501,7 @@ function Veigar:Combo()
 		    local castpos,HitChance, pos = TPred:GetBestCastPosition(target, W.Delay , W.Width, W.Range,W.Speed, myHero.pos, W.ignorecol, W.Type )
 		    local ImmobileEnemy = self:IsImmobileTarget(target)
 			if (HitChance > 0 ) then
-        if self.Menu.Combo.WWait:Value() and not ImmobileEnemy then return end
+        if self.Menu.Combo.WWait:Value() and ImmobileEnemy then return end
 			Control.CastSpell(HK_W, castpos)
 				end
 	    end
@@ -550,8 +555,9 @@ end
 function Veigar:RDMG()
     local level = myHero:GetSpellData(_R).level
     local rdamage = GetPercentHP(target) > 33.3 and ({175, 250, 325})[level] + 0.75 * source.ap or ({350, 500, 650})[level] + 1.5 * source.ap; return dmg+((0.015 * dmg) * (100 - ((target.health / target.maxHealth) * 100)))
-	return rdamage
+	
 end
+
 
 function Veigar:IsValidTarget(unit,range) 
 	return unit ~= nil and unit.valid and unit.visible and not unit.dead and unit.isTargetable and not unit.isImmortal and unit.pos:DistanceTo(myHero.pos) <= 3340 
@@ -613,17 +619,17 @@ end
 function Veigar:KillstealR()
     local target = CurrentTarget(R.Range)
 	if target == nil then return end
-	if self.Menu.Killsteal.RR["UseR"..target.charName]:Value() and self:CanCast(_R) then
-		if self:EnemyInRange(R.Range) then 
+	if self.Menu.Killsteal.RR["UseR"..target.charName]:Value() and self:CanCast(_R) then   
 			local level = myHero:GetSpellData(_R).level	
-			local dmg = GetPercentHP(target) > 33.3 and ({150, 250, 325})[level] + 0.75 * myHero.ap or ({350, 500, 650})[level] + 1.50 * myHero.ap
+			local dmg = GetPercentHP(target) > 33.3 and ({175, 250, 325})[level] + 0.75 * myHero.ap or ({350, 500, 650})[level] + 1.50 * myHero.ap
 			local Rdamage = dmg +((0.015 * dmg) * (100 - ((target.health / target.maxHealth) * 100)))
+
 			if Rdamage >= self:HpPred(target,1) * 1.2 + target.hpRegen * 2 then
 				Control.CastSpell(HK_R, target)
 				end
 			end
 		end
-	end
+	
 
 
 
