@@ -111,9 +111,9 @@ function Veigar:LoadMenu()
 	self.Menu.Killsteal:MenuElement({id = "UseW", name = "W", value = false})
 	self.Menu.Killsteal:MenuElement({id = "UseIG", name = "Use Ignite", value = true})
 	
-	self.Menu.Killsteal:MenuElement({id = "RR", name = "R KS on:", value = true, type = MENU})
+	self.Menu.Killsteal:MenuElement({id = "RR", name = "UseR on killalble target:", value = true, type = MENU})
 	for i, hero in pairs(self:GetEnemyHeroes()) do
-	self.Menu.Killsteal.RR:MenuElement({id = "UseR"..hero.charName, name = "Use R on: "..hero.charName, value = true})
+	self.Menu.Killsteal.RR:MenuElement({id = "UseR"..hero.charName, name = "UseR" ..hero.charName, value = true})
 	end
 
 
@@ -547,15 +547,15 @@ function Veigar:QDMG()
 end
 
 function Veigar:WDMG()
-    local level = myHero:GetSpellData(_R).level
+    local level = myHero:GetSpellData(_W).level
     local wdamage = (({100,150,200,250,300})[level] + myHero.ap)
 	return wdamage
 end
 
 function Veigar:RDMG()
     local level = myHero:GetSpellData(_R).level
-    local rdamage = GetPercentHP(target) > 33.3 and ({175, 250, 325})[level] + 0.75 * source.ap or ({350, 500, 650})[level] + 1.5 * source.ap; return dmg+((0.015 * dmg) * (100 - ((target.health / target.maxHealth) * 100)))
-	
+    local rdamage = GetPercentHP(target) > 33.3 and ({175, 250, 325})[level] + 0.75 * myHero.ap or ({350, 500, 650})[level] + 1.5 * myHero.ap; return rdamage +((0.015 * rdamage) * (100 - ((target.health / target.maxHealth) * 100)))
+
 end
 
 
@@ -587,7 +587,7 @@ function Veigar:AutoQFarm()
 		local level = myHero:GetSpellData(_Q).level	
   		for i = 1, Game.MinionCount() do
 			local minion = Game.Minion(i)
-			local Qdamage = (({70,110,150,190,230})[level] + 0.60 * myHero.ap)
+			local Qdamage = self:QDMG()
 			if myHero.pos:DistanceTo(minion.pos) < Q.Range and minion.isEnemy and not minion.dead then
 				local castpos,HitChance, pos = TPred:GetBestCastPosition(minion, Q.Delay , Q.Width, Q.Range,Q.Speed, myHero.pos, not Q.ignorecol, Q.Type )
 				if Qdamage >= self:HpPred(minion,1) and (HitChance > 0 ) then
@@ -603,7 +603,7 @@ function Veigar:Lasthit()
 		local level = myHero:GetSpellData(_Q).level	
   		for i = 1, Game.MinionCount() do
 			local minion = Game.Minion(i)
-			local Qdamage = (({70,110,150,190,230})[level] + 0.60 * myHero.ap)
+			local Qdamage = self:QDMG()
 			if myHero.pos:DistanceTo(minion.pos) < Q.Range and self.Menu.Lasthit.UseQ:Value() and minion.isEnemy and not minion.dead then
 				local castpos,HitChance, pos = TPred:GetBestCastPosition(minion, Q.Delay , Q.Width, Q.Range,Q.Speed, myHero.pos, not Q.ignorecol, Q.Type )
 				if Qdamage >= self:HpPred(minion,1) and (HitChance > 0 ) then
@@ -659,7 +659,7 @@ function Veigar:KillstealW()
 		if self:EnemyInRange(W.Range) then 
 			local level = myHero:GetSpellData(_Q).level	
 			local castpos,HitChance, pos = TPred:GetBestCastPosition(target, W.Delay , W.Width, W.Range, W.Speed, myHero.pos, W.ignorecol, W.Type )
-		   	local Wdamage = Veigar:WDMG()
+		   	local Wdamage = self:WDMG()
 			if Wdamage >= self:HpPred(target,1) + target.hpRegen * 1 and not target.dead then
 			if (HitChance > 0 ) then
 				Control.CastSpell(HK_W, castpos)
