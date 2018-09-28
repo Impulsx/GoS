@@ -511,11 +511,11 @@ function Tristana:GapcloseR()
 	local hero = CurrentTarget(GetRWRange())
     if hero == nil then return end
 	if self.Menu.gap.UseR:Value() and self:IsReady(_R) and self:IsReady(_W) then
-	if self:EnemyInRange(GetRWRange()) then
+	if myHero.pos:DistanceTo(hero.pos) > R.Range - 100 and self:EnemyInRange(GetRWRange()) then
 	local Rdamage = self:RDMG(hero)
 
 			if  Rdamage >= self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
-			Control.CastSpell(HK_W, hero) self:AutoR()
+			Control.CastSpell(HK_W, hero.pos) self:AutoR()
 			end
 		end
 	end
