@@ -353,7 +353,7 @@ function Tristana:DrawGapR()
 		local textPos = myHero.pos:To2D()
 		local hero = CurrentTarget(GetRWRange())
 		if hero == nil then return end
-		if myHero.pos:DistanceTo(hero.pos) > R.Range - 100 and self:EnemyInRange(GetRWRange()) then
+		if myHero.pos:DistanceTo(hero.pos) > R.Range and self:EnemyInRange(GetRWRange()) then
 		local Rdamage = self:RDMG(hero)
 
 			if Rdamage >= self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead and self:IsReady(_R) and self:IsReady(_W) then
@@ -511,7 +511,7 @@ function Tristana:GapcloseR()
 	local hero = CurrentTarget(GetRWRange())
     if hero == nil then return end
 	if self.Menu.gap.UseR:Value() and self:IsReady(_R) and self:IsReady(_W) then
-	if myHero.pos:DistanceTo(hero.pos) > R.Range - 100 and self:EnemyInRange(GetRWRange()) then
+	if myHero.pos:DistanceTo(hero.pos) > R.Range and self:EnemyInRange(GetRWRange()) then
 	local Rdamage = self:RDMG(hero)
 
 			if  Rdamage >= self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
@@ -609,7 +609,7 @@ function Tristana:RDMG(unit)
 	local rdamage = (({300,400,500})[rLvl] + 1.0* myHero.ap)
 	total = rdamage
 	end
-	return CalculateMagicalDamage(unit, total)
+	return total
 end
 
 function Tristana:GetStackDmg(unit)
@@ -635,7 +635,7 @@ function Tristana:EDMG(unit)
 		total = raw + bonusDmg
 		total = total + self:GetStackDmg(unit) 
 	end
-	return CalculatePhysicalDamage(unit, total)
+	return total
 end	
 
 function Tristana:ERDMG(unit)
