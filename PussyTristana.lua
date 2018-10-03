@@ -4,6 +4,53 @@ local Heroes = {"Tristana"}
 
 local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
 
+-- [ AutoUpdate ]
+do
+    
+    local Version = 0.01
+    
+    local Files = {
+        Lua = {
+            Path = SCRIPT_PATH,
+            Name = "PussyTristana.lua",
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyTristana.lua"
+        },
+        Version = {
+            Path = SCRIPT_PATH,
+            Name = "PussyTristana.version",
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyTristana.version"
+        }
+    }
+    
+    local function AutoUpdate()
+        
+        local function DownloadFile(url, path, fileName)
+            DownloadFileAsync(url, path .. fileName, function() end)
+            while not FileExist(path .. fileName) do end
+        end
+        
+        local function ReadFile(path, fileName)
+            local file = io.open(path .. fileName, "r")
+            local result = file:read()
+            file:close()
+            return result
+        end
+        
+        DownloadFile(Files.Version.Url, Files.Version.Path, Files.Version.Name)
+        
+        local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
+        if NewVersion > Version then
+            DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
+            print(Files.Version.Name .. ": Updated to " .. tostring(NewVersion) .. ". Please Reload with 2x F6")
+        else
+            print(Files.Version.Name .. ": No Updates Found")
+        end
+    
+    end
+    
+    AutoUpdate()
+
+end
 
 
 local HKITEM = {
@@ -23,11 +70,11 @@ if FileExist(COMMON_PATH .. "TPred.lua") then
 end
 	if FileExist(COMMON_PATH .. "Collision.lua") then
 	require 'Collision'
-	PrintChat("Collision library loaded")
+
 end
 	if FileExist(COMMON_PATH .. "DamageLib.lua") then
 	require 'DamageLib'
-	PrintChat("DamageLib library loaded")
+
 end
 
 function SetMovement(bool)
@@ -46,7 +93,11 @@ function SetMovement(bool)
 	end
 end
 
+
+
 class "Tristana"
+
+
 
 local HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/06/TristanaSquare.png"
 
@@ -63,7 +114,7 @@ function Tristana:LoadMenu()
 	self.Menu:MenuElement({id = "Combo", name = "Combo", type = MENU})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "AutoQ when Explosive Charge", value = true})
 	self.Menu.Combo:MenuElement({id = "UseE", name = "E", value = true})
-	self.Menu.Combo:MenuElement({id = "UseR", name = "(R)Finisher",tooltip = "is(R)Dmg+(E)Dmg+(E)StackDmg > TargetHP than Ult", value = true})
+	self.Menu.Combo:MenuElement({id = "UseR", name = "(R)Finisher", tooltip = "is(R)Dmg+(E)Dmg+(E)StackDmg > TargetHP than Ult", value = true})
 	self.Menu.Combo:MenuElement({id = "R", name = "R", type = MENU})
 	for i, hero in pairs(self:GetEnemyHeroes()) do
 	self.Menu.Combo.R:MenuElement({id = "RR"..hero.charName, name = "KS R on: "..hero.charName, value = true})
@@ -73,6 +124,8 @@ function Tristana:LoadMenu()
 	self.Menu.gap:MenuElement({id = "UseR", name = "Ultimate Gapclose", value = true})
 	self.Menu.gap:MenuElement({id = "gapkey", name = "Gapclose key", key = string.byte("T")})
 	
+
+	
 	self.Menu:MenuElement({id = "Blitz", name = "AntiBlitzGrab", type = MENU})
 	self.Menu.Blitz:MenuElement({id = "UseW", name = "AutoW", value = true})
 	
@@ -80,6 +133,10 @@ function Tristana:LoadMenu()
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "AutoQ when Explosive Charge", value = true})
 	self.Menu.Harass:MenuElement({id = "UseE", name = "E", value = true})
 	self.Menu.Harass:MenuElement({id = "harassActive", name = "Harass key", key = string.byte("C")})
+	
+	self.Menu:MenuElement({id = "MS", name = "Mercurial Scimittar", type = MENU})
+	self.Menu.MS:MenuElement({id = "UseMS", name = "Auto AntiCC", value = true})
+	
 	
 	self.Menu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
 	
@@ -101,6 +158,7 @@ function Tristana:LoadMenu()
 	
 
 	self.Menu.Drawings:MenuElement({id = "DrawR", name = "Draw Kill Ulti Gapclose ", value = true})
+
 
 	
 	self.Menu:MenuElement({id = "CustomSpellCast", name = "Use custom spellcast", tooltip = "Can fix some casting problems with wrong directions and so", value = true})
@@ -174,7 +232,7 @@ function Tristana:Tick()
 		self:HarassE()
 	end
 	if self.Menu.Drawings.DrawR:Value() then
-		self:DrawGapR() 
+		self:DrawGapR()
 	end
 	if self.Menu.Blitz.UseW:Value() then
 		self:AntiBlitz()
@@ -182,11 +240,21 @@ function Tristana:Tick()
 	if self.Menu.gap.gapkey:Value() then
 		self:GapcloseR()
 		self:AutoR()
+
 	end
-	
+	self:UseMS()
 end
 
 
+function GotBuff(unit,name)
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff.name and buff.name:lower() == name:lower() and buff.count > 0 then 
+			return buff.count
+		end
+	end
+	return 0
+end
 
 function Tristana:HasBuff(unit, buffname)
 	for i = 0, unit.buffCount do
@@ -351,18 +419,20 @@ end
 function Tristana:DrawGapR()
 	if self.Menu.Drawings.DrawR:Value() then
 		local textPos = myHero.pos:To2D()
-		local hero = CurrentTarget(GetRWRange())
-		if hero == nil then return end
-		if myHero.pos:DistanceTo(hero.pos) > R.Range and self:EnemyInRange(GetRWRange()) then
-		local Rdamage = self:RDMG(hero)
-
+			local hero = CurrentTarget(GetRWRange())
+			if hero == nil then return end
+			if myHero.pos:DistanceTo(hero.pos) > R.Range and self:EnemyInRange(GetRWRange()) then
+			local Rdamage = self:RDMG(hero)
 			if Rdamage >= self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead and self:IsReady(_R) and self:IsReady(_W) then
-			Draw.Text("GapcloseR Press Key", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0)) 
- 
-		end
-		end
-	end
+			Draw.Text("GapcloseKill PressKey", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
+			end
+			end
 end
+end			
+		
+
+
+
 
 
 function Tristana:CastSpell(spell,pos)
@@ -413,6 +483,8 @@ function Tristana:IsImmobileTarget(unit)
 		return false	
 	end
 
+
+	
 function Tristana:AntiBlitz()	
 	if GetTickCount() - timer.tick > 300 and GetTickCount() - timer.tick < 700 then 
 		timer.state = false
@@ -445,7 +517,8 @@ function Tristana:AntiBlitz()
 		end
 	end
 end	
-	
+
+--Blade of the RuinKing	
 function Tristana:UseBotrk()
 	local target = CurrentTarget(700)
 	if target == nil then return end
@@ -455,7 +528,20 @@ function Tristana:UseBotrk()
 			Control.CastSpell(HKITEM[BOTR], target)
 		end
 	end
+end
+
+--Mercurial Scimittar
+function Tristana:UseMS()
+	if self.Menu.MS.UseMS:Value() then
+	local MS = GetInventorySlotItem(3139)	
+		if MS and GotBuff(myHero, "veigareventhorizonstun") > 0 or GotBuff(myHero, "stun") > 0 or GotBuff(myHero, "taunt") > 0 or GotBuff(myHero, "slow") > 0 or GotBuff(myHero, "snare") > 0 or GotBuff(myHero, "charm") > 0 or GotBuff(myHero, "suppression") > 0 or GotBuff(myHero, "flee") > 0 or GotBuff(myHero, "knockup") > 0 then
+			Control.CastSpell(HKITEM[MS], myHero)
+		
+		end
 	end
+end
+
+
 
 function Tristana:Combo()
 		local target = CurrentTarget(GetAARange())
@@ -469,6 +555,8 @@ function Tristana:Combo()
 			end
 		end	
 	end
+	
+		
 
 
 function Tristana:ComboE()
@@ -486,8 +574,8 @@ function Tristana:ComboRKS()
     if hero == nil then return end
  	if self.Menu.Combo.R["RR"..hero.charName]:Value() and self:CanCast(_R) then
 	if self:EnemyInRange(GetRRange())  then
-   	local Rdamage = self:RDMG(hero)    
-		if Rdamage >= self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
+   	local Rdamage = self:RDMG(hero)   
+		if Rdamage >= self:HpPred(hero,1) + hero.hpRegen * 1  and not hero.dead then
 				Control.CastSpell(HK_R, hero)
 			end
         end
@@ -507,25 +595,29 @@ function Tristana:Finisher()
 	end
 end	
 
+
+
+	
 function Tristana:GapcloseR()
 	local hero = CurrentTarget(GetRWRange())
     if hero == nil then return end
-	if self.Menu.gap.UseR:Value() and self:IsReady(_R) and self:IsReady(_W) then
-	if myHero.pos:DistanceTo(hero.pos) > R.Range and self:EnemyInRange(GetRWRange()) then
-	local Rdamage = self:RDMG(hero)
-
-			if  Rdamage >= self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
+	local Rdamage = self:RDMG(hero) + CalculateMagicalDamage(target, self:RDMG(unit))		
+		if self.Menu.gap.UseR:Value() and self:IsReady(_R) and self:IsReady(_W) then
+		if myHero.pos:DistanceTo(hero.pos) > R.Range and self:EnemyInRange(GetRWRange()) then
+		if  Rdamage >= self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
 			Control.CastSpell(HK_W, hero.pos) self:AutoR()
-			end
 		end
-	end
-end
+		end
+		end
+	end	
+		
+
 
 function Tristana:AutoR()
 	local hero = CurrentTarget(GetRRange())
     if hero == nil then return end
 	if self:EnemyInRange(GetRRange()) and self:CanCast(_R) then
-	local Rdamage = self:RDMG(hero)
+	local Rdamage = self:RDMG(hero) + CalculateMagicalDamage(target, self:RDMG(unit))
 
 		if  Rdamage > self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
 			Control.CastSpell(HK_R, hero)
@@ -606,9 +698,18 @@ function Tristana:RDMG(unit)
     total = 0
 	local rLvl = myHero:GetSpellData(_R).level
     if rLvl > 0 then
-	local rdamage = (({300,400,500})[rLvl] + 1.0* myHero.ap)
-	total = rdamage
+	local rdamage = (({300,400,500})[rLvl] + myHero.ap)
+	total = rdamage 
 	end
+	return total
+end
+
+function Tristana:AADMG(unit)
+    total = 0
+	local AALvl = myHero.levelData.lvl
+
+	local AAdamage = 58 + ( 3 * AALvl)
+	total = AAdamage * 3
 	return total
 end
 
@@ -633,13 +734,13 @@ function Tristana:EDMG(unit)
 		local m = ({ 0.5, 0.65, 0.8, 0.95, 1.10 })[eLvl]
 		local bonusDmg = m * myHero.bonusDamage
 		total = raw + bonusDmg
-		total = total + self:GetStackDmg(unit) 
+		total = total + self:GetStackDmg(unit)  
 	end
 	return total
 end	
 
 function Tristana:ERDMG(unit)
-	return self:EDMG(unit) + self:RDMG(unit)
+	return (self:EDMG(unit) + CalculatePhysicalDamage(target, self:EDMG(unit))) + self:RDMG(unit)  
 end
 
 
@@ -678,3 +779,4 @@ function GetAARange()
 end
 	
 Callback.Add("Load",function() _G[myHero.charName]() end)
+
