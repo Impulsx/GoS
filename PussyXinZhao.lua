@@ -1,6 +1,54 @@
 if myHero.charName ~= "XinZhao" then return end
 class "XinZhao"
 
+-- [ AutoUpdate ]
+do
+    
+    local Version = 0.01
+    
+    local Files = {
+        Lua = {
+            Path = SCRIPT_PATH,
+            Name = "PussyXinZhao.lua",
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyXinZhao.lua"
+        },
+        Version = {
+            Path = SCRIPT_PATH,
+            Name = "PussyXinZhao.version",
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyXinZhao.version"
+        }
+    }
+    
+    local function AutoUpdate()
+        
+        local function DownloadFile(url, path, fileName)
+            DownloadFileAsync(url, path .. fileName, function() end)
+            while not FileExist(path .. fileName) do end
+        end
+        
+        local function ReadFile(path, fileName)
+            local file = io.open(path .. fileName, "r")
+            local result = file:read()
+            file:close()
+            return result
+        end
+        
+        DownloadFile(Files.Version.Url, Files.Version.Path, Files.Version.Name)
+        
+        local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
+        if NewVersion > Version then
+            DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
+            print(Files.Version.Name .. ": Updated to " .. tostring(NewVersion) .. ". Please Reload with 2x F6")
+        else
+            print(Files.Version.Name .. ": No Updates Found")
+        end
+    
+    end
+    
+    AutoUpdate()
+
+end
+
 function OnLoad()
 	PrintChat("XinZhao by Pussykate")
 	XinZhao()
@@ -34,7 +82,7 @@ function XinZhao:LoadMenu()
 	--Main Menu-- PussyXinZhao -- Combo
 	self.Menu.Mode:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	self.Menu.Mode.Combo:MenuElement({id = "Q", name = "Use Q", value = true})
-	self.Menu.Mode.Combo:MenuElement({id = "W", name = "Use W", value = true})
+	self.Menu.Mode.Combo:MenuElement({id = "W", name = "UseW if Target Flee", value = true})
 	self.Menu.Mode.Combo:MenuElement({id = "E", name = "Use E", value = true})
 	self.Menu.Mode.Combo:MenuElement({id = "R", name = "Use R", value = true})
 	self.Menu.Mode.Combo:MenuElement({id = "RHP", name = "R when target HP%", value = 20, min = 0, max = 100, step = 1})
@@ -68,6 +116,10 @@ function XinZhao:LoadMenu()
 	self.Menu.Mode.JungleClear:MenuElement({id = "W", name = "Use W", value = true})
 	self.Menu.Mode.JungleClear:MenuElement({id = "E", name = "Use E", value = true})
 	
+	--Main Menu-- PussyXinZhao -- KillSteal
+	self.Menu.Mode:MenuElement({type = MENU, id = "KS", name = "KillSteal"})
+	self.Menu.Mode.KS:MenuElement({id = "E", name = "UseE KS", value = true})	
+	
 	--Main Menu-- PussyXinZhao -- Spell Range 
 	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Spell Range"})
 	self.Menu.Drawing:MenuElement({id = "E", name = "Draw E Range", value = true})
@@ -87,7 +139,11 @@ function XinZhao:Tick()
 	elseif Harass then
 		self:Harass()		
 	end	
+	self:KS()
 end
+
+
+	
 
 local ItemHotKey = {
     [ITEM_1] = HK_ITEM_1,
@@ -169,9 +225,11 @@ local function Ready(spell)
   	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana 
 end
 
-function XinZhao:isReady (spell)
-	return Game.CanUseSpell(spell) == 0 
+local function isReady(spell)
+return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 
 end
+
+
 
 function XinZhao:Ready(spellSlot)
 	return Game.CanUseSpell(spellSlot) == 0
@@ -185,6 +243,26 @@ function XinZhao:IsValidTarget(unit,range)
     return unit ~= nil and unit.valid and unit.visible and not unit.dead and unit.isTargetable and not unit.isImmortal and unit.pos:DistanceTo(myHero.pos) <= E.range
 end
 
+function XinZhao:EDMG(unit)
+	total = 0
+	local eLvl = myHero:GetSpellData(_E).level
+    if eLvl > 0 then
+	local edamage = (({50,75,100,125,150})[eLvl] + 0.6 * myHero.ap)
+	total = edamage
+	end
+	return total
+end
+
+function XinZhao:KS()
+	local target =  (_G.SDK and _G.SDK.TargetSelector:GetTarget(800, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(800,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
+	local edamage = self:EDMG(target)
+		if edamage > self:HpPred(target,1) + target.hpRegen * 1 then
+			if self:IsValidTarget(target,650) and myHero.pos:DistanceTo(target.pos) <= 650 and self.Menu.Mode.KS.E:Value() and isReady(_E) and not myHero.isChanneling  then
+				Control.CastSpell(HK_E,target)
+		end
+	end			
+end
+
 function XinZhao:Combo()
 
 	if self:GetValidEnemy(800) == false then return end
@@ -193,52 +271,52 @@ function XinZhao:Combo()
 	
 	local target =  (_G.SDK and _G.SDK.TargetSelector:GetTarget(800, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(800,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
 		
-			if self:IsValidTarget(target,650) and myHero.pos:DistanceTo(target.pos) <= 650 and self.Menu.Mode.Combo.E:Value() and self:isReady(_E) and not myHero.isChanneling  then
+			if self:IsValidTarget(target,650) and myHero.pos:DistanceTo(target.pos) <= 650 and self.Menu.Mode.Combo.E:Value() and isReady(_E) and not myHero.isChanneling  then
 			Control.CastSpell(HK_E,target)
-	    	if self:IsValidTarget(target,900) and self.Menu.Mode.Combo.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
+	    	if self:IsValidTarget(target,900) and myHero.pos:DistanceTo(target.pos) > 400 and self.Menu.Mode.Combo.W:Value() and isReady(_W) and not myHero.isChanneling  then
 			Control.CastSpell(HK_W,target)
 	    	end
-	    	if self:IsValidTarget(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
+	    	if self:IsValidTarget(target,375) and self.Menu.Mode.Combo.Q:Value() and isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
 			Control.CastSpell(HK_Q)
 	    	end 
-	    	if self:IsValidTarget(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
+	    	if self:IsValidTarget(target,500) and self.Menu.Mode.Combo.R:Value() and isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
 			Control.CastSpell(HK_R)
 	    	end
 	    end		
-		if self:IsValidTarget(target,900) and self.Menu.Mode.Combo.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
+		if self:IsValidTarget(target,900) and myHero.pos:DistanceTo(target.pos) > 400 and self.Menu.Mode.Combo.W:Value() and isReady(_W) and not myHero.isChanneling  then
 		Control.CastSpell(HK_W,target)
-	    	if self:IsValidTarget(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
+	    	if self:IsValidTarget(target,375) and self.Menu.Mode.Combo.Q:Value() and isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
 		Control.CastSpell(HK_Q)
 	    	end
-	    	if self:IsValidTarget(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
+	    	if self:IsValidTarget(target,500) and self.Menu.Mode.Combo.R:Value() and isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
 		Control.CastSpell(HK_R)
 	    	end
 	    end	
-	    if self:IsValidTarget(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
+	    if self:IsValidTarget(target,375) and self.Menu.Mode.Combo.Q:Value() and isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
 		Control.CastSpell(HK_Q)
-	    	if self:IsValidTarget(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
+	    	if self:IsValidTarget(target,500) and self.Menu.Mode.Combo.R:Value() and isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
 		Control.CastSpell(HK_R)
 	    	end
 	    end   
-		if self:IsValidTarget(target,R.range) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
+		if self:IsValidTarget(target,R.range) and self.Menu.Mode.Combo.R:Value() and isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
 		Control.CastSpell(HK_R)
 	    end
-		if self:IsValidTarget(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and not myHero.isChanneling and
+		if self:IsValidTarget(target,500) and self.Menu.Mode.Combo.R:Value() and isReady(_R) and not myHero.isChanneling and
 		myHero.health/myHero.maxHealth <= self.Menu.Mode.Combo.myRHP:Value()/100 then
 		Control.CastSpell(HK_R)
 		end
 		
 	local items = {}
 	local Tiamat = items [3077] or items [3748] or items [3074]
-	if self.Menu.Mode.Combo.Spell.Hydra:Value() and myHero.pos:DistanceTo(target.pos) < 300 and myHero.attackData.state == 2 and self:isReady(Spell) then
+	if self.Menu.Mode.Combo.Spell.Hydra:Value() and myHero.pos:DistanceTo(target.pos) < 300 and myHero.attackData.state == 2 and isReady(Spell) then
 	Control.CastSpell(HK_, target.pos)
 	end
 	local King = items[3153]
-	if self.Menu.Mode.Combo.Spell.King:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 and self:isReady(Spell) then
+	if self.Menu.Mode.Combo.Spell.King:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 and isReady(Spell) then
 	Control.CastSpell(HK_, target.pos)
 	end	
 	local Cutless = items[3144]
-	if self.Menu.Mode.Combo.Spell.Cutless:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 and self:isReady(Spell) then
+	if self.Menu.Mode.Combo.Spell.Cutless:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 and isReady(Spell) then
 	Control.CastSpell(HK_, target.pos)
 	end
 		
@@ -247,59 +325,59 @@ function XinZhao:Combo()
 		
 		
 	if self.Menu.Mode.Combo.Spell.I:Value() then 
-   		if self.Menu.Mode.Combo.Spell.IMode:Value() == 2 and myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and self:isReady(SUMMONER_1) then
+   		if self.Menu.Mode.Combo.Spell.IMode:Value() == 2 and myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and isReady(SUMMONER_1) then
        		if self:IsValidTarget(target, 600, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.IHP:Value()/100 then
             	Control.CastSpell(HK_SUMMONER_1, target)
        		end
-		elseif  self.Menu.Mode.Combo.Spell.IMode:Value() == 2 and myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and self:isReady(SUMMONER_2) then
+		elseif  self.Menu.Mode.Combo.Spell.IMode:Value() == 2 and myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and isReady(SUMMONER_2) then
         	if self:IsValidTarget(target, 600, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.IHP:Value()/100 then
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end
-		elseif  self.Menu.Mode.Combo.Spell.IMode:Value() == 1 and myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and self:isReady(SUMMONER_1) then
+		elseif  self.Menu.Mode.Combo.Spell.IMode:Value() == 1 and myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and isReady(SUMMONER_1) then
        	 	if self:IsValidTarget(target, 600, true, myHero) and 50+20*myHero.levelData.lvl -(target.hpRegen*3) > target.health*1.1 then
            		Control.CastSpell(HK_SUMMONER_1, target)
        	 	end
-		elseif self.Menu.Mode.Combo.Spell.IMode:Value() == 1  and myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and self:isReady(SUMMONER_2) then
+		elseif self.Menu.Mode.Combo.Spell.IMode:Value() == 1  and myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and isReady(SUMMONER_2) then
        		 if self:IsValidTarget(target, 600, true, myHero) and 50+20*myHero.levelData.lvl - (target.hpRegen*3) > target.health*1.1 then
            		Control.CastSpell(HK_SUMMONER_2, target)
         	end
     	end 
     end
     if self.Menu.Mode.Combo.Spell.S:Value() then 
-   		if self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmiteDuel"  and self:isReady(SUMMONER_1) then
+   		if self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmiteDuel"  and isReady(SUMMONER_1) then
        		if self:IsValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.SHP:Value()/100 then
             	Control.CastSpell(HK_SUMMONER_1, target)
        		end
-		elseif  self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmiteDuel" and self:isReady(SUMMONER_2) then
+		elseif  self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmiteDuel" and isReady(SUMMONER_2) then
         	if self:IsValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.SHP:Value()/100 then
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end	
     end
     if self.Menu.Mode.Combo.Spell.S:Value() then 
-   		if self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmitePlayerGanker"  and self:isReady(SUMMONER_1) then
+   		if self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmitePlayerGanker"  and isReady(SUMMONER_1) then
        		if self:IsValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.SHP:Value()/100 then
             	Control.CastSpell(HK_SUMMONER_1, target)
        		end
-		elseif  self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmitePlayerGanker" and self:isReady(SUMMONER_2) then
+		elseif  self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmitePlayerGanker" and isReady(SUMMONER_2) then
         	if self:IsValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.SHP:Value()/100 then
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end
-       	elseif  self.Menu.Mode.Combo.Spell.SMode:Value() == 1 and myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmitePlayerGanker" and self:isReady(SUMMONER_1) then
+       	elseif  self.Menu.Mode.Combo.Spell.SMode:Value() == 1 and myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmitePlayerGanker" and isReady(SUMMONER_1) then
        	 	if self:IsValidTarget(target, 500, true, myHero) and 20+8*myHero.levelData.lvl > target.health*1 then
            		Control.CastSpell(HK_SUMMONER_1, target)
        	 	end
-		elseif self.Menu.Mode.Combo.Spell.SMode:Value() == 1  and myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmitePlayerGanker" and self:isReady(SUMMONER_2) then
+		elseif self.Menu.Mode.Combo.Spell.SMode:Value() == 1  and myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmitePlayerGanker" and isReady(SUMMONER_2) then
        		 if self:IsValidTarget(target, 500, true, myHero) and 20+8*myHero.levelData.lvl > target.health*1 then
            		Control.CastSpell(HK_SUMMONER_2, target)
         	end
     	end 
     end
     if self.Menu.Mode.Combo.Spell.EX:Value() then 
-   		if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust"  and self:isReady(SUMMONER_1) then
+   		if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust"  and isReady(SUMMONER_1) then
        		if self:IsValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.EXHP:Value()/100 then
             	Control.CastSpell(HK_SUMMONER_1, target)
        		end
-		elseif  myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and self:isReady(SUMMONER_2) then
+		elseif  myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and isReady(SUMMONER_2) then
         	if self:IsValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.EXHP:Value()/100 then
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end
@@ -316,7 +394,7 @@ function XinZhao:Harass()
 	
 	local target =  (_G.SDK and _G.SDK.TargetSelector:GetTarget(800, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(800,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
 		
-	    if target.pos:DistanceTo(myHero.pos) <= W.range and (myHero.mana/myHero.maxMana >= self.Menu.Mode.Harass.MM.WMana:Value() / 100) and self.Menu.Mode.Harass.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
+	    if target.pos:DistanceTo(myHero.pos) <= W.range and (myHero.mana/myHero.maxMana >= self.Menu.Mode.Harass.MM.WMana:Value() / 100) and self.Menu.Mode.Harass.W:Value() and isReady(_W) and not myHero.isChanneling  then
 		Control.CastSpell(HK_W,target)
 	end
 end
@@ -327,31 +405,31 @@ function XinZhao:Clear()
 	for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
 			if minion.team == 300 - myHero.team then
-				if minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.LaneClear.E:Value() and self:isReady(_E) then
+				if minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.LaneClear.E:Value() and isReady(_E) then
 					Control.CastSpell(HK_E,minion)
 					break
 				end	
-				if self:IsValidTarget(minion,W.range) and self.Menu.Mode.LaneClear.W:Value() and self:isReady(_W) then
+				if self:IsValidTarget(minion,W.range) and self.Menu.Mode.LaneClear.W:Value() and isReady(_W) then
 					if self:CountEnemyMinions(W.range) >= self.Menu.Mode.LaneClear.WMinion:Value() then
 						Control.CastSpell(HK_W,minion)
 						break
 					end	
 				end
-				if self:IsValidTarget(minion,Q.range) and self.Menu.Mode.LaneClear.Q:Value() and self:isReady(_Q) then
+				if self:IsValidTarget(minion,Q.range) and self.Menu.Mode.LaneClear.Q:Value() and isReady(_Q) then
 					Control.CastSpell(HK_Q)
 					break
 				end
 
 			elseif minion.team == 300 then
-				if  minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.JungleClear.E:Value() and self:isReady(_E) then
+				if  minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.JungleClear.E:Value() and isReady(_E) then
 					Control.CastSpell(HK_E,minion)
 					break
 				end
-				if self:IsValidTarget(minion,Q.range) and self.Menu.Mode.JungleClear.Q:Value() and self:isReady(_Q) then
+				if self:IsValidTarget(minion,Q.range) and self.Menu.Mode.JungleClear.Q:Value() and isReady(_Q) then
 				Control.CastSpell(HK_Q)
 				break
 				end 
-				if self:IsValidTarget(minion,W.range) and self.Menu.Mode.JungleClear.W:Value() and self:isReady(_W) then
+				if self:IsValidTarget(minion,W.range) and self.Menu.Mode.JungleClear.W:Value() and isReady(_W) then
 					Control.CastSpell(HK_W,minion)
 					break
 				end	
@@ -375,6 +453,7 @@ function XinZhao:Draw()
 		if self.Menu.Drawing.E:Value() then Draw.Circle(myHero.pos, 650, self.Menu.Drawing.Width:Value(), self.Menu.Drawing.Color:Value())	
 		end	
 end
+
 
 
 
