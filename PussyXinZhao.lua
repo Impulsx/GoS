@@ -50,7 +50,7 @@ do
 end
 
 function OnLoad()
-	PrintChat("XinZhao by Pussykate Vers.0.02")
+	PrintChat("XinZhao by Pussykate Vers.0.03")
 	XinZhao()
 	require 'Collision'
 end
