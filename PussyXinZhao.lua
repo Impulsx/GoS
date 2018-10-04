@@ -4,7 +4,7 @@ class "XinZhao"
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.02
+    local Version = 0.03
     
     local Files = {
         Lua = {
@@ -178,6 +178,14 @@ function XinZhao:HasBuff(unit, buffname)
 	return false
 end
 
+function GetInventorySlotItem(itemID)
+		assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
+		for _, j in pairs({ ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6}) do
+			if myHero:GetItemData(j).itemID == itemID and myHero:GetSpellData(j).currentCd == 0 then return j end
+		end
+		return nil
+end
+
 local function GetTarget(range)
 	local target = nil 
 	if _G.EOWLoaded then
@@ -232,7 +240,7 @@ end
 
 
 function XinZhao:Ready(spellSlot)
-	return Game.CanUseSpell(spellSlot) == 0
+	return Game.CanUseSpell(spell) == 0
 end
 
 function XinZhao:IsValidTarget(unit,range)
@@ -307,18 +315,20 @@ function XinZhao:Combo()
 		end
 		
 
-	local TIA = GetInventorySlotItem(3077) or GetInventorySlotItem(3748) or GetInventorySlotItem(3074)
-	if TIA and self.Menu.Mode.Combo.Spell.Hydra:Value() and myHero.pos:DistanceTo(target.pos) < 300 and myHero.attackData.state == 2 then
+	local TIA = GetInventorySlotItem(3077),(3748),(3074)
+	if TIA and self.Menu.Mode.Combo.Spell.Hydra:Value() and myHero.pos:DistanceTo(target.pos) < 300 then
 	Control.CastSpell(HKITEM[TIA], target)
 	end
-	local KING = GetInventorySlotItem(3153)
-	if King and self.Menu.Mode.Combo.Spell.King:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 then
+	local KING = GetInventorySlotItem(3153) 
+	if KING and self.Menu.Mode.Combo.Spell.King:Value() and myHero.pos:DistanceTo(target.pos) < 600  then
 	Control.CastSpell(HKITEM[KING], target)
-	end	
+	end
 	local CUT = GetInventorySlotItem(3144)
-	if CUT and self.Menu.Mode.Combo.Spell.Cutless:Value() and myHero.pos:DistanceTo(target.pos) < 600 and myHero.attackData.state == 2 then
+	if CUT and self.Menu.Mode.Combo.Spell.Cutless:Value() and myHero.pos:DistanceTo(target.pos) < 600  then
 	Control.CastSpell(HKITEM[CUT], target)
 	end
+	
+	
 		
 			
 		
@@ -382,9 +392,10 @@ function XinZhao:Combo()
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end
        	end		
-    end      		
+    end
 end
-end
+end	
+
 
 function XinZhao:Harass()
 
@@ -398,6 +409,8 @@ function XinZhao:Harass()
 		Control.CastSpell(HK_W,target)
 	end
 end
+
+
 
 function XinZhao:Clear()
 
@@ -453,6 +466,18 @@ function XinZhao:Draw()
 		if self.Menu.Drawing.E:Value() then Draw.Circle(myHero.pos, 650, self.Menu.Drawing.Width:Value(), self.Menu.Drawing.Color:Value())	
 		end	
 end
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
