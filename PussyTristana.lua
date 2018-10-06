@@ -7,7 +7,7 @@ local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.01
+    local Version = 0.02
     
     local Files = {
         Lua = {
@@ -37,11 +37,11 @@ do
         end
         
         DownloadFile(Files.Version.Url, Files.Version.Path, Files.Version.Name)
-        
+        local textPos = myHero.pos:To2D()
         local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
         if NewVersion > Version then
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
-            print(Files.Version.Name .. ": Updated to " .. tostring(NewVersion) .. ". Please Reload with 2x F6")
+            Draw.Text("New PussyTristana Version Press 2x F6", 50, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
         else
             print(Files.Version.Name .. ": No Updates Found")
         end
@@ -422,8 +422,9 @@ function Tristana:DrawGapR()
 			local hero = CurrentTarget(GetRWRange())
 			if hero == nil then return end
 			if myHero.pos:DistanceTo(hero.pos) > R.Range and self:EnemyInRange(GetRWRange()) then
-			local Rdamage = self:RDMG(hero)
-			if Rdamage >= self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead and self:IsReady(_R) and self:IsReady(_W) then
+			local Rdamage = self:RDMG(hero)		
+			local totalDMG = CalculateMagicalDamage(hero, Rdamage)
+			if totalDMG > self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead and self:IsReady(_R) and self:IsReady(_W) then
 			Draw.Text("GapcloseKill PressKey", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
 			end
 			end
@@ -575,7 +576,8 @@ function Tristana:ComboRKS()
  	if self.Menu.Combo.R["RR"..hero.charName]:Value() and self:CanCast(_R) then
 	if self:EnemyInRange(GetRRange())  then
    	local Rdamage = self:RDMG(hero)   
-		if Rdamage >= self:HpPred(hero,1) + hero.hpRegen * 1  and not hero.dead then
+	local totalDMG = CalculateMagicalDamage(hero, Rdamage)	
+		if totalDMG >= self:HpPred(hero,1) + hero.hpRegen * 1  and not hero.dead then
 				Control.CastSpell(HK_R, hero)
 			end
         end
@@ -587,8 +589,12 @@ function Tristana:Finisher()
     if hero == nil then return end
 	if self.Menu.Combo.UseR:Value() and self:CanCast(_R) then
 	if self:EnemyInRange(GetRRange()) then
-	local Rdamage = self:ERDMG(hero)
-			if Rdamage >= self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
+	Edmg = self:EDMG(hero)
+	Rdmg = self:RDMG(hero)	
+	calcEdmg = CalculatePhysicalDamage(hero, Edmg)
+	calcRdmg = CalculateMagicalDamage(hero, Rdmg)
+	totalDMG = calcEdmg + calcRdmg
+			if totalDMG >= self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
 			Control.CastSpell(HK_R, hero)
 			end
 		end
@@ -601,10 +607,11 @@ end
 function Tristana:GapcloseR()
 	local hero = CurrentTarget(GetRWRange())
     if hero == nil then return end
-	local Rdamage = self:RDMG(hero) + CalculateMagicalDamage(target, self:RDMG(unit))		
+	local Rdamage = self:RDMG(hero)		
+	local totalDMG = CalculateMagicalDamage(hero, Rdamage)	
 		if self.Menu.gap.UseR:Value() and self:IsReady(_R) and self:IsReady(_W) then
 		if myHero.pos:DistanceTo(hero.pos) > R.Range and self:EnemyInRange(GetRWRange()) then
-		if  Rdamage >= self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
+		if totalDMG >= self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
 			Control.CastSpell(HK_W, hero.pos) self:AutoR()
 		end
 		end
@@ -617,9 +624,9 @@ function Tristana:AutoR()
 	local hero = CurrentTarget(GetRRange())
     if hero == nil then return end
 	if self:EnemyInRange(GetRRange()) and self:CanCast(_R) then
-	local Rdamage = self:RDMG(hero) + CalculateMagicalDamage(target, self:RDMG(unit))
-
-		if  Rdamage > self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
+	local Rdamage = self:RDMG(hero)
+	local totalDMG = CalculateMagicalDamage(hero, Rdamage)
+		if  totalDMG > self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
 			Control.CastSpell(HK_R, hero)
 		
 
@@ -738,12 +745,6 @@ function Tristana:EDMG(unit)
 	end
 	return total
 end	
-
-function Tristana:ERDMG(unit)
-	return (self:EDMG(unit) + CalculatePhysicalDamage(target, self:EDMG(unit))) + self:RDMG(unit)  
-end
-
-
 
 
 function Tristana:IsValidTarget(unit,range) 
