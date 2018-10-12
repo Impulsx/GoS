@@ -7,7 +7,7 @@ local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.02
+    local Version = 0.03
     
     local Files = {
         Lua = {
@@ -41,7 +41,7 @@ do
         local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
         if NewVersion > Version then
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
-            Draw.Text("New PussyTristana Version Press 2x F6", 50, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
+            print("New PussyTristana Version Press 2x F6")
         else
             print(Files.Version.Name .. ": No Updates Found")
         end
@@ -705,7 +705,7 @@ function Tristana:RDMG(unit)
     total = 0
 	local rLvl = myHero:GetSpellData(_R).level
     if rLvl > 0 then
-	local rdamage = (({300,400,500})[rLvl] + myHero.ap)
+	local rdamage = (({250,350,450})[rLvl] + myHero.ap) -- originalDMG 300,400,500 ( Ult comes to early) 
 	total = rdamage 
 	end
 	return total
@@ -780,4 +780,5 @@ function GetAARange()
 end
 	
 Callback.Add("Load",function() _G[myHero.charName]() end)
+
 
