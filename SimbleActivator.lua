@@ -3,7 +3,7 @@ class "Activator"
  -- [ AutoUpdate ]
 do
     
-    local Version = 0.01
+    local Version = 0.02
     
     local Files = {
         Lua = {
@@ -94,6 +94,12 @@ end
 
 local myPotTicks = 0;
 local currentlyDrinkingPotion = false;
+local HealthPotionSlot = 0;
+local CookiePotionSlot = 0;
+local RefillablePotSlot = 0;
+local CorruptPotionSlot = 0;
+local HuntersPotionSlot = 0;
+local InventoryTable = {};
 local HKITEM = {
 	[ITEM_1] = HK_ITEM_1,
 	[ITEM_2] = HK_ITEM_2,
@@ -147,6 +153,26 @@ function Activator:CastSpell(spell,pos)
 			end
 		end
 	end
+end
+
+local function myGetSlot(itemID)
+local retval = 0;
+for i = ITEM_1, ITEM_6 do
+	if InventoryTable[i] ~= nil then
+		if InventoryTable[i].itemID == itemID then
+			if (itemID > 2030) and (itemID < 2034) then 
+				if InventoryTable[i].ammo > 0 then
+					retval = i;
+					break;
+					end
+				else
+				retval = i;
+				break;
+				end
+			end
+		end
+	end
+return retval
 end	
 
 -- Zhonyas + StopWatch ---------------	
@@ -183,33 +209,46 @@ function Activator:UsePotion()
 			end
 		end
 	end
+	local HealthPotionSlot = myGetSlot(2003);
+	local CookiePotionSlot = myGetSlot(2010);
+	local RefillablePotSlot = myGetSlot(2031);
+	local HuntersPotionSlot = myGetSlot(2032);
+	local CorruptPotionSlot = myGetSlot(2033);
 	if (currentlyDrinkingPotion == false) then
 		if GetPercentHP(myHero) < self.Menu.Healing.UsePotsPercent:Value() then
 	
 			local HP = GetInventorySlotItem(2003)
-			if HP and self.Menu.Healing.UsePots:Value() then
+			if HP and self.Menu.Healing.UsePots:Value() and HealthPotionSlot > 0 then
 			Control.CastSpell(HKITEM[HP], myHero)
 			end
 			local C = GetInventorySlotItem(2010)
-			if C and self.Menu.Healing.UseCookies:Value() then
+			if C and self.Menu.Healing.UseCookies:Value() and CookiePotionSlot > 0 then
 			Control.CastSpell(HKITEM[C], myHero)
 			end
 			local RP = GetInventorySlotItem(2031)
-			if RP and self.Menu.Healing.UseRefill:Value() then
+			if RP and self.Menu.Healing.UseRefill:Value() and RefillablePotSlot > 0 then
 			Control.CastSpell(HKITEM[RP], myHero)
 			end
 			local CP = GetInventorySlotItem(2033)
-			if CP and self.Menu.Healing.UseCorrupt:Value() then
+			if CP and self.Menu.Healing.UseCorrupt:Value() and CorruptPotionSlot > 0 then
 			Control.CastSpell(HKITEM[CP], myHero)
 			end
 			local H = GetInventorySlotItem(2032)
-			if H and self.Menu.Healing.UseHunters:Value() then
+			if H and self.Menu.Healing.UseHunters:Value() and HuntersPotionSlot > 0 then
 			Control.CastSpell(HKITEM[H], myHero)
 			end
 		end
 	end
 end
 end
+
+
+
+
+
+
+
+
 
 
 
