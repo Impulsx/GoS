@@ -3,7 +3,7 @@ class "Activator"
  -- [ AutoUpdate ]
 do
     
-    local Version = 0.02
+    local Version = 0.03
     
     local Files = {
         Lua = {
@@ -80,7 +80,10 @@ function Activator:LoadMenu()
 	self.Menu.ZS.Stopwatch:MenuElement({id = "UseS", name = "Use Stopwatch", value = true})	
 	self.Menu.ZS:MenuElement({id = "HP", name = "myHP", type = MENU})
 	self.Menu.ZS.HP:MenuElement({id = "myHP", name = "Use if health is below:",value = 20, min = 0, max = 100,step = 1})	
-	
+	self.Menu.ZS:MenuElement({id = "QSS", name = "QSS Setings", type = MENU})
+	self.Menu.ZS.QSS:MenuElement({name = " ", drop = {"Added De-Buffs Info"}})
+	self:Menu.ZS.QSS:MenuElement({name = "QSS", drop = {"Zed Ult (for more, write in my Tread)"}})
+	self.Menu.ZS.QSS:MenuElement({id = "UseSZ", name = "AutoUse Stopwatch or Zhonya", value = true})
 
 	self.Menu:MenuElement({id = "Healing", name = "Potions", type = MENU})
 	self.Menu.Healing:MenuElement({id = "Enabled", name = "Potions Enabled", value = true})
@@ -115,6 +118,7 @@ function Activator:Tick()
 	self:UseZhonya()			
 	self:UseStopwatch()
 	self:UsePotion()
+	self:QSS()
 end	
 
 --Utility------------------------
@@ -125,8 +129,23 @@ function GetInventorySlotItem(itemID)
 		end
 		return nil
 	    end	
-		
-function GetPercentHP(unit)
+
+function HasBuff(unit, buffName)
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff ~= nil and buff.count > 0 then
+			if buff.name == buffName then
+				local CurrentTime = Game.Timer()
+				if buff.startTime <= CurrentTime + 0.1 and buff.expireTime >= CurrentTime then
+					return true
+				end
+			end
+		end
+	end
+	return false
+end		
+
+		function GetPercentHP(unit)
 	if type(unit) ~= "userdata" then error("{GetPercentHP}: bad argument #1 (userdata expected, got "..type(unit)..")") end
 	return 100*unit.health/unit.maxHealth
 end	
@@ -192,6 +211,16 @@ function Activator:UseStopwatch()
 	end
 end	
 
+function Activator:QSS()
+	local hasBuff = HasBuff(myHero, "zedrdeathmark")
+	local SZ = GetInventorySlotItem(2420) or GetInventorySlotItem(3157)
+	if SZ and self.Menu.ZS.QSS.UseSZ:Value() and hasBuff then
+		Control.CastSpell(HKITEM[SZ], myHero)
+	end
+end	
+	
+
+
 -- Potions ---------------------
 
 function Activator:UsePotion()
@@ -215,7 +244,7 @@ function Activator:UsePotion()
 	local HuntersPotionSlot = myGetSlot(2032);
 	local CorruptPotionSlot = myGetSlot(2033);
 	if (currentlyDrinkingPotion == false) then
-		if GetPercentHP(myHero) < self.Menu.Healing.UsePotsPercent:Value() then
+		if GetPercentHP(myHero) < self.Menu.Healing.UsePotsPercent:Value() and not myHero.dead then
 	
 			local HP = GetInventorySlotItem(2003)
 			if HP and self.Menu.Healing.UsePots:Value() and HealthPotionSlot > 0 then
