@@ -9,7 +9,7 @@ do
         Lua = {
             Path = SCRIPT_PATH,
             Name = "SimbleActivator.lua",
-            Url = "https://github.com/Pussykate/GoS/edit/master/SimbleActivator.lua"
+            Url = "https://github.com/Pussykate/GoS/master/SimbleActivator.lua"
         },
         Version = {
             Path = SCRIPT_PATH,
