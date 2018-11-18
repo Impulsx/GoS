@@ -3,7 +3,7 @@ class "Activator"
  -- [ AutoUpdate ]
 do
     
-    local Version = 0.03
+    local Version = 0.04
     
     local Files = {
         Lua = {
@@ -73,17 +73,18 @@ function Activator:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Zhonya+Stopwatch Activator", name = "Activator", leftIcon = ActivatorIcon})
 	
 	self.Menu:MenuElement({id = "ZS", name = "Zhonya's + StopWatch", type = MENU})	
+	
 	self.Menu.ZS:MenuElement({id = "Zhonya", name = "Zhonya's Hourglass", type = MENU, leftIcon = ZhonyaIcon})
 	self.Menu.ZS.Zhonya:MenuElement({id = "UseZ", name = "Use Zhonya's Hourglass", value = true})
 	
 	self.Menu.ZS:MenuElement({id = "Stopwatch", name = "Stopwatch", type = MENU, leftIcon = StopWatchIcon})
 	self.Menu.ZS.Stopwatch:MenuElement({id = "UseS", name = "Use Stopwatch", value = true})	
+	
 	self.Menu.ZS:MenuElement({id = "HP", name = "myHP", type = MENU})
 	self.Menu.ZS.HP:MenuElement({id = "myHP", name = "Use if health is below:",value = 20, min = 0, max = 100,step = 1})	
+	
 	self.Menu.ZS:MenuElement({id = "QSS", name = "QSS Setings", type = MENU})
-	self.Menu.ZS.QSS:MenuElement({name = " ", drop = {"Added De-Buffs Info"}})
-	self:Menu.ZS.QSS:MenuElement({name = "QSS", drop = {"Zed Ult (for more, write in my Tread)"}})
-	self.Menu.ZS.QSS:MenuElement({id = "UseSZ", name = "AutoUse Stopwatch or Zhonya", value = true})
+	self.Menu.ZS.QSS:MenuElement({id = "UseSZ", name = "AutoUse Stopwatch or Zhonya on ZedUlt", value = true})
 
 	self.Menu:MenuElement({id = "Healing", name = "Potions", type = MENU})
 	self.Menu.Healing:MenuElement({id = "Enabled", name = "Potions Enabled", value = true})
@@ -270,25 +271,3 @@ function Activator:UsePotion()
 	end
 end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
