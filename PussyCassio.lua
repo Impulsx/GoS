@@ -35,7 +35,7 @@ do
         local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
         if NewVersion > Version then
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
-            print("New PussyTristana Version Press 2x F6")
+            print("New PussyCassio Version Press 2x F6")
         else
             print(Files.Version.Name .. ": No Updates Found")
         end
