@@ -1,7 +1,7 @@
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.01
+    local Version = 0.02
     
     local Files = {
         Lua = {
@@ -216,6 +216,17 @@ end
 		end
 		return false	
 	end
+	
+	local function Cleans(unit)
+		if unit == nil then return false end
+		for i = 0, unit.buffCount do
+			local buff = unit:GetBuff(i)
+			if buff and (buff.type == 5 or buff.type == 7 or buff.type == 8 or buff.type == 21 or buff.type == 22 or buff.type == 25 or buff.type == 10 or buff.type == 31 or buff.type == 24) and buff.count > 0 then
+				return true
+			end
+		end
+		return false	
+	end
 
 	local function Block(boolean) 
 		if boolean == true then 
@@ -330,6 +341,7 @@ end
 	function Cassiopeia:Menu()
 		Cass:MenuElement({name = " ", drop = {"General Settings"}})
 		
+		--Combo
 		Cass:MenuElement({type = MENU, id = "c", name = "Combo"})
 		Cass.c:MenuElement({id = "Block", name = "Block AA in Combo [?]", value = true, tooltip = "Reload Script after changing"})
 		Cass.c:MenuElement({id = "Q", name = "Use Q", value = true})
@@ -337,43 +349,56 @@ end
 		Cass.c:MenuElement({id = "E", name = "Use E", value = true})
 		Cass.c:MenuElement({id = "R", name = "Use R ", value = true})
 		Cass.c:MenuElement({id = "Count", name = "Min Amount to hit R", value = 2, min = 1, max = 5, step = 1})
-		Cass.c:MenuElement({id = "P", name = "Use Panic R", value = true})
+		Cass.c:MenuElement({id = "P", name = "Use Panic R and Ghost", value = true})
 		Cass.c:MenuElement({id = "HP", name = "Min HP % to Panic R", value = 20, min = 0, max = 100, step = 1})
 		
+		--Harass
 		Cass:MenuElement({type = MENU, id = "h", name = "Harass"})
 		Cass.h:MenuElement({id = "Q", name = "UseQ", value = true})
 		Cass.h:MenuElement({id = "E", name = "UseE only poisend", value = true})		
 		
+		--Clear
 		Cass:MenuElement({type = MENU, id = "w", name = "Clear"})
 		Cass.w:MenuElement({id = "Q", name = "Use Q", value = true})
-		Cass.w:MenuElement({id = "W", name = "Use W ( next Update!! )", value = true})
+		Cass.w:MenuElement({id = "W", name = "Use W", value = true})
 		Cass.w:MenuElement({id = "Count", name = "Min Minions to hit W", value = 3, min = 1, max = 5, step = 1})		
 		Cass.w:MenuElement({id = "E", name = "Auto E Toggle Key", key = 84, toggle = true})
 		
+		--KillSteal
+		Cass:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
+		Cass.ks:MenuElement({id = "E", name = "UseE", value = true})
+
+		--Engage
+		Cass:MenuElement({type = MENU, id = "kill", name = "Engage FullDmg + Ghost or Ignite"})
+		Cass.kill:MenuElement({id = "Eng", name = "EngageKill only 1vs1", value = true, tooltip = "Press Key when Engage is Drawing"})
+		
+		--Mana
 		Cass:MenuElement({type = MENU, id = "m", name = "Mana Manager"})
 		Cass.m:MenuElement({name = " ", drop = {"Harass [%]"}})
 		Cass.m:MenuElement({id = "Q", name = "Q Mana", value = 10, min = 0, max = 100, step = 1})
 		Cass.m:MenuElement({id = "W", name = "W Mana", value = 10, min = 0, max = 100, step = 1})
 		Cass.m:MenuElement({id = "E", name = "E Mana", value = 5, min = 0, max = 100, step = 1})
 		Cass.m:MenuElement({id = "R", name = "R Mana", value = 5, min = 0, max = 100, step = 1})		
-		
 		Cass.m:MenuElement({name = " ", drop = {"Clear [%]"}})
 		Cass.m:MenuElement({id = "QW", name = "Q Mana", value = 10, min = 0, max = 100, step = 1})
 		Cass.m:MenuElement({id = "WW", name = "W Mana", value = 10, min = 0, max = 100, step = 1})
 		Cass.m:MenuElement({id = "EW", name = "E Mana", value = 10, min = 0, max = 100, step = 1})
 		
 		Cass:MenuElement({name = " ", drop = {"Advanced Settings"}})
+		
+		--Activator
 		Cass:MenuElement({type = MENU, id = "a", name = "Activator"})
 		Cass.a:MenuElement({type = MENU, id = "Hextech", name = "hextech GLP-800"})
 		Cass.a.Hextech:MenuElement({id = "ON", name = "Enabled in Combo", value = true})
 		Cass.a.Hextech:MenuElement({id = "HP", name = "Min Target HP %", value = 100, min = 0, max = 100, step = 1})		
-		Cass.a:MenuElement({type = MENU, id = "Zhonyas", name = "Zhonya's Hourglass"})
+		Cass.a:MenuElement({type = MENU, id = "Zhonyas", name = "Zhonya's and StopWatch"})
 		Cass.a.Zhonyas:MenuElement({id = "ON", name = "Enabled", value = true})
 		Cass.a.Zhonyas:MenuElement({id = "HP", name = "HP % Zhonya's", value = 15, min = 0, max = 100, step = 1})
 		Cass.a:MenuElement({type = MENU, id = "Seraphs", name = "Seraph's Embrace"})
 		Cass.a.Seraphs:MenuElement({id = "ON", name = "Enabled", value = true})
 		Cass.a.Seraphs:MenuElement({id = "HP", name = "HP % Seraph's", value = 15, min = 0, max = 100, step = 1})
-
+		
+		--Drawings
 		Cass:MenuElement({type = MENU, id = "d", name = "Drawings"})
 		Cass.d:MenuElement({id = "ON", name = "Enable Drawings", value = true})
 		Cass.d:MenuElement({id = "Text", name = "Draw Text", value = true})
@@ -399,6 +424,16 @@ end
 		end
 	end
 
+	function Cassiopeia:Qdmg(unit)
+		local base = ({75, 125, 175, 225, 275})[myHero:GetSpellData(_Q).level] + 0.80 * myHero.ap
+		return CalcMagicalDamage(myHero,unit, base)
+	end
+	
+	function Cassiopeia:Wdmg(unit)
+		local base = ({100, 175, 250, 325, 400})[myHero:GetSpellData(_W).level] + 0.75 * myHero.ap
+		return CalcMagicalDamage(myHero,unit, base)
+	end
+
 	function Cassiopeia:Edmg(unit)
 		local base = 48 + 4 * myHero.levelData.lvl + 0.1 * myHero.ap
 		return CalcMagicalDamage(myHero,unit, base)
@@ -409,6 +444,17 @@ end
 		local bonus = ({10, 30, 50, 70, 90})[myHero:GetSpellData(_E).level] + 0.60 * myHero.ap
 		return CalcMagicalDamage(myHero,unit, base + bonus)
 	end
+	
+	function Cassiopeia:Rdmg(unit)
+		local base = ({150, 250, 350})[myHero:GetSpellData(_R).level] + 0.50 * myHero.ap
+		return CalcMagicalDamage(myHero,unit, base)
+	end				
+	
+	function Cassiopeia:Ignitedmg(unit)
+		local base = 55 + 25 * myHero.levelData.lvl
+		return CalcPhysicalDamage(myHero,unit, base)
+	end
+	
 
 	local abs = math.abs 
 	local deg = math.deg 
@@ -446,12 +492,17 @@ end
 			elseif Mode == "Clear" then
 				self:Check(Mode)
 				self:Clear()
+			elseif Mode == "Flee" then
+				self:Engage()
 			end
 			if Cass.w.E:Value() and Mode ~= "Combo" then
 				self:AutoE()
 			end
 			self:UnBlockAA(Mode)
 			self:Activator(Mode)
+			self:KsE()
+			self:DrawEngage()
+			self:AntiCC()
 		end
 	end
 
@@ -520,7 +571,7 @@ end
 
 	function Cassiopeia:Activator(Mode)
 		if Cass.a.Zhonyas.ON:Value() then
-		local Zhonyas = GetItemSlot(myHero, 3157)
+		local Zhonyas = GetItemSlot(myHero, 3157) or GetItemSlot(myHero, 2420)
 			if Zhonyas >= 1 and Ready(Zhonyas) then 
 				if EnemyAround() and myHero.health/myHero.maxHealth < Cass.a.Zhonyas.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Zhonyas])
@@ -581,6 +632,17 @@ function EnemiesNear(pos,range)
 	for i = 1,Game.HeroCount()  do
 		local hero = Game.Hero(i)	
 		if IsValidTarget(hero,range + hero.boundingRadius) and hero.isEnemy and not hero.dead then
+			N = N + 1
+		end
+	end
+	return N	
+end	
+
+function MinionsNear(pos,range)
+	local N = 0
+		for i = 1, Game.MinionCount() do 
+		local Minion = Game.Minion(i)	
+		if IsValidCreep(Minion, 800) and not Minion.dead then
 			N = N + 1
 		end
 	end
@@ -707,6 +769,13 @@ end
 		local WData = myHero:GetSpellData(_W) 
 		local WCheck = Ready(_W)
 		local Panic = Cass.c.P:Value() and myHero.health/myHero.maxHealth < Cass.c.HP:Value()/100 
+			if Panic then
+				if myHero:GetSpellData(SUMMONER_1).name == "SummonerHaste" and Ready(SUMMONER_1) then
+					Control.CastSpell(HK_SUMMONER_1)
+				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHaste" and Ready(SUMMONER_2) then
+					Control.CastSpell(HK_SUMMONER_2)
+				end
+			end
 		if Cass.c.R:Value() and Ready(_R) and (HasPoison(target) or Panic) and ((WCheck == false or (WCheck and (Game.Timer() + WData.cd) - WData.castTime > 2)) or WValue == false) then
 			if Panic then
 				if Dist < RRange and self:PEdmg(target) < target.health then
@@ -717,6 +786,7 @@ end
 					end
 				end
 			end
+
 			for i = 1, Game.HeroCount() do
 			local hero = Game.Hero(i)
 			if Cass.c.R:Value() and Ready(_R) and hero.isEnemy and not hero.dead then
@@ -729,7 +799,7 @@ end
 			end
 			end
 
-	end
+		end
 	end
 	
 
@@ -773,23 +843,107 @@ end
 					Control.CastSpell(HK_Q, Pos)
 				end
 			end
-				
-			--if Ready(_W) and IsRecalling() == false and WValue and myHero.mana/myHero.maxMana > Cass.m.WW:Value()/100 then
-			--local BestPos, BestHit = GetBestCircularFarmPosition(50,112 + 80, Minion)	
-				--if IsValidCreep(Minion, 800) and BestHit >= Cass.w.Count:Value() then 
-					--Control.CastSpell(HK_W,BestPos)
+			local Pos = GetPred(Minion, 1500, 0.25 + Game.Latency()/1000)
+			local Dist = GetDistanceSqr(Minion.pos, myHero.pos)	
+			if Ready(_W) and IsRecalling() == false and WValue and myHero.mana/myHero.maxMana > Cass.m.WW:Value()/100 then
+				if Dist < MaxWRange and Dist > MinWRange then	
+					if IsValidCreep(Minion, 800) and GetDistanceSqr(Pos, myHero.pos) < MaxWRange and MinionsNear(myHero.pos,800) >= Cass.w.Count:Value() then 
+						self:CastW(HK_W, Pos)
 													
-						
-						
 					
+					end
 				end
+			end			
+		end
+	end
+
+	
+	function Cassiopeia:KsE()
+		local target = GetTarget(750)
+		if target == nil then 
+			return
+		end
+		if Cass.ks.E:Value() and Ready(_E) and GetDistanceSqr(target.pos, myHero.pos) < ERange then 
+			if self:Edmg(target) > target.health then
+				Control.CastSpell(HK_E, target)
+				
+			elseif HasPoison(target) and self:PEdmg(target) > target.health then
+				Control.CastSpell(HK_E, target)
+			
 			end
-		--end
-	--end
+		end
+	end	
+	
+	function Cassiopeia:AntiCC()
+		local Immobile = Cleans(myHero)
+		if Immobile then
+			if myHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) then
+				Control.CastSpell(HK_SUMMONER_1, myHero)
+			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBoost" and Ready(SUMMONER_2) then
+				Control.CastSpell(HK_SUMMONER_2, myHero)
+			end
+		end
+	end	
+	
+	function Cassiopeia:Engage()
+		local target = GetTarget(1200)
+		if target == nil then 
+			return
+		end
+		local fulldmg = self:Qdmg(target) + self:Wdmg(target) + self:Edmg(target) + self:Rdmg(target)
+		local Dist = GetDistanceSqr(myHero.pos, target.pos)
+		local RCheck = Ready(_R)
+		for i = 1, Game.HeroCount() do
+		local hero = Game.Hero(i)
+			if Cass.kill.Eng:Value() and hero.isEnemy and not hero.dead then
+				if EnemiesNear(myHero.pos,825) == 1 and Ready(_R) and Ready(_W) then 
+					if EnemyInRange(RRange) and self:IsFacing() and fulldmg > target.health then
+					Control.SetCursorPos(hero)
+					Control.CastSpell(HK_R, hero)
+					end
+				end 
+				if 	RCheck == false then
+					if myHero:GetSpellData(SUMMONER_1).name == "SummonerHaste" and Ready(SUMMONER_1) then
+						Control.CastSpell(HK_SUMMONER_1)
+					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHaste" and Ready(SUMMONER_2) then
+						Control.CastSpell(HK_SUMMONER_2)
+					end
+				end	
+				if self:Ignitedmg(target) > target.health and Dist <= 600 then
+					if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
+						Control.CastSpell(HK_SUMMONER_1, target)
+					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
+						Control.CastSpell(HK_SUMMONER_2, target)
+					end
+				end	
+				if Ready(_Q) and RCheck == false then 
+					if Dist < QRange then 
+					local Pos = GetPred(target, 20000, 0.44 + Game.Latency()/1000)
+						if GetDistanceSqr(Pos, myHero.pos) < QRange then
+							Control.CastSpell(HK_Q, Pos)
+						end
+					end
+				end
+				if Ready(_E) and RCheck == false then 
+					if Dist < ERange then
+						Control.CastSpell(HK_E, target)
+					end
+				end	
+				if Ready(_W) and RCheck == false then 
+					if Dist < MaxWRange and Dist > MinWRange then
+					local Pos = GetPred(target, 1500, 0.25 + Game.Latency()/1000)
+						if GetDistanceSqr(Pos, myHero.pos) < MaxWRange then 
+							self:CastW(HK_W, Pos)
+						end
+					end
+				end
+			end	
+		end
+	end
 	
 	
 	function Cassiopeia:AutoE()
-		if Ready(_E) and IsRecalling() == false and myHero.mana/myHero.maxMana > Cass.m.EW:Value()/100 then
+		if Ready(_E) and IsRecalling() == false and myHero.mana/myHero.maxMana > Cass.m.EW:Value()/100 and Cass.w.E:Value() then
 			for i = 1, Game.MinionCount() do 
 			local Minion = Game.Minion(i) 
 				if IsValidCreep(Minion, 690) and GetDistanceSqr(Minion.pos, myHero.pos) < ERange then 
@@ -850,6 +1004,25 @@ end
 			end			
 		end
 	end
+	
+	function Cassiopeia:DrawEngage()
+	 	local target = GetTarget(1200)
+		if target == nil then 
+			return
+		end
+		local fulldmg = self:Qdmg(target) + self:Wdmg(target) + self:Edmg(target) + self:Rdmg(target)
+		local textPos = myHero.pos:To2D()
+		for i = 1, Game.HeroCount() do
+		local hero = Game.Hero(i)
+			if Cass.kill.Eng:Value() and hero.isEnemy and not hero.dead then
+				if EnemiesNear(myHero.pos,1200) == 1 and Ready(_R) and Ready(_W) then 
+					if fulldmg > target.health then 
+						Draw.Text("Engage PressKey", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
+					end
+				end
+			end
+		end
+	end	
 
 	function OnLoad()
  		if _G[myHero.charName] and myHero.charName == "Cassiopeia" then 
@@ -857,3 +1030,4 @@ end
 
 		end
 	end
+
