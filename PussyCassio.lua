@@ -1,7 +1,7 @@
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.02
+    local Version = 0.03
     
     local Files = {
         Lua = {
@@ -370,7 +370,7 @@ end
 
 		--Engage
 		Cass:MenuElement({type = MENU, id = "kill", name = "Engage FullDmg + Ghost or Ignite"})
-		Cass.kill:MenuElement({id = "Eng", name = "EngageKill only 1vs1", value = true, tooltip = "Press Key when Engage is Drawing"})
+		Cass.kill:MenuElement({id = "Eng", name = "EngageKill 1vs1 Key=T", value = true, tooltip = "Press Key when Engage is Drawing"})
 		
 		--Mana
 		Cass:MenuElement({type = MENU, id = "m", name = "Mana Manager"})
