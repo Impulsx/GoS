@@ -514,7 +514,7 @@ end
 	
 function Kassadin:Harass()	
 	local target = _G.SDK.TargetSelector:GetTarget(1000)
-	local ready = Ready(_Q), Ready(_W), Ready(_E), Ready(_R)
+	local ready = Ready(_Q), Ready(_E), Ready(_R)
 	if target == nil then return end
 		if target and self.Menu.Harass.UseR:Value() and ready and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) and myHero.pos:DistanceTo(target.pos) < 1000 and myHero.pos:DistanceTo(target.pos) > 700 then
         if self.stacks < 1 then
