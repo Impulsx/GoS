@@ -1,10 +1,61 @@
 local menu = 1
+local cancelSpells = {
+  ["Caitlyn"] = {
+    ["CaitlynAceintheHole"] = {name = "Ace in the Hole"} --R
+  },
+  ["Darius"] = {
+    ["DariusExecute"] = {name = "Noxian Guillotine"} --R
+  },
+  ["Fiddlesticks"] = {
+    ["Drain"] = {name = "Drain"},  --W 
+    ["Crowstorm"] = {name = "Crowstorm"}  --R 
+  },
+  ["Gragas"] = {
+    ["gragasw"] = {name = "Drunken Rage"} --W 
+  },
+  ["Janna"] = {
+    ["ReapTheWhirlwind"] = {name = "Monsoon"} --R
+  },
+  ["Karthus"] = {
+    ["karthusfallenonecastsound"] = {name = "Requiem"} --R 
+  },
+  ["Katarina"] = {
+    ["katarinarsound"] = {name = "Death Lotus"} --R 
+  },
+  ["Malzahar"] = {
+    ["malzaharnethergraspsound"] = {name = "Nether Grasp"} --R
+  },
+  ["Master Yi"] = {
+    ["Meditate"] = {name = "Meditate"} --W 
+  },
+  ["Miss Fortune"] = {
+    ["missfortunebulletsound"] = {name = "Bullet Time"} --R 
+  },
+  ["Nunu"] = {
+    ["AbsoluteZero"] = {name = "Absolute Zero"} --R
+  },
+  ["Pantheon"] = {
+    ["pantheonesound"] = {name = "Heartseeker Strike"}, --E
+    ["PantheonRJump"] = {name = "Grand Skyfall"} --R
+  },
+  ["Twisted Fate"] = {
+    ["Destiny"] = {name = "Gate"} --R 
+  },
+  ["Warwick"] = {
+    ["infiniteduresssound"] = {name = "Infinite Duress"} --R
+  },
+  ["Rammus"] = {
+    ["powerball"] = {name = "Powerball"} --Q 
+  }
+}
+local units = {}
+local foundAUnit = false
 class "Kassadin"
 
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.03
+    local Version = 0.04
     
     local Files = {
         Lua = {
@@ -49,20 +100,59 @@ do
 
 end
 
+
+
 local function Ready(spell)
     return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
 end 
 
 function CanMove()
   if _G.SDK then
-    return _G.SDK.Orbwalker:CanMove()  
+    return _G.SDK.Orbwalker:CanMove() 
+  elseif _G.gsoSDK then
+    return _G.gsoSDK.Orbwalker:CanMove()	
   end
 end
 function CanAttack()
   if _G.SDK then
     _G.SDK.Orbwalker:CanAttack()
+  elseif _G.gsoSDK then
+    _G.gsoSDK.Orbwalker:CanAttack()	
   end
-end 
+end
+
+function SetMovement(bool)
+	if _G.EOWLoaded then
+		EOW:SetMovements(bool)
+		EOW:SetAttacks(bool)
+	elseif _G.SDK then
+		_G.SDK.Orbwalker:SetMovement(bool)
+		_G.SDK.Orbwalker:SetAttack(bool)
+	elseif _G.gsoSDK then
+		_G.gsoSDK.Orbwalker:SetMovement(bool)
+		_G.gsoSDK.Orbwalker:SetAttack(bool)	
+	else
+		GOS.BlockMovement = not bool
+		GOS.BlockAttack = not bool
+	end
+	if bool then
+		castSpell.state = 0
+	end
+end
+
+
+function CurrentTarget(range)
+	if _G.SDK then
+		return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
+	elseif _G.EOW then
+		return _G.EOW:GetTarget(range)
+	elseif _G.gsoSDK then
+		return _G.gsoSDK.TargetSelector:GetTarget(GetEnemyHeroes(5000), false)
+	else
+		return _G.GOS:GetTarget(range,"AD")
+	end
+end
+ 
 function GetDistanceSqr(p1, p2)
   if not p1 then return math.huge end
   p2 = p2 or myHero
@@ -169,6 +259,20 @@ function IsUnderTurret(unit)
     return false
 end
 
+
+function loadTowers()
+	local c = 0
+
+	for i = 1, Game.TurretCount() do
+		local t = Game.Turret(i)
+
+		if t.team == myHero.team then
+			c = c + 1
+
+		end
+	end
+end
+
 local ItemHotKey = {
     [ITEM_1] = HK_ITEM_1,
     [ITEM_2] = HK_ITEM_2,
@@ -189,6 +293,7 @@ end
 
 
 
+
 function Kassadin:__init()
   if menu ~= 1 then return end
   menu = 2
@@ -201,16 +306,19 @@ function Kassadin:__init()
   self:LoadMenu()                                            
   Callback.Add("Tick", function() self:Tick() end)
   Callback.Add("Draw", function() self:Draw() end)  
-    --[[killTable = {}
-  for i, enemy in pairs(GetEnemyHeroes()) do
-    killTable[enemy.networkID] = {0, 0, 0, 0, 0, 0}
-  end
-  killDrawTable = {}
-  for i, enemy in pairs(GetEnemyHeroes()) do
-    killDrawTable[enemy.networkID] = {}
-  end
-  ]]
-end
+	local orbwalkername = ""
+	if _G.SDK then
+		orbwalkername = "IC'S orbwalker"		
+	elseif _G.EOW then
+		orbwalkername = "EOW"	
+	elseif _G.GOS then
+		orbwalkername = "Noddy orbwalker"
+	elseif _G.gsoSDK then
+		orbwalkername = "Gso orbwalker"
+	else
+		orbwalkername = "Orbwalker not found"
+	end
+end 
 
 
 
@@ -231,6 +339,25 @@ function Kassadin:LoadMenu()
   self.Menu.Combo:MenuElement({id = "UseW", name = "[W] Nether Blade", value = true})
   self.Menu.Combo:MenuElement({id = "UseE", name = "[E] Force Pulse", value = true})
   self.Menu.Combo:MenuElement({id = "UseR", name = "[R] Riftwalk", value = true})
+  --BlockSpellsMenu
+  self.Menu:MenuElement({type = MENU, id = "block", name = "Block Channeling Spells"})
+  for i = 1, Game.HeroCount() do
+  local unit = Game.Hero(i)
+  local textPos = myHero.pos:To2D()	
+	if unit.team ~= myHero.team then
+	units[#units + 1] = unit
+	if cancelSpells[unit.charName] then
+     foundAUnit = true
+  self.Menu.block:MenuElement({type = MENU, id = unit.charName, name = unit.charName})
+  for spell, sname in pairs(cancelSpells[unit.charName]) do
+  self.Menu.block[unit.charName]:MenuElement({id = spell, name = sname.name, value = true})
+	end
+	end
+  end
+  end 
+  if not foundAUnit then
+  self.Menu.block:MenuElement({id = "none", name = "No blockable Spell found", type = SPACE}) 
+  end  
   --EscapeMenu
   self.Menu:MenuElement({type = MENU, id = "Escape", name = "AutoEscape with Ult"})
   self.Menu.Escape:MenuElement({id = "UseR", name = "[R] Riftwalk", value = true})
@@ -264,6 +391,14 @@ function Kassadin:LoadMenu()
   self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
   self.Menu.Drawing:MenuElement({id = "Kill", name = "Draw Killable with Combo", value = true})
 end
+
+
+
+
+
+
+
+
 
 function Kassadin:Activator()
 if myHero.dead then return end
@@ -330,54 +465,78 @@ function Kassadin:ValidTarget(unit,range)
 end
 
 function Kassadin:Tick()
-  if myHero.dead then return end
-	if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
-      self:Combo()
-      self:Combo1()
-	  self:FullRKill()
-    elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then                
-      self:Harass()
-    elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] or _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
-      self:Clear()
-	  self:JungleClear()
+	if Ready(_Q) and foundAUnit then 
+		for i = 1, #units do
+		local enemy = units[i]
+
+			if enemy.isChanneling == true and enemy.activeSpell.valid then
+			local spellToCancel = cancelSpells[enemy.charName]
+			local activeSpell = enemy.activeSpell.name
+
+			if spellToCancel[activeSpell] and self.Menu.block[enemy.charName][activeSpell]:Value() then
+				if myHero.pos:DistanceTo(enemy.pos) <= 650 then
+					Control.CastSpell(HK_Q, enemy)
+				end
+			end
+			end
+		end
+	end	
+	if myHero.dead then return end
+		if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
+			self:Combo()
+			self:Combo1()
+			self:FullRKill()
+		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then                
+			self:Harass()
+		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] or _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
+			self:Clear()
+			self:JungleClear()
+		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] then
+		--self:LastHit()
+		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
+		--self:Flee()
+	
+		elseif _G.gsoSDK then
+		return _G.gsoSDK.Orbwalker:GetMode()
+		
+		else
+		return GOS.GetMode()
+		end
+		self:Activator()
+		self:EscapeR()
+		self:DrawKill()
+		self:OnBuff(myHero)
 	end
-	self:Activator()
-	--self:EscapeR()
-	self:DrawKill()
-	self:OnBuff(myHero)
-end
 
 function Kassadin:DrawKill()
-	for _, enemy in pairs(_G.SDK.ObjectManager:GetEnemyHeroes(3000)) do
-    if enemy ~= nil then	
-	local hp = enemy.health
-	local Dmg = getdmg("Q", enemy) or getdmg("E", enemy) or getdmg("Q", enemy) + getdmg("R", enemy) or getdmg("Q", enemy) + getdmg("E", enemy) or getdmg("Q", enemy) + getdmg("E", enemy) + getdmg("R", enemy) or getdmg("Q", enemy) + getdmg("W", enemy) + getdmg("E", enemy) + getdmg("R", enemy)
-	local QWEdmg = getdmg("Q", enemy) + getdmg("W", enemy) + getdmg("E", enemy)
-		if (self.Menu.Drawing.Kill:Value()) and not enemy.dead then
+	local target = CurrentTarget(3000)
+	if target == nil then return end	
+	local hp = target.health
+	local Dmg = getdmg("Q", target) or getdmg("E", target) or getdmg("Q", target) + getdmg("R", target) or getdmg("Q", target) + getdmg("E", target) or getdmg("Q", target) + getdmg("E", target) + getdmg("R", target) or getdmg("Q", target) + getdmg("W", target) + getdmg("E", target) + getdmg("R", target)
+	local QWEdmg = getdmg("Q", target) + getdmg("W", target) + getdmg("E", target)
+		if (self.Menu.Drawing.Kill:Value()) and not target.dead then
 				
-			if getdmg("R", enemy) > hp then
-				Draw.Text("Killable Combo", 24, enemy.pos2D.x, enemy.pos2D.y,Draw.Color(0xFF00FF00))
+			if getdmg("R", target) > hp then
+				Draw.Text("Killable Combo", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
 		
 			end	
-			if (getdmg("R", enemy) + getdmg("R", enemy, myHero, 2)) > hp then
-				Draw.Text("Killable Combo", 24, enemy.pos2D.x, enemy.pos2D.y,Draw.Color(0xFF00FF00))
+			if (getdmg("R", target) + getdmg("R", target, myHero, 2)) > hp then
+				Draw.Text("Killable Combo", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
 		
 			end	
-			if (getdmg("R", enemy) + getdmg("R", enemy, myHero, 2)) + QWEdmg > hp then
-				Draw.Text("Killable Combo", 24, enemy.pos2D.x, enemy.pos2D.y,Draw.Color(0xFF00FF00))
+			if (getdmg("R", target) + getdmg("R", target, myHero, 2)) + QWEdmg > hp then
+				Draw.Text("Killable Combo", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
 		
 			end	
 			if Dmg > hp then
-				Draw.Text("Killable Combo", 24, enemy.pos2D.x, enemy.pos2D.y,Draw.Color(0xFF00FF00))
+				Draw.Text("Killable Combo", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
 			end
 			if QWEdmg > hp then
-				Draw.Text("Killable Combo", 24, enemy.pos2D.x, enemy.pos2D.y,Draw.Color(0xFF00FF00))
+				Draw.Text("Killable Combo", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
 			end
-
 		end
 	end
-end
-end	
+
 
 function Kassadin:OnBuff(unit)
 
@@ -401,7 +560,7 @@ function Kassadin:AllysAround(pos,range)
 	local N = 0
 	for i = 1,Game.HeroCount()  do
 		local hero = Game.Hero(i)	
-		if self:ValidTarget(hero,range + hero.boundingRadius) and hero.isAlly and not hero.isMe then
+		if hero.isAlly and not hero.isMe then
 			N = N + 1
 		end
 	end
@@ -412,12 +571,14 @@ function Kassadin:EnemiesAround(pos,range)
 	local N = 0
 	for i = 1,Game.HeroCount()  do
 		local hero = Game.Hero(i)	
-		if self:ValidTarget(hero,range + hero.boundingRadius) and hero.isEnemy then
+		if self:ValidTarget() and hero.isEnemy then
 			N = N + 1
 		end
 	end
 	return N	
 end
+
+
 
 function Kassadin:MinionsAround(pos,range)
 	local TEAM_ALLY = myHero.team
@@ -425,25 +586,14 @@ function Kassadin:MinionsAround(pos,range)
 	local N = 0
 	for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)	
-		if not minion.dead and self:ValidTarget(minion,range + minion.boundingRadius) and (minion.team == TEAM_JUNGLE or minion.team == TEAM_ALLY) then
+		if not minion.dead and (minion.team == TEAM_JUNGLE) or (minion.team == TEAM_ALLY) then
 			N = N + 1
 		end
 	end
 	return N	
 end
 
-local function MinionsAround()
-	local TEAM_ALLY = myHero.team
-	local TEAM_JUNGLE = 300
-	local Count = 0
-	for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
-		if not minion.dead and (minion.team == TEAM_JUNGLE or minion.team == TEAM_ALLY) and GetDistanceSqr(myHero.pos, minion.pos) <= 2000 then
-			Count = Count + 1
-		end
-	end
-	return Count
-end	
+
 
 
 function Kassadin:HasBuff(unit, buffname)
@@ -475,7 +625,7 @@ function Kassadin:ClearLogic()
 
 
 function Kassadin:Combo()
-	local target = _G.SDK.TargetSelector:GetTarget(1000)
+	local target = CurrentTarget(1000)
 	if target == nil then return end
 		if self.Menu.Combo.UseE:Value() and myHero.pos:DistanceTo(target.pos) < 500 and Ready(_E) then
 			Control.CastSpell(HK_E, target.pos)
@@ -490,32 +640,39 @@ function Kassadin:Combo()
 
 
 function Kassadin:EscapeR()
-	local target = _G.SDK.TargetSelector:GetTarget(500)
+	local tower = loadTowers()
+	local target = CurrentTarget(1000)
 	if target == nil then return end
 	for i = 1, Game.MinionCount() do
-	local minion = Game.Minion(i)	
+	local minion = Game.Minion(i)
 	local Ally = self:AllysAround(myHero.pos, 4000)
-	local minion = self:MinionsAround(myHero.pos, 4000)
-	if self.Menu.Escape.UseR:Value() and Ready(_R) and 100*myHero.health/myHero.maxHealth <= self.Menu.Escape.MinR:Value() then 
-		if Ally >= 1 and myHero.pos:DistanceTo(target.pos) < 500 and myHero.pos:DistanceTo(Ally.pos) >= 500 then
-			Control.CastSpell(HK_R, Ally.pos)
+	local minions = self:MinionsAround(myHero.pos, 4000)
+		if self.Menu.Escape.UseR:Value() and Ready(_R) and 100*myHero.health/myHero.maxHealth <= self.Menu.Escape.MinR:Value() then 
+			if Ally >= 1 and myHero.pos:DistanceTo(target.pos) <= 1000 and myHero.pos:DistanceTo(Ally.pos) >= 500 then
+				Control.CastSpell(HK_R, Ally.pos)
 							
+		
+			elseif Ally == nil and myHero.pos:DistanceTo(target.pos) <= 1000 and tower >= 1 then 
+				if myHero.pos:DistanceTo(tower.pos) >= 1000 then
+					Control.CastSpell(HK_R, tower.pos)
+				end	
+			elseif Ally == nil and myHero.pos:DistanceTo(target.pos) <= 1000 and minions >= 1 then 
+				if self:EnemiesAround(minions.pos,800) == 0 and myHero.pos:DistanceTo(minions.pos) >= 1000 then
+					Control.CastSpell(HK_R, minions.pos)
+				end			
+			end	
 		end
-		if Ally < 1 and myHero.pos:DistanceTo(target.pos) < 500 and minion >= 1 then 
-			if self:EnemiesAround(minion.pos,800) < 1 and myHero.pos:DistanceTo(minion.pos) >= 500 then
-				Control.CastSpell(HK_R, minion.pos)
-							
-			end			
-		end	
 	end
-	end
-end
+end	
+
+
  
 	
 function Kassadin:Harass()	
-	local target = _G.SDK.TargetSelector:GetTarget(1000)
+	local target = CurrentTarget(1000)
+	if target == nil then return end	
 	local ready = Ready(_Q), Ready(_E), Ready(_R)
-	if target == nil then return end
+
 		if target and self.Menu.Harass.UseR:Value() and ready and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) and myHero.pos:DistanceTo(target.pos) < 1000 and myHero.pos:DistanceTo(target.pos) > 700 then
         if self.stacks < 1 then
 				Control.CastSpell(HK_R, target.pos)
@@ -523,16 +680,13 @@ function Kassadin:Harass()
 				Control.CastSpell(HK_Q, target.pos)
 		end
 		end
-		if self.Menu.Harass.UseE:Value() and Ready(_E) and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) and myHero.pos:DistanceTo(target.pos) < 500 then
+		if target and self.Menu.Harass.UseE:Value() and Ready(_E) and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) and myHero.pos:DistanceTo(target.pos) < 500 then
 			Control.CastSpell(HK_E, target.pos)
 		end
 		
 		if target and self.Menu.Harass.UseQ:Value() and Ready(_Q) and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) and myHero.pos:DistanceTo(target.pos) < 650 then
 			Control.CastSpell(HK_Q, target.pos)
 		end 
-		
-			
-		
 	end
 
 
@@ -621,49 +775,49 @@ function Kassadin:JungleClear()
 end
 
 function Kassadin:FullRKill()
-	for _, enemy in pairs(_G.SDK.ObjectManager:GetEnemyHeroes(2500)) do
-    if enemy ~= nil then
-	local hp = enemy.health
-	local dist = myHero.pos:DistanceTo(enemy.pos)
+	local target = CurrentTarget(2500)
+	if target == nil then return end
+	local hp = target.health
+	local dist = myHero.pos:DistanceTo(target.pos)
 	local level = myHero:GetSpellData(_R).level
-	local Fulldmg1 = CalcMagicalDamage(myHero, enemy,(({120, 150, 180})[level] + 0.5 * myHero.ap) + 0.03 * myHero.maxMana)
-	local Fulldmg2 = CalcMagicalDamage(myHero, enemy,(({160, 200, 240})[level] + 0.6 * myHero.ap) + 0.04 * myHero.maxMana)
-	local Fulldmg3 = CalcMagicalDamage(myHero, enemy,(({200, 250, 300})[level] + 0.7 * myHero.ap) + 0.05 * myHero.maxMana)
-	local Fulldmg4 = CalcMagicalDamage(myHero, enemy,(({240, 300, 360})[level] + 0.8 * myHero.ap) + 0.06 * myHero.maxMana)
+	local Fulldmg1 = CalcMagicalDamage(myHero, target,(({120, 150, 180})[level] + 0.5 * myHero.ap) + 0.03 * myHero.maxMana)
+	local Fulldmg2 = CalcMagicalDamage(myHero, target,(({160, 200, 240})[level] + 0.6 * myHero.ap) + 0.04 * myHero.maxMana)
+	local Fulldmg3 = CalcMagicalDamage(myHero, target,(({200, 250, 300})[level] + 0.7 * myHero.ap) + 0.05 * myHero.maxMana)
+	local Fulldmg4 = CalcMagicalDamage(myHero, target,(({240, 300, 360})[level] + 0.8 * myHero.ap) + 0.06 * myHero.maxMana)
 	local Fulldmg = Fulldmg1 or Fulldmg2 or Fulldmg3 or Fulldmg4
-	local QWEdmg = getdmg("Q", enemy) + getdmg("W", enemy) + getdmg("E", enemy)
+	local QWEdmg = getdmg("Q", target) + getdmg("W", target) + getdmg("E", target)
 	local Alldmg = Fulldmg + QWEdmg
 	local ready = Ready(_Q) and Ready(_W) and Ready(_E)	
 		if self.Menu.Combo.UseR:Value() and Ready(_R) then	
-			if getdmg("R", enemy) > hp then
+			if getdmg("R", target) > hp then
 				if dist < 500 then 
-					Control.CastSpell(HK_R, enemy.pos)
+					Control.CastSpell(HK_R, target.pos)
 					
 					
 				end
 			end	
-			if getdmg("R", enemy) + QWEdmg > hp then
+			if getdmg("R", target) + QWEdmg > hp then
 				if dist < 500 then 
-					Control.CastSpell(HK_R, enemy.pos)
+					Control.CastSpell(HK_R, target.pos)
 					
 					
 				end
 			end	
 			local Full1 = Fulldmg1 + QWEdmg
-			if getdmg("R", enemy) > hp or (Full1 + QWEdmg > hp) then
+			if getdmg("R", target) > hp or (Full1 + QWEdmg > hp) then
 				if dist < 1000 and dist > 500 then
 
-						Control.CastSpell(HK_R, enemy.pos)
+						Control.CastSpell(HK_R, target.pos)
 					
 					
 				
 				end
 			end	
 			local Full2 = Fulldmg2 + QWEdmg			
-			if getdmg("R", enemy) > hp or (Full2 + QWEdmg > hp) then
+			if getdmg("R", target) > hp or (Full2 + QWEdmg > hp) then
 				if dist < 1500 and dist > 1000 then
 
-						Control.CastSpell(HK_R, enemy.pos)
+						Control.CastSpell(HK_R, target.pos)
 					
 					
 				
@@ -671,10 +825,10 @@ function Kassadin:FullRKill()
 			end
 		
 			local Full3 = Fulldmg3 + QWEdmg			
-			if getdmg("R", enemy) > hp or (Full3 + QWEdmg > hp) then
+			if getdmg("R", target) > hp or (Full3 + QWEdmg > hp) then
 				if dist < 2000 and dist > 1500 then
 
-						Control.CastSpell(HK_R, enemy.pos)
+						Control.CastSpell(HK_R, target.pos)
 					
 				
 				
@@ -682,10 +836,10 @@ function Kassadin:FullRKill()
 			end	
 			
 			local Full4 = Fulldmg4 + QWEdmg		
-			if getdmg("R", enemy) > hp or (Full4 + QWEdmg > hp) then
+			if getdmg("R", target) > hp or (Full4 + QWEdmg > hp) then
 				if dist < 2500 and dist > 2000 then
 
-						Control.CastSpell(HK_R, enemy.pos)
+						Control.CastSpell(HK_R, target.pos)
 					
 
 				
@@ -694,83 +848,82 @@ function Kassadin:FullRKill()
 			
 		end
 	end
-end	
-end
+	
+
 
 
 	
 
 function Kassadin:Combo1()
-  for _, enemy in pairs(_G.SDK.ObjectManager:GetEnemyHeroes(2000)) do
-    if enemy ~= nil then
-		local hp = enemy.health
-		local dist = myHero.pos:DistanceTo(enemy.pos)
-		local qdmg = getdmg("Q", enemy) 		
-		local wdmg = getdmg("W", enemy) 
-		local edmg = getdmg("E", enemy) 
-		local rdmg = getdmg("R", enemy) 
+	local target = CurrentTarget(2000)
+	if target == nil then return end
+		local hp = target.health
+		local dist = myHero.pos:DistanceTo(target.pos)
+		local qdmg = getdmg("Q", target) 		
+		local wdmg = getdmg("W", target) 
+		local edmg = getdmg("E", target) 
+		local rdmg = getdmg("R", target) 
  
 		if (Ready(_Q) and self.Menu.Combo.UseQ:Value()) then 
 			if dist < Q.range and qdmg > hp then
-				Control.CastSpell(HK_Q, enemy.pos)
+				Control.CastSpell(HK_Q, target.pos)
 			return
 			end
 		end
 		if (Ready(_E) and self.Menu.Combo.UseE:Value()) then	
 			if dist < E.range and edmg > hp and self.passiveTracker >= 1 then
-				Control.CastSpell(HK_E, enemy.pos)
+				Control.CastSpell(HK_E, target.pos)
 			return
 			end
 		end
 		if (Ready(_E) and Ready(_Q) and self.Menu.Combo.UseE:Value() and self.Menu.Combo.UseQ:Value()) then	
 			if dist < E.range and qdmg+edmg > hp then
-				Control.CastSpell(HK_E, enemy.pos)
-				Control.CastSpell(HK_Q, enemy.pos)
+				Control.CastSpell(HK_E, target.pos)
+				Control.CastSpell(HK_Q, target.pos)
 			return
 			end
 		end	
-			if (Ready(_Q) and Ready(_R) and self.Menu.Combo.UseQ:Value() and self.Menu.Combo.UseR:Value()) then	
-				if dist < 500 and rdmg+qdmg > hp then
-					Control.CastSpell(HK_R, enemy.pos)
-					Control.CastSpell(HK_Q, enemy.pos)
-					return
+		if (Ready(_Q) and Ready(_R) and self.Menu.Combo.UseQ:Value() and self.Menu.Combo.UseR:Value()) then	
+			if dist < 500 and rdmg+qdmg > hp then
+				Control.CastSpell(HK_R, target.pos)
+				Control.CastSpell(HK_Q, target.pos)
+				return
 					
 				
-				end
 			end
-			if (Ready(_E) and Ready(_Q) and Ready(_R) and self.Menu.Combo.UseE:Value() and self.Menu.Combo.UseQ:Value() and self.Menu.Combo.UseR:Value()) then	
-				if dist < R.range and qdmg+edmg+rdmg > hp then
-						Control.CastSpell(HK_R, enemy.pos)
-						Control.CastSpell(HK_E, enemy.pos)
-						Control.CastSpell(HK_Q, enemy.pos)
-					return
+		end
+		if (Ready(_E) and Ready(_Q) and Ready(_R) and self.Menu.Combo.UseE:Value() and self.Menu.Combo.UseQ:Value() and self.Menu.Combo.UseR:Value()) then	
+			if dist < R.range and qdmg+edmg+rdmg > hp then
+				Control.CastSpell(HK_R, target.pos)
+				Control.CastSpell(HK_E, target.pos)
+				Control.CastSpell(HK_Q, target.pos)
+				return
 				
 					
-				end
 			end
-			if (Ready(_E) and Ready(_Q) and Ready(_R) and self.Menu.Combo.UseE:Value() and self.Menu.Combo.UseQ:Value() and self.Menu.Combo.UseR:Value()) then	
-				if dist < R.range and qdmg+edmg+rdmg+wdmg > hp then
+		end
+		if (Ready(_E) and Ready(_Q) and Ready(_R) and self.Menu.Combo.UseE:Value() and self.Menu.Combo.UseQ:Value() and self.Menu.Combo.UseR:Value()) then	
+			if dist < R.range and qdmg+edmg+rdmg+wdmg > hp then
+				Control.CastSpell(HK_R, target.pos)
+				Control.CastSpell(HK_E, target.pos)
+				Control.CastSpell(HK_Q, target.pos)
+				return
+					
+					
+			end
+		end
+		local Killable = (qdmg > hp) or (edmg > hp) or (rdmg+qdmg > hp) or (qdmg+edmg > hp) or (qdmg+edmg+rdmg > hp) or (qdmg+edmg+rdmg+wdmg > hp)
+		if Ready(_R) and self.Menu.Combo.UseR:Value() then
+			if Killable and dist > 650 and dist < 2000 then
+				Control.CastSpell(HK_R, target.pos)
+				return
+					
+					
+			end
+		end
+	end		
+    
 
-						Control.CastSpell(HK_R, enemy.pos)
-						Control.CastSpell(HK_E, enemy.pos)
-						Control.CastSpell(HK_Q, enemy.pos)
-					return
-					
-					
-				end
-			end
-			local Killable = (qdmg > hp) or (edmg > hp) or (rdmg+qdmg > hp) or (qdmg+edmg > hp) or (qdmg+edmg+rdmg > hp) or (qdmg+edmg+rdmg+wdmg > hp)
-			if Ready(_R) and self.Menu.Combo.UseR:Value() then
-				if Killable and dist > 650 and dist < 2000 then
-						Control.CastSpell(HK_R, enemy.pos)
-					return
-					
-					
-				end
-			end
-		end		
-    end
-end
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -1026,5 +1179,11 @@ end
 
 
 function OnLoad()
-  Kassadin()
+	Kassadin()
+	loadTowers()
+	Kassadin:MinionsAround(pos,range)
+	Kassadin:EnemiesAround(pos,range)
 end
+	
+  
+
