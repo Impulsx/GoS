@@ -7,46 +7,46 @@ local cancelSpells = {
   ["Darius"] = {
     ["DariusExecute"] = {name = "Noxian Guillotine"} --R
   },
-  ["Fiddlesticks"] = {
+  ["FiddleSticks"] = {
     ["Drain"] = {name = "Drain"},  --W 
     ["Crowstorm"] = {name = "Crowstorm"}  --R 
   },
   ["Gragas"] = {
-    ["gragasw"] = {name = "Drunken Rage"} --W 
+    ["GragasW"] = {name = "Drunken Rage"} --W 
   },
   ["Janna"] = {
     ["ReapTheWhirlwind"] = {name = "Monsoon"} --R
   },
   ["Karthus"] = {
-    ["karthusfallenonecastsound"] = {name = "Requiem"} --R 
+    ["KarthusFallenOne"] = {name = "Requiem"} --R 
   },
   ["Katarina"] = {
-    ["katarinarsound"] = {name = "Death Lotus"} --R 
+    ["KatarinaR"] = {name = "Death Lotus"} --R 
   },
   ["Malzahar"] = {
-    ["malzaharnethergraspsound"] = {name = "Nether Grasp"} --R
+    ["AlZaharNetherGrasp"] = {name = "Nether Grasp"} --R
   },
-  ["Master Yi"] = {
+  ["MasterYi"] = {
     ["Meditate"] = {name = "Meditate"} --W 
   },
-  ["Miss Fortune"] = {
-    ["missfortunebulletsound"] = {name = "Bullet Time"} --R 
+  ["MissFortune"] = {
+    ["MissFortuneBulletTime"] = {name = "Bullet Time"} --R 
   },
   ["Nunu"] = {
     ["AbsoluteZero"] = {name = "Absolute Zero"} --R
   },
   ["Pantheon"] = {
-    ["pantheonesound"] = {name = "Heartseeker Strike"}, --E
+    ["PantheonE"] = {name = "Heartseeker Strike"}, --E
     ["PantheonRJump"] = {name = "Grand Skyfall"} --R
   },
-  ["Twisted Fate"] = {
+  ["TwistedFate"] = {
     ["Destiny"] = {name = "Gate"} --R 
   },
   ["Warwick"] = {
     ["infiniteduresssound"] = {name = "Infinite Duress"} --R
   },
   ["Rammus"] = {
-    ["powerball"] = {name = "Powerball"} --Q 
+    ["PowerBall"] = {name = "Powerball"} --Q 
   }
 }
 local units = {}
@@ -785,6 +785,7 @@ end
 function Kassadin:FullRKill()
 	local target = CurrentTarget(2500)
 	if target == nil then return end
+	if self.Menu.Combo.UseR:Value() and Ready(_R) then
 	local hp = target.health
 	local dist = myHero.pos:DistanceTo(target.pos)
 	local level = myHero:GetSpellData(_R).level
@@ -793,7 +794,7 @@ function Kassadin:FullRKill()
 	local Fulldmg3 = CalcMagicalDamage(myHero, target,(({200, 250, 300})[level] + 0.7 * myHero.ap) + 0.05 * myHero.maxMana)
 	local Fulldmg4 = CalcMagicalDamage(myHero, target,(({240, 300, 360})[level] + 0.8 * myHero.ap) + 0.06 * myHero.maxMana)
 	local QWEdmg = getdmg("Q", target) + getdmg("W", target) + getdmg("E", target)	
-	if self.Menu.Combo.UseR:Value() and Ready(_R) then	
+	
 		if getdmg("R", target) > hp then
 			if dist < 500 then 
 				Control.CastSpell(HK_R, target.pos)
@@ -1215,5 +1216,6 @@ function OnLoad()
 end
 	
   
+
 
 
