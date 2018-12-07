@@ -57,7 +57,7 @@ local foundAUnit = false
 
 do
     
-    local Version = 0.05
+    local Version = 0.01
     
     local Files = {
         Lua = {
@@ -183,60 +183,8 @@ local function GetMinionCount(range, pos)
 		end
 	end
 	return count
- end
+end
   
---[[
-function DrawDmgOnHpBar(hero)
-  if not Config.Draws.DMG then return end
-  if hero and hero.valid and not hero.dead and hero.visible and hero.bTargetable then
-    local kdt = killDrawTable[hero.networkID]
-    for _=1, #kdt do
-      local vars = kdt[_]
-       if vars and vars[1] then
-         DrawRectangle(vars[1], vars[2], vars[3], vars[4], vars[5])
-         Draw.Text(vars[6], vars[7], vars[8], vars[9], vars[10])
-        end
-     end
-  end
-end
-function CalculateDamage()
-  if not Config.Draws.DMG then return end
-  for i, enemy in pairs(GetEnemyHeroes()) do
-    if enemy and not enemy.dead and enemy.visible and enemy.bTargetable then
-      local damageQ = myHero:CanUseSpell(_Q) ~= READY and 0 or getdmg("Q", myHero, enemy) or 0
-      local damageW = myHero:CanUseSpell(_W) ~= READY and 0 or getdmg("W", myHero, enemy) or 0
-      local damageE = myHero:CanUseSpell(_E) ~= READY and 0 or getdmg("E", myHero, enemy) or 0
-      local damageR = myHero:CanUseSpell(_R) ~= READY and 0 or getdmg("R", myHero, enemy) or 0
-      killTable[enemy.networkID] = {damageQ, damageW, damageE, damageR}
-    end
-  end
-end
-function CalculateDamageOffsets()
-  if not Config.Draws.DMG then return end
-  for i, enemy in pairs(GetEnemyHeroes()) do
-    if enemy and enemy.valid then
-      local nextOffset = 0
-      pos = {x = enemy.hpBar.x, y = enemy.hpBar.y}
-      local totalDmg = 0
-      killDrawTable[enemy.networkID] = {}
-      for _, dmg in pairs(killTable[enemy.networkID]) do
-        if dmg > 0 then
-          local perc1 = dmg / enemy.maxHealth
-          local perc2 = totalDmg / enemy.maxHealth
-          totalDmg = totalDmg + dmg
-          local offs = 1-(enemy.maxHealth - enemy.health) / enemy.maxHealth
-          killDrawTable[enemy.networkID][_] = {
-          offs*105+pos.x-perc2*105, pos.y, -perc1*105, 9, colors[_],
-          str[_-1], 15, offs*105+pos.x-perc1*105-perc2*105, pos.y-20, colors[_]
-          }
-        else
-          killDrawTable[enemy.networkID][_] = {}
-        end
-      end
-    end
-  end
-end
-]]
 
 local function EnemyAround()
 	for i = 1, Game.HeroCount() do 
@@ -369,7 +317,7 @@ function Kassadin:LoadMenu()
 	end  
  
 	--EscapeMenu
-	self.Menu:MenuElement({type = MENU, id = "Escape", name = "AutoEscape with Ult"})
+	self.Menu:MenuElement({type = MENU, id = "Escape", name = "AutoEscape Next Update"})
 	self.Menu.Escape:MenuElement({id = "UseR", name = "[R] Riftwalk", value = true})
 	self.Menu.Escape:MenuElement({id = "MinR", name = "Safe life % to use R", value = 16, min = 1, max = 100})
   
@@ -464,24 +412,6 @@ function Kassadin:Draw()
   if(self.Menu.Drawing.DrawQ:Value()) and Ready(_Q) then
     Draw.Circle(myHero, Q.range, 3, Draw.Color(225, 225, 0, 10))
   end
-  
-    --[[
-  local pos = Vector:To2D(myHero.x, myHero.y, myHero.z)
-  local str = self.passiveTracker < 6 and "E: "..self.passiveTracker or "E READY!"
-  for i = -1, 1 do
-    for j = -1, 1 do
-      Draw.Text(str, 25, pos.x - 15 + i - GetTextArea(str, 25).x/2, pos.y + 35 + j, ARGB(255, 0, 0, 0)) 
-    end
-  end
-  Draw.Text(str, 25, pos.x - 15 - GetTextArea(str, 25).x/2, pos.y + 35, self.passiveTracker < 6 and ARGB(255, 255, 0, 0) or ARGB(255, 55, 255, 55))
-  local str = "R: "..(50*2^self.stacks)
-  for i = -1, 1 do
-    for j = -1, 1 do
-      Draw.Text(str, 25, pos.x - 15 + i - GetTextArea(str, 25).x/2, pos.y + 55 + j, ARGB(255, 0, 0, 0)) 
-    end
-  end
-  Draw.Text(str, 25, pos.x - 15 - GetTextArea(str, 25).x/2, pos.y + 55, ARGB(255, 55, 55, 255))
-  ]]
 end
 
 function Kassadin:ValidTarget(unit,range) 
@@ -525,7 +455,7 @@ function Kassadin:Tick()
 	return GOS.GetMode()
 	end
 	self:Activator()
-	self:EscapeR()
+	--self:EscapeR()
 	self:DrawKill()
 	self:OnBuff(myHero)
 	loadTowers()
@@ -576,9 +506,6 @@ function Kassadin:OnBuff(unit)
     if buff.name == "forcepulsecancast" then
       self.passiveTracker = buff.count
 	end  
-    --if buff.name == "forcepulsecounter" then
-	 -- self.passiveTracker = buff.count
-    --end
     if buff.name == "RiftWalk" then
       self.stacks = buff.count      
     end     
@@ -1216,6 +1143,5 @@ function OnLoad()
 end
 	
   
-
 
 
