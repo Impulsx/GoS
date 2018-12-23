@@ -1,3 +1,4 @@
+
 class "Kassadin"
 local menu = 1
 
@@ -12,8 +13,8 @@ local cancelSpells = {
     ["DariusExecute"] = {name = "Noxian Guillotine"} --R
   },
   ["FiddleSticks"] = {
-    ["FiddleSticksDrain"] = {name = "Drain"},  --W 
-    ["FiddleSticksCrowstorm"] = {name = "Crowstorm"}  --R 
+    ["Drain"] = {name = "Drain"},  --W 
+    ["Crowstorm"] = {name = "Crowstorm"}  --R 
   },
   ["Gragas"] = {
     ["GragasW"] = {name = "Drunken Rage"} --W 
@@ -34,7 +35,7 @@ local cancelSpells = {
     ["Meditate"] = {name = "Meditate"} --W 
   },
   ["MissFortune"] = {
-    ["MissFortuneBulletTime"] = {name = "Bullet Time"} --R missfortunebulletsound
+    ["MissFortuneBulletTime"] = {name = "Bullet Time"} --R missfortunebulletsound   
   },
   ["Nunu"] = {
     ["AbsoluteZero"] = {name = "Absolute Zero"} --R
@@ -60,10 +61,9 @@ local TEAM_ENEMY = 300 - myHero.team
 local TEAM_JUNGLE = 300
 
 -- [ AutoUpdate ]
-
 do
     
-    local Version = 0.05
+    local Version = 0.06
     
     local Files = {
         Lua = {
@@ -107,6 +107,7 @@ do
     AutoUpdate()
 
 end
+
 
 local function Ready(spell)
     return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
@@ -268,6 +269,7 @@ local function GetItemSlot(unit, id)
 end
 
 function Kassadin:__init()
+  if myHero.charName ~= "Kassadin" then return end
   if menu ~= 1 then return end
   menu = 2
   self.passiveTracker = 0
@@ -336,6 +338,7 @@ function Kassadin:LoadMenu()
 	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q] Null Sphere", value = true})
 	self.Menu.Combo:MenuElement({id = "UseW", name = "[W] Nether Blade", value = true})
+	self.Menu.Combo:MenuElement({id = "UseAW", name = "Auto[W] Nether Blade", value = true})	
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E] Force Pulse", value = true})
 	self.Menu.Combo:MenuElement({id = "UseR", name = "[R] Riftwalk", value = true})
  
@@ -344,6 +347,7 @@ function Kassadin:LoadMenu()
 	self.Menu.Harass:MenuElement({id = "LastQ", name = "[Q] LastHit Minions", value = true})
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Null Sphere", value = true})
 	self.Menu.Harass:MenuElement({id = "UseE", name = "[E] Force Pulse", value = true})
+	self.Menu.Harass:MenuElement({id = "UseAW", name = "Auto[W] Nether Blade", value = true})	
 	self.Menu.Harass:MenuElement({id = "UseR", name = "Poke[R],[E],[Q]", value = true})
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 65, min = 0, max = 100, identifier = "%"})
   
@@ -351,6 +355,7 @@ function Kassadin:LoadMenu()
 	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})
 	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q] Null Sphere", value = true})         
 	self.Menu.Clear:MenuElement({id = "UseW", name = "[W] Nether Blade", value = true})
+	self.Menu.Clear:MenuElement({id = "UseAW", name = "Auto[W] Nether Blade", value = true})
 	self.Menu.Clear:MenuElement({id = "UseE", name = "[E] Force Pulse", value = true})
 	self.Menu.Clear:MenuElement({id = "EHit", name = "[E] if x minions", value = 3, min = 1, max = 7})
 	self.Menu.Clear:MenuElement({id = "lastQ", name = "[Q] LastHit", value = true})         
@@ -363,6 +368,7 @@ function Kassadin:LoadMenu()
 	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})
 	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q] Null Sphere", value = true})         
 	self.Menu.JClear:MenuElement({id = "UseW", name = "[W] Nether Blade", value = true})
+	self.Menu.JClear:MenuElement({id = "UseAW", name = "Auto[W] Nether Blade", value = true})	
 	self.Menu.JClear:MenuElement({id = "UseE", name = "[E] Force Pulse", value = true})
 	self.Menu.JClear:MenuElement({id = "UseR", name = "[R] Riftwalk", value = true})
 	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 50, min = 0, max = 100, identifier = "%"})  
@@ -426,22 +432,23 @@ function Kassadin:Tick()
 	self:EscapeR()
 	self:OnBuff(myHero)
 	self:Flee()
-	self:AutoW()
 	self:KillSteal()
 
 	
-	if Ready(_Q) and foundAUnit then 
+	if Ready(_Q) and foundAUnit then     
 		for i = 1, #units do
 		local unit = units[i]
 
 			if unit.isChanneling == true and unit.activeSpell.valid then
 			local spellToCancel = cancelSpells[unit.charName]
 			local activeSpell = unit.activeSpell.name
-				if spellToCancel == nil then return end
+			if spellToCancel == nil then return end
+			local ignore = (unit.activeSpell.name == "PowerBall") or (unit.activeSpell.name == "PantheonE") or (unit.activeSpell.name == "Meditate") or (unit.activeSpell.name == "GragasW") or (unit.activeSpell.name == "FiddleSticksDrain")	
 				if spellToCancel[activeSpell] and self.Menu.block[unit.charName][activeSpell]:Value() then
 					if myHero.pos:DistanceTo(unit.pos) <= 650 then
 						Control.CastSpell(HK_Q, unit)
 					elseif Ready(_R) and myHero.pos:DistanceTo(unit.pos) > 650 and myHero.pos:DistanceTo(unit.pos) <= 1150 then
+						if ignore then return end
 						Control.CastSpell(HK_R, unit.pos)
 						Control.CastSpell(HK_Q, unit)
 					end
@@ -456,12 +463,24 @@ function Kassadin:Tick()
 		self:Combo()
 		self:Combo1()
 		self:FullRKill()
+		if self.Menu.Combo.UseAW:Value() then
+			self:AutoW()
+		end
 	elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then                
 		self:Harass()
 		self:LasthitQ()
-	elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] or _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
+		if self.Menu.Harass.UseAW:Value() then
+			self:AutoW()
+		end	
+	elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
 		self:Clear()
 		self:JungleClear()
+		if self.Menu.Clear.UseAW:Value() then
+			self:AutoW()
+		end
+		if self.Menu.JClear.UseAW:Value() then
+			self:AutoW()
+		end		
 	elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] then
 		--self:LastHit()
 	elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
@@ -520,7 +539,7 @@ function Kassadin:Draw()
 	if(self.Menu.Drawing.DrawQ:Value()) and Ready(_Q) then
     Draw.Circle(myHero, Q.range, 3, Draw.Color(225, 225, 0, 10))
 	end
-  	local target = CurrentTarget(6000)
+  	local target = CurrentTarget(20000)
 	if target == nil then return end	
 	local hp = target.health
 	local Dmg = (getdmg("Q", target)), (getdmg("E", target)), (getdmg("Q", target) + getdmg("R", target)), (getdmg("Q", target) + getdmg("E", target)), (getdmg("Q", target) + getdmg("E", target) + getdmg("R", target)), (getdmg("Q", target) + getdmg("W", target) + getdmg("E", target) + getdmg("R", target))
@@ -616,18 +635,18 @@ function Kassadin:KillSteal()
 				Control.CastSpell(HK_Q, target)
 			end
 		end
-		if self.Menu.ks.UseR:Value() and Ready(_R) then
+		if self.Menu.ks.UseR:Value() and Ready(_R) and not IsUnderTurret(target) then
 			if RDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 500 then
 				Control.CastSpell(HK_R, target)
 			end
 		end
-		if self.Menu.ks.UseQR:Value() and Ready(_R) and Ready(_Q) then
+		if self.Menu.ks.UseQR:Value() and Ready(_R) and Ready(_Q) and not IsUnderTurret(target) then
 			if (RDmg + QDmg) >= hp and myHero.pos:DistanceTo(target.pos) <= 500 then
 				Control.CastSpell(HK_Q, target)
 				Control.CastSpell(HK_R, target)
 			end
 		end	
-		if self.Menu.ks.UseRQ:Value() and Ready(_R) and Ready(_Q) then
+		if self.Menu.ks.UseRQ:Value() and Ready(_R) and Ready(_Q) and not IsUnderTurret(target) then
 			if (RDmg + QDmg) >= hp and myHero.pos:DistanceTo(target.pos) < 1150 and myHero.pos:DistanceTo(target.pos) > 650 then
 				Control.CastSpell(HK_R, target)
 				Control.CastSpell(HK_Q, target)
@@ -1295,6 +1314,14 @@ function OnLoad()
 end
 	
   
+
+
+
+
+
+
+
+
 
 
 
