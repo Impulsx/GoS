@@ -3,7 +3,7 @@ class "Activator"
  -- [ AutoUpdate ]
 do
     
-    local Version = 0.06
+    local Version = 0.07
     
     local Files = {
         Lua = {
@@ -163,9 +163,11 @@ function Activator:Tick()
 end	
 
 --Utility------------------------
-local function Ready(spell)
-	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
+function Ready(spell)
+	return myHero:GetSpellData(slot).currentCd == 0 
 end
+
+
 
 local function Cleans(unit)
 	if unit == nil then return false end
@@ -300,7 +302,7 @@ function Activator:UseZhonya()
 		if self:EnemiesAround(myHero.pos,1000) then
 		local Z = GetInventorySlotItem(3157)
 		if Z and self.Menu.ZS.Zhonya.UseZ:Value() and GetPercentHP(myHero) < self.Menu.ZS.HP.myHP:Value() then
-			Control.CastSpell(HKITEM[Z], myHero)
+			Control.CastSpell(HKITEM[Z])
 		end
 	end
 end	
@@ -310,7 +312,7 @@ function Activator:UseStopwatch()
 	if self:EnemiesAround(myHero.pos,1000) then
 		local S = GetInventorySlotItem(2420)
 		if S and self.Menu.ZS.Stopwatch.UseS:Value() and GetPercentHP(myHero) < self.Menu.ZS.HP.myHP:Value() then
-			Control.CastSpell(HKITEM[S], myHero)			
+			Control.CastSpell(HKITEM[S])			
 		end
 	end
 end	
@@ -320,7 +322,7 @@ function Activator:QSS()
 	local hasBuff = HasBuff(myHero, "zedrdeathmark")
 	local SZ = GetInventorySlotItem(2420), GetInventorySlotItem(3157)
 	if SZ and self.Menu.ZS.QSS.UseSZ:Value() and hasBuff then
-		Control.CastSpell(HKITEM[SZ], myHero)
+		Control.CastSpell(HKITEM[SZ])
 	end
 end	
 	
@@ -352,24 +354,24 @@ function Activator:UsePotion()
 		if GetPercentHP(myHero) < self.Menu.Healing.UsePotsPercent:Value() and not myHero.dead then
 	
 			local HP = GetInventorySlotItem(2003)
-			if HP and self.Menu.Healing.UsePots:Value() and HealthPotionSlot  then
-			Control.CastSpell(HKITEM[HP], myHero)
+			if HP and self.Menu.Healing.UsePots:Value() and HealthPotionSlot and Ready(HP) then
+			Control.CastSpell(HKITEM[HP])
 			end
 			local C = GetInventorySlotItem(2010)
-			if C and self.Menu.Healing.UseCookies:Value() and CookiePotionSlot  then
-			Control.CastSpell(HKITEM[C], myHero)
+			if C and self.Menu.Healing.UseCookies:Value() and CookiePotionSlot and Ready(C) then
+			Control.CastSpell(HKITEM[C])
 			end
 			local RP = GetInventorySlotItem(2031)
-			if RP and self.Menu.Healing.UseRefill:Value() and RefillablePotSlot  then
-			Control.CastSpell(HKITEM[RP], myHero)
+			if RP and self.Menu.Healing.UseRefill:Value() and RefillablePotSlot and Ready(RP) then
+			Control.CastSpell(HKITEM[RP])
 			end
 			local CP = GetInventorySlotItem(2033)
-			if CP and self.Menu.Healing.UseCorrupt:Value() and CorruptPotionSlot  then
-			Control.CastSpell(HKITEM[CP], myHero)
+			if CP and self.Menu.Healing.UseCorrupt:Value() and CorruptPotionSlot and Ready(CP) then
+			Control.CastSpell(HKITEM[CP])
 			end
 			local H = GetInventorySlotItem(2032)
-			if H and self.Menu.Healing.UseHunters:Value() and HuntersPotionSlot  then
-			Control.CastSpell(HKITEM[H], myHero)
+			if H and self.Menu.Healing.UseHunters:Value() and HuntersPotionSlot and Ready(H) then
+			Control.CastSpell(HKITEM[H])
 			end
 		end
 	end
