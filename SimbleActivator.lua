@@ -3,7 +3,7 @@ class "Activator"
  -- [ AutoUpdate ]
 do
     
-    local Version = 0.05
+    local Version = 0.06
     
     local Files = {
         Lua = {
@@ -352,23 +352,23 @@ function Activator:UsePotion()
 		if GetPercentHP(myHero) < self.Menu.Healing.UsePotsPercent:Value() and not myHero.dead then
 	
 			local HP = GetInventorySlotItem(2003)
-			if HP and self.Menu.Healing.UsePots:Value() and HealthPotionSlot > 0 then
+			if HP and self.Menu.Healing.UsePots:Value() and HealthPotionSlot  then
 			Control.CastSpell(HKITEM[HP], myHero)
 			end
 			local C = GetInventorySlotItem(2010)
-			if C and self.Menu.Healing.UseCookies:Value() and CookiePotionSlot > 0 then
+			if C and self.Menu.Healing.UseCookies:Value() and CookiePotionSlot  then
 			Control.CastSpell(HKITEM[C], myHero)
 			end
 			local RP = GetInventorySlotItem(2031)
-			if RP and self.Menu.Healing.UseRefill:Value() and RefillablePotSlot > 0 then
+			if RP and self.Menu.Healing.UseRefill:Value() and RefillablePotSlot  then
 			Control.CastSpell(HKITEM[RP], myHero)
 			end
 			local CP = GetInventorySlotItem(2033)
-			if CP and self.Menu.Healing.UseCorrupt:Value() and CorruptPotionSlot > 0 then
+			if CP and self.Menu.Healing.UseCorrupt:Value() and CorruptPotionSlot  then
 			Control.CastSpell(HKITEM[CP], myHero)
 			end
 			local H = GetInventorySlotItem(2032)
-			if H and self.Menu.Healing.UseHunters:Value() and HuntersPotionSlot > 0 then
+			if H and self.Menu.Healing.UseHunters:Value() and HuntersPotionSlot  then
 			Control.CastSpell(HKITEM[H], myHero)
 			end
 		end
