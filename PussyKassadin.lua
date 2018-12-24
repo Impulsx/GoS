@@ -63,7 +63,7 @@ local TEAM_JUNGLE = 300
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.06
+    local Version = 0.07
     
     local Files = {
         Lua = {
@@ -412,10 +412,10 @@ function Kassadin:LoadMenu()
 	--EscapeMenu
 	self.Menu:MenuElement({type = MENU, id = "evade", leftIcon = Icons["Escape"]})
 	self.Menu.evade:MenuElement({type = MENU, id = "Life", name = "Auto Escape Menu"})	
-	self.Menu.evade.Life:MenuElement({id = "UseR", name = "[R]AutoEscape Ally, Tower or Minions", value = true})
+	self.Menu.evade.Life:MenuElement({id = "UseR", name = "[R]AutoEscape Ally, Tower", value = true})
 	self.Menu.evade.Life:MenuElement({id = "MinR", name = "Min Life to Escape", value = 20, min = 0, max = 100, identifier = "%"})	
 	self.Menu.evade:MenuElement({type = MENU, id = "Flee", name = "Manual Escape Menu"})	
-	self.Menu.evade.Flee:MenuElement({id = "UseR", name = "[R]Press EscapeKey Ally, Tower or Minions", value = true})
+	self.Menu.evade.Flee:MenuElement({id = "UseR", name = "[R]Press EscapeKey Ally, Tower", value = true})
 	self.Menu.evade.Flee:MenuElement({id = "Fleekey", name = "Escape key", key = string.byte("A")})
 	
 	--Drawing 
@@ -431,7 +431,6 @@ function Kassadin:Tick()
 	self:Activator()
 	self:EscapeR()
 	self:OnBuff(myHero)
-	self:Flee()
 	self:KillSteal()
 
 	
@@ -453,8 +452,11 @@ function Kassadin:Tick()
 						Control.CastSpell(HK_Q, unit)
 					end
 				end
-			end
+			end    
 		end
+	end
+	if self.Menu.evade.Flee.Fleekey:Value() then
+		self:Flee()
 	end
 	
 		
@@ -685,7 +687,7 @@ local Target = CurrentTarget(150)
 	end
 	if target and self.passiveTracker >= 1 and self.Menu.Combo.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 600 then
 	local pred = target:GetPrediction(E.speed, 0.25 + Game.Latency()/1000)	
-		Control.CastSpell(HK_E, pred)
+		Control.CastSpell(HK_E, target)
 	end
 	if Target == nil then return end
 	if Target then
@@ -698,58 +700,41 @@ end
 function Kassadin:EscapeR()
 	local target = CurrentTarget(2000)
 	if target == nil then return end
-	for i,ally in pairs(GetAllyHeroes()) do
-	if target and self.Menu.evade.Life.UseR:Value() and Ready(_R) and 100*myHero.health/myHero.maxHealth <= self.Menu.evade.Life.MinR:Value() and myHero.pos:DistanceTo(target.pos) <= 1000 then 
-		if self:ValidTarget(ally, 2000) and myHero.pos:DistanceTo(ally.pos) < 2000 and myHero.pos:DistanceTo(ally.pos) > 500 then
-			if GetEnemyCount(1000, ally) < 1 then
-				Control.CastSpell(HK_R, ally)
-			end
-		end	
+	if target and self.Menu.evade.Life.UseR:Value() and Ready(_R) and 100*myHero.health/myHero.maxHealth <= self.Menu.evade.Life.MinR:Value() and myHero.pos:DistanceTo(target.pos) <= 600 then 
+		for i,ally in pairs(GetAllyHeroes()) do
+			if self:ValidTarget(ally, 2000) and myHero.pos:DistanceTo(ally.pos) < 2000 and myHero.pos:DistanceTo(ally.pos) > 500 then
+				if GetEnemyCount(1000, ally) < 1 then
+				Control.CastSpell(HK_R, ally.pos)
+				end
+			end	
+		end
 		for i,tower in pairs(GetAllyTurret()) do
 			if self:ValidTarget(tower, 2000) and myHero.pos:DistanceTo(tower.pos) < 2000 and myHero.pos:DistanceTo(tower.pos) > 750 then
-				Control.CastSpell(HK_R, tower)
-				
-			end
-			for i,minion in pairs(GetMinion()) do
-				if (self:ValidTarget(ally, 2000) == nil) and (self:ValidTarget(tower, 2000) == nil) then
-					if self:ValidTarget(minion, 1000) and myHero.pos:DistanceTo(minion.pos) < 1000 and myHero.pos:DistanceTo(minion.pos) > 500 then
-						if GetEnemyCount(1000, minion) < 1 then
-							Control.CastSpell(HK_R, minion)
-					
-						end
-					end
-				end
-			end
+				Control.CastSpell(HK_R, tower.pos)
+			end	
 		end
-	end
 	end
 end
 	
 
 function Kassadin:Flee()
-	for i,ally in pairs(GetAllyHeroes()) do
-		if self.Menu.evade.Flee.UseR:Value() and Ready(_R) and self.Menu.evade.Flee.Fleekey:Value() then 
-				if self:ValidTarget(ally, 2000) and myHero.pos:DistanceTo(ally.pos) < 2000 and myHero.pos:DistanceTo(ally.pos) > 500 then
-					if GetEnemyCount(1000, ally) < 1 then
-						Control.CastSpell(HK_R, ally)
-					end
-				end
-			for i,tower in pairs(GetAllyTurret()) do
-				if self:ValidTarget(tower, 2000) and myHero.pos:DistanceTo(tower.pos) < 2000 and myHero.pos:DistanceTo(tower.pos) > 750 then
-						Control.CastSpell(HK_R, tower)
-					
-				end	
-				if (self:ValidTarget(ally, 2000) == nil) and (self:ValidTarget(tower, 2000) == nil) then
-					for i,minion in pairs(GetMinion()) do
-						if self:ValidTarget(minion, 1000) and myHero.pos:DistanceTo(minion.pos) < 1000 and myHero.pos:DistanceTo(minion.pos) > 500 then
-							if GetEnemyCount(1000, minion) < 1 then
-								Control.CastSpell(HK_R, minion)
-							end
-						end
-					end	
+	if self.Menu.evade.Flee.UseR:Value() and Ready(_R) then		
+		for i,ally in pairs(GetAllyHeroes()) do
+			if self:ValidTarget(ally, 2000) and myHero.pos:DistanceTo(ally.pos) < 2000 and myHero.pos:DistanceTo(ally.pos) > 500 then
+				if GetEnemyCount(1000, ally) < 1 then
+					Control.CastSpell(HK_R, ally.pos)
 				end
 			end
+		end	
+		for i,tower in pairs(GetAllyTurret()) do
+			if self:ValidTarget(tower, 2000) and myHero.pos:DistanceTo(tower.pos) < 2000 and myHero.pos:DistanceTo(tower.pos) > 750 then
+				Control.CastSpell(HK_R, tower.pos)
+					
+			end	
 		end
+		if (self:ValidTarget(ally, 2000) == nil) and (self:ValidTarget(tower, 2000) == nil) then
+			Control.CastSpell(HK_R)
+		end	
 	end
 end				
 
@@ -761,18 +746,18 @@ if Alltarget == nil then return end
 local ready = Ready(_Q), Ready(_E), Ready(_R)
 
 	
-	if target and self.Menu.Harass.UseR:Value() and ready and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) and myHero.pos:DistanceTo(target.pos) <= 1100 and myHero.pos:DistanceTo(target.pos) >= 800 then
+	if target and self.Menu.Harass.UseR:Value() and ready and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) and myHero.pos:DistanceTo(target.pos) <= 1000 and myHero.pos:DistanceTo(target.pos) >= 800 then
 		if self.stacks <= 1 and self.passiveTracker >= 1 and not IsUnderTurret(target) then
 		local pred = target:GetPrediction(E.speed, 0.25 + Game.Latency()/1000)		
 			Control.CastSpell(HK_R, target.pos)
-			Control.CastSpell(HK_E, pred)
+			Control.CastSpell(HK_E, target)
 			Control.CastSpell(HK_Q, target)
 		end
 	end
-	if target1 and self.Menu.Harass.UseE:Value() and Ready(_E) and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) and myHero.pos:DistanceTo(target1.pos) <= 600 then
+	if target1 and self.Menu.Harass.UseE:Value() and Ready(_E) and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) and myHero.pos:DistanceTo(target1.pos) <= 550 then
 		if self.passiveTracker >= 1 then
 		local pred = target1:GetPrediction(E.speed, 0.25 + Game.Latency()/1000)			
-			Control.CastSpell(HK_E, pred)
+			Control.CastSpell(HK_E, target.pos)
 		end
 	end
 	if target1 and self.Menu.Harass.UseQ:Value() and Ready(_Q) and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) and myHero.pos:DistanceTo(target1.pos) <= 650 then
@@ -825,7 +810,7 @@ function Kassadin:Clear()
 				local EPos, Count = self:ClearLogic()
 				if EPos == nil then return end	
 				if Count >= self.Menu.Clear.RHit:Value() then
-					Control.CastSpell(HK_R, EPos)
+					Control.CastSpell(HK_R, minion.pos)
 				
 				end
 			end
@@ -845,7 +830,7 @@ function Kassadin:Clear()
 		local EPos, Count = self:ClearLogic()
 			if EPos == nil then return end
 				if Count >= self.Menu.Clear.EHit:Value() then
-						Control.CastSpell(HK_E, EPos)
+						Control.CastSpell(HK_E, minion)
 				
 				end
 			end  
@@ -998,7 +983,7 @@ function Kassadin:Combo1()
 	if Ready(_E) and self.Menu.Combo.UseE:Value() then	
 		if dist < 600 and edmg > hp and self.passiveTracker >= 1 then
 		local pred = target:GetPrediction(E.speed, 0.25 + Game.Latency()/1000)	
-			Control.CastSpell(HK_E, pred)
+			Control.CastSpell(HK_E, target)
 		
 		end
 	end
@@ -1021,7 +1006,7 @@ function Kassadin:Combo1()
 		if dist < 500 and (qdmg+edmg+rdmg) > hp then
 		local pred = target:GetPrediction(E.speed, 0.25 + Game.Latency()/1000)	
 			Control.CastSpell(HK_R, target.pos)
-			Control.CastSpell(HK_E, pred)
+			Control.CastSpell(HK_E, target)
 			Control.CastSpell(HK_Q, target)
 				
 		end
@@ -1030,7 +1015,7 @@ function Kassadin:Combo1()
 		if dist < 500 and (qdmg+edmg+rdmg+wdmg) > hp then
 		local pred = target:GetPrediction(E.speed, 0.25 + Game.Latency()/1000)	
 			Control.CastSpell(HK_R, target.pos)
-			Control.CastSpell(HK_E, pred)
+			Control.CastSpell(HK_E, target)
 			Control.CastSpell(HK_Q, target)
 			Control.CastSpell(HK_W)	
 		end
@@ -1310,13 +1295,11 @@ end
 
 function OnLoad()
 	Kassadin()
+	
 
 end
 	
   
-
-
-
 
 
 
