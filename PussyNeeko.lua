@@ -8,9 +8,56 @@ local menu = 1
 local TEAM_ALLY = myHero.team
 local TEAM_ENEMY = 300 - myHero.team
 local TEAM_JUNGLE = 300
+local LocalGameHeroCount 			= Game.HeroCount;
+local LocalGameHero 				= Game.Hero;
 
 -- [ AutoUpdate ]
+do
+    
+    local Version = 0.01
+    
+    local Files = {
+        Lua = {
+            Path = SCRIPT_PATH,
+            Name = "PussyNeeko.lua",
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyNeeko.lua"
+        },
+        Version = {
+            Path = SCRIPT_PATH,
+            Name = "PussyNeeko.version",
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyNeeko.version"
+        }
+    }
+    
+    local function AutoUpdate()
+        
+        local function DownloadFile(url, path, fileName)
+            DownloadFileAsync(url, path .. fileName, function() end)
+            while not FileExist(path .. fileName) do end
+        end
+        
+        local function ReadFile(path, fileName)
+            local file = io.open(path .. fileName, "r")
+            local result = file:read()
+            file:close()
+            return result
+        end
+        
+        DownloadFile(Files.Version.Url, Files.Version.Path, Files.Version.Name)
+        local textPos = myHero.pos:To2D()
+        local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
+        if NewVersion > Version then
+            DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
+            print("New PussyNeeko Version Press 2x F6")
+        else
+            print(Files.Version.Name .. ": No Updates Found")
+        end
+    
+    end
+    
+    AutoUpdate()
 
+end
 
 
 local function Ready(spell)
@@ -64,6 +111,16 @@ function EnableOrb()
 		_G.SDK.Orbwalker:SetMovement(true)
 		_G.SDK.Orbwalker:SetAttack(true)	
 		end
+end
+
+local function IsImmobileTarget(unit)
+		for i = 0, unit.buffCount do
+			local buff = unit:GetBuff(i)
+			if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.name == "recall") and buff.count > 0 then
+				return true
+			end
+		end
+		return false	
 end
 
 local spellcast = {state = 1, mouse = mousePos}
@@ -237,6 +294,19 @@ function LeftClick(pos)
 	DelayAction(ReturnCursor,0.05,{pos})
 end
 
+function Neeko:EnemiesAround(pos, range)
+	local pos = pos.pos
+	local N = 0
+	for i = 1,Game.HeroCount()  do
+		local hero = Game.Hero(i)
+		local Range = range * range
+		if hero.team ~= TEAM_ALLY and hero.dead == false and GetDistanceSqr(pos, hero.pos) < Range then
+			N = N + 1
+		end
+	end
+	return N	
+end
+
 
 function Neeko:LoadSpells()
 	
@@ -273,7 +343,7 @@ function Neeko:LoadMenu()
 	self.Menu.Combo:MenuElement({id = "UseR", name = "Auto[W][R]", value = true, tooltip = "If [W] not Ready then only [R]"})
  	self.Menu.Combo:MenuElement({id = "RHit", name = "Auto[W][R] if x Targets in Range", value = 2, min = 1, max = 5})	
 	self.Menu.Combo:MenuElement({id = "UseR1", name = "Auto[R] 1vs1 If Killable", value = true})
-	self.Menu.Combo:MenuElement({id = "UseR2", name = "SummonerFlash+[R] are more than 4 Targets in Range", value = true})	
+	self.Menu.Combo:MenuElement({id = "UseR2", name = "SummonerFlash+[R] 4-5Targets", value = true})	
 	
 	--HarassMenu
 	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})
@@ -302,7 +372,7 @@ function Neeko:LoadMenu()
 	
 	--Activator
 	self.Menu:MenuElement({type = MENU, id = "a", leftIcon = Icons["Activator"]})		
-	self.Menu.a.Proto:MenuElement({id = "ON", name = "Use Hextech Protobelt in Combo", value = true})	
+	self.Menu.a:MenuElement({id = "ON", name = "Use Hextech Protobelt in Combo", value = true})	
 	self.Menu.a:MenuElement({type = MENU, id = "Zhonyas", name = "Zhonya's + StopWatch"})
 	self.Menu.a.Zhonyas:MenuElement({id = "ON", name = "Enabled", value = true})
 	self.Menu.a.Zhonyas:MenuElement({id = "HP", name = "HP", value = 15, min = 0, max = 100, step = 1, identifier = "%"})
@@ -312,7 +382,7 @@ function Neeko:LoadMenu()
 	--EscapeMenu
 	self.Menu:MenuElement({type = MENU, id = "evade", leftIcon = Icons["Escape"]})	
 	self.Menu.evade:MenuElement({id = "UseW", name = "Auto[W] Spawn Clone", value = true})
-	self.Menu.evade:MenuElement({id = "Min", name = "Min Life to Spawn Clone", value = 20, min = 0, max = 100, identifier = "%"})	
+	self.Menu.evade:MenuElement({id = "Min", name = "Min Life to Spawn Clone", value = 30, min = 0, max = 100, identifier = "%"})	
 	self.Menu.evade:MenuElement({id = "gank", name = "Auto[W] Spawn Clone Incomming Gank", value = true})
 	
 	--Drawing 
@@ -357,7 +427,7 @@ function Neeko:Tick()
 		
 	
 
-end
+end  
 
 
 
@@ -375,10 +445,10 @@ if myHero.dead then return end
 		end
 			--Stopwatch
 		if self.Menu.a.Zhonyas.ON:Value() then
-		local Zhonyas = GetItemSlot(myHero, 2420)
-			if Zhonyas > 0 and Ready(Zhonyas) then 
+		local Stop = GetItemSlot(myHero, 2420)
+			if Stop > 0 and Ready(Stop) then 
 				if myHero.health/myHero.maxHealth < self.Menu.a.Zhonyas.HP:Value()/100 then
-					Control.CastSpell(ItemHotKey[Zhonyas])
+					Control.CastSpell(ItemHotKey[Stop])
 				end
 			end
 		end
@@ -390,7 +460,7 @@ function Neeko:Proto()
 if myHero.dead then return end	
 	local target = CurrentTarget(1000)
 	if target == nil then return end
-	if target and not target.dead and self.Menu.a.Proto.ON:Value() then
+	if target and not target.dead and self.Menu.a.ON:Value() then
 		local Protobelt = GetItemSlot(myHero, 3152)
 		if Protobelt > 0 and Ready(Protobelt) and myHero.pos:DistanceTo(target.pos) < 850 then	
 			Control.CastSpell(ItemHotKey[Protobelt])
@@ -408,7 +478,25 @@ function Neeko:Draw()
 	end
 	if(self.Menu.Drawing.DrawE:Value()) and Ready(_E) then
     Draw.Circle(myHero, 1000, 3, Draw.Color(225, 225, 125, 10))
-	end	
+	end
+	local target = CurrentTarget(20000)
+	if target == nil then return end	
+	local hp = target.health	
+	if target and self.Menu.Drawing.Kill:Value() and not target.dead then
+				
+		if Ready(_Q) and getdmg("Q", target) > hp then
+			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
+			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))
+		end	
+		if Ready(_E) and getdmg("E", target) > hp then
+			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
+			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))		
+		end	
+		if Ready(_E) and Ready(_Q) and (getdmg("E", target) + getdmg("Q", target)) > hp then
+			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
+			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))	
+		end	
+	end
 end
  
 function Neeko:ValidTarget(unit,range) 
@@ -492,10 +580,12 @@ function Neeko:AutoR1()
 	if target == nil then return end
 	local hp = target.health
 	local RDmg = getdmg("R", target)
+	local QDmg = getdmg("Q", target)
+	local EDmg = getdmg("E", target)
 	if target and not target.dead then
 		if self.Menu.Combo.UseR1:Value() and Ready(_R) then
 			local targetCount = CountEnemiesNear(myHero.pos, 2000)
-			if targetCount == 1 and myHero.pos:DistanceTo(target.pos) <= 600 and hp < RDmg then
+			if targetCount <= 1 and myHero.pos:DistanceTo(target.pos) <= 500 and hp < (RDmg+QDmg+EDmg) then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -508,7 +598,7 @@ function Neeko:AutoR2()
 	if target and not target.dead then
 		if self.Menu.Combo.UseR2:Value() and Ready(_R) then
 			local targetCount = CountEnemiesNear(target.pos, 600)
-			if targetCount >= 3 and myHero.pos:DistanceTo(targetCount.pos) <= 400 and myHero.pos:DistanceTo(targetCount.pos) >= 350 and not IsUnderTurret(targetCount) then
+			if targetCount >= 3 and myHero.pos:DistanceTo(target.pos) <= 400 and myHero.pos:DistanceTo(target.pos) >= 350 and not IsUnderTurret(target) then
 				if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
 					Control.CastSpell(HK_R)
 					Control.CastSpell(HK_SUMMONER_1, target)
@@ -525,60 +615,56 @@ end
 
 	
 	
-	function Neeko:Combo()
+function Neeko:Combo()
 	local target = CurrentTarget(1000)
 	if target == nil then return end
 	if target and not target.dead then
-		if self.Menu.Combo.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 800 then 
-			local targetCount = CountEnemiesNear(target.pos, 225)
-			if targetCount == 4 then
-				Control.CastSpell(HK_Q, target)
-			elseif targetCount == 3 then
-				Control.CastSpell(HK_Q, target)
-			elseif targetCount == 2 then
-				Control.CastSpell(HK_Q, target)
-			elseif targetCount == 1 then
-				Control.CastSpell(HK_Q, target)
-			elseif targetCount == 0 then
-				Control.CastSpell(HK_Q, target)				
-			end
-		end
-	end
-	local target, aimPosition = HPred:GetReliableTarget(myHero.pos, E.Range, E.Delay, E.Speed, E.Width)
-	if target and HPred:IsInRange(myHero.pos, aimPosition, E.Range) then		
+		local aimPos = HPred:PredictUnitPosition(target, E.Delay, E.Speed, E.Width)
+		local targetCount = HPred:GetLineTargetCount(myHero.pos, aimPos, E.Delay, E.Speed, E.Width)
 		if self.Menu.Combo.UseE:Value() and Ready(_E) then			
-			local cPos = myHero.pos + ( aimPosition - myHero.pos):Normalized() * E.Range
-			local targetCount = HPred:GetLineTargetCount(myHero.pos, cPos, E.Delay, E.Speed, E.Width, false)
 			if targetCount == 5 then
-				Control.CastSpell(HK_E, aimPosition)
+				Control.CastSpell(HK_E, aimPos)
 			elseif targetCount == 4 then
-				Control.CastSpell(HK_E, aimPosition)
+				Control.CastSpell(HK_E, aimPos)
 			elseif targetCount == 3 then
-				Control.CastSpell(HK_E, aimPosition)
+				Control.CastSpell(HK_E, aimPos)	
 			elseif targetCount == 2 then
-				Control.CastSpell(HK_E, aimPosition)
+				Control.CastSpell(HK_E, aimPos)	
 			elseif targetCount == 1 then
-				Control.CastSpell(HK_E, aimPosition)				
+				Control.CastSpell(HK_E, aimPos)					
 			end
 		end
-	end	
+		if self.Menu.Combo.UseE:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 800 and IsImmobileTarget(target) then 
+			Control.CastSpell(HK_Q, target)
+		end
+		if self.Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 800 and myHero:GetSpellData(_E).level < 1 then
+			Control.CastSpell(HK_Q, target)
+		end	
+	end
 end	
+
 	
 		
 
 function Neeko:Harass()	
-	local target = CurrentTarget(1200)
+	local target = CurrentTarget(800)
 	if target == nil then return end	
-	if target and not target.dead and Ready(_E) and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 800 then
-
-		if self.Menu.Harass.UseQ:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) then
-			Control.CastSpell(HK_Q, target)
-		if self.Menu.Harass.UseE:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) then		
-			Control.CastSpell(HK_E, target)
+	if target and not target.dead  and myHero.pos:DistanceTo(target.pos) <= 800 and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) then
+		if Ready(_E) and Ready(_Q) then
+			if self.Menu.Harass.UseE:Value()  then
+				Control.CastSpell(HK_E, target)
+			end
 		end
+		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and IsImmobileTarget(target) then	
+			Control.CastSpell(HK_Q, target)
+			
+		end
+		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 800 and myHero:GetSpellData(_E).level < 1 then
+			Control.CastSpell(HK_Q, target)
 		end
 	end
 end
+
 
 function Neeko:Clear()
 	for i = 1, Game.MinionCount() do
@@ -1104,11 +1190,6 @@ function HPred:GetReliableTarget(source, range, delay, speed, radius, timingAccu
 		return target, aimPosition
 	end
 	
-	--Get stunned enemies
-	local target, aimPosition =self:GetImmobileTarget(source, range, delay, speed, timingAccuracy, checkCollision, radius)
-	if target and aimPosition then
-		return target, aimPosition
-	end
 	
 	--Get blink targets
 	local target, aimPosition =self:GetBlinkTarget(source, range, speed, delay, checkCollision, radius)
@@ -1400,23 +1481,7 @@ function HPred:GetChannelingTarget(source, range, delay, speed, timingAccuracy, 
 	end
 end
 
-function HPred:GetImmobileTarget(source, range, delay, speed, timingAccuracy, checkCollision, radius)
-	local target
-	local aimPosition
-	for i = 1, LocalGameHeroCount() do
-		local t = LocalGameHero(i)
-		if t and self:CanTarget(t) and self:IsInRange(source, t.pos, range) then
-			local immobileTime = self:GetImmobileTime(t)
-			
-			local interceptTime = self:GetSpellInterceptTime(source, t.pos, delay, speed)
-			if immobileTime - interceptTime > timingAccuracy and (not checkCollision or not self:CheckMinionCollision(source, t.pos, delay, speed, radius)) then
-				target = t
-				aimPosition = t.pos
-				return target, aimPosition
-			end
-		end
-	end
-end
+
 
 function HPred:CacheTeleports()
 	--Get enemies who are teleporting to towers
@@ -1996,26 +2061,7 @@ function HPred:GetDistance(p1, p2)
 	return _sqrt(self:GetDistanceSqr(p1, p2))
 end
 
-function OnDraw()
-  	local target = CurrentTarget(20000)
-	if target == nil then return end	
-	local hp = target.health	
-	if target and self.Menu.Drawing.Kill:Value() and not target.dead then
-				
-		if Ready(_Q) and getdmg("Q", target) > hp then
-			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))
-		end	
-		if Ready(_E) and getdmg("E", target) > hp then
-			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))		
-		end	
-		if Ready(_E) and Ready(_Q) and (getdmg("E", target) + getdmg("Q", target)) > hp then
-			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))	
-		end	
-	end
-end
+
 
 	
 
