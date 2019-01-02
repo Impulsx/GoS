@@ -14,7 +14,7 @@ local LocalGameHero 				= Game.Hero;
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.02
+    local Version = 0.03
     
     local Files = {
         Lua = {
@@ -374,7 +374,9 @@ function Neeko:LoadMenu()
 	--ComboMenu  
 	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q] Blooming Burst", value = true})	
+	self.Menu.Combo:MenuElement({id = "PredQ", name = "HitChance[Q] [1]=low [5]=high", value = 2, min = 1, max = 5})	
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E] Tangle-Barbs", value = true})
+	self.Menu.Combo:MenuElement({id = "PredE", name = "HitChance[E] [1]=low [5]=high", value = 3, min = 1, max = 5})	
 	--UltSettings
 	self.Menu.Combo:MenuElement({type = MENU, id = "Ult", name = "Ultimate Settings"})
 	--[W]+[R]
@@ -398,7 +400,9 @@ function Neeko:LoadMenu()
 	self.Menu.Harass.LH:MenuElement({id = "UseQL", name = "LastHit[Q] Minions", value = true, tooltip = "There is no Enemy nearby"})	
 	self.Menu.Harass.LH:MenuElement({id = "UseQLM", name = "min. Minions", value = 2, min = 1, max = 6})	
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Blooming Burst", value = true})
+	self.Menu.Harass:MenuElement({id = "PredQ", name = "HitChance[Q] [1]=low [5]=high", value = 2, min = 1, max = 5})	
 	self.Menu.Harass:MenuElement({id = "UseE", name = "[E] Tangle-Barbs", value = true})
+	self.Menu.Harass:MenuElement({id = "PredE", name = "HitChance[E] [1]=low [5]=high", value = 3, min = 1, max = 5})	
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--LaneClear Menu
@@ -418,7 +422,9 @@ function Neeko:LoadMenu()
 	--KillSteal
 	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
 	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q] Blooming Burst", value = true})
+	self.Menu.ks:MenuElement({id = "PredQ", name = "HitChance[Q] [1]=low [5]=high", value = 2, min = 1, max = 5})	
 	self.Menu.ks:MenuElement({id = "UseE", name = "[E] Tangle-Barbs", value = true})
+	self.Menu.ks:MenuElement({id = "PredE", name = "HitChance[E] [1]=low [5]=high", value = 3, min = 1, max = 5})	
 	self.Menu.ks:MenuElement({id = "UseEQ", name = "[E]+[Q]", value = true})
 
 	
@@ -454,7 +460,7 @@ function Neeko:Tick()
 	self:AutoR()
 	self:AutoR1()	
 	self:GankW()
-	self:Proto()	
+	
 	if myHero.dead then return end
 	if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
 		self:Combo()
@@ -561,74 +567,83 @@ function Neeko:ValidTarget(unit,range)
 end
 
 function Neeko:checkUltSpell()
-
+local Protobelt = GetItemSlot(myHero, 3152)
+		
 	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
-		if  Ready(_R) and Ready(_W) then
+		if  Ready(_R) and Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt1()
 			self:Immo1()
+			self:Proto()
 		end
 	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
-		if Ready(_R) and Ready(_W) then
+		if Ready(_R) and Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt1()
 			self:Immo1()
+			self:Proto()	
 		end	
 	end
 
 	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
-		if Ready(_R) and not Ready(_W) then
+		if Ready(_R) and not Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt2()
 			self:Immo2()
+			self:Proto()	
 		end
 	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
-		if  Ready(_R) and not Ready(_W) then
+		if  Ready(_R) and not Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt2()
 			self:Immo2()
+			self:Proto()	
 		end	
 	end
 	
 	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
-		if  Ready(_R) and Ready(_W) then
+		if  Ready(_R) and Ready(_W) and (Protobelt > 0 and not Ready(Protobelt) or Protobelt == 0) then
 			self:AutoUlt3()
 			self:Immo3()
 		end
 	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
-		if  Ready(_R) and Ready(_W) then
+		if  Ready(_R) and Ready(_W) and (Protobelt > 0 and not Ready(Protobelt) or Protobelt == 0) then
 			self:AutoUlt3()
 			self:Immo3()
 		end	
 	end
 	
 	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and not Ready(SUMMONER_1) then
-		if  Ready(_R) and Ready(_W) then
+		if  Ready(_R) and Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt4()
 			self:Immo4()
+			self:Proto()	
 		end
 	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and not Ready(SUMMONER_2) then
-		if Ready(_R) and Ready(_W) then
+		if Ready(_R) and Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt4()
 			self:Immo4()
+			self:Proto()	
 		end	
 	end	
 	
 	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and not Ready(SUMMONER_1) then
-		if Ready(_R) and not Ready(_W) then
+		if Ready(_R) and not Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt5()
 			self:Immo5()
+			self:Proto()	
 		end
 	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and not Ready(SUMMONER_2) then
-		if Ready(_R) and not Ready(_W) then
+		if Ready(_R) and not Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt5()
 			self:Immo5()
+			self:Proto()	
 		end	
 	end	
 	
 	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
-		if Ready(_R) and not Ready(_W) then
+		if Ready(_R) and not Ready(_W) and (Protobelt > 0 and not Ready(Protobelt)) or Protobelt == 0 then
 			self:AutoUlt6()
 			self:Immo6()
 		end
 	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
-		if Ready(_R) and not Ready(_W) then
+		if Ready(_R) and not Ready(_W) and (Protobelt > 0 and not Ready(Protobelt)) or Protobelt == 0 then
 			self:AutoUlt6()
 			self:Immo6()
 		end	
@@ -638,26 +653,26 @@ end
 
 function Neeko:KillSteal()
 if myHero.dead then return end	
-	local target = CurrentTarget(2000)
+	local target = CurrentTarget(2000)     	
 	if target == nil then return end
 	local hp = target.health
 	local EDmg = getdmg("E", target, myHero)
 	local QDmg = getdmg("Q", target, myHero)
 	if target and not target.dead then
-		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, Q.range, Q.delay, Q.speed, Q.width, Q.collision, 2, nil)
+		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, Q.range, Q.delay, Q.speed, Q.width, Q.collision, self.Menu.ks.PredQ:Value(), nil)
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) and hitRate then
 			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 800 then
 				Control.CastSpell(HK_Q, aimPosition)
 			end
 		end
-		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, E.range, E.delay, E.speed, E.width, E.collision, 3, nil)
+		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, E.range, E.delay, E.speed, E.width, E.collision, self.Menu.ks.PredE:Value(), nil)
 		if self.Menu.ks.UseE:Value() and Ready(_E) and hitRate then
 			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1000 then
 				Control.CastSpell(HK_E, aimPosition)
 			end
 		end
-		local hitRateE, aimPositionE = HPred:GetUnreliableTarget(myHero.pos, E.range, E.delay, E.speed, E.width, E.collision, 3, nil)
-		local hitRateQ, aimPositionQ = HPred:GetUnreliableTarget(myHero.pos, Q.range, Q.delay, Q.speed, Q.width, Q.collision, 2, nil)
+		local hitRateE, aimPositionE = HPred:GetUnreliableTarget(myHero.pos, E.range, E.delay, E.speed, E.width, E.collision, self.Menu.ks.PredE:Value(), nil)
+		local hitRateQ, aimPositionQ = HPred:GetUnreliableTarget(myHero.pos, Q.range, Q.delay, Q.speed, Q.width, Q.collision, self.Menu.ks.PredQ:Value(), nil)
 		if self.Menu.ks.UseEQ:Value() and Ready(_E) and Ready(_Q) and hitRateE and hitRateQ then
 			if (EDmg + QDmg) >= hp and myHero.pos:DistanceTo(target.pos) <= 800 then
 				Control.CastSpell(HK_E, aimPositionE)
@@ -715,37 +730,37 @@ local attackFalse = _G.SDK.Orbwalker:SetAttack(false)
 local attackTrue = _G.SDK.Orbwalker:SetAttack(true)
 local Protobelt = GetItemSlot(myHero, 3152)	
 	if target and not target.dead and not myHero.dead and self.Menu.Combo.Ult.WR.UseR:Value() and self.Menu.a.ON:Value() then
-		if Ready(_R) and Ready(_W) and Ready(Protobelt) and Protobelt > 0 then
+		if Ready(_R) and Ready(_W) and ((Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
 			local targetCount = CountEnemiesNear(myHero.pos, 600)
 			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and myHero.pos:DistanceTo(target.pos) < 400 then
 				DelayAction(attackFalse,0)
 				Control.CastSpell(HK_R)				
-				Control.CastSpell(ItemHotKey[Protobelt], target.pos)
 				Control.CastSpell(HK_W)
+				self:Proto()
 				DelayAction(attackTrue,2)				
 			end
 		end	
-		if Ready(_R) and not Ready(_W) and Ready(Protobelt) and Protobelt > 0 then	
+		if Ready(_R) and not Ready(_W) and ((Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then	
 			local targetCount = CountEnemiesNear(myHero.pos, 600)
 			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and myHero.pos:DistanceTo(target.pos) < 400 then
 				DelayAction(attackFalse,0)
 				Control.CastSpell(HK_R)
-				Control.CastSpell(ItemHotKey[Protobelt], target.pos)
+				self:Proto()
 				DelayAction(attackTrue,2)
 			end
 		end	
-		if Ready(_R) and Ready(_W) and not Ready(Protobelt) then
+		if Ready(_R) and Ready(_W) and ((not Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
 			local targetCount = CountEnemiesNear(myHero.pos, 600)
-			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() then
+			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and myHero.pos:DistanceTo(target.pos) < 400 then
 				DelayAction(attackFalse,0)
 				Control.CastSpell(HK_R)				
 				Control.CastSpell(HK_W)
 				DelayAction(attackTrue,2)				
 			end
 		end	
-		if Ready(_R) and not Ready(_W) and not Ready(Protobelt) then	
+		if Ready(_R) and not Ready(_W) and ((not Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then	
 			local targetCount = CountEnemiesNear(myHero.pos, 600)
-			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() then
+			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and myHero.pos:DistanceTo(target.pos) < 400 then
 				DelayAction(attackFalse,0)
 				Control.CastSpell(HK_R)
 				DelayAction(attackTrue,2)
@@ -769,26 +784,26 @@ function Neeko:AutoR1()
 	local Protobelt = GetItemSlot(myHero, 3152)	
 	if target and not target.dead and not myHero.dead then
 		
-		if self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and Ready(_W) and Ready(Protobelt) and Protobelt > 0 then
+		if self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and Ready(_W) and ((Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
 			local targetCount = CountEnemiesNear(myHero.pos, 2000)
 			local allyCount = GetAllyCount(1500, myHero)
 			if targetCount <= 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 400 and hp < (RDmg+QDmg+EDmg) then
 				DelayAction(attackFalse,0)
 				Control.CastSpell(HK_R)
-				Control.CastSpell(ItemHotKey[Protobelt], target.pos)
 				Control.CastSpell(HK_W)
+				self:Proto()
 				DelayAction(attackTrue, 2)
 			end
-		elseif self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and not Ready(_W) and Ready(Protobelt) and Protobelt > 0 then
+		elseif self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and not Ready(_W) and ((Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
 			local targetCount = CountEnemiesNear(myHero.pos, 2000)
 			local allyCount = GetAllyCount(1500, myHero)
 			if targetCount <= 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 400 and hp < (RDmg+QDmg+EDmg) then
 				DelayAction(attackFalse,0)
 				Control.CastSpell(HK_R)
-				Control.CastSpell(ItemHotKey[Protobelt], target.pos)
+				self:Proto()
 				DelayAction(attackTrue, 2)
 			end	
-		elseif self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and Ready(_W) and not Ready(Protobelt) then
+		elseif self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and Ready(_W) and ((not Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
 			local targetCount = CountEnemiesNear(myHero.pos, 2000)
 			local allyCount = GetAllyCount(1500, myHero)
 			if targetCount <= 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 300 and hp < (RDmg+QDmg+EDmg) then
@@ -797,7 +812,7 @@ function Neeko:AutoR1()
 				Control.CastSpell(HK_W)
 				DelayAction(attackTrue, 2)
 			end
-		elseif self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and not Ready(_W) and not Ready(Protobelt) then
+		elseif self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and not Ready(_W) and (( not Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
 			local targetCount = CountEnemiesNear(myHero.pos, 2000)
 			local allyCount = GetAllyCount(1500, myHero)
 			if targetCount <= 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 300 and hp < (RDmg+QDmg+EDmg) then
@@ -814,10 +829,11 @@ function Neeko:Proto()
 if myHero.dead then return end	
 	local target = CurrentTarget(1000)
 	if target == nil then return end
+	local Protobelt = GetItemSlot(myHero, 3152)
 	if target and not target.dead and self.Menu.a.ON:Value() then
-		local Protobelt = GetItemSlot(myHero, 3152)
-		if Protobelt > 0 and Ready(Protobelt) and myHero.pos:DistanceTo(target.pos) < 500  then	
-			Control.CastSpell(ItemHotKey[Protobelt])
+		if myHero.pos:DistanceTo(target.pos) < 500 and Protobelt > 0 and Ready(Protobelt)  then	
+			Control.CastSpell(ItemHotKey[Protobelt], target)
+			CastSpell(ItemHotKey[Protobelt], target, 2.0)
 		end
 	end
 end	
@@ -828,24 +844,21 @@ function Neeko:AutoUlt1() --full
 	if target == nil then return end
 	if target and not target.dead and not myHero.dead then
 		for i,ally in pairs(GetAllyHeroes()) do	
-		local targetCount = CountEnemiesNear(ally.pos, 600)
-		local Protobelt = GetItemSlot(myHero, 3152)		
+		local targetCount = CountEnemiesNear(ally.pos, 600)	
 			if self.Menu.Combo.Ult.Ally.UseR2:Value() and self.Menu.a.ON:Value() --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 800 and myHero.pos:DistanceTo(ally.pos) >= 300 then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_R)
-						CastSpell(HK_SUMMONER_1, ally.pos, 1.8)
+						Control.CastSpell(HK_SUMMONER_1, ally.pos)
 						Control.CastSpell(HK_W)
-
-						
+						Control.CastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
 					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_R)
-						CastSpell(HK_SUMMONER_2, ally, 1.8)
+						Control.CastSpell(HK_SUMMONER_2, ally.pos)
 						Control.CastSpell(HK_W)
+						Control.CastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 					end	
 				end
@@ -859,10 +872,9 @@ function Neeko:AutoUlt2()   --no[W]
 	if target == nil then return end
 	if target and not target.dead and not myHero.dead then
 		for i,ally in pairs(GetAllyHeroes()) do	
-		local targetCount = CountEnemiesNear(ally.pos, 600)
-		local Protobelt = GetItemSlot(myHero, 3152)		
+		local targetCount = CountEnemiesNear(ally.pos, 600)		
 			if self.Menu.Combo.Ult.Ally.UseR2:Value() and self.Menu.a.ON:Value() --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 900 and myHero.pos:DistanceTo(ally.pos) >= 300 then
+				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 800 and myHero.pos:DistanceTo(ally.pos) >= 300 then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_R)
@@ -892,14 +904,14 @@ function Neeko:AutoUlt3() --noProtobelt
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_R)
-						Control.CastSpell(HK_SUMMONER_1, ally)
+						CastSpell(HK_SUMMONER_1, ally.pos, 1.8)
 						Control.CastSpell(HK_W)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
 					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_R)
-						Control.CastSpell(HK_SUMMONER_2, ally)
+						CastSpell(HK_SUMMONER_2, ally.pos, 1.8)
 						Control.CastSpell(HK_W)
 						DelayAction(function()SetAttack(true) end, 0.3)
 					end	
@@ -914,8 +926,7 @@ function Neeko:AutoUlt4()  --noFlash
 	if target == nil then return end
 	if target and not target.dead and not myHero.dead then
 		for i,ally in pairs(GetAllyHeroes()) do	
-		local targetCount = CountEnemiesNear(ally.pos, 600)
-		local Protobelt = GetItemSlot(myHero, 3152)		
+		local targetCount = CountEnemiesNear(ally.pos, 600)		
 			if self.Menu.Combo.Ult.Ally.UseR2:Value() and self.Menu.a.ON:Value() --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 400 and myHero.pos:DistanceTo(ally.pos) >= 100 then
 					SetAttack(false)
@@ -935,8 +946,7 @@ function Neeko:AutoUlt5()  --noFlash, no[W]
 	if target == nil then return end
 	if target and not target.dead and not myHero.dead then
 		for i,ally in pairs(GetAllyHeroes()) do	
-		local targetCount = CountEnemiesNear(ally.pos, 600)
-		local Protobelt = GetItemSlot(myHero, 3152)		
+		local targetCount = CountEnemiesNear(ally.pos, 600)	
 			if self.Menu.Combo.Ult.Ally.UseR2:Value() and self.Menu.a.ON:Value() --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 400 and myHero.pos:DistanceTo(ally.pos) >= 100 then
 					SetAttack(false)
@@ -979,23 +989,20 @@ function Neeko:Immo1() --full
 	local target = CurrentTarget(1200)
 	if target == nil then return end
 	local targetCount = GetImmobileCount(600, target.pos)
-	if target and not target.dead and not myHero.dead and targetCount >= self.Menu.Combo.Ult.Immo.UseR3M:Value() then	
-	local Protobelt = GetItemSlot(myHero, 3152)		
+	if target and not target.dead and not myHero.dead and targetCount >= self.Menu.Combo.Ult.Immo.UseR3M:Value() then			
 		if self.Menu.Combo.Ult.Immo.UseR3:Value() and self.Menu.a.ON:Value() --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-			if myHero.pos:DistanceTo(target.pos) <= 900 and myHero.pos:DistanceTo(target.pos) >= 300 then
+			if myHero.pos:DistanceTo(target.pos) <= 800 and myHero.pos:DistanceTo(target.pos) >= 300 then
 				if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 					SetAttack(false)
 					Control.CastSpell(HK_R)
-					Control.CastSpell(HK_SUMMONER_1, target)
-					CastSpell(ItemHotKey[Protobelt], target.pos, 0.25)
+					CastSpell(HK_SUMMONER_1, ally.pos, 1.8)
 					Control.CastSpell(HK_W)
 					DelayAction(function()SetAttack(true) end, 0.3)
 				
 				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 					SetAttack(false)
 					Control.CastSpell(HK_R)
-					Control.CastSpell(HK_SUMMONER_2, target)
-					CastSpell(ItemHotKey[Protobelt], target.pos, 0.25)
+					CastSpell(HK_SUMMONER_2, ally.pos, 1.8)
 					Control.CastSpell(HK_W)
 					DelayAction(function()SetAttack(true) end, 0.3)
 				end
@@ -1008,22 +1015,19 @@ function Neeko:Immo2() --no[W]
 	local target = CurrentTarget(1200)
 	if target == nil then return end
 	local targetCount = GetImmobileCount(600, target.pos)
-	if target and not target.dead and not myHero.dead and targetCount >= self.Menu.Combo.Ult.Immo.UseR3M:Value() then	
-	local Protobelt = GetItemSlot(myHero, 3152)		
+	if target and not target.dead and not myHero.dead and targetCount >= self.Menu.Combo.Ult.Immo.UseR3M:Value() then		
 		if self.Menu.Combo.Ult.Immo.UseR3:Value() and self.Menu.a.ON:Value() --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-			if myHero.pos:DistanceTo(target.pos) <= 900 and myHero.pos:DistanceTo(target.pos) >= 300 then
+			if myHero.pos:DistanceTo(target.pos) <= 800 and myHero.pos:DistanceTo(target.pos) >= 300 then
 				if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 					SetAttack(false)
 					Control.CastSpell(HK_R)
 					Control.CastSpell(HK_SUMMONER_1, target)
-					CastSpell(ItemHotKey[Protobelt], target.pos, 0.25)
 					DelayAction(function()SetAttack(true) end, 0.3)
 				
 				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 					SetAttack(false)
 					Control.CastSpell(HK_R)
 					Control.CastSpell(HK_SUMMONER_2, target)
-					CastSpell(ItemHotKey[Protobelt], target.pos, 0.25)
 					DelayAction(function()SetAttack(true) end, 0.3)
 				end
 			end
@@ -1041,14 +1045,14 @@ function Neeko:Immo3() --noProtobelt
 				if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 					SetAttack(false)
 					Control.CastSpell(HK_R)
-					Control.CastSpell(HK_SUMMONER_1, target)
+					CastSpell(HK_SUMMONER_1, ally.pos, 1.8)
 					Control.CastSpell(HK_W)
 					DelayAction(function()SetAttack(true) end, 0.3)
 				
 				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 					SetAttack(false)
 					Control.CastSpell(HK_R)
-					Control.CastSpell(HK_SUMMONER_2, target)
+					CastSpell(HK_SUMMONER_2, ally.pos, 1.8)
 					Control.CastSpell(HK_W)
 					DelayAction(function()SetAttack(true) end, 0.3)
 				end
@@ -1061,13 +1065,11 @@ function Neeko:Immo4() --noFlash
 	local target = CurrentTarget(1200)
 	if target == nil then return end
 	local targetCount = GetImmobileCount(600, target.pos)
-	if target and not target.dead and not myHero.dead and targetCount >= self.Menu.Combo.Ult.Immo.UseR3M:Value() then	
-	local Protobelt = GetItemSlot(myHero, 3152)		
+	if target and not target.dead and not myHero.dead and targetCount >= self.Menu.Combo.Ult.Immo.UseR3M:Value() then			
 		if self.Menu.Combo.Ult.Immo.UseR3:Value() and self.Menu.a.ON:Value() --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 			if myHero.pos:DistanceTo(target.pos) <= 400 and myHero.pos:DistanceTo(target.pos) >= 100 then
 				SetAttack(false)
 				Control.CastSpell(HK_R)
-				Control.CastSpell(ItemHotKey[Protobelt], target.pos)
 				Control.CastSpell(HK_W)
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end
@@ -1079,13 +1081,11 @@ function Neeko:Immo5() --noFlash, no[W]
 	local target = CurrentTarget(1200)
 	if target == nil then return end
 	local targetCount = GetImmobileCount(600, target.pos)
-	if target and not target.dead and not myHero.dead and targetCount >= self.Menu.Combo.Ult.Immo.UseR3M:Value() then	
-	local Protobelt = GetItemSlot(myHero, 3152)		
+	if target and not target.dead and not myHero.dead and targetCount >= self.Menu.Combo.Ult.Immo.UseR3M:Value() then		
 		if self.Menu.Combo.Ult.Immo.UseR3:Value() and self.Menu.a.ON:Value() --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 			if myHero.pos:DistanceTo(target.pos) <= 400 and myHero.pos:DistanceTo(target.pos) >= 100 then
 				SetAttack(false)
 				Control.CastSpell(HK_R)
-				Control.CastSpell(ItemHotKey[Protobelt], target.pos)
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end
 		end
@@ -1122,15 +1122,15 @@ function Neeko:Combo()
 	local target = CurrentTarget(1000)
 	if target == nil then return end
 	if target and not target.dead then
-		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, E.range, E.delay, E.speed, E.width, E.collision, 3, nil)
+		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, E.range, E.delay, E.speed, E.width, E.collision, self.Menu.Combo.PredE:Value(), nil)
 		if self.Menu.Combo.UseE:Value() and Ready(_E) and hitRate then			
 			Control.CastSpell(HK_E, aimPosition)
 		end
-		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, Q.range, Q.delay, Q.speed, Q.width, Q.collision, 2, nil)
+		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, Q.range, Q.delay, Q.speed, Q.width, Q.collision, self.Menu.Combo.PredQ:Value(), nil)
 		if self.Menu.Combo.UseE:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 800 and IsImmobileTarget(target) and hitRate then 
 			Control.CastSpell(HK_Q, aimPosition)
 		end	
-		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, Q.range, Q.delay, Q.speed, Q.width, Q.collision, 2, nil)
+		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, Q.range, Q.delay, Q.speed, Q.width, Q.collision, self.Menu.Combo.PredQ:Value(), nil)
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) and not Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 800 and hitRate then
 			Control.CastSpell(HK_Q, aimPosition)
 		end	
@@ -1144,17 +1144,17 @@ function Neeko:Harass()
 	local target = CurrentTarget(800)
 	if target == nil then return end	
 	if target and not target.dead  and myHero.pos:DistanceTo(target.pos) <= 800 and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) then
-		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, E.range, E.delay, E.speed, E.width, E.collision, 3, nil)
+		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, E.range, E.delay, E.speed, E.width, E.collision, self.Menu.Harass.PredE:Value(), nil)
 		if Ready(_E) and Ready(_Q) and hitRate then
 			if self.Menu.Harass.UseE:Value()  then
 				Control.CastSpell(HK_E, aimPosition)
 			end
 		end
-		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, Q.range, Q.delay, Q.speed, Q.width, Q.collision, 2, nil)
+		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, Q.range, Q.delay, Q.speed, Q.width, Q.collision, self.Menu.Harass.PredQ:Value(), nil)
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and IsImmobileTarget(target) and hitRate then	
 			Control.CastSpell(HK_Q, aimPosition)
 		end	
-		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, Q.range, Q.delay, Q.speed, Q.width, Q.collision, 2, nil)
+		local hitRate, aimPosition = HPred:GetUnreliableTarget(myHero.pos, Q.range, Q.delay, Q.speed, Q.width, Q.collision, self.Menu.Harass.PredQ:Value(), nil)
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and not Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 800 and hitRate then
 			Control.CastSpell(HK_Q, aimPosition)
 		end
@@ -2684,11 +2684,6 @@ function OnLoad()
 end
 	
   
-
-
-
-
-
 
 
 
