@@ -21,9 +21,10 @@ local swornAlly = nil
 
  -- Menu
 local Menu = MenuElement({type = MENU, id = "WomboCombo by RMAN and Pussykate", name = "KalistaWomboCombo"})
-Menu:MenuElement({id = "Blitz", name = "Use R on Grab", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/champion/Blitzcrank.png"})
-Menu:MenuElement({id = "Skarner", name = "Use R on Skarner Ult", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/champion/Skarner.png"})
-Menu:MenuElement({id = "Tham", name = "Use R on Devour", value = true, leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/Tahm_KenchSquare.png"})
+Menu:MenuElement({id = "Blitz", name = "[BlitzCrank]UseR on Grab", value = true})
+Menu:MenuElement({id = "Skarner", name = "[Skarner]UseR on Skarner Ult", value = true})
+Menu:MenuElement({id = "Tham", name = "[TahmKench]UseR on Devour", value = true})
+Menu:MenuElement({id = "Sion", name = "[Sion]UseR on Unstoppable Onslaught", value = true})
 Menu:MenuElement({id = "MyHP", name = "Kalista min.Hp to UseR",  value = 40, min = 0, max = 100, step = 1})
 Menu:MenuElement({id = "TargetHP", name = "Target min.Hp to UseR",  value = 30, min = 0, max = 100, step = 1})
 
@@ -45,7 +46,7 @@ local function GetSwornAlly()
     for i = 1, HeroCount() do
         local hero = Hero(i)
         if hero and hero.isAlly and GotBuff(hero, "kalistacoopstrikeally") == 1 then            
-            return (hero.charName == "Blitzcrank" or hero.charName == "Skarner" or hero.charName == "TahmKench") and hero or "Wrong Oath" 
+            return (hero.charName == "Blitzcrank" or hero.charName == "Skarner" or hero.charName == "TahmKench" or hero.charName == "Sion") and hero or "Wrong Oath" 
 		end
     end 
 end
@@ -82,7 +83,15 @@ local function ExecuteThamlista()
     end 
 end
 
-
+local function ExecuteSion()
+    for i = 1, HeroCount() do
+        local unit = Hero(i)
+        if unit.team == myHero.team and unit.activeSpell.name == "SionR" then         
+            DelayAction(function()CastSpell(HK_R) end, 0.3)
+            return
+        end
+    end 
+end
 
 local function OnTick()
     if not swornAlly then
@@ -100,6 +109,9 @@ local function OnTick()
 	
 		elseif (swornAlly and hero.charName == "TahmKench") and Menu.Tham:Value() and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange then
 		ExecuteThamlista()
+		
+		elseif (swornAlly and hero.charName == "Sion") and Menu.Sion:Value() and GetDistanceSqr(swornAlly.pos, myHero.pos) <= rRange * rRange then
+		ExecuteSion()
 		end
 	end
 end
@@ -118,6 +130,9 @@ function delayload()
 			PrintChat("Skarner found !!!!!!!! Lets Rock and Roll !!!!!!")
 		elseif (swornAlly and hero.charName == "TahmKench") then
 			PrintChat("ThamKench found !!!!!!!! Lets Rock and Roll !!!!!!")
+		elseif (swornAlly and hero.charName == "Sion") then
+			PrintChat("Sion found !!!!!!!! Lets Rock and Roll !!!!!!")		
+		
 		end
 	end
 end
