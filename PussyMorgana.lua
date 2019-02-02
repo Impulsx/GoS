@@ -659,7 +659,7 @@ function Morgana:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Morgana", name = "PussyMorgana"})
 
 	--AutoE
-	self.Menu:MenuElement({id = "AutoE", name = "Auto Shield CC", type = MENU})
+	self.Menu:MenuElement({id = "AutoE", name = "Auto Shield if CC", type = MENU})
 	self.Menu.AutoE:MenuElement({id = "self", name = "Use when Self CC ",value = true})
 	self.Menu.AutoE:MenuElement({id = "ally", name = "Use when Ally CC ",value = true})	
 	self.Menu.AutoE:MenuElement({id = "Targets", name = "Ally Settings", type = MENU})
@@ -673,7 +673,7 @@ function Morgana:LoadMenu()
 	self.Menu.ESet:MenuElement({id = "UseE", name = "UseE Self", value = true})
 	self.Menu.ESet:MenuElement({id = "UseEally", name = "UseE Ally", value = true})	
 	self.Menu.ESet:MenuElement({id = "ST", name = "Track Spells", drop = {"Channeling", "Missiles", "Both"}, value = 1})	
-	self.Menu.ESet:MenuElement({id = "BlockList", name = "Block List", type = MENU})	
+	self.Menu.ESet:MenuElement({id = "BlockList", name = "Spell List", type = MENU})	
 	
 	--AutoW
 	self.Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})	
