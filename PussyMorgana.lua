@@ -4,7 +4,7 @@ class "Morgana"
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.01
+    local Version = 0.02
     
     local Files = {
         Lua = {
@@ -659,7 +659,7 @@ function Morgana:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Morgana", name = "PussyMorgana"})
 
 	--AutoE
-	self.Menu:MenuElement({id = "AutoE", name = "Auto Shield if CC", type = MENU})
+	self.Menu:MenuElement({id = "AutoE", name = "Auto Shield CC", type = MENU})
 	self.Menu.AutoE:MenuElement({id = "self", name = "Use when Self CC ",value = true})
 	self.Menu.AutoE:MenuElement({id = "ally", name = "Use when Ally CC ",value = true})	
 	self.Menu.AutoE:MenuElement({id = "Targets", name = "Ally Settings", type = MENU})
@@ -810,7 +810,7 @@ function Morgana:UseE(i, s)
 	if s.startTime + travelTime > GameTimer() then
 		local Col = Morgana:VectorPointProjectionOnLineSegment(startPos, endPos, myHero.pos)
 		if s.type == "circular" and Morgana:GetDistanceSqr(myHero.pos, endPos) < (s.radius + myHero.boundingRadius) ^ 2 or Morgana:GetDistanceSqr(myHero.pos, Col) < (s.radius + myHero.boundingRadius * 1.25) ^ 2 then
-			local t = 0.29; t = s.speed ~= MathHuge and Morgana:CalculateCollisionTime(startPos, endPos, myHero.pos, s.startTime, s.speed, s.delay, s.origin)
+			local t = s.speed ~= MathHuge and Morgana:CalculateCollisionTime(startPos, endPos, myHero.pos, s.startTime, s.speed, s.delay, s.origin) or 0.29
 			if t < 0.3 then Control.CastSpell(HK_E, myHero.pos) end
 		end
 	else TableRemove(self.DetectedSpells, i) end
@@ -875,7 +875,7 @@ if hero and hero.isAlly and hero.alive and hero.isTargetable and hero ~= myHero 
 	if s.startTime + travelTime > GameTimer() then
 		local Col = Morgana:VectorPointProjectionOnLineSegment(startPos, endPos, hero.pos)
 		if s.type == "circular" and Morgana:GetDistanceSqr(hero.pos, endPos) < (s.radius + hero.boundingRadius) ^ 2 or Morgana:GetDistanceSqr(hero.pos, Col) < (s.radius + hero.boundingRadius * 1.25) ^ 2 then
-			local t = 0.29; t = s.speed ~= MathHuge and Morgana:CalculateCollisionTime(startPos, endPos, hero.pos, s.startTime, s.speed, s.delay, s.origin)
+			local t = s.speed ~= MathHuge and Morgana:CalculateCollisionTime(startPos, endPos, hero.pos, s.startTime, s.speed, s.delay, s.origin) or 0.29
 			if t < 0.3 then Control.CastSpell(HK_E, hero.pos) end
 		end
 	else TableRemove(self.DetectedSpells, i) end
@@ -2626,6 +2626,7 @@ function OnLoad()
 end
 	
   
+
 
 
 
