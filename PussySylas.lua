@@ -410,8 +410,8 @@ function Sylas:LoadMenu()
 	self.Menu.Clear:MenuElement({id = "UseQL", name = "LastHit[Q] Blooming Burst", value = true})	
 	self.Menu.Clear:MenuElement({id = "UseQLM", name = "LastHit[Q] min Minions", value = 2, min = 1, max = 6})	
 	self.Menu.Clear:MenuElement({id = "UseE", name = "[E] Tangle-Barbs", value = true})  
-	self.Menu.Clear:MenuElement({id = "UseW", name = "[W] Tangle-Barbs", value = true})	
 	self.Menu.Clear:MenuElement({id = "UseEM", name = "Use [E] min Minions", value = 3, min = 1, max = 6})	
+	self.Menu.Clear:MenuElement({id = "UseW", name = "[W] Tangle-Barbs", value = true})
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
