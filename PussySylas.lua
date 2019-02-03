@@ -11,12 +11,12 @@ do
         Lua = {
             Path = SCRIPT_PATH,
             Name = "PussySylas.lua",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyTristana.lua"
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussySylas.lua"
         },
         Version = {
             Path = SCRIPT_PATH,
             Name = "PussySylas.version",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyTristana.version"
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussySylas.version"
         }
     }
     
