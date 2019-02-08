@@ -8,12 +8,12 @@ do
     local Files = {
         Lua = {
             Path = SCRIPT_PATH,
-            Name = "PussyTristana.lua",
+            Name = "Pussy-Warwick.lua",
             Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/Pussy-Warwick.lua"
         },
         Version = {
             Path = SCRIPT_PATH,
-            Name = "PussyTristana.version",
+            Name = "Pussy-Warwick.version",
             Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/Pussy-Warwick.version"
         }
     }
