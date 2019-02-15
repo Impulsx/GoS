@@ -1,21 +1,59 @@
 local Heroes = {"Veigar"}
 if not table.contains(Heroes, myHero.charName) then return end
 
+-- [ AutoUpdate ]
+do
+    
+    local Version = 0.01
+    
+    local Files = {
+        Lua = {
+            Path = SCRIPT_PATH,
+            Name = "PussyVeigar.Rework.lua",
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyVeigar.Rework.lua"
+        },
+        Version = {
+            Path = SCRIPT_PATH,
+            Name = "PussyVeigar.Rework.version",
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyVeigar.Rework.version"
+        }
+    }
+    
+    local function AutoUpdate()
+        
+        local function DownloadFile(url, path, fileName)
+            DownloadFileAsync(url, path .. fileName, function() end)
+            while not FileExist(path .. fileName) do end
+        end
+        
+        local function ReadFile(path, fileName)
+            local file = io.open(path .. fileName, "r")
+            local result = file:read()
+            file:close()
+            return result
+        end
+        
+        DownloadFile(Files.Version.Url, Files.Version.Path, Files.Version.Name)
+        local textPos = myHero.pos:To2D()
+        local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
+        if NewVersion > Version then
+            DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
+            print("New PussyVeigar Version Press 2x F6")
+        else
+            print(Files.Version.Name .. ": No Updates Found")
+        end
+    
+    end
+    
+    AutoUpdate()
+
+end
+
 function OnLoad()
 	PrintChat("PussyVeigar loaded")
-	
 end
 
 require "DamageLib"
-
-
-
-local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
---local barHeight = 8
---local barWidth = 103
---local barXOffset = 24
---local barYOffset = -8
-
 
 keybindings = { [ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6}
 
@@ -27,24 +65,6 @@ elseif FileExist(COMMON_PATH .. "Collision.lua") then
 	PrintChat("Collision library loaded")
 end
 
-function SetMovement(bool)
-	if _G.EOWLoaded then
-		EOW:SetMovements(bool)
-		EOW:SetAttacks(bool)
-	elseif _G.SDK then
-		_G.SDK.Orbwalker:SetMovement(bool)
-		_G.SDK.Orbwalker:SetAttack(bool)
-	else
-		GOS.BlockMovement = not bool
-		GOS.BlockAttack = not bool
-	end
-	if bool then
-		castSpell.state = 0
-	end
-end
-
-
-
 
 class "Veigar"
 
@@ -52,29 +72,16 @@ function Veigar:LoadSpells()
 
 	Q = {Range = 950, Width = 70, Delay = 0.25, Speed = 2200, Collision = true, aoe = true, Type = "line"}
 	W = {Range = 900, Width = 225, Delay = 1.25, Speed = math.huge, Collision = false, aoe = true, Type = "circle"}
-	E = {Range = 700, Width = 375, Delay = 0.75, Speed = math.huge, Collision = false, aoe = true, Type = "circle"}
+	E = {Range = 700, Width = 375, Delay = 1, Speed = math.huge, Collision = false, aoe = true, Type = "circle"}
 	R = {Range = 650, Width = 0, Delay = 1.00, Speed = 2000, Collision = false, aoe = false, Type = "line"}
 
 end
 
 function Veigar:__init()
-	
 	self:LoadSpells()
 	self:LoadMenu()
 	Callback.Add("Tick", function() self:Tick() end)
-	local orbwalkername = ""
-	if _G.SDK then
-		orbwalkername = "IC'S orbwalker"		
-	elseif _G.gsoSDK then
-		orbwalkername = "gso"	
-	elseif _G.GOS then
-		orbwalkername = "Noddy orbwalker"
-	else
-		orbwalkername = "Orbwalker not found"
-	end
 end
-
-
 
 function Veigar:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Veigar", name = "PussyVeigar"})
@@ -130,9 +137,6 @@ function Veigar:LoadMenu()
 	
 
 end
-
-
-
 
 local sqrt = math.sqrt
 local function GetDistanceSqr(p1, p2)
@@ -224,6 +228,7 @@ function Veigar:Tick()
 	if self.Menu.Combo.comboActive:Value() then
 		self:Combo()
 	end
+	
 	if self.Menu.Killsteal.UseIG:Value() then
 		self:UseIG()
 	end
@@ -361,17 +366,6 @@ function EnableMovement()
 	SetMovement(true)
 end
 
-function ReturnCursor(pos)
-	Control.SetCursorPos(pos)
-	DelayAction(EnableMovement,0.1)
-end
-
-function LeftClick(pos)
-	Control.mouse_event(MOUSEEVENTF_LEFTDOWN)
-	Control.mouse_event(MOUSEEVENTF_LEFTUP)
-	DelayAction(ReturnCursor,0.05,{pos})
-end
-
 function Veigar:GetValidMinion(range)
     	for i = 1,Game.MinionCount() do
         local minion = Game.Minion(i)
@@ -420,30 +414,6 @@ function Veigar:GrabObject()
 	end	
 end
 
-function Veigar:CastSpell(spell,pos)
-	local customcast = self.Menu.CustomSpellCast:Value()
-	if not customcast then
-		Control.CastSpell(spell, pos)
-		return
-	else
-		local delay = self.Menu.delay:Value()
-		local ticker = GetTickCount()
-		if castSpell.state == 0 and ticker > castSpell.casting then
-			castSpell.state = 1
-			castSpell.mouse = mousePos
-			castSpell.tick = ticker
-			if ticker - castSpell.tick < Game.Latency() then
-				SetMovement(false)
-				Control.SetCursorPos(pos)
-				Control.KeyDown(spell)
-				Control.KeyUp(spell)
-				DelayAction(LeftClick,delay/1000,{castSpell.mouse})
-				castSpell.casting = ticker + 500
-			end
-		end
-	end
-end
-
 function Veigar:HpPred(unit, delay)
 	if _G.GOS then
 	hp =  GOS:HP_Pred(unit,delay)
@@ -484,15 +454,15 @@ function Veigar:Combo()
 	
 	local target = CurrentTarget(E.Range)
     if target == nil then return end
-    if self.Menu.Combo.UseE:Value() and target and self:CanCast(_E) then
-	    if self:EnemyInRange(E.Range) then
-		if self.Menu.Combo.EMode:Value() == 1 then
-			Control.CastSpell(HK_E, Vector(target:GetPrediction(E.speed,E.delay))-Vector(Vector(target:GetPrediction(E.speed,E.delay))-Vector(myHero.pos)):Normalized()*289)
-		elseif self.Menu.Combo.EMode:Value() == 2 then
-			Control.CastSpell(HK_E,target)
-		end
-    end	
- end
+	if self.Menu.Combo.UseE:Value() and target and self:CanCast(_E) then
+		if self:EnemyInRange(E.Range) then
+			if self.Menu.Combo.EMode:Value() == 1 then
+				Control.CastSpell(HK_E, Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(myHero.pos)):Normalized()*350) --289
+			elseif self.Menu.Combo.EMode:Value() == 2 then
+				Control.CastSpell(HK_E,target)
+			end
+		end	
+	end
 	
 	local target = CurrentTarget(W.Range)
     if target == nil then return end
@@ -501,11 +471,11 @@ function Veigar:Combo()
 		    local castpos,HitChance, pos = TPred:GetBestCastPosition(target, W.Delay , W.Width, W.Range,W.Speed, myHero.pos, W.ignorecol, W.Type )
 		    local ImmobileEnemy = self:IsImmobileTarget(target)
 			if (HitChance > 0 ) then
-        if self.Menu.Combo.WWait:Value() and ImmobileEnemy then return end
-			Control.CastSpell(HK_W, castpos)
+				if self.Menu.Combo.WWait:Value() and ImmobileEnemy then return end
+					Control.CastSpell(HK_W, castpos)
 				end
-	    end
-    end
+			end
+		end
     end
 
 local function GetPercentMP(unit)
