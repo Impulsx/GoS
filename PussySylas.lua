@@ -1,12 +1,10 @@
 if myHero.charName ~= "Sylas" then return end
-
-
 class "Sylas"
 local menu = 1
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.02
+    local Version = 0.03
     
     local Files = {
         Lua = {
@@ -53,6 +51,7 @@ end
 
 
 
+
 local TEAM_ALLY = myHero.team
 local TEAM_ENEMY = 300 - myHero.team
 local TEAM_JUNGLE = 300
@@ -60,7 +59,38 @@ local TEAM_JUNGLE = 300
 
 local function Ready(spell)
     return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
-end 
+end
+
+local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
+local function CastSpellMM(spell,pos,range,delay)
+	local range = range or math.huge
+	local delay = delay or 250
+	local ticker = GetTickCount()
+	if castSpell.state == 0 and HPred:GetDistance(myHero.pos,pos) < range and ticker - castSpell.casting > delay + Game.Latency() then
+		castSpell.state = 1
+		castSpell.mouse = mousePos
+		castSpell.tick = ticker
+	end
+	if castSpell.state == 1 then
+		if ticker - castSpell.tick < Game.Latency() then
+			local castPosMM = pos:ToMM()
+			Control.SetCursorPos(castPosMM.x,castPosMM.y)
+			Control.KeyDown(spell)
+			Control.KeyUp(spell)
+			castSpell.casting = ticker + delay
+			DelayAction(function()
+				if castSpell.state == 1 then
+					Control.SetCursorPos(castSpell.mouse)
+					castSpell.state = 0
+				end
+			end,Game.Latency()/1000)
+		end
+		if ticker - castSpell.casting > Game.Latency() then
+			Control.SetCursorPos(castSpell.mouse)
+			castSpell.state = 0
+		end
+	end
+end
 
 function CanMove()
 	if _G.SDK then
@@ -484,10 +514,10 @@ if myHero.dead then return end
 	
 	
 	if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
-		self:Combo()
+	self:Combo()
 			
 	self:UltAatrox()
-	--self:KillUltAhri()
+	self:KillUltAhri()
 	self:KillUltAkali()
 	self:UltAlistar()
 	self:ShieldUltAlistar()
@@ -495,7 +525,7 @@ if myHero.dead then return end
 	self:UltAmumu()
 	self:KillUltAnivia()
 	self:KillUltAnnie()
-	self:KillUltAshe()
+	self:KillUltAshe()			--Pred + onScreen added
 	self:KillUltAurelionSol()
 	self:UltAzir()
 	self:UltBard()
@@ -504,33 +534,32 @@ if myHero.dead then return end
 	self:UltBrand()
 	self:StunUltBraum()
 	self:UltBraum()
-	self:KillUltCailtyn()
+	self:KillUltCailtyn()		--Pred + onScreen added
 	self:UltCamille()
 	self:StunUltCassiopeia()
-	--self:UltCassiopeia()
+	self:UltCassiopeia()
 	self:KillUltChogath()
 	self:KillUltCorki()
-	--self:KillUltDarius()
+	self:KillUltDarius()
 	self:KillUltDiana()
 	self:UltDrMundo()
-	self:KillUltDraven()
-	--self:KillUltEkko()
-
-	--self:UltElise()
-
+	self:KillUltDraven()		--Pred + onScreen added
+	self:KillUltEkko()
+	self:UltEkko()
+	--self:UltElise()			--transform Ult
 	self:KillUltEvelynn()
-	self:KillUltEzreal()
+	self:KillUltEzreal()		--Pred + onScreen added
 	self:UltFiddelsticks()
 	self:Fiddelsticks()
 	self:UltFiora()
 	self:KillUltFizz()
-	--self:UltGalio()
-	self:KillUltGangplank()
-	self:UltGangplank()
+	self:UltGalio()
+	self:KillUltGangplank()		--onScreen added
+	self:UltGangplank()			--onScreen added
 	self:KillUltGaren()
 	self:StunUltGnar()
 	self:KillUltGragas()
-	--self:UltGragas()
+	self:UltGragas()
 	self:KillUltGraves()
 	self:KillUltHecarim()
 	self:KillUltHeimerdinger()
@@ -542,37 +571,32 @@ if myHero.dead then return end
 	self:AOEUltJanna()
 	self:UltJarvenIV()
 	self:JarvenIV()
-	--self:BuffUltJax()
-
+	self:BuffUltJax()
 	--self:UltJayce()           --Tranformation
-
 	--self:KillUltJhin()
-	self:KillUltJinx()
-
+	self:KillUltJinx()			--Pred + onScreen added
 	self:UltKaiSa()           
-
 	--self:UltKallista()
-	--self:KillUltKarma()
+	self:KillUltKarma()
 	self:KillUltKarthus()
 	self:KillUltKassadin()
 	self:KillUltKatarina()
 	self:UltKatarina()
-	--self:BuffUltKaylie()
-	--self:KillUltKayn()
+	self:BuffUltKaylie()
+	self:KillUltKayn()
 	self:StunUltKennen()
-	--self:KillUltKhazix()
-	--self:HealUltKindred()
-	--self:SpeedUltKled()
+	self:KillUltKhazix()
+	self:HealUltKindred()
+	self:SpeedUltKled()
 	self:KillUltKogMaw()
 	self:KillUltLeBlanc()
-	--self:KillUltLeesin()
+	self:KillUltLeesin()
 	self:StunUltLeona()
 	self:UltLeona()
-	self:UltLissandra()         --stundenglass oder dmg mit aoe beides
-
+	self:UltLissandra()   	
 	self:KillUltLucian()
-	--self:BuffUltLulu()           --Hp buff mit knockup
-	self:KillUltLux()
+	self:BuffUltLulu()  	
+	self:KillUltLux()		--Prediction + onSceen added
 	self:StunUltMalphite()
 	self:UltMalphite()
 	self:StunUltMalzahar()
@@ -581,100 +605,101 @@ if myHero.dead then return end
 	self:UltMaokai()
 	self:SpeedUltMasterYi()     
 	self:KillUltMissFortune()    
-	--self:KillUltMordekaiser()
+	self:KillUltMordekaiser()
 	self:StunUltMorgana()
 	self:UltMorgana()
-	self:StunUltNami()
-	self:UltNami()
+	self:StunUltNami()		--Prediction + onSceen added
+	self:UltNami()			--Prediction + onSceen added
 	self:BuffUltNasus()
 	self:StunUltNautlus()
 	self:UltNautlus()
 	self:StunUltNeeko()
 	self:UltNeeko()
-
 	--self:UltNiedalee()        --tranformation
-
-	--self:KillUltNocturne()
+	self:KillUltNocturne()
 	self:KillUltNunu()
-	--self:BuffUltOlaf()
+	self:BuffUltOlaf()
 	self:KillUltOriana()
 	self:UltOriana()
 	self:StunUltOrnn()
-	--self:UltPantheon()         --sprung 
-	--self:KillUltPoppy()
+	self:UltPantheon()        
+	self:KillUltPoppy()
 	self:KillUltPyke()
-	--self:SpeedUltQuinn()
-	--self:StunUltRakan()      
+	self:SpeedUltQuinn()
+	self:StunUltRakan()      
 	self:DmgUltRammus()
 	self:UltRammus()
-	--self:KillUltRekSai()
+	self:KillUltRekSai()
 	self:BuffUltRenekton()
-	--self:KillUltRengar()
-	--self:KillUltRiven()        --dmg boost und angriff
-	self:UltRumble()           --aoe felt 
-	--self:UltRyze()             --teleport
+	self:KillUltRengar()
+	self:KillUltRiven()        	
+	self:UltRumble()           		 
+	--self:UltRyze()             	--Manuel Use-----------------
 	self:UltSejuani() 
 	self:Sejuani()
-	--self:CloneUltShaco()       --Klone ulti ^^
-	--self:UltShen()              --teleport + shield
-
-	self:UltShyvana()          --tranformation
-
-	--self:BuffUltSinged()        --rüstungs buff
-	--self:UltSion()            
+	self:CloneUltShaco()       	
+	--self:UltShen()             	--Manuel Use-----------------
+	self:UltShyvana()          		--tranformation
+	self:BuffUltSinged()        	
+	--self:UltSion()            	--Manuel Use-----------------
 	self:SpeedUltSivir()       
-	--self:StunUltSkarner()        --Stun ulti
+	self:StunUltSkarner()       
 	self:StunUltSona()
 	self:UltSona()
 	self:HealUltSoraka()
 	self:UltSwain() 
 	self:Swain()
 	self:HealSwain()
-	--self:KillUltSyndra()
-	--self:UltTahmKench()          --Teleport mit ally
-	--self:UltTaliyah()
-	--self:KillUltTalon()
-	--self:BuffUltTaric()           --ally unverwundbar
-	--self:UltTeemo()               --pilze
+	self:KillUltSyndra()
+	--self:UltTahmKench()          	--Manuel Use-----------------
+	self:UltTaliyah()
+	self:KillUltTalon()
+	self:UltTalon()
+	self:BuffUltTaric()           
+	--self:UltTeemo()               --Manuel Use-----------------
 	self:UltThresh()
 	self:Thresh()
 	self:KillUltTristana()
-	--self:BuffUltTrundle()
-	--self:BuffUlttryndamere()
-	--self:UltTwistedFate()             --teleport ulti
-	--self:UltTwitch()             --glaub die ist useless auf sylas hatte ich mal aber nix passiert
-	--Udyr
+	self:BuffUltTrundle()
+	self:BuffUlttryndamere()
+	--self:UltTwistedFate()        	--Manuel Use-----------------	
+	self:UltTwitch()             	
+	self:UltUdyr()
 	self:KillUltUrgot()
 	self:KillUltVarus()
 	self:UltVarus()
-	--self:BuffUltVayne()
+	self:BuffUltVayne()
 	self:KillUltVeigar()
 	--self:KillUltVelkoz()
-	--self:KillUltVi()
-	--self:KillUltViktor()
+	self:KillUltVi()
+	self:KillUltViktor()
 	self:KillUltVladimir()
 	self:AOEUltVladimir()
 	self:HealUltVladimir()
 	self:UltVolibear()
 	self:Volibear()
-	self:KillUltWarwick()
-	--self:StunUltWukong()
-	--self:KillUltXayah()
+	self:KillUltWarwick()		--Prediction + onSceen added
+	self:StunUltWukong()
+	self:KillUltXayah()
 	--self:KillUltXerath()
-	--self:UltXin Zhao()
-	--self:KillUltYasou()
-	--self:UltYasou()
-	--self:PetUltYorick()                --Pet
-	--self:StunUltZac()
-	--self:UltZed()
-	self:KillUltZiggs()
-	self:UltZiggs()
-	--self:BuffUltZilean()
-	--Zoe
+	self:UltXinZhao()
+	self:KillUltYasou()
+	self:UltYasou()
+	self:PetUltYorick()              
+	self:StunUltZac()
+	self:UltZed()
+	self:KillUltZiggs()			--onSceen added
+	self:UltZiggs()				--onSceen added
+	self:BuffUltZilean()
+	self:ZoeUlt()
 	self:StunUltZyra()
 	self:UltZyra()
 	
-	--83 champs gesammt
+								--130 champs added  
+	
+	
+	
+	
 
 	end
 	if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then                
@@ -716,7 +741,7 @@ if myHero.dead then return end
 	self:Activator()
 	self:KillSteal()	
 	self:Proto()
-	--self:KillUlt()	   
+	   
 	
 
 	
@@ -849,6 +874,19 @@ if target == nil then return end
 	end
 end
 
+function Sylas:KillUltAhri()
+local target = CurrentTarget(600)     	
+if target == nil then return end
+	local hp = target.health
+	if self:ValidTarget(target,600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "AhriTumble") and myHero.pos:DistanceTo(target.pos) <= 450 then		--Ahri 
+			if getdmg("R", target, myHero, 70) > hp then
+				Control.CastSpell(HK_R, target)
+			end
+		end
+	end
+end	
+
 function Sylas:KillUltAkali()
 local target = CurrentTarget(600)     	
 if target == nil then return end
@@ -926,13 +964,20 @@ if target == nil then return end
 end	
 
 function Sylas:KillUltAshe()
-local target = CurrentTarget(2000)     	
+local target = CurrentTarget(25000)     	
 if target == nil then return end
-	local hp = target.health
-	if self:ValidTarget(target,2000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "EnchantedCrystalArrow") and myHero.pos:DistanceTo(target.pos) <= 2000 then		--Ashe 
-			if getdmg("R", target, myHero, 3) > hp then
-				Control.CastSpell(HK_R, target)
+local hp = target.health
+local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 25000, 0.25, 1600, 130, false)
+	if self:ValidTarget(target,25000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "EnchantedCrystalArrow") and myHero.pos:DistanceTo(aimPosition.pos) <= 25000 then		--Ashe 
+			if getdmg("R", target, myHero, 3) > hp and hitRate and hitRate >= 1 then
+				if aimPosition:To2D().onScreen then 	
+					Control.CastSpell(HK_R, aimPosition) 
+				
+				elseif not aimPosition:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+					Control.CastSpell(HK_R, castPos)
+				end
 			end
 		end
 	end
@@ -1008,11 +1053,18 @@ end
 function Sylas:KillUltCailtyn()
 local target = CurrentTarget(3500)     	
 if target == nil then return end
-	local hp = target.health
+local hp = target.health
+local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 3.0, 3200, 50, true)
 	if self:ValidTarget(target,3500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "CaitlynAceintheHole") and myHero.pos:DistanceTo(target.pos) <= 3500 then		--Caitlyn 
-			if getdmg("R", target, myHero, 64) > hp then
-				Control.CastSpell(HK_R, target)
+		if (myHero:GetSpellData(_R).name == "CaitlynAceintheHole") and myHero.pos:DistanceTo(aimPosition.pos) <= 3500 then		--Caitlyn 
+			if getdmg("R", target, myHero, 64) > hp and hitRate and hitRate >= 1 then
+				if aimPosition:To2D().onScreen then 	
+					Control.CastSpell(HK_R, aimPosition) 
+				
+				elseif not aimPosition:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+					Control.CastSpell(HK_R, castPos)
+				end	
 			end
 		end
 	end
@@ -1035,7 +1087,7 @@ local target = CurrentTarget(850)
 if target == nil then return end
 	local hp = target.health
 	if self:ValidTarget(target,850) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "CassiopeiaR") and myHero.pos:DistanceTo(target.pos) <= 850 then		--Cassio stun ???????? Ks???????????
+		if (myHero:GetSpellData(_R).name == "CassiopeiaR") and myHero.pos:DistanceTo(target.pos) <= 825 then		--Cassiopeia
 			if getdmg("R", target, myHero, 10) > hp then
 				Control.CastSpell(HK_R, target)
 			end
@@ -1069,12 +1121,23 @@ if target == nil then return end
 	end
 end
 
---function Sylas:KillUltDarius()
+function Sylas:KillUltDarius()
+local target = CurrentTarget(600)     	
+if target == nil then return end
+local hp = target.health
+	if self:ValidTarget(target,600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "DariusExecute") and myHero.pos:DistanceTo(target.pos) <= 460 then		--Darius
+			if getdmg("R", target, myHero, 71) > hp then
+				Control.CastSpell(HK_R, target)
+			end
+		end
+	end
+end
 
 function Sylas:KillUltDiana()
 local target = CurrentTarget(825)     	
 if target == nil then return end
-	local hp = target.health
+local hp = target.health
 	if self:ValidTarget(target,825) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
 		if (myHero:GetSpellData(_R).name == "DianaTeleport") and myHero.pos:DistanceTo(target.pos) <= 825 then		--Diana
 			if getdmg("R", target, myHero, 34) > hp then
@@ -1086,19 +1149,37 @@ end
 
 
 function Sylas:KillUltDraven()
-local target = CurrentTarget(2000)     	
+local target = CurrentTarget(25000)     	
 if target == nil then return end
-	local hp = target.health
-	if self:ValidTarget(target,2000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "DravenRCast") and myHero.pos:DistanceTo(target.pos) <= 2000 then		--Draven    Geschwindigkeit: 1200
-			if getdmg("R", target, myHero, 27) > hp then
-				Control.CastSpell(HK_R, target)
+local hp = target.health
+local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 25000, 0.25, 2000, 160, false)
+	if self:ValidTarget(target,25000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "DravenRCast") and myHero.pos:DistanceTo(aimPosition.pos) <= 25000 then		--Draven   
+			if getdmg("R", target, myHero, 27) > hp and hitRate and hitRate >= 1 then
+				if aimPosition:To2D().onScreen then 	
+					Control.CastSpell(HK_R, aimPosition) 
+				
+				elseif not aimPosition:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+					Control.CastSpell(HK_R, castPos)
+				end	
 			end
 		end
 	end
 end	
 
---function Sylas:KillUltEkko()
+function Sylas:KillUltEkko()
+local target = CurrentTarget(400)     	
+if target == nil then return end
+local hp = target.health
+	if self:ValidTarget(target,400) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "EkkoR") and myHero.pos:DistanceTo(target.pos) <= 375 then		--Ekko
+			if getdmg("R", target, myHero, 72) > hp then
+				Control.CastSpell(HK_R)
+			end
+		end
+	end
+end
 
 --function Sylas:UltElise()
 
@@ -1119,13 +1200,20 @@ if target == nil then return end
 end	
 
 function Sylas:KillUltEzreal()
-local target = CurrentTarget(2000)     	
+local target = CurrentTarget(25000)     	
 if target == nil then return end
-	local hp = target.health
-	if self:ValidTarget(target,2000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "EzrealTrueshotBarrage") and myHero.pos:DistanceTo(target.pos) <= 2000 then		--ezreal
-			if getdmg("R", target, myHero, 6) > hp then
-				Control.CastSpell(HK_R, target)
+local hp = target.health
+local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 25000, 1.0, 2000, 160, false)
+	if self:ValidTarget(target,25000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "EzrealR") and myHero.pos:DistanceTo(aimPosition.pos) <= 25000 then		--ezreal
+			if getdmg("R", target, myHero, 6) > hp and hitRate and hitRate >= 1 then
+				if aimPosition:To2D().onScreen then 	
+					Control.CastSpell(HK_R, aimPosition) 
+				
+				elseif not aimPosition:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+					Control.CastSpell(HK_R, castPos)
+				end	
 			end
 		end
 	end
@@ -1159,7 +1247,26 @@ if target == nil then return end
 	end
 end	
 
---function Sylas:UltGalio()
+function Sylas:UltGalio()
+local target = CurrentTarget(6000)     	
+if target == nil then return end
+local hp = target.health
+local level = myHero:GetSpellData(_R).level
+local range = ({4000, 4750, 5500})[level]
+local count = GetEnemyCount(1000, myHero)
+	if self:ValidTarget(target,6000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "GalioR") and myHero.pos:DistanceTo(target.pos) <= range and count == 0 then		--Galio   
+			if getdmg("R", target, myHero, 73) > hp then
+				if target.pos:To2D().onScreen then						
+					Control.CastSpell(HK_R, target.pos) 
+				
+				elseif not target.pos:To2D().onScreen then			
+					CastSpellMM(HK_R, target.pos, range, 250)		
+				end
+			end
+		end
+	end
+end
 
 function Sylas:KillUltGangplank()
 local target = CurrentTarget(2000)     	
@@ -1168,7 +1275,12 @@ if target == nil then return end
 	if self:ValidTarget(target,2000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
 		if (myHero:GetSpellData(_R).name == "GangplankR") and myHero.pos:DistanceTo(target.pos) <= 20000 then		--Gankplank   
 			if getdmg("R", target, myHero, 55) > hp then
-				Control.CastSpell(HK_R, target)
+				if target.pos:To2D().onScreen then						-----------check ist target in sichtweite
+					Control.CastSpell(HK_R, target.pos) 
+				
+				elseif not target.pos:To2D().onScreen then			-----------ist target auserhalb sichtweite
+					CastSpellMM(HK_R, target.pos, 20000, 500)		-----------CastSpellMM(HK_R, target.pos, range, delay)
+				end
 			end
 		end
 	end
@@ -1203,7 +1315,7 @@ local target = CurrentTarget(475)
 if target == nil then return end
 	local hp = target.health
 	if self:ValidTarget(target,475) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "GnarR") and myHero.pos:DistanceTo(target.pos) <= 475 then		--Gnar     Stun gegen wände
+		if (myHero:GetSpellData(_R).name == "GnarR") and myHero.pos:DistanceTo(target.pos) <= 475 then		--Gnar     
 			if getdmg("R", target, myHero, 29) > hp then
 				Control.CastSpell(HK_R, target)
 			end
@@ -1216,7 +1328,7 @@ local target = CurrentTarget(1000)
 if target == nil then return end
 	local hp = target.health
 	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "GragasR") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Gragas   am besten so aimen das der gegner tod ist oder zur hero.pos gestoßen wird  400explosionsradius / 600 wegstoßradius
+		if (myHero:GetSpellData(_R).name == "GragasR") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Gragas   
 			if getdmg("R", target, myHero, 30) > hp then
 				Control.CastSpell(HK_R, target)
 			end
@@ -1230,7 +1342,7 @@ local target = CurrentTarget(1000)
 if target == nil then return end
 	local hp = target.health
 	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "GravesChargeShot") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Graves  EFFECT RADIUS: 800 ANGLE: 80°
+		if (myHero:GetSpellData(_R).name == "GravesChargeShot") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Graves  
 			if getdmg("R", target, myHero, 31) > hp then
 				Control.CastSpell(HK_R, target)
 			end
@@ -1313,7 +1425,7 @@ if target == nil then return end
 	end
 end
 
---function Sylas:BuffUltJax()
+
 
 --function Sylas:UltJayyce()      
 
@@ -1331,13 +1443,20 @@ end
 --end	
 
 function Sylas:KillUltJinx()
-local target = CurrentTarget(2000)     	
+local target = CurrentTarget(25000)     	
 if target == nil then return end
-	local hp = target.health
-	if self:ValidTarget(target,2000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "JinxR") and myHero.pos:DistanceTo(target.pos) <= 2000 then		--jinx
-			if getdmg("R", target, myHero, 7) > hp then
-				Control.CastSpell(HK_R, target)
+local hp = target.health
+local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 25000, 0.6, 1700, 140, false)
+	if self:ValidTarget(target,25000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "JinxR") and myHero.pos:DistanceTo(aimPosition.pos) <= 25000 then		--jinx
+			if getdmg("R", target, myHero, 7) > hp and hitRate and hitRate >= 1 then
+				if aimPosition:To2D().onScreen then 	
+					Control.CastSpell(HK_R, aimPosition) 
+				
+				elseif not aimPosition:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+					Control.CastSpell(HK_R, castPos)
+				end
 			end
 		end
 	end
@@ -1347,7 +1466,16 @@ end
 
 --function Sylas:UltKallista()
 
---function Sylas:KillUltKarma()
+function Sylas:KillUltKarma()
+local target = CurrentTarget(500)     	
+if target == nil then return end
+	if self:ValidTarget(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "KarmaMantra") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Karma
+			Control.CastSpell(HK_R)
+			
+		end
+	end
+end	
 
 function Sylas:KillUltKarthus()
 local target = CurrentTarget(20000)     	
@@ -1356,7 +1484,7 @@ if target == nil then return end
 	if self:ValidTarget(target,20000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
 		if (myHero:GetSpellData(_R).name == "KarthusFallenOne") and myHero.pos:DistanceTo(target.pos) <= 20000 then		--karthus
 			if getdmg("R", target, myHero, 8) > hp then
-				Control.CastSpell(HK_R, target)
+				Control.CastSpell(HK_R)
 			end
 		end
 	end
@@ -1384,10 +1512,10 @@ if target == nil then return end
 		if (myHero:GetSpellData(_R).name == "KatarinaR") and myHero.pos:DistanceTo(target.pos) <= 550 then		
 			if getdmg("R", target, myHero, 35) > hp then
 				Control.CastSpell(HK_R, target)
-			if GotBuff(myHero, "katarinarsound") then	
+			if myHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
 				_G.SDK.Orbwalker:SetAttack(false)
-			elseif GotBuff(myHero, "katarinarsound") == 0 then	
+			elseif myHero.activeSpell.isChanneling == false then	
 				_G.SDK.Orbwalker:SetMovement(true)
 				_G.SDK.Orbwalker:SetAttack(true)
 			end
@@ -1407,11 +1535,18 @@ if target == nil then return end
 	end
 end	
 
+function Sylas:KillUltKayn()
+local target = CurrentTarget(550)     	
+if target == nil then return end
+	if self:ValidTarget(target,550) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "KaynR") and myHero.pos:DistanceTo(target.pos) <= 550 then		--Kayn 
+			Control.CastSpell(HK_R, target)
+			Control.CastSpell(HK_R, target)
+			Control.CastSpell(HK_R, target)
+		end
+	end
+end
 
-	
---function Sylas:BuffUltKaylie()
-
---function Sylas:KillUltKayn()
 
 function Sylas:StunUltKennen()
 local target = CurrentTarget(550)     	
@@ -1426,11 +1561,17 @@ if target == nil then return end
 	end
 end	
 
---function Sylas:KillUltKhazix()
+function Sylas:SpeedUltKled()
+local target = CurrentTarget(1000)     	
+if target == nil then return end
+	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "KledR") and myHero.pos:DistanceTo(target.pos) <= 700 then		--Kled   
+			Control.CastSpell(HK_R, target)
+			
+		end
+	end
+end
 
---function Sylas:HealUltKindred()
-
---function Sylas:SpeedUltKled()
 
 function Sylas:KillUltKogMaw()
 local target = CurrentTarget(1300)     	
@@ -1459,8 +1600,19 @@ if target == nil then return end
 	end
 end
 
+function Sylas:KillUltLeesin()
+local target = CurrentTarget(500)     	
+if target == nil then return end
+	local hp = target.health
+	if self:ValidTarget(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "BlindMonkRKick") and myHero.pos:DistanceTo(target.pos) <= 375 then		--LeeSin   
+			if getdmg("R", target, myHero, 74) > hp then
+				Control.CastSpell(HK_R, target)
+			end
+		end
+	end
+end
 
---function Sylas:KillUltLeesin()
 
 function Sylas:UltLeona()
 local target = CurrentTarget(1200)     	
@@ -1480,7 +1632,7 @@ local target = CurrentTarget(550)
 if target == nil then return end
 	local hp = target.health
 	if self:ValidTarget(target,550) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "LissandraR") and myHero.pos:DistanceTo(target.pos) <= 550 then		--Lissandra      EFFECT RADIUS: 550  stun oder stundeglaß ersatz mit dmg :D
+		if (myHero:GetSpellData(_R).name == "LissandraR") and myHero.pos:DistanceTo(target.pos) <= 550 then		--Lissandra      
 			if getdmg("R", target, myHero, 18) > hp then
 				Control.CastSpell(HK_R, target)
 			end
@@ -1501,17 +1653,24 @@ if target == nil then return end
 	end
 end	
 
-
---function Sylas:BuffUltLulu()          
-
 function Sylas:KillUltLux()
-local target = CurrentTarget(3500)     	
+local target = CurrentTarget(3500)     						--Lux
 if target == nil then return end
-	local hp = target.health
+local hp = target.health
+local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 1, math.huge, 120, false) -- die Prediction,mußt werde von hand eingeben ////local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, range, delay, speed, radius, collision)/// ----bei collision true oder false----
 	if self:ValidTarget(target,3500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "LuxMaliceCannon") and myHero.pos:DistanceTo(target.pos) <= 3500 then		--Lux
-			if getdmg("R", target, myHero, 11) > hp then
-				Control.CastSpell(HK_R, target)
+		if (myHero:GetSpellData(_R).name == "LuxMaliceCannon") and myHero.pos:DistanceTo(aimPosition.pos) <= 3500 then		
+			if getdmg("R", target, myHero, 11) > hp and hitRate and hitRate >= 1 then
+				
+				----- diese berechnung ob target in sichtweite ist nur für spells die in Linie castet werden (also nicht für Gankplank oder so)-----
+				
+				if aimPosition:To2D().onScreen then 		--check ob target in sichtweite
+					Control.CastSpell(HK_R, aimPosition) -- aimPosition ist die Predicted Position
+				
+				elseif not aimPosition:To2D().onScreen then	--ist target nicht in sichtweite
+				local castPos = myHero.pos:Extended(aimPosition, 1000)    --berechnug für target auserthalb der sichtweite,,,castet 1000range vor sich auf mousepos in richtung target,,,
+					Control.CastSpell(HK_R, castPos)
+				end	
 			end
 		end
 	end
@@ -1522,7 +1681,7 @@ local target = CurrentTarget(1000)
 if target == nil then return end
 	local hp = target.health
 	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "UFSlash") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--malphite aoe stun
+		if (myHero:GetSpellData(_R).name == "UFSlash") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--malphite 
 			if getdmg("R", target, myHero, 50) > hp then
 				Control.CastSpell(HK_R, target)
 			end
@@ -1538,10 +1697,10 @@ if target == nil then return end
 		if (myHero:GetSpellData(_R).name == "MalzaharR") and myHero.pos:DistanceTo(target.pos) <= 700 then		
 			if getdmg("R", target, myHero, 19) > hp then
 				Control.CastSpell(HK_R, target)
-			if GotBuff(target, "AlzaharNetherGrasp") then	
+			if myHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
 				_G.SDK.Orbwalker:SetAttack(false)
-			elseif GotBuff(target, "AlzaharNetherGrasp") == 0 then	
+			elseif myHero.activeSpell.isChanneling == false then	
 				_G.SDK.Orbwalker:SetMovement(true)
 				_G.SDK.Orbwalker:SetAttack(true)
 			end
@@ -1585,10 +1744,10 @@ if target == nil then return end
 		if (myHero:GetSpellData(_R).name == "MissFortuneBulletTime") and myHero.pos:DistanceTo(target.pos) <= 1400 then		
 			if getdmg("R", target, myHero, 38) > hp then
 				Control.CastSpell(HK_R, target)
-			if GotBuff(myHero, "MissFortuneBulletTime") then	
+			if myHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
 				_G.SDK.Orbwalker:SetAttack(false)
-			elseif GotBuff(maHero, "MissFortuneBulletTime") == 0 then	
+			elseif myHero.activeSpell.isChanneling == false then	
 				_G.SDK.Orbwalker:SetMovement(true)
 				_G.SDK.Orbwalker:SetAttack(true)
 			end				
@@ -1597,14 +1756,24 @@ if target == nil then return end
 	end
 end	
   
---function Sylas:KillUltMordekaiser()
+function Sylas:KillUltMordekaiser()
+local target = CurrentTarget(650)     	
+if target == nil then return end
+	if self:ValidTarget(target,650) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "MordekaiserChildrenOfTheGrave") and myHero.pos:DistanceTo(target.pos) <= 650 then		--Mordekaiser  
+			Control.CastSpell(HK_R, target)
+			
+		end
+	end
+end	
+
 
 function Sylas:StunUltMorgana()
 local target = CurrentTarget(625)     	
 if target == nil then return end
 	local hp = target.health
 	if self:ValidTarget(target,625) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "SoulShackles") and myHero.pos:DistanceTo(target.pos) <= 625 then		--morgana  aoe stun 
+		if (myHero:GetSpellData(_R).name == "SoulShackles") and myHero.pos:DistanceTo(target.pos) <= 625 then		--morgana   
 			if getdmg("R", target, myHero, 52) > hp then
 				Control.CastSpell(HK_R, target)
 			end
@@ -1615,11 +1784,18 @@ end
 function Sylas:StunUltNami()
 local target = CurrentTarget(2750)     	
 if target == nil then return end
-	local hp = target.health
+local hp = target.health
+local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 2750, 0.5, 850, 250, false)
 	if self:ValidTarget(target,2750) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "NamiR") and myHero.pos:DistanceTo(target.pos) <= 2750 then		--Nami 
-			if getdmg("R", target, myHero, 39) > hp then
-				Control.CastSpell(HK_R, target)
+		if (myHero:GetSpellData(_R).name == "NamiR") and myHero.pos:DistanceTo(aimPosition.pos) <= 2750 then		--Nami 
+			if getdmg("R", target, myHero, 39) > hp and hitRate and hitRate >= 1 then
+				if aimPosition:To2D().onScreen then 	
+					Control.CastSpell(HK_R, aimPosition) 
+				
+				elseif not aimPosition:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+					Control.CastSpell(HK_R, castPos)
+				end
 			end
 		end
 	end
@@ -1646,7 +1822,7 @@ local target = CurrentTarget(600)
 if target == nil then return end
 	local hp = target.health
 	if self:ValidTarget(target,600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "NeekoR") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Neeko ????? test bitte!!!!!!!!!!!!!!!!!!!
+		if (myHero:GetSpellData(_R).name == "NeekoR") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Neeko
 			if getdmg("R", target, myHero, 65) > hp then
 				Control.CastSpell(HK_R, target)
 			end
@@ -1656,7 +1832,27 @@ end
 
 --function Sylas:UltNiedalee()
 
---function Sylas:KillUltNocturne()
+function Sylas:KillUltNocturne()
+local target = CurrentTarget(4000)     	
+if target == nil then return end
+local hp = target.health
+local level = myHero:GetSpellData(_R).level
+local range = ({2500, 3250, 4000})[level]
+
+	if self:ValidTarget(target,4000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "NocturneParanoia") and myHero.pos:DistanceTo(target.pos) <= range then		--Nocturne   
+			if getdmg("R", target, myHero, 75) > hp then
+				if target.pos:To2D().onScreen then						
+					Control.CastSpell(HK_R, target.pos) 
+				
+				elseif not target.pos:To2D().onScreen then			
+					CastSpellMM(HK_R, target.pos, range, 250)		
+				end
+			end
+		end
+	end
+end
+
 
 function Sylas:KillUltNunu()																--Nunu
 local target = CurrentTarget(650)     	
@@ -1678,7 +1874,18 @@ if target == nil then return end
 	end
 end	
 
---function Sylas:BuffUltOlaf()
+function Sylas:BuffUltOlaf()
+local target = CurrentTarget(1200)     	
+if target == nil then return end
+	if self:ValidTarget(target,1200) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "OlafRagnarok") and myHero.pos:DistanceTo(target.pos) <= 1200 then		--Olaf  
+			if IsImmobileTarget(myHero) then
+				Control.CastSpell(HK_R)
+			end
+		end
+	end
+end
+
 
 function Sylas:KillUltOriana()
 local target = CurrentTarget(325)     	
@@ -1705,31 +1912,73 @@ if target == nil then return end
 end	
 
 
---function Sylas:UltPantheon()
+function Sylas:UltPantheon()
+local target = CurrentTarget(5500)     	
+if target == nil then return end
+local hp = target.health
+local count = GetEnemyCount(1000, myHero)
+	if self:ValidTarget(target,5500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "PantheonRJump") and myHero.pos:DistanceTo(target.pos) <= 5500 and count == 0 then		--Phantheon   
+			if getdmg("R", target, myHero, 76) > hp then
+				if target.pos:To2D().onScreen then						
+					Control.CastSpell(HK_R, target.pos) 
+				
+				elseif not target.pos:To2D().onScreen then			
+					CastSpellMM(HK_R, target.pos, 5500, 2000)		
+				end
+			end
+		end
+	end
+end
 
---function Sylas:KillUltPoppy()
-
-
+function Sylas:KillUltPoppy()
+local target = CurrentTarget(500)     	
+if target == nil then return end
+	local hp = target.health
+	if self:ValidTarget(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "PoppyRSpell") and myHero.pos:DistanceTo(target.pos) <= 475 then		--Poppy  
+			if getdmg("R", target, myHero, 77) > hp then
+				Control.CastSpell(HK_R, target)
+			end
+		end
+	end
+end
 
 function Sylas:KillUltPyke()																				--Pyke
-local target = CurrentTarget(525)     	
+local target = CurrentTarget(800)     	
 if target == nil then return end
-	local level = myHero.levelData.lvl
-	local hp = ({0 , 0 , 0 , 0 , 0, 250, 290, 330, 370, 400, 430, 450, 470, 490, 510, 530, 540, 550})[level] + 0.5 * target.bonusDamage
-	if self:ValidTarget(target,525) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+	if self:ValidTarget(target,800) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
 		if (myHero:GetSpellData(_R).name == "PykeR") and myHero.pos:DistanceTo(target.pos) <= 750 then	 
-			if level >= 6 and hp <= target.health then
-				Control.CastSpell(HK_R, target)
-			elseif level <= 5 then
-				Control.CastSpell(HK_R, target)	
-			end
+			Control.CastSpell(HK_R, target)
 		end
 	end
 end	
 
---function Sylas:SpeedUltQuinn()
+function Sylas:SpeedUltQuinn()
+local target = CurrentTarget(1000)     	
+if target == nil then return end
+	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "QuinnR") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Quinn   
+			Control.CastSpell(HK_R, target)
+			
+		end
+	end
+end
 
---function Sylas:StunUltRakan()  
+
+function Sylas:StunUltRakan()
+local target = CurrentTarget(300)     	
+if target == nil then return end
+	local hp = target.health
+	if self:ValidTarget(target,300) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "RakanR") and myHero.pos:DistanceTo(target.pos) <= 300 then		--Rakan  
+			if getdmg("R", target, myHero, 78) > hp then
+				Control.CastSpell(HK_R, target)
+			end
+		end
+	end
+end	
+  
   
 function Sylas:DmgUltRammus()
 local target = CurrentTarget(300)     	
@@ -1745,13 +1994,41 @@ if target == nil then return end
 end	
 
 
---function Sylas:KillUltRek'Sai()
+function Sylas:KillUltRekSai()
+local target = CurrentTarget(1500)     	
+if target == nil then return end
+	local hp = target.health
+	if self:ValidTarget(target,1500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "RekSaiR") and myHero.pos:DistanceTo(target.pos) <= 1500 then		--RekSai   
+			if getdmg("R", target, myHero, 79) > hp then
+				Control.CastSpell(HK_R, target)
+			end
+		end
+	end
+end
 
+function Sylas:KillUltRengar()
+local target = CurrentTarget(1000)     	
+if target == nil then return end
+	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "RengarR") and myHero.pos:DistanceTo(target.pos) <= 800 then		--Rengar  
+			Control.CastSpell(HK_R, target)
+		
+		end
+	end
+end	
 
+function Sylas:KillUltRiven()
+local target = CurrentTarget(500)     	
+if target == nil then return end
+	if self:ValidTarget(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "RivenFengShuiEngine") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Riven   
+			Control.CastSpell(HK_R)
+		
+		end
+	end
+end
 
---function Sylas:KillUltRengar()
-
---function Sylas:KillUltRiven()
 
 function Sylas:UltRumble()
 local target = CurrentTarget(1700)     	
@@ -1766,8 +2043,6 @@ if target == nil then return end
 	end
 end	
 
---function Sylas:UltRyze()
-
 function Sylas:UltSejuani()
 local target = CurrentTarget(1300)     	
 if target == nil then return end
@@ -1781,30 +2056,45 @@ if target == nil then return end
 	end
 end	
 
---function Sylas:CloneUltShaco()
-
---function Sylas:UltShen()
-
-function Sylas:UltShyvana()
-local target = CurrentTarget(1000)     	
+function Sylas:CloneUltShaco()
+local target = CurrentTarget(500)     	
 if target == nil then return end
 	local hp = target.health
-	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ShyvanaTransformCast") and myHero.pos:DistanceTo(target.pos) <= 1000 then --shyvana knock back und verwandlung in drache buff check und wärend des buffs neue kombo Q W E
-			if getdmg("R", target, myHero, 51) > hp then
+	if self:ValidTarget(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "HallucinateFull") and myHero.pos:DistanceTo(target.pos) <= 500 then --Shaco 
+			if getdmg("R", target, myHero, 80) > hp then
+				Control.CastSpell(HK_R)
+				Control.CastSpell(HK_R, target)
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	end
 end	
 
---function Sylas:BuffUltSinged()
+function Sylas:UltShyvana()
+local target = CurrentTarget(1000)     	
+if target == nil then return end
+	local hp = target.health
+	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "ShyvanaTransformCast") and myHero.pos:DistanceTo(target.pos) <= 1000 then --shyvana 
+			if getdmg("R", target, myHero, 51) > hp then
+				Control.CastSpell(HK_R, target)
+			end
+		end
+	end
+end	
+   
+function Sylas:StunUltSkarner()
+local target = CurrentTarget(500)     	
+if target == nil then return end
+	if self:ValidTarget(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "SkarnerImpale") and myHero.pos:DistanceTo(target.pos) <= 350 then		--Skarner    
+			Control.CastSpell(HK_R, target)
+			
+		end
+	end
+end
 
---function Sylas:UltSion()    
-        
-
-
---function Sylas:StunUltSkarner()
 
 function Sylas:StunUltSona()
 local target = CurrentTarget(900)     	
@@ -1835,17 +2125,40 @@ if target == nil then return end
 end	
 
 
---function Sylas:KillUltSyndra()
+function Sylas:KillUltSyndra()
+local target = CurrentTarget(675)     	
+if target == nil then return end
+	if self:ValidTarget(target,675) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "SyndraR") and myHero.pos:DistanceTo(target.pos) <= 675 then		--Syndra    
+			Control.CastSpell(HK_R, target)
+			
+		end
+	end
+end
 
---function Sylas:UltTahmKench()
+function Sylas:UltTaliyah()
+local target = CurrentTarget(1000)     	
+if target == nil then return end
+	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "TaliyahR") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Taliyah   
+			Control.CastSpell(HK_R, target)
+			
+		end
+	end
+end
 
---function Sylas:UltTaliyah()
-
---function Sylas:KillUltTalon()
-
---function Sylas:BuffUltTaric()
-
---function Sylas:UltTeemo()
+function Sylas:KillUltTalon()
+local target = CurrentTarget(550)     	
+if target == nil then return end
+	local hp = target.health
+	if self:ValidTarget(target,550) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "TalonShadowAssault") and myHero.pos:DistanceTo(target.pos) <= 550 then		--Talon   
+			if getdmg("R", target, myHero, 81) > hp then
+				Control.CastSpell(HK_R, target)
+			end
+		end
+	end
+end
 
 function Sylas:UltThresh()
 local target = CurrentTarget(450)     	
@@ -1875,16 +2188,38 @@ if target == nil then return end
 	end
 end	
 
+function Sylas:BuffUltTrundle()
+local target = CurrentTarget(650)     	
+if target == nil then return end
+	if self:ValidTarget(target,650) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "TrundlePain") and myHero.pos:DistanceTo(target.pos) <= 650 then		--Trundle     
+			Control.CastSpell(HK_R, target)
+			
+		end
+	end
+end
 
---function Sylas:BuffUltTrundle()
+function Sylas:UltTwitch()
+local target = CurrentTarget(500)     	
+if target == nil then return end
+	if self:ValidTarget(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "TwitchFullAutomatic") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Twitch    
+			Control.CastSpell(HK_R, target)
+			
+		end
+	end
+end
 
---function Sylas:BuffUlttryndamere()
-
---function Sylas:UltTwistedFate()
-
---function Sylas:UltTwitch()
-
---Udyr
+function Sylas:UltUdyr()
+local target = CurrentTarget(500)     	
+if target == nil then return end
+	if self:ValidTarget(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "UdyrPhoenixStance") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Udyr    
+			Control.CastSpell(HK_R, target)
+			
+		end
+	end
+end
 
 function Sylas:KillUltUrgot()
 local target = CurrentTarget(1600)     	
@@ -1907,7 +2242,7 @@ local target = CurrentTarget(1075)
 if target == nil then return end
 	local hp = target.health
 	if self:ValidTarget(target,1075) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "VarusR") and myHero.pos:DistanceTo(target.pos) <= 1075 then		--Varus      COLLISION RADIUS: 60 EFFECT RADIUS: 550 TETHER RADIUS: 600 SPEED: 1850
+		if (myHero:GetSpellData(_R).name == "VarusR") and myHero.pos:DistanceTo(target.pos) <= 1075 then		--Varus     
 			if getdmg("R", target, myHero, 45) > hp then
 				Control.CastSpell(HK_R, target)
 			end
@@ -1915,7 +2250,17 @@ if target == nil then return end
 	end
 end	
 
---function Sylas:BuffUltVayne()
+function Sylas:BuffUltVayne()
+local target = CurrentTarget(500)     	
+if target == nil then return end
+	if self:ValidTarget(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "VayneInquisition") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Vayne     
+			Control.CastSpell(HK_R)
+			
+		end
+	end
+end	
+
 
 function Sylas:KillUltVeigar()
 local target = CurrentTarget(650)     	
@@ -1932,9 +2277,34 @@ end
 
 --function Sylas:KillUltVel'koz()
 
---function Sylas:KillUltVi()
+function Sylas:KillUltVi()
+local target = CurrentTarget(800)     	
+if target == nil then return end
+	local hp = target.health
+	if self:ValidTarget(target,800) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "ViR") and myHero.pos:DistanceTo(target.pos) <= 800 then		--Vi
+			if getdmg("R", target, myHero, 82) > hp then
+				Control.CastSpell(HK_R, target)
+			end
+		end
+	end
+end	
 
---function Sylas:KillUltViktor()
+function Sylas:KillUltViktor()
+local target = CurrentTarget(700)     	
+if target == nil then return end
+	local hp = target.health
+	if self:ValidTarget(target,700) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "ViktorChaosStorm") and myHero.pos:DistanceTo(target.pos) <= 700 then		--Viktor
+			if getdmg("R", target, myHero, 83) > hp then
+				Control.CastSpell(HK_R, target.pos)
+				Control.CastSpell(HK_R, target.pos)
+				Control.CastSpell(HK_R, target.pos)
+			end
+		end
+	end
+end
+
 
 function Sylas:KillUltVladimir()
 local target = CurrentTarget(700)     	
@@ -1965,51 +2335,180 @@ end
 
 
 function Sylas:KillUltWarwick()
+local target = CurrentTarget(3000)     	
+if target == nil then return end
+local range = 2.5 * myHero.ms
+local hp = target.health
+local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, range, 0.1, 1800, 55, false)
+	if self:ValidTarget(target,3000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "WarwickR") and myHero.pos:DistanceTo(aimPosition.pos) <= range then		--Warwick	
+			if getdmg("R", target, myHero, 47) > hp and hitRate and hitRate >= 1 then
+				if aimPosition:To2D().onScreen then 	
+					Control.CastSpell(HK_R, aimPosition) 
+				
+				elseif not aimPosition:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+					Control.CastSpell(HK_R, castPos)
+				end
+			end
+		end
+	end
+end	
+
+function Sylas:StunUltWukong()
+local target = CurrentTarget(500)     	
+if target == nil then return end
+	if self:ValidTarget(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "WukongR") and myHero.pos:DistanceTo(target.pos) <= 200 then		--Wukong
+			Control.CastSpell(HK_R)
+		
+		end
+	end
+end
+
+
+function Sylas:KillUltXayah()
+local target = CurrentTarget(1100)     	
+if target == nil then return end
+	local hp = target.health
+	if self:ValidTarget(target,1100) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "XayahR") and myHero.pos:DistanceTo(target.pos) <= 1100 then		--Xayah
+			if getdmg("R", target, myHero, 84) > hp then
+				Control.CastSpell(HK_R, target)
+			end
+		end
+	end
+end	
+
+--[[
+function Sylas:KillUltXerath()
+local target = CurrentTarget(6500)     	
+if target == nil then return end
+local hp = target.health
+local level = myHero:GetSpellData(_R).level
+local range = ({3520, 4840, 6160})[level]
+local count = GetEnemyCount(1000, myHero)
+	if self:ValidTarget(target,6500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "XerathLocusOfPower2") and myHero.pos:DistanceTo(target.pos) <= range and count == 0 then		--Xerath   
+			if getdmg("R", target, myHero, 73) > hp then
+				Control.CastSpell(HK_R)
+				Control.SetCursorPos(target.pos)
+				aim = TargetSelector:GetTarget(NEAR_MOUSE)
+				if GetDistance(mousePos, aim) < 200 then						
+					Control.CastSpell(HK_R) 
+				end
+			return end
+		end
+	end
+end]]
+
+function Sylas:IsKnockedUp(unit)
+		if unit == nil then return false end
+		for i = 0, unit.buffCount do
+			local buff = unit:GetBuff(i)
+			if buff and (buff.type == 29 or buff.type == 30 or buff.type == 39) and buff.count > 0 then
+				return true
+			end
+		end
+		return false	
+	end
+	
+function Sylas:CountKnockedUpEnemies(range)
+		local count = 0
+		local rangeSqr = range * range
+		for i = 1, Game.HeroCount()do
+		local hero = Game.Hero(i)
+			if hero.isEnemy and hero.alive and GetDistanceSqr(myHero.pos, hero.pos) <= rangeSqr then
+			if Sylas:IsKnockedUp(hero)then
+			count = count + 1
+    end
+  end
+end
+return count
+end
+
+
+function Sylas:KillUltYasou()
+local target = CurrentTarget(1400)     	
+if target == nil then return end
+	local hp = target.health
+	if self:ValidTarget(target,1400) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "YasuoR") and myHero.pos:DistanceTo(target.pos) <= 1400 then		--Yasou
+			if getdmg("R", target, myHero, 85) > hp and self:IsKnockedUp(target) then
+				Control.CastSpell(HK_R)
+			end
+		end
+	end
+end
+
+function Sylas:PetUltYorick()
+local target = CurrentTarget(600)     	
+if target == nil then return end
+	if self:ValidTarget(target,600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "YorickReviveAlly") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Yorick
+			Control.CastSpell(HK_R, target)
+		
+		end
+	end
+end
+
+function Sylas:StunUltZac()
 local target = CurrentTarget(1000)     	
 if target == nil then return end
-	local range = 2.5 * myHero.ms
-	local hp = target.health
+local level = myHero:GetSpellData(_R).level
+local range = ({700, 850, 1000})[level]
 	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "WarwickR") and myHero.pos:DistanceTo(target.pos) <= range then		--Warwick	
-			if getdmg("R", target, myHero, 47) > hp then
-				Control.CastSpell(HK_R, target)
-			end
+		if (myHero:GetSpellData(_R).name == "ZacR") and myHero.pos:DistanceTo(target.pos) <= range then		--Zac  						
+			Control.CastSpell(HK_R, target.pos) 
+			Control.CastSpell(HK_R, target.pos)
+			Control.CastSpell(HK_R, target.pos)
+				
 		end
 	end
-end	
+end
 
---function Sylas:StunUltWukong()
+function Sylas:UltZed()
+local target = CurrentTarget(700)     	
+if target == nil then return end
+	if self:ValidTarget(target,700) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "ZedR") and myHero.pos:DistanceTo(target.pos) <= 625 then		--Zed
+			Control.CastSpell(HK_R, target)
+			Control.CastSpell(HK_R)
+			Control.CastSpell(HK_R)
+			
+		end
+	end
+end
 
---function Sylas:KillUltXayah()
-
---function Sylas:KillUltXerath()
-
---function Sylas:UltXinZhao()
-
---function Sylas:KillUltYasou()
-
---function Sylas:PetUltYorick()
-
---function Sylas:StunUltZac()
-
---function Sylas:UltZed()
 
 function Sylas:KillUltZiggs()
-local target = CurrentTarget(2000)     	
+local target = CurrentTarget(5300)     	
 if target == nil then return end
 	local hp = target.health
-	if self:ValidTarget(target,2000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ZiggsR") and myHero.pos:DistanceTo(target.pos) <= 2000 then		--ziggs
+	if self:ValidTarget(target,5300) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "ZiggsR") and myHero.pos:DistanceTo(target.pos) <= 5300 then		--ziggs
 			if getdmg("R", target, myHero, 9) > hp then
-				Control.CastSpell(HK_R, target)
-			end
+				if target.pos:To2D().onScreen then						
+					Control.CastSpell(HK_R, target.pos) 
+				
+				elseif not target.pos:To2D().onScreen then			
+					CastSpellMM(HK_R, target.pos, 5300, 375)		
+				end
+			end	
 		end
 	end
 end	
 
---function Sylas:BuffUltZilean()
-
---Zoe
+function Sylas:ZoeUlt()
+local target = CurrentTarget(600)     	
+if target == nil then return end
+	if self:ValidTarget(target,600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "ZoeR") and myHero.pos:DistanceTo(target.pos) <= 575 then		--Zoe
+			Control.CastSpell(HK_R, target)
+		
+		end
+	end
+end
 
 function Sylas:StunUltZyra()
 local target = CurrentTarget(700)     	
@@ -2089,6 +2588,18 @@ local count = GetEnemyCount(600, target)
 end
 
 --Cassiopeia
+function Sylas:UltCassiopeia()
+local target = CurrentTarget(825)     	
+if target == nil then return end
+local count = GetEnemyCount(825, target)
+	if self:ValidTarget(target,825) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "CassiopeiaR") and myHero.pos:DistanceTo(target.pos) <= 825 then		
+			if count >= self.Menu.Combo.Set.Hit:Value() then
+				Control.CastSpell(HK_R, target.pos)
+			end
+		end
+	end
+end
 
 --Fiddlesticks
 function Sylas:Fiddelsticks()
@@ -2108,12 +2619,32 @@ end
 
 
 --Gankplank
-function Sylas:UltGangplank()
-local target = CurrentTarget(2000)     	
+function Sylas:UltGangplank()			---------Dieses nutzen für Global AOE---------
+local target = CurrentTarget(20000)     	
 if target == nil then return end
 local count = GetEnemyCount(600, target)
-	if self:ValidTarget(target,2000) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "GangplankR") and myHero.pos:DistanceTo(target.pos) <= 2000 then		
+	if self:ValidTarget(target,20000) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "GangplankR") and myHero.pos:DistanceTo(target.pos) <= 20000 then		
+			if count >= self.Menu.Combo.Set.Hit:Value() then
+				
+				if target.pos:To2D().onScreen then						-----------check ist target in sichtweite
+					Control.CastSpell(HK_R, target.pos) 
+				
+				elseif not target.pos:To2D().onScreen then			-----------ist target auserhalb sichtweite
+					CastSpellMM(HK_R, target.pos, 20000, 500)		-----------CastSpellMM(HK_R, target.pos, range, delay)
+				end
+			end
+		end
+	end
+end    
+
+--Gragas
+function Sylas:UltGragas()
+local target = CurrentTarget(1000)     	
+if target == nil then return end
+local count = GetEnemyCount(400, target)
+	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "GragasR") then		
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -2121,7 +2652,6 @@ local count = GetEnemyCount(600, target)
 	end
 end
 
---Gragas
 
 --Ilaoi
 function Sylas:UltIllaoi()
@@ -2175,10 +2705,10 @@ local count = GetEnemyCount(250, myHero)
 		if (myHero:GetSpellData(_R).name == "KatarinaR") then		
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
-			if GotBuff(myHero, "katarinarsound") then	
+			if myHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
 				_G.SDK.Orbwalker:SetAttack(false)
-			elseif GotBuff(myHero, "katarinarsound") == 0 then	
+			elseif myHero.activeSpell.isChanneling == false then	
 				_G.SDK.Orbwalker:SetMovement(true)
 				_G.SDK.Orbwalker:SetAttack(true)
 			end
@@ -2225,10 +2755,10 @@ local count = GetEnemyCount(500, target)
 	if self:ValidTarget(target,700) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
 		if (myHero:GetSpellData(_R).name == "MalzaharR") and myHero.pos:DistanceTo(target.pos) <= 700 and count >= self.Menu.Combo.Set.Hit:Value() then		
 				Control.CastSpell(HK_R, target.pos)
-			if GotBuff(target, "AlzaharNetherGrasp") then	
+			if myHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
 				_G.SDK.Orbwalker:SetAttack(false)
-			elseif GotBuff(target, "AlzaharNetherGrasp") == 0 then	
+			elseif myHero.activeSpell.isChanneling == false then	
 				_G.SDK.Orbwalker:SetMovement(true)
 				_G.SDK.Orbwalker:SetAttack(true)
 			end
@@ -2294,13 +2824,20 @@ end
 
 --Nami
 function Sylas:UltNami()
-local target = CurrentTarget(3000)     	
+local target = CurrentTarget(2750)     	
 if target == nil then return end
-local count = GetEnemyCount(250, target)
-	if self:ValidTarget(target,3000) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "NamiR") and myHero.pos:DistanceTo(target.pos) <= 2750 and myHero.pos:DistanceTo(target.pos) >= 1000 then
-			if count >= self.Menu.Combo.Set.Hit:Value() then
-				Control.CastSpell(HK_R, target.pos)
+local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 2750, 0.5, 850, 250, false)
+local count = GetEnemyCount(250, aimPosition)
+	if self:ValidTarget(target,2750) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "NamiR") and myHero.pos:DistanceTo(aimPosition.pos) <= 2750 then
+			if count >= self.Menu.Combo.Set.Hit:Value() and hitRate and hitRate >= 1 then
+				if aimPosition:To2D().onScreen then 	
+					Control.CastSpell(HK_R, aimPosition) 
+				
+				elseif not aimPosition:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+					Control.CastSpell(HK_R, castPos)
+				end
 			end
 		end
 	end
@@ -2376,6 +2913,20 @@ local count = GetEnemyCount(120, target)
 	end
 end
 
+--Talon
+function Sylas:UltTalon()
+local target = CurrentTarget(550)     	
+if target == nil then return end
+local count = GetEnemyCount(550, myHero)
+	if self:ValidTarget(target,550) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "TalonShadowAssault") then
+			if count >= self.Menu.Combo.Set.Hit:Value() then
+				Control.CastSpell(HK_R)
+			end
+		end
+	end
+end
+
 --Thresh
 function Sylas:Thresh()
 local target = CurrentTarget(450)     	
@@ -2435,6 +2986,20 @@ end
 
 --Yasuo
 
+function Sylas:UltYasou()
+local target = CurrentTarget(1400)     	
+if target == nil then return end
+local count = self:CountKnockedUpEnemies(1400)
+	if self:ValidTarget(target,1400) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "YasuoR") and myHero.pos:DistanceTo(target.pos) <= 1400 then
+			if count >= self.Menu.Combo.Set.Hit:Value() then
+				Control.CastSpell(HK_R)
+			end
+		end
+	end
+end
+
+
 --Ziggs
 function Sylas:UltZiggs()
 local target = CurrentTarget(5300)     	
@@ -2443,7 +3008,12 @@ local count = GetEnemyCount(550, target)
 	if self:ValidTarget(target,5300) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
 		if (myHero:GetSpellData(_R).name == "ZiggsR") and myHero.pos:DistanceTo(target.pos) <= 5300 then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
-				Control.CastSpell(HK_R, target.pos)
+				if target.pos:To2D().onScreen then						
+					Control.CastSpell(HK_R, target.pos) 
+				
+				elseif not target.pos:To2D().onScreen then			
+					CastSpellMM(HK_R, target.pos, 5300, 375)		
+				end
 			end
 		end
 	end
@@ -2496,6 +3066,20 @@ if target == nil then return end
 	end
 end	
 
+--Ekko
+function Sylas:UltEkko()
+local target = CurrentTarget(800)     	
+if target == nil then return end	
+	if self:ValidTarget(target,800) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "EkkoR") then		 
+			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R)
+			end
+		end
+	end
+end
+
+
 --Fiora
 function Sylas:UltFiora()
 local target = CurrentTarget(500)     	
@@ -2522,6 +3106,72 @@ if target == nil then return end
 	end
 end
 
+--Jax
+function Sylas:BuffUltJax()
+local target = CurrentTarget(1000)     	
+if target == nil then return end	
+	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "JaxRelentlessAssault") then		 
+			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R)
+			end
+		end
+	end
+end
+
+--Kayle
+function Sylas:BuffUltKaylie()
+local target = CurrentTarget(1000)     	
+if target == nil then return end	
+	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "JudicatorIntervention") then		 
+			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R, myHero)
+			end
+		end
+	end
+end
+
+--Khazix
+function Sylas:KillUltKhazix()
+local target = CurrentTarget(1000)     	
+if target == nil then return end	
+	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "KhazixR") then		 
+			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R)
+			end
+		end
+	end
+end
+
+--Kindred
+function Sylas:HealUltKindred()
+local target = CurrentTarget(1000)     	
+if target == nil then return end	
+	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "KindredR") then		 
+			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R)
+			end
+		end
+	end
+end
+
+--Lulu
+function Sylas:BuffUltLulu() 
+local target = CurrentTarget(300)     	
+if target == nil then return end	
+	if self:ValidTarget(target,300) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "LuluR") then		 
+			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R, myHero)
+			end
+		end
+	end
+end
+
+
 --Nasus
 function Sylas:BuffUltNasus()
 local target = CurrentTarget(1000)     	
@@ -2547,6 +3197,20 @@ if target == nil then return end
 		end
 	end
 end
+
+--Singed
+function Sylas:BuffUltSinged()
+local target = CurrentTarget(1000)     	
+if target == nil then return end	
+	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "InsanityPotion") then		 
+			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R)
+			end
+		end
+	end
+end
+
 
 --Sivir
 function Sylas:SpeedUltSivir()
@@ -2587,6 +3251,33 @@ if target == nil then return end
 	end
 end
 
+--Taric
+function Sylas:BuffUltTaric()
+local target = CurrentTarget(1000)     	
+if target == nil then return end	
+	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "TaricR") then		 
+			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R)
+			end
+		end
+	end
+end
+
+--Tryndamere
+function Sylas:BuffUlttryndamere()
+local target = CurrentTarget(1000)     	
+if target == nil then return end	
+	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "UndyingRage") then		 
+			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R)
+			end
+		end
+	end
+end
+
+
 --Vladimir
 function Sylas:HealUltVladimir()
 local target = CurrentTarget(700)     	
@@ -2600,7 +3291,31 @@ if target == nil then return end
 	end
 end
 
+--XinZhao
+function Sylas:UltXinZhao()
+local target = CurrentTarget(700)     	
+if target == nil then return end	
+	if self:ValidTarget(target,700) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "XenZhaoParry") then		 
+			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R)
+			end
+		end
+	end
+end
 
+--Zilean
+function Sylas:BuffUltZilean()
+local target = CurrentTarget(1000)     	
+if target == nil then return end	
+	if self:ValidTarget(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
+		if (myHero:GetSpellData(_R).name == "ZileanR") then		 
+			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R, myHero)
+			end
+		end
+	end
+end
 
 
 --------------Tranformation Ults-----------------------------
@@ -2694,7 +3409,7 @@ function Sylas:Combo()
 	if self:ValidTarget(target,1300) then
 		if self.Menu.Combo.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 1200 and myHero.pos:DistanceTo(target.pos) > 400 then			
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
-			local EPos = target.pos:Shortened(target.pos, 400)
+			local EPos = myHero.pos:Shortened(target.pos, 400)
 			if hitRate and hitRate >= 2 then
 			Control.SetCursorPos(EPos)
 			Control.CastSpell(HK_E, aimPosition)
@@ -2833,7 +3548,13 @@ end
 ------------------------------------------------------------------------------------------------------------
 
 --Dmg Lib
+function GetBaseHealth(unit)
+    if unit.charName == "Sylas" then
+        return 504.73 + 80.27 * myHero.levelData.lvl
+    end
+end
 
+local bonusHealth = myHero.maxHealth - GetBaseHealth(myHero)
 
 
 local DamageReductionTable = {
@@ -3014,12 +3735,12 @@ local DamageLibTable = {
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({90, 135, 180, 225, 270})[level] + 0.825 * source.ap end},																										
 	{Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 85, 100, 115, 130})[level] + 0.2 * source.ap end},
 	{Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 65, 80, 95, 180})[level] + 0.4 * source.ap end},     
-	{Slot = "R", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({300, 475, 650})[level] + 0.5 * source.ap  end}, --cho'garh  + 0.1 * source.bonusHealth
+	{Slot = "R", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({300, 475, 650})[level] + 0.5 * source.ap + 0.1 * bonusHealth end}, --cho'garh  
 	{Slot = "R", Stage = 3, DamageType = 2, Damage = function(source, target, level) return (({200, 400, 600})[level] + source.ap) end}, --ashe
 	{Slot = "R", Stage = 4, DamageType = 2, Damage = function(source, target, level) return (({175, 250, 325})[level] + 0.75 * source.ap) end}, --vaiger
 	{Slot = "R", Stage = 5, DamageType = 2, Damage = function(source, target, level) return (({150, 250, 350})[level] + 0.8 * source.ap) end}, --leona
-	{Slot = "R", Stage = 6, DamageType = 2, Damage = function(source, target, level) return (({350, 500, 650})[level] + 0.9 * source.ap + 1.0 * source.ad) end}, --ezreal
- 	{Slot = "R", Stage = 7, DamageType = 2, Damage = function(source, target, level) return ({25, 35, 45})[level] + ({25, 30, 35})[level] / 100 * 0.7 / 100 * (target.maxHealth - target.health) + 0.15 * target.bonusDamage/100 * 0.5 end}, --jinx 
+	{Slot = "R", Stage = 6, DamageType = 2, Damage = function(source, target, level) return (({350, 500, 650})[level] + 0.9 * source.ap + 0.45 * source.bonusDamage) end}, --ezreal
+ 	{Slot = "R", Stage = 7, DamageType = 2, Damage = function(source, target, level) return ({25, 35, 45})[level]/ 100 * 0.7 + (({0.25, 0.30, 0.35})[level] * (target.maxHealth - target.health)) + 0.15 * source.bonusDamage/100 * 0.5 end}, --jinx 
  	{Slot = "R", Stage = 8, DamageType = 2, Damage = function(source, target, level) return (({250, 400, 550})[level] + 0.75 * source.ap) end}, --kartus
  	{Slot = "R", Stage = 9, DamageType = 2, Damage = function(source, target, level) return (({200, 300, 400})[level] + 0.733 * source.ap) end}, --ziggs
  	{Slot = "R", Stage = 10, DamageType = 2, Damage = function(source, target, level) return (({150, 250, 350})[level] + 0.5 * source.ap) end}, --cassio
@@ -3032,22 +3753,22 @@ local DamageLibTable = {
   	{Slot = "R", Stage = 17, DamageType = 2, Damage = function(source, target, level) return (({625, 950, 1275})[level] + 2.5 * source.ap) end}, --Nunu
   	{Slot = "R", Stage = 18, DamageType = 2, Damage = function(source, target, level) return (({150, 250, 350})[level] + 0.6 * source.ap) end}, -- Lissandra	
   	{Slot = "R", Stage = 19, DamageType = 2, Damage = function(source, target, level) return (({125, 200, 275})[level] + 0.8 * source.ap) end}, --Malzahar
-  	{Slot = "R", Stage = 20, DamageType = 2, Damage = function(source, target, level) return (({85, 150, 215})[level]/100 * 0.7 + 0.5 * target.bonusDamage/100 * 0.5) end}, --Akali
+  	{Slot = "R", Stage = 20, DamageType = 2, Damage = function(source, target, level) return (({85, 150, 215})[level]/100 * 0.7 + 0.5 * source.bonusDamage/100 * 0.5) end}, --Akali
   	{Slot = "R", Stage = 21, DamageType = 2, Damage = function(source, target, level) return (({85, 150, 215})[level] + 0.3 * source.ap) end}, --Akalib
    	{Slot = "R", Stage = 22, DamageType = 2, Damage = function(source, target, level) return (({150, 250, 350})[level] + 0.8 * source.ap) end}, --Amumu
   	{Slot = "R", Stage = 23, DamageType = 2, Damage = function(source, target, level) return (({150, 250, 450})[level] + 0.6 * source.ap) end}, --azir
    	{Slot = "R", Stage = 24, DamageType = 2, Damage = function(source, target, level) return (({125, 250, 375})[level] + 0.75 * source.ap) end}, --evelynn 
    	{Slot = "R", Stage = 25, DamageType = 2, Damage = function(source, target, level) return (({250, 375, 500})[level] + 1.0 * source.ap) end}, --blitzgrank
-  	{Slot = "R", Stage = 26, DamageType = 2, Damage = function(source, target, level) return (({175, 275, 375})[level]/100 * 0.7 + 1.1 * target.bonusDamage/100 * 0.5) end}, -- draven
+  	{Slot = "R", Stage = 26, DamageType = 2, Damage = function(source, target, level) return (({175, 275, 375})[level]/100 * 0.7 + 1.1 * source.bonusDamage/100 * 0.5) end}, -- draven
    	{Slot = "R", Stage = 27, DamageType = 2, Damage = function(source, target, level) return (({150, 250, 350})[level] + 0.6 * source.ap) end}, --fizz        https://leagueoflegends.fandom.com/de/wiki/Fizz  3 verschiedene ulti dmg auf range 
-  	{Slot = "R", Stage = 28, DamageType = 2, Damage = function(source, target, level) return (({200, 300, 400})[level]/100 * 0.7 + 0.2 * target.bonusDamage/100 * 0.5 + 0.5 * target.ap) end}, -- gnar
+  	{Slot = "R", Stage = 28, DamageType = 2, Damage = function(source, target, level) return (({200, 300, 400})[level]/100 * 0.7 + 0.2 * source.bonusDamage/100 * 0.5 + 0.5 * source.ap) end}, -- gnar
   	{Slot = "R", Stage = 29, DamageType = 2, Damage = function(source, target, level) return (({200, 300, 400})[level] + 0.70 * source.ap) end}, -- gragas
-   	{Slot = "R", Stage = 30, DamageType = 2, Damage = function(source, target, level) return (({90, 115, 140})[level] + (({0.15, 0.45, 0.75})[level]* target.bonusDamage/100 * 0.5) + 0.2 * source.ap) end}, --Corki
-  	{Slot = "R", Stage = 31, DamageType = 2, Damage = function(source, target, level) return (({250, 400, 550})[level]/100*0.7 + 1.5 * target.bonusDamage/100 * 0.5) end}, -- graves
+   	{Slot = "R", Stage = 30, DamageType = 2, Damage = function(source, target, level) return (({90, 115, 140})[level] + (({0.15, 0.45, 0.75})[level]* source.bonusDamage/100 * 0.5) + 0.2 * source.ap) end}, --Corki
+  	{Slot = "R", Stage = 31, DamageType = 2, Damage = function(source, target, level) return (({250, 400, 550})[level]/100*0.7 + 1.5 * source.bonusDamage/100 * 0.5) end}, -- graves
    	{Slot = "R", Stage = 32, DamageType = 2, Damage = function(source, target, level) return (({150, 250, 350})[level] + 1.0 * source.ap) end}, --hecarim
-  	{Slot = "R", Stage = 33, DamageType = 2, Damage = function(source, target, level) return (({50, 125, 200})[level]/100*0.7 + 0.2 * target.bonusDamage/100 * 0.5) end}, --Jhin
+  	{Slot = "R", Stage = 33, DamageType = 2, Damage = function(source, target, level) return (({50, 125, 200})[level]/100*0.7 + 0.2 * source.bonusDamage/100 * 0.5) end}, --Jhin
   	{Slot = "R", Stage = 34, DamageType = 2, Damage = function(source, target, level) return ({100, 160, 220})[level] + 0.6 * source.ap end}, -- Diana	
-  	{Slot = "R", Stage = 35, DamageType = 2, Damage = function(source, target, level) return (({375 / 562,5 / 750})[level] + 3.3 * target.bonusDamage/100 * 0.5 + 2.85 * target.ap) end}, --katarina
+  	{Slot = "R", Stage = 35, DamageType = 2, Damage = function(source, target, level) return (({375 / 562,5 / 750})[level] + 3.3 * source.bonusDamage/100 * 0.5 + 2.85 * source.ap) end}, --katarina
   	{Slot = "R", Stage = 36, DamageType = 2, Damage = function(source, target, level) return (({40, 75, 110})[level] + 0.2 * source.ap) end}, --Kennen    
   	{Slot = "R", Stage = 37, DamageType = 2, Damage = function(source, target, level) return (({150, 225, 300})[level] + 0.75 * source.ap) end}, --Maokai
   	{Slot = "R", Stage = 38, DamageType = 2, Damage = function(source, target, level) return (({250, 400, 500})[level] + 1.0 * source.ap) end}, --Missfortune  
@@ -3056,32 +3777,48 @@ local DamageLibTable = {
    	{Slot = "R", Stage = 41, DamageType = 2, Damage = function(source, target, level) return (({130, 185, 240})[level] + 0.3 * source.ap) end}, --rumble   
   	{Slot = "R", Stage = 42, DamageType = 2, Damage = function(source, target, level) return (({100, 125, 150})[level] + 0.4 * source.ap) end}, --Sejuani 
    	{Slot = "R", Stage = 43, DamageType = 2, Damage = function(source, target, level) return (({150, 250, 350})[level] + 0.5 * source.ap) end}, --sona
-  	{Slot = "R", Stage = 44, DamageType = 2, Damage = function(source, target, level) return (({50, 175, 300})[level]/100*0.7 + 0.5 * target.bonusDamage/100 * 0.5) end}, --urgot  
+  	{Slot = "R", Stage = 44, DamageType = 2, Damage = function(source, target, level) return (({50, 175, 300})[level]/100*0.7 + 0.5 * source.bonusDamage/100 * 0.5) end}, --urgot  
   	{Slot = "R", Stage = 45, DamageType = 2, Damage = function(source, target, level) return (({150, 200, 250})[level] + 1.0 * source.ap) end}, --varus
    	{Slot = "R", Stage = 46, DamageType = 2, Damage = function(source, target, level) return (({180, 265, 350})[level] + 0.7 * source.ap) end}, --Zyra
-  	{Slot = "R", Stage = 47, DamageType = 2, Damage = function(source, target, level) return (({175, 350, 525})[level]/100*0.7 + 1.67 * target.bonusDamage/100 * 0.5) end}, --Warwick
+  	{Slot = "R", Stage = 47, DamageType = 2, Damage = function(source, target, level) return (({175, 350, 525})[level]/100*0.7 + 1.67 * source.bonusDamage/100 * 0.5) end}, --Warwick
   	{Slot = "R", Stage = 48, DamageType = 2, Damage = function(source, target, level) return (({100, 200, 300})[level] + 0.3 * source.ap) end}, --brand
   	{Slot = "R", Stage = 49, DamageType = 2, Damage = function(source, target, level) return (({175, 350, 525})[level]) end}, --Geran  
   	{Slot = "R", Stage = 50, DamageType = 2, Damage = function(source, target, level) return (({200, 300, 400})[level] + 1.0 * source.ap) end}, --malphite
   	{Slot = "R", Stage = 51, DamageType = 2, Damage = function(source, target, level) return (({175, 300, 425})[level] + 0.7 * source.ap) end}, --shyvana
   	{Slot = "R", Stage = 52, DamageType = 2, Damage = function(source, target, level) return (({150, 225, 300})[level] + 0.7 * source.ap) end}, --morgana
-  	{Slot = "R", Stage = 53, DamageType = 2, Damage = function(source, target, level) return (({20, 110, 200})[level]/100*0.7 + 1.1 * target.bonusDamage/100 * 0.5) end},	--wukong
+  	{Slot = "R", Stage = 53, DamageType = 2, Damage = function(source, target, level) return (({20, 110, 200})[level]/100*0.7 + 1.1 * source.bonusDamage/100 * 0.5) end},	--wukong
 	{Slot = "R", Stage = 54, DamageType = 2, Damage = function(source, target, level) return ({125, 225, 325})[level] + 0.45 * source.ap end}, --Fiddlesticks
 	{Slot = "R", Stage = 55, DamageType = 2, Damage = function(source, target, level) return ({35, 60, 85})[level] + 0.1 * source.ap end}, --Gankplank
-	{Slot = "R", Stage = 56, DamageType = 2, Damage = function(source, target, level) return (({150, 250, 350})[level]/100*0.7 + 1.1 * target.bonusDamage/100 * 0.5) end}, --Illaoi
-	{Slot = "R", Stage = 57, DamageType = 2, Damage = function(source, target, level) return ({200, 325, 450})[level]/100*0.7 + 1.5 * target.bonusDamage/100 * 0.5 end}, --Jarvan
+	{Slot = "R", Stage = 56, DamageType = 2, Damage = function(source, target, level) return (({150, 250, 350})[level]/100*0.7 + 1.1 * source.bonusDamage/100 * 0.5) end}, --Illaoi
+	{Slot = "R", Stage = 57, DamageType = 2, Damage = function(source, target, level) return ({200, 325, 450})[level]/100*0.7 + 1.5 * source.bonusDamage/100 * 0.5 end}, --Jarvan
 	{Slot = "R", Stage = 58, DamageType = 2, Damage = function(source, target, level) return ({80, 100, 120})[level]+ 0.4 * source.ap + 0.02 * source.maxMana end}, --Kassadin
-	{Slot = "R", Stage = 59, DamageType = 2, Damage = function(source, target, level) return (({100, 140, 180})[level] + 0.65 * target.bonusDamage/100 * 0.5 + 0.25 * source.ap) * (GetPercentHP(target) < 25 and 3 or (GetPercentHP(target) < 50 and 2 or 1)) end}, --Kogmaw
+	{Slot = "R", Stage = 59, DamageType = 2, Damage = function(source, target, level) return (({100, 140, 180})[level] + 0.65 * source.bonusDamage/100 * 0.5 + 0.25 * source.ap) * (GetPercentHP(target) < 25 and 3 or (GetPercentHP(target) < 50 and 2 or 1)) end}, --Kogmaw
 	{Slot = "R", Stage = 60, DamageType = 2, Damage = function(source, target, level) return (({70, 140, 210})[level] + 0.4 * source.ap) end},-- Leblanc
-	{Slot = "R", Stage = 61, DamageType = 2, Damage = function(source, target, level) return ({20, 35, 50})[level]/100*0.7 + 0.1 * source.ap + 0.25 * target.totalDamage/100 * 0.5 end}, --Lucian
+	{Slot = "R", Stage = 61, DamageType = 2, Damage = function(source, target, level) return ({20, 35, 50})[level]/100*0.7 + 0.1 * source.ap + 0.25 * source.totalDamage/100 * 0.7 end}, --Lucian
 	{Slot = "R", Stage = 62, DamageType = 2, Damage = function(source, target, level) return ({40, 80, 120})[level] + 0.2 * source.ap end},--Rammus
 	{Slot = "R", Stage = 63, DamageType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.7 * source.ap end},--Vladimir
-	{Slot = "R", Stage = 64, DamageType = 2, Damage = function(source, target, level) return ({250, 475, 700})[level]/100*0.7 + 2.0 * target.bonusDamage/100 * 0.5 end},--Caitlyn
+	{Slot = "R", Stage = 64, DamageType = 2, Damage = function(source, target, level) return ({250, 475, 700})[level]/100*0.7 + 2.0 * source.bonusDamage/100 * 0.5 end},--Caitlyn
 	{Slot = "R", Stage = 65, DamageType = 2, Damage = function(source, target, level) return (({200, 425, 650})[level] + 1.3 * source.ap) end},--Neeko
 	{Slot = "R", Stage = 66, DamageType = 2, Damage = function(source, target, level) return ({150, 225, 300})[level] + 0.7 * source.ap end},--Orianna
 	{Slot = "R", Stage = 67, DamageType = 2, Damage = function(source, target, level) return ({50, 70, 90})[level] + 0.2 * source.ap end},--Swain
 	{Slot = "R", Stage = 68, DamageType = 2, Damage = function(source, target, level) return ({250, 400, 550})[level] + source.ap end}, --Thresh
 	{Slot = "R", Stage = 69, DamageType = 2, Damage = function(source, target, level) return ({75, 115, 155})[level] + 0.4 * source.ap end},--Volibear
+	{Slot = "R", Stage = 70, DamageType = 2, Damage = function(source, target, level) return ({180, 270, 360})[level] + 1.05 * source.ap end},--Ahri
+	{Slot = "R", Stage = 71, DamageType = 3, Damage = function(source, target, level) return ({70, 140, 210})[level] + 0.375 * source.bonusDamage end},--Darius
+	{Slot = "R", Stage = 72, DamageType = 2, Damage = function(source, target, level) return ({150, 300, 450})[level] + 1.5 * source.ap end},--Ekko
+	{Slot = "R", Stage = 73, DamageType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.7 * source.ap end},--Galio
+	{Slot = "R", Stage = 74, DamageType = 2, Damage = function(source, target, level) return ({105, 262, 420})[level] + source.bonusDamage end},--LeeSin
+	{Slot = "R", Stage = 75, DamageType = 2, Damage = function(source, target, level) return ({105, 192, 280})[level] + 0.6 * source.bonusDamage end},--Nocturne
+	{Slot = "R", Stage = 76, DamageType = 2, Damage = function(source, target, level) return ({200, 350, 500})[level] + 0.5 * source.ap end},--Pantheon
+	{Slot = "R", Stage = 77, DamageType = 2, Damage = function(source, target, level) return ({140, 210, 280})[level] + 0.45 * source.bonusDamage end},--Poppy
+	{Slot = "R", Stage = 78, DamageType = 2, Damage = function(source, target, level) return ({100, 200, 300})[level] + 0.5 * source.ap end},--Rakan
+	{Slot = "R", Stage = 79, DamageType = 2, Damage = function(source, target, level) return ({70, 175, 280})[level] + source.bonusDamage + (({0.20, 0.25, 0.30})[level] * (target.maxHealth - target.health)) end},--RekSai
+	{Slot = "R", Stage = 80, DamageType = 2, Damage = function(source, target, level) return ({200, 300, 400})[level] + source.ap end},--Shaco
+	{Slot = "R", Stage = 81, DamageType = 2, Damage = function(source, target, level) return ({63, 94, 126})[level] + 0.5 * source.bonusDamage end},--Talon
+	{Slot = "R", Stage = 82, DamageType = 2, Damage = function(source, target, level) return ({105, 210, 315})[level] + 0.7 * source.bonusDamage end},--Vi
+	{Slot = "R", Stage = 83, DamageType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.6 * source.ap end},--Viktor
+	{Slot = "R", Stage = 84, DamageType = 2, Damage = function(source, target, level) return ({70, 105, 140})[level] + 0.5 * source.bonusDamage end},--Xayah
+	{Slot = "R", Stage = 85, DamageType = 2, Damage = function(source, target, level) return ({140, 210, 280})[level] + 0.75 * source.bonusDamage end},--Yasuo
 	
 
   },
@@ -4380,29 +5117,4 @@ end
 
 function OnLoad()
 	Sylas()	
-
-	
-	
-	
-
-
 end
-
-	
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
