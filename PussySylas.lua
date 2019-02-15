@@ -4,7 +4,7 @@ local menu = 1
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.03
+    local Version = 0.04
     
     local Files = {
         Lua = {
@@ -813,7 +813,7 @@ end
 function Sylas:Draw()
   if myHero.dead then return end
 	if(self.Menu.Drawing.DrawR:Value()) and Ready(_R) then
-    Draw.Circle(myHero, 1050, 3, Draw.Color(255, 225, 255, 10))
+    Draw.Circle(myHero, 1050, 3, Draw.Color(255, 225, 255, 10)) --1050
 	end                                                 
 	if(self.Menu.Drawing.DrawQ:Value()) and Ready(_Q) then
     Draw.Circle(myHero, 755, 3, Draw.Color(225, 225, 0, 10))
@@ -1269,10 +1269,10 @@ local count = GetEnemyCount(1000, myHero)
 end
 
 function Sylas:KillUltGangplank()
-local target = CurrentTarget(2000)     	
+local target = CurrentTarget(20000)     	
 if target == nil then return end
 	local hp = target.health
-	if self:ValidTarget(target,2000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
+	if self:ValidTarget(target,20000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
 		if (myHero:GetSpellData(_R).name == "GangplankR") and myHero.pos:DistanceTo(target.pos) <= 20000 then		--Gankplank   
 			if getdmg("R", target, myHero, 55) > hp then
 				if target.pos:To2D().onScreen then						-----------check ist target in sichtweite
@@ -3788,7 +3788,7 @@ local DamageLibTable = {
   	{Slot = "R", Stage = 52, DamageType = 2, Damage = function(source, target, level) return (({150, 225, 300})[level] + 0.7 * source.ap) end}, --morgana
   	{Slot = "R", Stage = 53, DamageType = 2, Damage = function(source, target, level) return (({20, 110, 200})[level]/100*0.7 + 1.1 * source.bonusDamage/100 * 0.5) end},	--wukong
 	{Slot = "R", Stage = 54, DamageType = 2, Damage = function(source, target, level) return ({125, 225, 325})[level] + 0.45 * source.ap end}, --Fiddlesticks
-	{Slot = "R", Stage = 55, DamageType = 2, Damage = function(source, target, level) return ({35, 60, 85})[level] + 0.1 * source.ap end}, --Gankplank
+	{Slot = "R", Stage = 55, DamageType = 2, Damage = function(source, target, level) return ({105, 180, 255})[level] + 0.3 * source.ap end}, --Gangplank
 	{Slot = "R", Stage = 56, DamageType = 2, Damage = function(source, target, level) return (({150, 250, 350})[level]/100*0.7 + 1.1 * source.bonusDamage/100 * 0.5) end}, --Illaoi
 	{Slot = "R", Stage = 57, DamageType = 2, Damage = function(source, target, level) return ({200, 325, 450})[level]/100*0.7 + 1.5 * source.bonusDamage/100 * 0.5 end}, --Jarvan
 	{Slot = "R", Stage = 58, DamageType = 2, Damage = function(source, target, level) return ({80, 100, 120})[level]+ 0.4 * source.ap + 0.02 * source.maxMana end}, --Kassadin
