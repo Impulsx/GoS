@@ -4,7 +4,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.01
+    local Version = 0.02
     
     local Files = {
         Lua = {
@@ -71,8 +71,8 @@ class "Veigar"
 function Veigar:LoadSpells()
 
 	Q = {Range = 950, Width = 70, Delay = 0.25, Speed = 2200, Collision = true, aoe = true, Type = "line"}
-	W = {Range = 900, Width = 225, Delay = 1.25, Speed = math.huge, Collision = false, aoe = true, Type = "circle"}
-	E = {Range = 700, Width = 375, Delay = 1, Speed = math.huge, Collision = false, aoe = true, Type = "circle"}
+	W = {Range = 900, Width = 225, Delay = 1.25, Speed = math.huge, Collision = false, aoe = true, Type = "circular"}
+	E = {Range = 700, Width = 375, Delay = 1, Speed = math.huge, Collision = false, aoe = true, Type = "circular"}
 	R = {Range = 650, Width = 0, Delay = 1.00, Speed = 2000, Collision = false, aoe = false, Type = "line"}
 
 end
@@ -457,7 +457,7 @@ function Veigar:Combo()
 	if self.Menu.Combo.UseE:Value() and target and self:CanCast(_E) then
 		if self:EnemyInRange(E.Range) then
 			if self.Menu.Combo.EMode:Value() == 1 then
-				Control.CastSpell(HK_E, Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(myHero.pos)):Normalized()*350) --289
+				Control.CastSpell(HK_E, Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(myHero.pos)):Normalized()*289) --350
 			elseif self.Menu.Combo.EMode:Value() == 2 then
 				Control.CastSpell(HK_E,target)
 			end
