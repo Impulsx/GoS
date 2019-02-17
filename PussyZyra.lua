@@ -2,6 +2,7 @@ if myHero.charName ~= "Zyra" then return end
 class "Zyra"
 
 if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+	print("GsoPred. installed Press 2x F6")
 	DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-External/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
 	while not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") do end
 end
@@ -9,7 +10,7 @@ end
 require('GamsteronPrediction')
 
 -- [ AutoUpdate ]
---[[
+
 do
     
     local Version = 0.01
@@ -55,7 +56,7 @@ do
     
     AutoUpdate()
 
-end]]
+end
 
 
 
@@ -71,25 +72,14 @@ local GameTimer = Game.Timer
 
 
 
-_G.COLLISION_MINION
-_G.COLLISION_ALLYHERO
-_G.COLLISION_ENEMYHERO
-_G.COLLISION_YASUOWALL
-_G.HITCHANCE_IMPOSSIBLE
-_G.HITCHANCE_COLLISION
-_G.HITCHANCE_NORMAL
-_G.HITCHANCE_HIGH
-_G.HITCHANCE_IMMOBILE
-_G.SPELLTYPE_LINE
-_G.SPELLTYPE_CIRCLE
-_G.SPELLTYPE_CONE
-local ImmobileDuration, DashDuration, SlowDuration = GetImmobileDashSlowDuration(unit)
+
+
 
 
 local EData =
 {
 Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1100, Speed = 1150,
-Collision = true, MaxCollision = 0, CollisionObjects = { _G.COLLISION_YASUOWALL }
+Collision = false, MaxCollision = 0, CollisionObjects = { _G.COLLISION_YASUOWALL }
 }
 
 local QData =
@@ -181,7 +171,7 @@ local function GetImmobileCount(range, pos)
 	return count
 end
 
-local function IsImmobileTarget(unit)
+function IsImmobileTarget(unit)
 		for i = 0, unit.buffCount do
 			local buff = unit:GetBuff(i)
 			if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.name == 10) and buff.count > 0 then
@@ -245,21 +235,6 @@ local function GetEnemyCount(range, pos)
 	end
 	return count
 end
-
-local function GetAllyCount(range, pos)
-    local pos = pos.pos
-	local count = 0
-	for i = 1, Game.HeroCount() do 
-	local hero = Game.Hero(i)
-	local Range = range * range
-		if hero.team == TEAM_ALLY and hero ~= myHero and hero.dead == false and GetDistanceSqr(pos, hero.pos) < Range then
-		count = count + 1
-		end
-	end
-	return count
-end
-  
-
 
 
 function IsUnderTurret(unit)
@@ -468,13 +443,14 @@ if myHero.dead then return end
 	self:Activator()
 	self:KillSteal()
 	self:AutoE()
+	self:AutoR()
+	self:ImmoR()	
 
 
 	
 	if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
 		self:Combo()
-		self:AutoR()
-		self:ImmoR()
+
 	
 		
 	elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then                
@@ -507,9 +483,8 @@ if target == nil then return end
 		if myHero.pos:DistanceTo(target.pos) <= 850 then
 			if myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "ZyraQ" then
 				Control.CastSpell(HK_W, target.pos)
-			if Ready(_W) then
 				Control.CastSpell(HK_W, target.pos)
-			end	
+			
 			end
 		end	
 	end
@@ -521,7 +496,7 @@ local target = CurrentTarget(1200)
 if target == nil then return end	
 local pred = GetGamsteronPrediction(target, EData, myHero)	
 	if self:ValidTarget(target,1200) and self.Menu.AutoE.UseE:Value() and Ready(_E) then
-		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1100 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 			Control.CastSpell(HK_E, pred.CastPosition)
 		end	
 	end
@@ -532,9 +507,12 @@ local target = CurrentTarget(1200)
 if target == nil then return end
 local hp = target.health
 local RDmg = getdmg("R", target, myHero)
+local QDmg = getdmg("Q", target, myHero)
+local EDmg = getdmg("E", target, myHero)
+local damage = RDmg + QDmg + EDmg + 300
 local pred = GetGamsteronPrediction(target, RData, myHero)	
 	if self:ValidTarget(target,1200) and self.Menu.Combo.Ult.killR:Value() and Ready(_R) then
-		if myHero.pos:DistanceTo(target.pos) <= 700 and RDmg >= hp and pred.Hitchance >= _G.HITCHANCE_HIGH then
+		if myHero.pos:DistanceTo(target.pos) <= 700 and damage >= hp and pred.Hitchance >= _G.HITCHANCE_NORMAL then
 			Control.CastSpell(HK_R, pred.CastPosition)
 		end	
 	end
@@ -543,10 +521,10 @@ end
 function Zyra:ImmoR()
 local target = CurrentTarget(1200)     	
 if target == nil then return end
-local count = GetImmobileCount(500, target.pos)
+local count = GetImmobileCount(500, target)
 local pred = GetGamsteronPrediction(target, RData, myHero)	
 	if self:ValidTarget(target,1200) and self.Menu.Combo.Ult.Immo:Value() and Ready(_R) then
-		if myHero.pos:DistanceTo(target.pos) <= 700 and count >= 2 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+		if myHero.pos:DistanceTo(target.pos) <= 700 and count >= 2 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
 			Control.CastSpell(HK_R, pred.CastPosition)
 		end	
 	end
@@ -614,7 +592,7 @@ function Zyra:KillSteal()
 		end
 		if self.Menu.ks.UseE:Value() and Ready(_E) then
 			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1100 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
+			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
 				Control.CastSpell(HK_E, pred.CastPosition)
 	
 			end
@@ -623,9 +601,9 @@ function Zyra:KillSteal()
 			local Epred = GetGamsteronPrediction(target, EData, myHero)
 			local Qpred = GetGamsteronPrediction(target, QData, myHero)
 			if EQDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 800 then
-				if predE.Hitchance >= _G.HITCHANCE_HIGH then
+				if Epred.Hitchance >= _G.HITCHANCE_HIGH then
 					Control.CastSpell(HK_E, Epred.CastPosition)
-				if predQ.Hitchance >= _G.HITCHANCE_HIGH then	
+				if Qpred.Hitchance >= _G.HITCHANCE_HIGH then	
 					Control.CastSpell(HK_Q, Qpred.CastPosition)
 				end
 				end
@@ -633,13 +611,13 @@ function Zyra:KillSteal()
 		end
 		if self.Menu.ks.UseIgn:Value() then 
 			local IGdamage = 80 + 25 * myHero.levelData.lvl
-			if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
+			if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and myHero.pos:DistanceTo(target.pos) <= 600 then
 				if Ready(SUMMONER_1) then
 					if IGdamage >= hp + target.hpRegen * 3 then
 						Control.CastSpell(HK_SUMMONER_1, target)
 					end
 				end
-			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
+			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and myHero.pos:DistanceTo(target.pos) <= 600  then
 				if Ready(SUMMONER_2) then
 					if IGdamage >= hp + target.hpRegen * 3 then
 						Control.CastSpell(HK_SUMMONER_2, target)
@@ -667,16 +645,16 @@ if target == nil then return end
 			if myHero.pos:DistanceTo(target.pos) <= 850 then
 				if myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "ZyraQ" then
 					Control.CastSpell(HK_W, target.pos)
-				if Ready(_W) then
 					Control.CastSpell(HK_W, target.pos)
-				end	
+					
+				
 				end
 			end
 		end	
 		
 		if self.Menu.Combo.UseE:Value() and Ready(_E) then
 			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 1100 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
+			if myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
 				Control.CastSpell(HK_E, pred.CastPosition)
 	
 			end
@@ -685,7 +663,7 @@ if target == nil then return end
 		if Ready(_R) and self.Menu.Combo.Ult.UseR:Value() then
 			local pred = GetGamsteronPrediction(target, RData, myHero)
 			local count = GetEnemyCount(500, target)
-			if myHero.pos:DistanceTo(target.pos) <= 700 and count >= self.Menu.Combo.Ult.UseRE:Value() and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			if myHero.pos:DistanceTo(target.pos) <= 700 and count >= self.Menu.Combo.Ult.UseRE:Value() and pred.Hitchance >= _G.HITCHANCE_NORMAL then
 				Control.CastSpell(HK_R, pred.CastPosition)
 			end
 		end
@@ -708,7 +686,7 @@ if target == nil then return end
 		end
 		if self.Menu.Harass.UseE:Value() and Ready(_E) then
 			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 1100 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
+			if myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
 				Control.CastSpell(HK_E, pred.CastPosition)
 	
 			end
