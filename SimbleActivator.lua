@@ -3,7 +3,7 @@ class "Activator"
  -- [ AutoUpdate ]
 do
     
-    local Version = 0.08
+    local Version = 0.09
     
     local Files = {
         Lua = {
@@ -37,7 +37,7 @@ do
         local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
         if NewVersion > Version then
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
-            print(Files.Version.Name .. ": Updated to " .. tostring(NewVersion) .. ". Please Reload with 2x F6")
+            print("New SimbleActivator Version Press 2x F6")
         else
             print(Files.Version.Name .. ": No Updates Found")
         end
@@ -144,7 +144,7 @@ local HKITEM = {
 
 function CurrentTarget(range)
 	if _G.SDK then
-		return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
+		return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL, _G.SDK.DAMAGE_TYPE_PHYSICAL);
 	elseif _G.EOW then
 		return _G.EOW:GetTarget(range)
 	elseif _G.gsoSDK then
@@ -164,13 +164,13 @@ end
 
 --Utility------------------------
 function Ready(spell)
-	return myHero:GetSpellData(slot).currentCd == 0 
+	return Game.CanUseSpell(spell) == 0 
 end
 
 
 
 local function Cleans(unit)
-	if unit == nil then return false end
+
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
 		if buff and (buff.type == 5 or buff.type == 7 or buff.type == 8 or buff.type == 21 or buff.type == 22 or buff.type == 25 or buff.type == 10 or buff.type == 31 or buff.type == 24) and buff.count > 0 then
@@ -387,9 +387,8 @@ if myHero.dead then return end
 	local MyHp = GetPercentHP(myHero)
 	local MyMp = GetPercentMP(myHero)
 
-		for i = 1, Game.HeroCount() do
-		local hero = Game.Hero(i)	
-		if self:ValidTarget(target,800) then
+	
+		if self:ValidTarget(target, 1000) then
 			if self.Menu.summ.heal.self:Value() and MyHp <= self.Menu.summ.heal.selfhp:Value() then
 				if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and Ready(SUMMONER_1) then
 					Control.CastSpell(HK_SUMMONER_1, myHero)
@@ -400,7 +399,7 @@ if myHero.dead then return end
 			for i,ally in pairs(GetAllyHeroes()) do
 			local AllyHp = GetPercentHP(ally)
 				if self.Menu.summ.heal.ally:Value() and AllyHp <= self.Menu.summ.heal.allyhp:Value() then
-					if self:ValidTarget(ally, 1000) and myHero.pos:DistanceTo(ally.pos) <= 850 and ally.dead == false then
+					if self:ValidTarget(ally, 1000) and myHero.pos:DistanceTo(ally.pos) <= 850 and not ally.dead then
 						if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and Ready(SUMMONER_1) then
 							Control.CastSpell(HK_SUMMONER_1, ally)
 						elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" and Ready(SUMMONER_2) then
@@ -424,26 +423,26 @@ if myHero.dead then return end
 					Control.CastSpell(HK_SUMMONER_2, myHero)
 				end
 			end
-			local TargetHp = GetPercentHP(hero)
+			local TargetHp = GetPercentHP(target)
 			if self.Menu.summ.ex.target:Value() then	
-				if hero.isEnemy and not hero.dead and myHero.pos:DistanceTo(hero.pos) <= 650 and TargetHp <= self.Menu.summ.ex.hp:Value() then
+				if myHero.pos:DistanceTo(target.pos) <= 650 and TargetHp <= self.Menu.summ.ex.hp:Value() then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" and Ready(SUMMONER_1) then
-						Control.CastSpell(HK_SUMMONER_1, hero)
+						Control.CastSpell(HK_SUMMONER_1, target)
 					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and Ready(SUMMONER_2) then
-						Control.CastSpell(HK_SUMMONER_2, hero)
+						Control.CastSpell(HK_SUMMONER_2, target)
 					end
 				end
 			end
-			local TargetHp = GetPercentHP(hero)
+			local TargetHp = GetPercentHP(target)
 			if self.Menu.summ.ign.target:Value() and TargetHp <= self.Menu.summ.ign.hp:Value()  then	
-				if myHero.pos:DistanceTo(hero.pos) <= 600 then
+				if myHero.pos:DistanceTo(target.pos) <= 600 then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
-						Control.CastSpell(HK_SUMMONER_1, hero)
+						Control.CastSpell(HK_SUMMONER_1, target)
 					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
-						Control.CastSpell(HK_SUMMONER_2, hero)
+						Control.CastSpell(HK_SUMMONER_2, target)
 					end
 				end
 			end			
 		end
 	end
-end
+
