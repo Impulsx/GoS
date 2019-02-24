@@ -1,7 +1,19 @@
+if myHero.charName ~= "Cassiopeia" then return end
+
+class "Cassiopeia"
+
+if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+	print("GsoPred. installed Press 2x F6")
+	DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-External/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
+	while not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") do end
+end
+    
+require('GamsteronPrediction')
+
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.03
+    local Version = 0.04
     
     local Files = {
         Lua = {
@@ -308,12 +320,18 @@ end
 	require "2DGeometry"
 	require "DamageLib"
 
-	class "Cassiopeia"
+	
 	
 	function Cassiopeia:LoadSpells()
 	R = {Range = 825, Width = 200, Delay = 1.25, Speed = math.huge, Collision = false, aoe = false, Type = "circular"}
 
 end
+
+local QData =
+{
+Type = _G.SPELLTYPE_CIRCLE, Delay = 0.4, Radius = 75, Range = 850, Speed = math.huge,
+Collision = false
+}
 
 	local AA = false
 	local QRange = 850 * 850
@@ -341,12 +359,13 @@ end
 	function Cassiopeia:Menu()
 		Cass:MenuElement({name = " ", drop = {"General Settings"}})
 		
-		--Combo
+		--Combo   
 		Cass:MenuElement({type = MENU, id = "c", name = "Combo"})
 		Cass.c:MenuElement({id = "Block", name = "Block AA in Combo [?]", value = true, tooltip = "Reload Script after changing"})
 		Cass.c:MenuElement({id = "Q", name = "Use Q", value = true})
 		Cass.c:MenuElement({id = "W", name = "Use W", value = true})
 		Cass.c:MenuElement({id = "E", name = "Use E", value = true})
+		Cass.c:MenuElement({id = "SR", name = "Manual R ", key = string.byte("A")})
 		Cass.c:MenuElement({id = "R", name = "Use R ", value = true})
 		Cass.c:MenuElement({id = "Count", name = "Min Amount to hit R", value = 2, min = 1, max = 5, step = 1})
 		Cass.c:MenuElement({id = "P", name = "Use Panic R and Ghost", value = true})
@@ -498,10 +517,13 @@ end
 			if Cass.w.E:Value() and Mode ~= "Combo" then
 				self:AutoE()
 			end
+			if Cass.c.SR:Value() then
+				self:SemiR()
+			end	
 			self:UnBlockAA(Mode)
 			self:Activator(Mode)
 			self:KsE()
-			self:DrawEngage()
+			
 			self:AntiCC()
 		end
 	end
@@ -755,9 +777,9 @@ end
 		end
 		if QValue and Ready(_Q) then 
 			if Dist < QRange then 
-			local Pos = GetPred(target, 20000, 0.44 + Game.Latency()/1000)
-				if GetDistanceSqr(Pos, myHero.pos) < QRange then
-					Control.CastSpell(HK_Q, Pos)
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+				if GetDistanceSqr(target.pos, myHero.pos) < QRange and pred.Hitchance >= _G.HITCHANCE_HIGH then
+					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
 			end
 		end
@@ -800,8 +822,21 @@ end
 			end
 
 		end
-	end
+	end  
 	
+function Cassiopeia:SemiR()
+	local target = GetTarget(950)
+	if target == nil then return end
+	local Dist = GetDistanceSqr(myHero.pos, target.pos)	
+	if Ready(_R) then
+		if Dist < RRange then
+			Control.SetCursorPos(target)
+			Control.CastSpell(HK_R, target)
+		end
+	end 
+end
+	
+		
 
 	function Cassiopeia:Harass()
 		local activeSpell = myHero.activeSpell
@@ -816,9 +851,9 @@ end
 		local Dist = GetDistanceSqr(myHero.pos, target.pos)
 		if QValue and Ready(_Q) and myHero.mana/myHero.maxMana > Cass.m.Q:Value()/100 then 
 			if Dist < QRange then 
-			local Pos = GetPred(target, 20000, 0.44 + Game.Latency()/1000)
-				if GetDistanceSqr(Pos, myHero.pos) < QRange then
-					Control.CastSpell(HK_Q, Pos)
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+				if GetDistanceSqr(target.pos, myHero.pos) < QRange and pred.Hitchance >= _G.HITCHANCE_HIGH then
+					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
 			end
 		end
@@ -839,8 +874,10 @@ end
 		local WValue = Cass.w.W:Value()				
 			if Ready(_Q) and IsRecalling() == false and QValue and myHero.mana/myHero.maxMana > Cass.m.QW:Value()/100 then
 				if IsValidCreep(Minion, 850) and GetDistanceSqr(Minion.pos, myHero.pos) < QRange then 
-				local Pos = GetPred(Minion, 20000, 0.44 + Game.Latency()/1000)
-					Control.CastSpell(HK_Q, Pos)
+				local pred = GetGamsteronPrediction(Minion, QData, myHero)
+				if pred.Hitchance >= _G.HITCHANCE_HIGH then
+					Control.CastSpell(HK_Q, pred.CastPosition)
+				end
 				end
 			end
 			local Pos = GetPred(Minion, 1500, 0.25 + Game.Latency()/1000)
@@ -918,9 +955,9 @@ end
 				end	
 				if Ready(_Q) and RCheck == false then 
 					if Dist < QRange then 
-					local Pos = GetPred(target, 20000, 0.44 + Game.Latency()/1000)
-						if GetDistanceSqr(Pos, myHero.pos) < QRange then
-							Control.CastSpell(HK_Q, Pos)
+					local pred = GetGamsteronPrediction(target, QData, myHero)
+						if GetDistanceSqr(target.pos, myHero.pos) < QRange and pred.Hitchance >= _G.HITCHANCE_HIGH then
+							Control.CastSpell(HK_Q, pred.CastPosition)
 						end
 					end
 				end
@@ -932,7 +969,7 @@ end
 				if Ready(_W) and RCheck == false then 
 					if Dist < MaxWRange and Dist > MinWRange then
 					local Pos = GetPred(target, 1500, 0.25 + Game.Latency()/1000)
-						if GetDistanceSqr(Pos, myHero.pos) < MaxWRange then 
+						if GetDistanceSqr(target.pos, myHero.pos) < MaxWRange then 
 							self:CastW(HK_W, Pos)
 						end
 					end
@@ -1003,6 +1040,7 @@ end
 				Draw.Circle(myHero.pos, 750, Cass.d.E.Width:Value(), Cass.d.E.Color:Value())
 			end			
 		end
+self:DrawEngage()		
 	end
 	
 	function Cassiopeia:DrawEngage()
@@ -1011,7 +1049,7 @@ end
 			return
 		end
 		local fulldmg = self:Qdmg(target) + self:Wdmg(target) + self:Edmg(target) + self:Rdmg(target)
-		local textPos = myHero.pos:To2D()
+		local textPos = target.pos:To2D()
 		for i = 1, Game.HeroCount() do
 		local hero = Game.Hero(i)
 			if Cass.kill.Eng:Value() and hero.isEnemy and not hero.dead then
