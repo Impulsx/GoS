@@ -13,7 +13,7 @@ require('GamsteronPrediction')
 
 do
     
-    local Version = 0.01
+    local Version = 0.02
     
     local Files = {
         Lua = {
@@ -97,6 +97,13 @@ Collision = false, MaxCollision = 0, CollisionObjects = { _G.COLLISION_YASUOWALL
 local function Ready(spell)
     return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
 end 
+
+local function IsValid(unit)
+    if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) then
+        return true;
+    end
+    return false;
+end
 
 function CanMove()
 	if _G.SDK then
@@ -347,16 +354,15 @@ function LeftClick(pos)
 end
 
 function Zyra:EnemiesAround(pos, range)
-	local pos = pos.pos
-	local N = 0
-	for i = 1,Game.HeroCount()  do
-		local hero = Game.Hero(i)
-		local Range = range * range
-		if hero.team ~= TEAM_ALLY and hero.dead == false and GetDistanceSqr(pos, hero.pos) < Range then
-			N = N + 1
-		end
-	end
-	return N	
+    local pos = pos.pos
+    local N = 0
+    for i = 1, Game.HeroCount() do
+        local hero = Game.Hero(i)
+        if (IsValid(hero) and hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < range * range) then
+            N = N + 1
+        end
+    end
+    return N
 end
 
 
@@ -391,7 +397,7 @@ function Zyra:LoadMenu()
 	self.Menu.Combo:MenuElement({type = MENU, id = "Ult", name = "Ultimate Settings"})
 	self.Menu.Combo.Ult:MenuElement({id = "UseR", name = "[R] Stranglethorns", value = true})
 	self.Menu.Combo.Ult:MenuElement({id = "UseRE", name = "Use [R] min Targets", value = 2, min = 1, max = 6})
-	self.Menu.Combo.Ult:MenuElement({id = "killR", name = "Use[R] Killable Target", value = true})
+	self.Menu.Combo.Ult:MenuElement({id = "killR", name = "Use[R] Killable Target", value = false})
 	self.Menu.Combo.Ult:MenuElement({id = "Immo", name = "Use[R]Immobile Targets > 2", value = true})	
 
 	--HarassMenu
@@ -445,7 +451,7 @@ if myHero.dead then return end
 	self:AutoE()
 	self:AutoR()
 	self:ImmoR()	
-
+	self:UseW()
 
 	
 	if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
@@ -455,7 +461,7 @@ if myHero.dead then return end
 		
 	elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then                
 		self:Harass()
-		self:UseW()
+		
 		
 	elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
 		self:Clear()
@@ -472,19 +478,23 @@ if myHero.dead then return end
 	end
 end 
 
+
+
 function Zyra:ValidTarget(unit,range) 
-  return unit ~= nil and unit.valid and unit.visible and not unit.dead and unit.isTargetable and not unit.isImmortal 
+  return IsValid(unit) 
 end
 
 function Zyra:UseW()
 local target = CurrentTarget(1200)     	
 if target == nil then return end		
-	if self:ValidTarget(target,1200) and self.Menu.Harass.UseW:Value() and Ready(_W) then
+	if self:ValidTarget(target,1200) and Ready(_W) then
 		if myHero.pos:DistanceTo(target.pos) <= 850 then
-			if myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "ZyraQ" then
+			if IsImmobileTarget(target) then   
+				DelayAction(function() 
+				Control.CastSpell(HK_W, target.pos) 
 				Control.CastSpell(HK_W, target.pos)
-				Control.CastSpell(HK_W, target.pos)
-			
+		
+				end, 0.05)
 			end
 		end	
 	end
@@ -497,6 +507,7 @@ if target == nil then return end
 local pred = GetGamsteronPrediction(target, EData, myHero)	
 	if self:ValidTarget(target,1200) and self.Menu.AutoE.UseE:Value() and Ready(_E) then
 		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			self:UseW()
 			Control.CastSpell(HK_E, pred.CastPosition)
 		end	
 	end
@@ -587,12 +598,14 @@ function Zyra:KillSteal()
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+				self:UseW()
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if self.Menu.ks.UseE:Value() and Ready(_E) then
 			local pred = GetGamsteronPrediction(target, EData, myHero)
 			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
+				self:UseW()
 				Control.CastSpell(HK_E, pred.CastPosition)
 	
 			end
@@ -601,6 +614,7 @@ function Zyra:KillSteal()
 			local Epred = GetGamsteronPrediction(target, EData, myHero)
 			local Qpred = GetGamsteronPrediction(target, QData, myHero)
 			if EQDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 800 then
+				self:UseW()
 				if Epred.Hitchance >= _G.HITCHANCE_HIGH then
 					Control.CastSpell(HK_E, Epred.CastPosition)
 				if Qpred.Hitchance >= _G.HITCHANCE_HIGH then	
@@ -634,23 +648,22 @@ local target = CurrentTarget(1200)
 if target == nil then return end
 	if self:ValidTarget(target,1200) then
 
+		if self.Menu.Combo.UseW:Value() and Ready(_W) then
+			if myHero.pos:DistanceTo(target.pos) <= 850 then
+				DelayAction(function() 
+				Control.CastSpell(HK_W, target.pos) 
+				Control.CastSpell(HK_W, target.pos)
+		
+				end, 0.05)
+			end
+		end			
+		
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
 		end
-		
-		if self.Menu.Combo.UseW:Value() and Ready(_W) then
-			if myHero.pos:DistanceTo(target.pos) <= 850 then
-				if myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "ZyraQ" then
-					Control.CastSpell(HK_W, target.pos)
-					Control.CastSpell(HK_W, target.pos)
-					
-				
-				end
-			end
-		end	
 		
 		if self.Menu.Combo.UseE:Value() and Ready(_E) then
 			local pred = GetGamsteronPrediction(target, EData, myHero)
@@ -681,12 +694,14 @@ if target == nil then return end
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+				self:UseW()
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if self.Menu.Harass.UseE:Value() and Ready(_E) then
 			local pred = GetGamsteronPrediction(target, EData, myHero)
 			if myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
+				self:UseW()
 				Control.CastSpell(HK_E, pred.CastPosition)
 	
 			end
