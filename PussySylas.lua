@@ -4,7 +4,7 @@ local menu = 1
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.05
+    local Version = 0.06
     
     local Files = {
         Lua = {
@@ -375,6 +375,17 @@ function GetPercentHP(unit)
 	return (unit.health / unit.maxHealth) * 100
 end
 
+local function IsValid(unit)
+    if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) then
+        return true;
+    end
+    return false;
+end
+
+function Sylas:ValidTarget(unit,range) 
+  return IsValid(unit) 
+end
+
 function ReturnCursor(pos)
 	Control.SetCursorPos(pos)
 	DelayAction(EnableMovement,0.1)
@@ -446,7 +457,7 @@ function Sylas:LoadMenu()
 	--UltSettings
 	self.Menu.Combo:MenuElement({type = MENU, id = "Set", name = "Ult Settings"})
 	--Tranformation Ults
-	self.Menu.Combo.Set:MenuElement({id = "Trans", name = "Use Tranform Ults[inWork]", value = true})								
+	self.Menu.Combo.Set:MenuElement({id = "Trans", name = "Use Tranform Ults[inWork]", value = false})								
 	--Heal+Shield Ults
 	self.Menu.Combo.Set:MenuElement({id = "Heal", name = "Use HEAL+Shield Ults", value = true})   								
 	self.Menu.Combo.Set:MenuElement({id = "HP", name = "MinHP Heal+Shield", value = 30, min = 0, max = 100, identifier = "%"})	
@@ -756,7 +767,7 @@ if myHero.dead then return end
 		end
 	end	
  
-	if self.Menu.AutoW.UseW:Value() and Ready(_W) then
+	if self:ValidTarget(target,600) and self.Menu.AutoW.UseW:Value() and Ready(_W) then
 		if myHero.pos:DistanceTo(target.pos) <= 400  and myHero.health/myHero.maxHealth <= self.Menu.AutoW.hp:Value()/100 then
 			Control.CastSpell(HK_W, target)
 		end
@@ -786,26 +797,27 @@ end
 function Sylas:Activator()
 local target = CurrentTarget(1000)
 if myHero.dead or target == nil then return end
-
+	if self:ValidTarget(target,1000) then
 			--Zhonyas
-	if self.Menu.a.Zhonyas.ON:Value()  then
-		local Zhonyas = GetItemSlot(myHero, 3157)
-		if Zhonyas > 0 and Ready(Zhonyas) then 
-			if myHero.health/myHero.maxHealth <= self.Menu.a.Zhonyas.HP:Value()/100 then
-				Control.CastSpell(ItemHotKey[Zhonyas])
+		if self.Menu.a.Zhonyas.ON:Value()  then
+			local Zhonyas = GetItemSlot(myHero, 3157)
+			if Zhonyas > 0 and Ready(Zhonyas) then 
+				if myHero.health/myHero.maxHealth <= self.Menu.a.Zhonyas.HP:Value()/100 then
+					Control.CastSpell(ItemHotKey[Zhonyas])
+				end
 			end
 		end
-	end
 			--Stopwatch
-	if self.Menu.a.Zhonyas.ON:Value() then
-		local Stop = GetItemSlot(myHero, 2420)
-		if Stop > 0 and Ready(Stop) then 
-			if myHero.health/myHero.maxHealth <= self.Menu.a.Zhonyas.HP:Value()/100 then
-				Control.CastSpell(ItemHotKey[Stop])
+		if self.Menu.a.Zhonyas.ON:Value() then
+			local Stop = GetItemSlot(myHero, 2420)
+			if Stop > 0 and Ready(Stop) then 
+				if myHero.health/myHero.maxHealth <= self.Menu.a.Zhonyas.HP:Value()/100 then
+					Control.CastSpell(ItemHotKey[Stop])
+				end
 			end
 		end
 	end
-end
+end	
 	
 			
 
@@ -826,7 +838,7 @@ function Sylas:Draw()
 	end
 	local target = CurrentTarget(20000)
 	if target == nil then return end	
-	if target and self.Menu.Drawing.Kill:Value() and not target.dead then
+	if self:ValidTarget(target,20000) and self.Menu.Drawing.Kill:Value() and not target.dead then
 	local hp = target.health
 	local fullDmg = (getdmg("Q", target, myHero) + getdmg("E", target, myHero) + getdmg("W", target, myHero))	
 		if Ready(_Q) and getdmg("Q", target, myHero) > hp then
@@ -848,9 +860,7 @@ function Sylas:Draw()
 	end
 end
        
-function Sylas:ValidTarget(unit,range) 
-  return unit ~= nil and unit.valid and unit.visible and not unit.dead and unit.isTargetable and not unit.isImmortal 
-end
+
 
 
 
@@ -1944,11 +1954,27 @@ if target == nil then return end
 	end
 end
 
+function Sylas:GetPykeDamage()
+	local total = 0
+	local Lvl = myHero.levelData.lvl
+	if Lvl > 5 then
+		local raw = ({ 250, 250, 250, 250, 250, 250, 290, 330, 370, 400, 430, 450, 470, 490, 510, 530, 540, 550 })[Lvl]
+		local m = 1.5 * myHero.armorPen
+		local Dmg = m + raw + (0.4 * myHero.ap)
+		total = Dmg   
+	end
+	return total
+end	
+
+
+
 function Sylas:KillUltPyke()																				--Pyke
 local target = CurrentTarget(800)     	
 if target == nil then return end
+	local hp = target.health
+	local dmg = self:GetPykeDamage()
 	if self:ValidTarget(target,800) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "PykeR") and myHero.pos:DistanceTo(target.pos) <= 750 then	 
+		if (myHero:GetSpellData(_R).name == "PykeR") and myHero.pos:DistanceTo(target.pos) <= 750 and dmg >= hp then	 
 			Control.CastSpell(HK_R, target)
 		end
 	end
@@ -3831,6 +3857,7 @@ local DamageLibTable = {
 	{Slot = "R", Stage = 83, DamageType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.6 * source.ap end},--Viktor
 	{Slot = "R", Stage = 84, DamageType = 2, Damage = function(source, target, level) return ({70, 105, 140})[level] + 0.5 * source.ap end},--Xayah
 	{Slot = "R", Stage = 85, DamageType = 2, Damage = function(source, target, level) return ({140, 210, 280})[level] + 0.75 * source.ap end},--Yasuo
+
 	
 
   },
