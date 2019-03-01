@@ -4,7 +4,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.02
+    local Version = 0.03
     
     local Files = {
         Lua = {
@@ -68,12 +68,14 @@ end
 
 class "Veigar"
 
+
+
 function Veigar:LoadSpells()
 
-	Q = {Range = 950, Width = 70, Delay = 0.25, Speed = 2200, Collision = true, aoe = true, Type = "line"}
-	W = {Range = 900, Width = 225, Delay = 1.25, Speed = math.huge, Collision = false, aoe = true, Type = "circular"}
-	E = {Range = 700, Width = 375, Delay = 1, Speed = math.huge, Collision = false, aoe = true, Type = "circular"}
-	R = {Range = 650, Width = 0, Delay = 1.00, Speed = 2000, Collision = false, aoe = false, Type = "line"}
+	Q = {Range = 950, Width = 70, Delay = 0.25, Speed = 2000, Collision = true, aoe = false, Type = "line"}
+	W = {Range = 900, Width = 112, Delay = 1.25, Speed = math.huge, Collision = false, aoe = true, Type = "circular"}
+	E = {Range = 700, Width = 375, Delay = 0.5, Speed = math.huge, Collision = false, aoe = true, Type = "circular"}
+	R = {Range = 650, Width = 0, Delay = 0.25, Speed = 1400, Collision = false, aoe = false, Type = "line"}
 
 end
 
@@ -457,7 +459,7 @@ function Veigar:Combo()
 	if self.Menu.Combo.UseE:Value() and target and self:CanCast(_E) then
 		if self:EnemyInRange(E.Range) then
 			if self.Menu.Combo.EMode:Value() == 1 then
-				Control.CastSpell(HK_E, Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(myHero.pos)):Normalized()*289) --350
+				Control.CastSpell(HK_E, Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(myHero.pos)):Normalized()*375) 
 			elseif self.Menu.Combo.EMode:Value() == 2 then
 				Control.CastSpell(HK_E,target)
 			end
@@ -471,12 +473,15 @@ function Veigar:Combo()
 		    local castpos,HitChance, pos = TPred:GetBestCastPosition(target, W.Delay , W.Width, W.Range,W.Speed, myHero.pos, W.ignorecol, W.Type )
 		    local ImmobileEnemy = self:IsImmobileTarget(target)
 			if (HitChance > 0 ) then
-				if self.Menu.Combo.WWait:Value() and ImmobileEnemy then return end
+				if self.Menu.Combo.WWait:Value() and ImmobileEnemy then 
 					Control.CastSpell(HK_W, castpos)
+				elseif self.Menu.Combo.WWait:Value() == false then 
+					Control.CastSpell(HK_W, castpos)	
 				end
 			end
 		end
     end
+end	
 
 local function GetPercentMP(unit)
   if type(unit) ~= "userdata" then error("{GetPercentHP}: bad argument #1 (userdata expected, got "..type(unit)..")") end
@@ -666,7 +671,7 @@ function Veigar:SpellonCCE()
 		local ImmobileEnemy = self:IsImmobileTarget(target)
 	    if self:EnemyInRange(E.Range) and ImmobileEnemy then
 		if self.Menu.isCC.EMode:Value() == 1 then
-			Control.CastSpell(HK_E, Vector(target:GetPrediction(E.speed,E.delay))-Vector(Vector(target:GetPrediction(E.speed,E.delay))-Vector(myHero.pos)):Normalized()*300)
+			Control.CastSpell(HK_E, Vector(target:GetPrediction(E.speed,E.delay))-Vector(Vector(target:GetPrediction(E.speed,E.delay))-Vector(myHero.pos)):Normalized()*375)
 		elseif self.Menu.isCC.EMode:Value() == 2 then
 			Control.CastSpell(HK_E,target)
 		end
