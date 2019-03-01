@@ -1,4 +1,18 @@
+if myHero.charName ~= "Tristana" then return end
 local Heroes = {"Tristana"}
+
+class "Tristana"
+
+
+
+	if FileExist(COMMON_PATH .. "Collision.lua") then
+	require 'Collision'
+
+end
+	if FileExist(COMMON_PATH .. "DamageLib.lua") then
+	require 'DamageLib'
+
+end
 
 
 
@@ -7,7 +21,7 @@ local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.03
+    local Version = 0.04
     
     local Files = {
         Lua = {
@@ -63,39 +77,74 @@ local HKITEM = {
 	[ITEM_7] = HK_ITEM_7,
 }
 
-
-if FileExist(COMMON_PATH .. "TPred.lua") then
-	require 'TPred'
-	PrintChat("TPred library loaded")
+function EnableMovement()
+	SetMovement(true)
 end
-	if FileExist(COMMON_PATH .. "Collision.lua") then
-	require 'Collision'
 
+function ReturnCursor(pos)
+	Control.SetCursorPos(pos)
+	DelayAction(EnableMovement,0.1)
 end
-	if FileExist(COMMON_PATH .. "DamageLib.lua") then
-	require 'DamageLib'
 
+function LeftClick(pos)
+	Control.mouse_event(MOUSEEVENTF_LEFTDOWN)
+	Control.mouse_event(MOUSEEVENTF_LEFTUP)
+	DelayAction(ReturnCursor,0.05,{pos})
 end
+
+function Tristana:__init()
+	
+	self:LoadSpells()
+	self:LoadMenu()
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)
+	local orbwalkername = ""
+	if _G.SDK then
+		orbwalkername = "IC'S orbwalker"		
+	elseif _G.EOW then
+		orbwalkername = "EOW"	
+	elseif _G.GOS then
+		orbwalkername = "Noddy orbwalker"
+	elseif _G.gsoSDK then
+		orbwalkername = "Gso orbwalker"
+	else
+		orbwalkername = "Orbwalker not found"
+	end
+end
+
+function CurrentTarget(range)
+	if _G.SDK then
+		return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL);
+	elseif _G.EOW then
+		return _G.EOW:GetTarget(range)
+	elseif _G.gsoSDK then
+		return _G.gsoSDK.TargetSelector:GetTarget(GetEnemyHeroes(5000), false)		
+	else
+		return _G.GOS:GetTarget(range,"AD")
+	end
+end
+
 
 function SetMovement(bool)
 	if _G.EOWLoaded then
 		EOW:SetMovements(bool)
 		EOW:SetAttacks(bool)
-	elseif _G.SDK then
-		_G.SDK.Orbwalker:SetMovement(bool)
+	elseif _G.SDK then                                      
+		_G.SDK.Orbwalker:SetMovement(bool)                  
 		_G.SDK.Orbwalker:SetAttack(bool)
+	elseif _G.gsoSDK then
+		_G.gsoSDK.Orbwalker:SetMovement(bool)
+		_G.gsoSDK.Orbwalker:SetAttack(bool)	
 	else
 		GOS.BlockMovement = not bool
 		GOS.BlockAttack = not bool
 	end
-	if bool then
-		castSpell.state = 0
-	end
+
 end
 
 
 
-class "Tristana"
+
 
 
 
@@ -108,6 +157,8 @@ function Tristana:LoadSpells()
 	R = {Range = 517 + (8 * myHero.levelData.lvl), Width = 0, Delay = 0.25, Speed = 1000, Collision = false, aoe = false, Type = "line"}
 
 end
+
+
 
 function Tristana:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Tristana", name = "PussyTristana", leftIcon = HeroIcon})
@@ -167,33 +218,29 @@ function Tristana:LoadMenu()
 
 end
 
-
-function Tristana:__init()
-	
-	self:LoadSpells()
-	self:LoadMenu()
-	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("Draw", function() self:Draw() end)
-	local orbwalkername = ""
-	if _G.SDK then
-		orbwalkername = "IC'S orbwalker"		
-	elseif _G.EOW then
-		orbwalkername = "EOW"	
-	elseif _G.GOS then
-		orbwalkername = "Noddy orbwalker"
-	else
-		orbwalkername = "Orbwalker not found"
+function Tristana:Tick()
+    if myHero.dead or Game.IsChatOpen() == true or IsRecalling() == true then return end
+	if self.Menu.Combo.comboActive:Value() then
+		self:Combo()
+		self:ComboE()
+		self:UseBotrk()
+		self:ComboRKS()
+		self:Finisher()
+	end	
+	if self.Menu.Harass.harassActive:Value() then
+		self:HarassQ()
+		self:HarassE()
 	end
-end
 
-function CurrentTarget(range)
-	if _G.SDK then
-		return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL);
-	elseif _G.EOW then
-		return _G.EOW:GetTarget(range)
-	else
-		return _G.GOS:GetTarget(range,"AD")
+	if self.Menu.Blitz.UseW:Value() then
+		self:AntiBlitz()
 	end
+	if self.Menu.gap.gapkey:Value() then
+		self:GapcloseR()
+		self:AutoR()
+
+	end
+	self:UseMS()
 end
 
 function GetInventorySlotItem(itemID)
@@ -213,36 +260,16 @@ function IsRecalling()
 	return false
 end
 
-function ValidTarget(target, range)
-	range = range and range or math.huge
-	return target ~= nil and target.valid and target.visible and not target.dead and target.distance <= range
+local function IsValid(unit)
+    if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) then
+        return true;
+    end
+    return false;
 end
 
-function Tristana:Tick()
-    if myHero.dead or Game.IsChatOpen() == true or IsRecalling() == true then return end
-	if self.Menu.Combo.comboActive:Value() then
-		self:Combo()
-		self:ComboE()
-		self:UseBotrk()
-		self:ComboRKS()
-		self:Finisher()
-	end	
-	if self.Menu.Harass.harassActive:Value() then
-		self:HarassQ()
-		self:HarassE()
-	end
-	if self.Menu.Drawings.DrawR:Value() then
-		self:DrawGapR()
-	end
-	if self.Menu.Blitz.UseW:Value() then
-		self:AntiBlitz()
-	end
-	if self.Menu.gap.gapkey:Value() then
-		self:GapcloseR()
-		self:AutoR()
 
-	end
-	self:UseMS()
+function Tristana:IsValidTarget(unit,range) 
+	return unit ~= nil and IsValid(unit) and unit.pos:DistanceTo(myHero.pos) <= 550 
 end
 
 
@@ -283,20 +310,7 @@ function Tristana:CanCast(spellSlot)
 	return self:IsReady(spellSlot) and self:CheckMana(spellSlot)
 end
 
-function EnableMovement()
-	SetMovement(true)
-end
 
-function ReturnCursor(pos)
-	Control.SetCursorPos(pos)
-	DelayAction(EnableMovement,0.1)
-end
-
-function LeftClick(pos)
-	Control.mouse_event(MOUSEEVENTF_LEFTDOWN)
-	Control.mouse_event(MOUSEEVENTF_LEFTUP)
-	DelayAction(ReturnCursor,0.05,{pos})
-end
 
 function Tristana:GetValidMinion(range)
     	for i = 1,Game.MinionCount() do
@@ -322,7 +336,7 @@ end
 function Tristana:EnemyInRange(range)
 	local count = 0
 	for i, target in ipairs(self:GetEnemyHeroes()) do
-		if target.pos:DistanceTo(myHero.pos) < range then 
+		if IsValid(target) and target.pos:DistanceTo(myHero.pos) < range then 
 			count = count + 1
 		end
 	end
@@ -407,34 +421,22 @@ end
 -------------------------
 
 function Tristana:Draw()
-if self:CanCast(_W) and self.Menu.Drawings.W.Enabled:Value() then Draw.Circle(myHero, 900, self.Menu.Drawings.W.Width:Value(), self.Menu.Drawings.W.Color:Value()) end
-if self:CanCast(_E) and self.Menu.Drawings.E.Enabled:Value() then Draw.Circle(myHero, GetERange(), self.Menu.Drawings.E.Width:Value(), self.Menu.Drawings.E.Color:Value()) end
-if self:CanCast(_R) and self.Menu.Drawings.R.Enabled:Value() then Draw.Circle(myHero, GetRRange(), self.Menu.Drawings.R.Width:Value(), self.Menu.Drawings.R.Color:Value()) end
-
-end	
-
-
-
-
-function Tristana:DrawGapR()
-	if self.Menu.Drawings.DrawR:Value() then
-		local textPos = myHero.pos:To2D()
-			local hero = CurrentTarget(GetRWRange())
-			if hero == nil then return end
-			if myHero.pos:DistanceTo(hero.pos) > R.Range and self:EnemyInRange(GetRWRange()) then
-			local Rdamage = self:RDMG(hero)		
-			local totalDMG = CalculateMagicalDamage(hero, Rdamage)
+	if self:CanCast(_W) and self.Menu.Drawings.W.Enabled:Value() then Draw.Circle(myHero, 900, self.Menu.Drawings.W.Width:Value(), self.Menu.Drawings.W.Color:Value()) end
+	if self:CanCast(_E) and self.Menu.Drawings.E.Enabled:Value() then Draw.Circle(myHero, GetERange(), self.Menu.Drawings.E.Width:Value(), self.Menu.Drawings.E.Color:Value()) end
+	if self:CanCast(_R) and self.Menu.Drawings.R.Enabled:Value() then Draw.Circle(myHero, GetRRange(), self.Menu.Drawings.R.Width:Value(), self.Menu.Drawings.R.Color:Value()) end
+	local hero = CurrentTarget(GetRWRange())
+	if hero == nil then return end
+	local textPos = myHero.pos:To2D()	
+	if self.Menu.Drawings.DrawR:Value() and IsValid(hero) then 
+		if myHero.pos:DistanceTo(hero.pos) > R.Range and self:EnemyInRange(GetRWRange()) then
+		local Rdamage = self:RDMG(hero)		
+		local totalDMG = CalculateMagicalDamage(hero, Rdamage)
 			if totalDMG > self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead and self:IsReady(_R) and self:IsReady(_W) then
 			Draw.Text("GapcloseKill PressKey", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
 			end
-			end
-end
-end			
-		
-
-
-
-
+		end
+	end
+end	
 
 function Tristana:CastSpell(spell,pos)
 	local customcast = self.Menu.CustomSpellCast:Value()
@@ -523,7 +525,7 @@ end
 function Tristana:UseBotrk()
 	local target = CurrentTarget(700)
 	if target == nil then return end
-		if self:EnemyInRange(700) then 
+	if self:EnemyInRange(700) then 
 		local BOTR = GetInventorySlotItem(3153) or GetInventorySlotItem(3144)
 		if BOTR and self:EnemyInRange(700) then
 			Control.CastSpell(HKITEM[BOTR], target)
@@ -565,19 +567,19 @@ function Tristana:ComboE()
     if target == nil then return end
     if self.Menu.Combo.UseE:Value() and target and self:CanCast(_E) then
 	    if self:EnemyInRange(GetERange()) then
-		Control.CastSpell(HK_E, target)
-		    end
-	    end
-	    end
+			Control.CastSpell(HK_E, target)
+		end
+	end
+end
 		
 function Tristana:ComboRKS()
 	local hero = CurrentTarget(GetRRange())
     if hero == nil then return end
  	if self.Menu.Combo.R["RR"..hero.charName]:Value() and self:CanCast(_R) then
-	if self:EnemyInRange(GetRRange())  then
-   	local Rdamage = self:RDMG(hero)   
-	local totalDMG = CalculateMagicalDamage(hero, Rdamage)	
-		if totalDMG >= self:HpPred(hero,1) + hero.hpRegen * 1  and not hero.dead then
+		if self:EnemyInRange(GetRRange()) then
+		local Rdamage = self:RDMG(hero)   
+		local totalDMG = CalculateMagicalDamage(hero, Rdamage)
+			if totalDMG >= self:HpPred(hero,1) + hero.hpRegen * 1 then
 				Control.CastSpell(HK_R, hero)
 			end
         end
@@ -588,13 +590,13 @@ function Tristana:Finisher()
 	local hero = CurrentTarget(GetRRange())
     if hero == nil then return end
 	if self.Menu.Combo.UseR:Value() and self:CanCast(_R) then
-	if self:EnemyInRange(GetRRange()) then
-	Edmg = self:EDMG(hero)
-	Rdmg = self:RDMG(hero)	
-	calcEdmg = CalculatePhysicalDamage(hero, Edmg)
-	calcRdmg = CalculateMagicalDamage(hero, Rdmg)
-	totalDMG = calcEdmg + calcRdmg
-			if totalDMG >= self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
+		if self:EnemyInRange(GetRRange()) then
+			Edmg = self:EDMG(hero)
+			Rdmg = self:RDMG(hero)	
+			calcEdmg = CalculatePhysicalDamage(hero, Edmg)
+			calcRdmg = CalculateMagicalDamage(hero, Rdmg)
+			totalDMG = calcEdmg + calcRdmg
+			if totalDMG >= self:HpPred(hero,1) + hero.hpRegen * 1 then
 			Control.CastSpell(HK_R, hero)
 			end
 		end
@@ -609,14 +611,15 @@ function Tristana:GapcloseR()
     if hero == nil then return end
 	local Rdamage = self:RDMG(hero)		
 	local totalDMG = CalculateMagicalDamage(hero, Rdamage)	
-		if self.Menu.gap.UseR:Value() and self:IsReady(_R) and self:IsReady(_W) then
-		if myHero.pos:DistanceTo(hero.pos) > R.Range and self:EnemyInRange(GetRWRange()) then
-		if totalDMG >= self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
-			Control.CastSpell(HK_W, hero.pos) self:AutoR()
+	if self:EnemyInRange(GetRWRange()) and self.Menu.gap.UseR:Value() and self:CanCast(_R) and self:CanCast(_W) then
+		if myHero.pos:DistanceTo(hero.pos) > R.Range then
+			if totalDMG >= self:HpPred(hero,1) + hero.hpRegen * 1 then
+				Control.CastSpell(HK_W, hero.pos) 
+				self:AutoR()
+			end
 		end
-		end
-		end
-	end	
+	end
+end	
 		
 
 
@@ -624,13 +627,11 @@ function Tristana:AutoR()
 	local hero = CurrentTarget(GetRRange())
     if hero == nil then return end
 	if self:EnemyInRange(GetRRange()) and self:CanCast(_R) then
-	local Rdamage = self:RDMG(hero)
-	local totalDMG = CalculateMagicalDamage(hero, Rdamage)
-		if  totalDMG > self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead then
+		local Rdamage = self:RDMG(hero)
+		local totalDMG = CalculateMagicalDamage(hero, Rdamage)
+		if  totalDMG > self:HpPred(hero,1) + hero.hpRegen * 1 then
 			Control.CastSpell(HK_R, hero)
 		
-
-			
 		end
 	end
 end
@@ -647,7 +648,7 @@ function Tristana:HarassQ()
 		for i = 1, target.buffCount do
 		local buff = target:GetBuff(i)	
 			if buff and buff.name == "tristanaechargesound" then
-				if self.Menu.Harass.UseQ:Value() and target and self:CanCast(_Q) and self:EnemyInRange(GetAARange()) then
+				if self.Menu.Harass.UseQ:Value() and self:CanCast(_Q) and self:EnemyInRange(GetAARange()) then
 					Control.CastSpell(HK_Q)
 				end
 			end
@@ -659,10 +660,9 @@ function Tristana:HarassQ()
 function Tristana:HarassE()
     local target = CurrentTarget(GetERange())
     if target == nil then return end
-    if self.Menu.Harass.UseE:Value() and target and self:CanCast(_E) then
-	    if self:EnemyInRange(GetERange()) then
+    if self.Menu.Harass.UseE:Value() and self:EnemyInRange(GetERange()) and self:CanCast(_E) then
 		Control.CastSpell(HK_E, target)
-		    end
+		   
 	    end
 	end
  
@@ -705,7 +705,7 @@ function Tristana:RDMG(unit)
     total = 0
 	local rLvl = myHero:GetSpellData(_R).level
     if rLvl > 0 then
-	local rdamage = (({250,350,450})[rLvl] + myHero.ap) -- originalDMG 300,400,500 ( Ult comes to early) 
+	local rdamage = (({300,400,500})[rLvl] + myHero.ap) 
 	total = rdamage 
 	end
 	return total
@@ -715,8 +715,8 @@ function Tristana:AADMG(unit)
     total = 0
 	local AALvl = myHero.levelData.lvl
 
-	local AAdamage = 58 + ( 3 * AALvl)
-	total = AAdamage * 3
+	local AAdamage = 58 + ( 2 * AALvl)
+	total = AAdamage 
 	return total
 end
 
@@ -725,10 +725,10 @@ function Tristana:GetStackDmg(unit)
 	local total = 0
 	local eLvl = myHero:GetSpellData(_E).level
 	if eLvl > 0 then
-		local raw = ({ 18, 21, 24, 27, 30 })[eLvl]
-		local m = ({ 0.15, 0.195, 0.24, 0.285, 0.33 })[eLvl]
-		local bonusDmg = m * myHero.bonusDamage
-		total = raw + bonusDmg
+		local raw = ({ 21, 24, 27, 30, 33 })[eLvl]
+		local m = ({ 0.15, 0.21, 0.27, 0.33, 0.39 })[eLvl]
+		local bonusDmg = (m * myHero.bonusDamage) + (0.15 * myHero.ap)
+		total = (raw + bonusDmg) * self:GetEstacks(unit)
 	end
 	return total
 end
@@ -737,9 +737,9 @@ function Tristana:EDMG(unit)
 	local total = 0
 	local eLvl = myHero:GetSpellData(_E).level
 	if eLvl > 0 then
-		local raw = ({ 60, 70, 80, 90, 100 })[eLvl]
-		local m = ({ 0.5, 0.65, 0.8, 0.95, 1.10 })[eLvl]
-		local bonusDmg = m * myHero.bonusDamage
+		local raw = ({ 70, 80, 90, 100, 110 })[eLvl]
+		local m = ({ 0.5, 0.7, 0.9, 1.1, 1.3 })[eLvl]
+		local bonusDmg = (m * myHero.bonusDamage) + (0.5 * myHero.ap)
 		total = raw + bonusDmg
 		total = total + self:GetStackDmg(unit)  
 	end
@@ -747,9 +747,7 @@ function Tristana:EDMG(unit)
 end	
 
 
-function Tristana:IsValidTarget(unit,range) 
-	return unit ~= nil and unit.valid and unit.visible and not unit.dead and unit.isTargetable and not unit.isImmortal and unit.pos:DistanceTo(myHero.pos) <= 550 
-end
+
 
 
 function GetRRange()
