@@ -10,7 +10,7 @@ end
 require('GamsteronPrediction')
 
 -- [ AutoUpdate ]
---[[
+
 do
     
     local Version = 0.01
@@ -57,7 +57,7 @@ do
     AutoUpdate()
 
 end
-]]
+
 
 
 
