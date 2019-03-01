@@ -13,7 +13,7 @@ require('GamsteronPrediction')
 
 do
     
-    local Version = 0.02
+    local Version = 0.03
     
     local Files = {
         Lua = {
@@ -78,20 +78,18 @@ local GameTimer = Game.Timer
 
 local EData =
 {
-Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1100, Speed = 1150,
-Collision = false, MaxCollision = 0, CollisionObjects = { _G.COLLISION_YASUOWALL }
+Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1100, Speed = 1150, 
+Collision = false, MaxCollision = 0, CollisionTypes = { _G.COLLISION_YASUOWALL }
 }
 
 local QData =
 {
-Type = _G.SPELLTYPE_CIRCLE, Delay = 0.85, Radius = 140, Range = 800, Speed = math.huge,
-Collision = false, MaxCollision = 0, CollisionObjects = { }
+Type = _G.SPELLTYPE_CIRCLE, Delay = 0.85, Radius = 140, Range = 800, Speed = math.huge, Collision = false
 }
 
 local RData =
 {
-Type = _G.SPELLTYPE_CIRCLE, Delay = 2.0, Radius = 500, Range = 700, Speed = math.huge,
-Collision = false, MaxCollision = 0, CollisionObjects = { _G.COLLISION_YASUOWALL }
+Type = _G.SPELLTYPE_CIRCLE, Delay = 2.0, Radius = 500, Range = 700, Speed = math.huge, Collision = false
 }
 
 local function Ready(spell)
