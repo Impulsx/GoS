@@ -9,11 +9,14 @@ if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 end
     
 require('GamsteronPrediction')
+require "2DGeometry"
+
+
 
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.04
+    local Version = 0.05
     
     local Files = {
         Lua = {
@@ -62,6 +65,25 @@ end
 	local TEAM_ALLY = myHero.team
 	local TEAM_JUNGLE = 300
 	local TEAM_ENEMY = 300 - TEAM_ALLY
+	
+local function IsValid(unit)
+    if (unit and unit.team == TEAM_ENEMY and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) then
+        return true;
+    end
+    return false;
+end
+
+function CalcMagicalDamage(source, target, amount)
+  local mr = target.magicResist
+  local value = 100 / (100 + (mr * source.magicPenPercent) - source.magicPen)
+
+  if mr < 0 then
+    value = 2 - 100 / (100 - mr)
+  elseif (mr * source.magicPenPercent) - source.magicPen < 0 then
+    value = 1
+  end
+  return math.max(0, math.floor(DamageReductionMod(source, target, PassivePercentMod(source, target, value) * amount, 2)))
+end
 
 	local function GetDistanceSqr(p1, p2)
 	    local dx = p1.x - p2.x
@@ -88,15 +110,6 @@ end
 		return false
 	end
 
-	local function NoPotion()
-		for i = 0, 63 do 
-		local buff = myHero:GetBuff(i)
-			if buff.type == 13 and Game.Timer() < buff.expireTime then 
-				return false
-			end
-		end
-		return true
-	end
 
 	local function Ready(spell)
 		return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
@@ -110,6 +123,8 @@ end
 			target = _G.SDK.TargetSelector:GetTarget(range)
 		elseif Orb == 3 then
 			target = GOS:GetTarget(range)
+	    elseif Orb == 4 then
+			target = _G.gsoSDK.TS:GetTarget()		
 		end
 		--for i = 1, Game.HeroCount() do 
 		--	local t = Game.Hero(i)
@@ -121,18 +136,17 @@ end
 		return target 
 	end
 
-	local _EnemyHeroes
-	local function GetEnemyHeroes()
-		if _EnemyHeroes then return _EnemyHeroes end
-		_EnemyHeroes = {}
-		for i = 1, Game.HeroCount() do
-			local unit = Game.Hero(i)
-			if unit.team == TEAM_ENEMY then
-				table.insert(_EnemyHeroes, unit)
-			end
-		end
-		return _EnemyHeroes
-	end
+	
+local function GetEnemyHeroes()
+    local _EnemyHeroes = {}
+    for i = 1, Game.HeroCount() do
+        local unit = Game.Hero(i)
+        if IsValid(unit) and unit.isEnemy then
+            table.insert(_EnemyHeroes, unit)
+        end
+    end
+    return _EnemyHeroes
+end 	
 
 	local intToMode = {
    		[0] = "",
@@ -157,6 +171,18 @@ end
 			elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
 				return "Flee"
 			end
+		elseif Orb == 4 then
+			if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
+				return "Combo"
+			elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
+				return "Harass"	
+			elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] or _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
+				return "Clear"
+			elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] then
+				return "LastHit"
+			elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
+				return "Flee"
+			end			
 		else
 			return GOS.GetMode()
 		end
@@ -200,23 +226,17 @@ end
 		return false
 	end
 
-	local function EnemyAround()
-		for i = 1, Game.HeroCount() do 
-		local Hero = Game.Hero(i) 
-			if Hero.dead == false and Hero.team == TEAM_ENEMY and GetDistanceSqr(myHero.pos, Hero.pos) < 360000 then
-				return true
-			end
-		end
-		return false
-	end
-	
-
 	local function IsValidTarget(unit, range)
     	return unit and unit.team == TEAM_ENEMY and unit.dead == false and GetDistanceSqr(myHero.pos, unit.pos) <= (range + myHero.boundingRadius + unit.boundingRadius)^2 and unit.isTargetable and unit.isTargetableToTeam and unit.isImmortal == false and unit.visible
 	end
 
 	local function IsValidCreep(unit, range)
-    	return unit and unit.team ~= TEAM_ALLY and unit.dead == false and GetDistanceSqr(myHero.pos, unit.pos) <= (range + myHero.boundingRadius + unit.boundingRadius)^2 and unit.isTargetable and unit.isTargetableToTeam and unit.isImmortal == false and unit.visible
+    	return unit and unit.dead == false and GetDistanceSqr(myHero.pos, unit.pos) <= (range + myHero.boundingRadius + unit.boundingRadius)^2 and unit.isTargetable and unit.isTargetableToTeam and unit.isImmortal == false and unit.visible
+	end
+	
+
+	local function IsValidCreepJgl(unit, range)
+    	return unit and unit.dead == false and GetDistanceSqr(myHero.pos, unit.pos) <= (range + myHero.boundingRadius + unit.boundingRadius)^2 and unit.isTargetable and unit.isTargetableToTeam and unit.isImmortal == false and unit.visible
 	end
 
 	local function IsImmobileTarget(unit)
@@ -317,20 +337,18 @@ end
 		end	
 	end
 
-	require "2DGeometry"
-	require "DamageLib"
+
 
 	
 	
-	function Cassiopeia:LoadSpells()
-	R = {Range = 825, Width = 200, Delay = 1.25, Speed = math.huge, Collision = false, aoe = false, Type = "circular"}
+function Cassiopeia:LoadSpells()
+	R = {Range = 825, Width = 200, Delay = 0.8, Speed = math.huge, Collision = false, aoe = false, Type = "circular"}
 
 end
 
 local QData =
 {
-Type = _G.SPELLTYPE_CIRCLE, Delay = 0.4, Radius = 75, Range = 850, Speed = math.huge,
-Collision = false
+Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = math.huge, Collision = false
 }
 
 	local AA = false
@@ -352,6 +370,8 @@ Collision = false
 			Orb = 1
 		elseif _G.SDK and _G.SDK.Orbwalker then
 			Orb = 2
+		elseif _G.gsoSDK then
+			Orb = 4			
 		end
 		print("PussyCassio Loaded")
 	end
@@ -383,9 +403,18 @@ Collision = false
 		Cass.w:MenuElement({id = "Count", name = "Min Minions to hit W", value = 3, min = 1, max = 5, step = 1})		
 		Cass.w:MenuElement({id = "E", name = "Auto E Toggle Key", key = 84, toggle = true})
 		
+		--JungleClear
+		Cass:MenuElement({type = MENU, id = "j", name = "JungleClear"})
+		Cass.j:MenuElement({id = "Q", name = "Use Q", value = true})
+		Cass.j:MenuElement({id = "W", name = "Use W", value = true})
+		Cass.j:MenuElement({id = "E", name = "Use E[poisend or Lasthit]", value = true})		
+		
 		--KillSteal
 		Cass:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
+		Cass.ks:MenuElement({id = "Q", name = "UseQ", value = true})
+		Cass.ks:MenuElement({id = "W", name = "UseW", value = true})
 		Cass.ks:MenuElement({id = "E", name = "UseE", value = true})
+		Cass.ks:MenuElement({id = "IG", name = "Use Ignite", value = true})		
 
 		--Engage
 		Cass:MenuElement({type = MENU, id = "kill", name = "Engage FullDmg + Ghost or Ignite"})
@@ -444,34 +473,40 @@ Collision = false
 	end
 
 	function Cassiopeia:Qdmg(unit)
-		local base = ({75, 125, 175, 225, 275})[myHero:GetSpellData(_Q).level] + 0.80 * myHero.ap
+		local level = myHero:GetSpellData(_Q).level
+		local base = (({75, 110, 145, 180, 215})[level] + 0.90 * myHero.ap)
 		return CalcMagicalDamage(myHero,unit, base)
 	end
 	
 	function Cassiopeia:Wdmg(unit)
-		local base = ({100, 175, 250, 325, 400})[myHero:GetSpellData(_W).level] + 0.75 * myHero.ap
+		local level = myHero:GetSpellData(_W).level
+		local base = (({100, 125, 150, 175, 200})[level] + 0.75 * myHero.ap)
 		return CalcMagicalDamage(myHero,unit, base)
 	end
 
 	function Cassiopeia:Edmg(unit)
-		local base = 48 + 4 * myHero.levelData.lvl + 0.1 * myHero.ap
+		local level = myHero.levelData.lvl
+		local base = (48 + 4 * level) + (0.1 * myHero.ap)
 		return CalcMagicalDamage(myHero,unit, base)
 	end
 
 	function Cassiopeia:PEdmg(unit)
-		local base = 48 + 4 * myHero.levelData.lvl + 0.1 * myHero.ap
-		local bonus = ({10, 30, 50, 70, 90})[myHero:GetSpellData(_E).level] + 0.60 * myHero.ap
-		return CalcMagicalDamage(myHero,unit, base + bonus)
+		local level = myHero:GetSpellData(_E).level
+		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * myHero.ap)
+		local PEdamage = self:Edmg(unit) + bonus
+		return CalcMagicalDamage(myHero,unit, PEdamage)
 	end
 	
 	function Cassiopeia:Rdmg(unit)
-		local base = ({150, 250, 350})[myHero:GetSpellData(_R).level] + 0.50 * myHero.ap
+		local level = myHero:GetSpellData(_R).level
+		local base = (({150, 250, 350})[level] + 0.50 * myHero.ap)
 		return CalcMagicalDamage(myHero,unit, base)
 	end				
 	
 	function Cassiopeia:Ignitedmg(unit)
-		local base = 55 + 25 * myHero.levelData.lvl
-		return CalcPhysicalDamage(myHero,unit, base)
+		local level = myHero.levelData.lvl
+		local base = 50 + (20 * level)
+		return base
 	end
 	
 
@@ -511,6 +546,7 @@ Collision = false
 			elseif Mode == "Clear" then
 				self:Check(Mode)
 				self:Clear()
+				self:JClear()
 			elseif Mode == "Flee" then
 				self:Engage()
 			end
@@ -522,8 +558,10 @@ Collision = false
 			end	
 			self:UnBlockAA(Mode)
 			self:Activator(Mode)
+			self:KsQ()
+			self:KsW()
 			self:KsE()
-			
+			self:KsIG()			
 			self:AntiCC()
 		end
 	end
@@ -535,6 +573,8 @@ Collision = false
 				EOW:SetAttacks(false)
 			elseif Orb == 2 then
 				_G.SDK.Orbwalker:SetAttack(false)
+			elseif Orb == 4 then
+				_G.gsoSDK.Orbwalker:SetAttack(false)				
 			else
 				--GOS:BlockAttack(true)
 			end
@@ -547,6 +587,8 @@ Collision = false
 				EOW:SetAttacks(true)
 			elseif Orb == 2 then
 				_G.SDK.Orbwalker:SetAttack(true)
+			elseif Orb == 4 then
+				_G.gsoSDK.Orbwalker:SetAttack(true)				
 			else
 			--	GOS:BlockAttack()
 			end
@@ -562,6 +604,8 @@ Collision = false
 					EOW:SetAttacks(false)
 				elseif Orb == 2 then
 					_G.SDK.Orbwalker:SetAttack(false)
+				elseif Orb == 4 then
+					_G.gsoSDK.Orbwalker:SetAttack(false)					
 				else
 				--	GOS:BlockAttack(true)
 				end
@@ -570,6 +614,8 @@ Collision = false
 					EOW:SetAttacks(true)
 				elseif Orb == 2 then
 					_G.SDK.Orbwalker:SetAttack(true)
+				elseif Orb == 4 then
+					_G.gsoSDK.Orbwalker:SetAttack(true)				
 				else
 				--	GOS:BlockAttack()
 				end
@@ -591,11 +637,14 @@ Collision = false
 		end
 	end
 
-	function Cassiopeia:Activator(Mode)
+function Cassiopeia:Activator(Mode)
+	local target = GetTarget(800)
+	if target == nil then return end		
+	if IsValid(target) then
 		if Cass.a.Zhonyas.ON:Value() then
 		local Zhonyas = GetItemSlot(myHero, 3157) or GetItemSlot(myHero, 2420)
 			if Zhonyas >= 1 and Ready(Zhonyas) then 
-				if EnemyAround() and myHero.health/myHero.maxHealth < Cass.a.Zhonyas.HP:Value()/100 then
+				if myHero.health/myHero.maxHealth < Cass.a.Zhonyas.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Zhonyas])
 				end
 			end
@@ -603,23 +652,22 @@ Collision = false
 		if Cass.a.Seraphs.ON:Value() then
 		local Seraphs = GetItemSlot(myHero, 3040)
 			if Seraphs >= 1 and Ready(Seraphs) then
-				if EnemyAround() and myHero.health/myHero.maxHealth < Cass.a.Seraphs.HP:Value()/100 then
+				if myHero.health/myHero.maxHealth < Cass.a.Seraphs.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Seraphs])
 				end
 			end
 		end
-		local target = GetTarget(800)
-		if target == nil then return end
 		if Mode == "Combo" then
 			if Cass.a.Hextech.ON:Value() then
 			local Hextech = GetItemSlot(myHero, 3030)
-				if Hextech >= 1 and Ready(Hextech) and target  and target.health/target.maxHealth < Cass.a.Hextech.HP:Value()/100 then
+				if Hextech >= 1 and Ready(Hextech) and target.health/target.maxHealth < Cass.a.Hextech.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Hextech], target)
 				end
 			end
 
 		end
 	end
+end	
 
 function EnemyInRange(range)
 	local count = 0
@@ -653,7 +701,7 @@ function EnemiesNear(pos,range)
 	local N = 0
 	for i = 1,Game.HeroCount()  do
 		local hero = Game.Hero(i)	
-		if IsValidTarget(hero,range + hero.boundingRadius) and hero.isEnemy and not hero.dead then
+		if IsValidTarget then
 			N = N + 1
 		end
 	end
@@ -664,38 +712,13 @@ function MinionsNear(pos,range)
 	local N = 0
 		for i = 1, Game.MinionCount() do 
 		local Minion = Game.Minion(i)	
-		if IsValidCreep(Minion, 800) and not Minion.dead then
+		if IsValidCreep(Minion, 800) then
 			N = N + 1
 		end
 	end
 	return N	
 end		
 
-function GetBestCircularFarmPosition(range, radius, objects)
-    local BestPos 
-    local BestHit = 0
-    for i, object in pairs(objects) do
-        local hit = CountObjectsNearPos(object.pos, range, radius, objects)
-        if hit > BestHit then
-            BestHit = hit
-            BestPos = object.pos
-            if BestHit == #objects then
-               break
-            end
-         end
-    end
-    return BestPos, BestHit
-end
-
-function CountObjectsNearPos(pos, range, radius, objects)
-    local n = 0
-    for i, object in pairs(objects) do
-        if GetDistanceSqr(pos, object.pos) <= radius * radius then
-            n = n + 1
-        end
-    end
-    return n
-end	
 
 	function Cassiopeia:RLogic()
 		local RTarget = nil 
@@ -751,22 +774,22 @@ end
 	end
 
 
-	function Cassiopeia:Combo()
-		local activeSpell = myHero.activeSpell
-   		if activeSpell.valid and activeSpell.spellWasCast == false then
-   			return
-   		end
-		local target = GetTarget(950)
-		if target == nil then 
-			return
-		end
-		local QValue = Cass.c.Q:Value()
-		local WValue = Cass.c.W:Value()
-		local RValue = Cass.c.R:Value()
-		local Dist = GetDistanceSqr(myHero.pos, target.pos)
-		local QData = myHero:GetSpellData(_Q) 
-		local QWReady = Ready(_Q) 
-		local RTarget, ShouldCast = self:RLogic()
+function Cassiopeia:Combo()
+	local activeSpell = myHero.activeSpell
+   	if activeSpell.valid and activeSpell.spellWasCast == false then
+   		return
+   	end
+	local target = GetTarget(950)
+	if target == nil then return end
+		
+	local QValue = Cass.c.Q:Value()
+	local WValue = Cass.c.W:Value()
+	local RValue = Cass.c.R:Value()
+	local Dist = GetDistanceSqr(myHero.pos, target.pos)
+	local QWReady = Ready(_Q) 
+	local RTarget, ShouldCast = self:RLogic()
+	if IsValid(target) then	
+		
 		if Cass.c.W:Value() and Ready(_W)  then 
 			if Dist < MaxWRange and Dist > MinWRange then
 			local Pos = GetPred(target, 1500, 0.25 + Game.Latency()/1000)
@@ -809,26 +832,22 @@ end
 				end
 			end
 
-			for i = 1, Game.HeroCount() do
-			local hero = Game.Hero(i)
-			if Cass.c.R:Value() and Ready(_R) and hero.isEnemy and not hero.dead then
-				if EnemyInRange(RRange) then 
-					if EnemiesNear(myHero.pos,800) >= Cass.c.Count:Value() and self:IsFacing() then
-					Control.SetCursorPos(hero)
-					Control.CastSpell(HK_R, hero)
+			if Cass.c.R:Value() and Ready(_R) then
+				if Dist < RRange then 
+					if RTarget then
+					Control.CastSpell(HK_R, RTarget)
 					end
 				end 
 			end
-			end
-
 		end
-	end  
+	end
+end	
 	
 function Cassiopeia:SemiR()
 	local target = GetTarget(950)
 	if target == nil then return end
 	local Dist = GetDistanceSqr(myHero.pos, target.pos)	
-	if Ready(_R) then
+	if IsValid(target) and Ready(_R) then
 		if Dist < RRange then
 			Control.SetCursorPos(target)
 			Control.CastSpell(HK_R, target)
@@ -838,17 +857,15 @@ end
 	
 		
 
-	function Cassiopeia:Harass()
-		local activeSpell = myHero.activeSpell
-   		if activeSpell.valid and activeSpell.spellWasCast == false then
-   			return
-   		end
-		local target = GetTarget(950)
-		if target == nil then 
-			return
-		end
-		local QValue = Cass.h.Q:Value()
-		local Dist = GetDistanceSqr(myHero.pos, target.pos)
+function Cassiopeia:Harass()
+	local activeSpell = myHero.activeSpell
+   	if activeSpell.valid and activeSpell.spellWasCast == false then
+	return end
+	local target = GetTarget(950)
+	if target == nil then return end
+	local QValue = Cass.h.Q:Value()
+	local Dist = GetDistanceSqr(myHero.pos, target.pos)
+	if IsValid(target) then	
 		if QValue and Ready(_Q) and myHero.mana/myHero.maxMana > Cass.m.Q:Value()/100 then 
 			if Dist < QRange then 
 			local pred = GetGamsteronPrediction(target, QData, myHero)
@@ -864,42 +881,86 @@ end
 			end
 		end
 	end
+end	
 	
 	
 
-	function Cassiopeia:Clear()
-		for i = 1, Game.MinionCount() do 
-		local Minion = Game.Minion(i)		
-		local QValue = Cass.w.Q:Value()
-		local WValue = Cass.w.W:Value()				
-			if Ready(_Q) and IsRecalling() == false and QValue and myHero.mana/myHero.maxMana > Cass.m.QW:Value()/100 then
-				if IsValidCreep(Minion, 850) and GetDistanceSqr(Minion.pos, myHero.pos) < QRange then 
-				local pred = GetGamsteronPrediction(Minion, QData, myHero)
-				if pred.Hitchance >= _G.HITCHANCE_HIGH then
-					Control.CastSpell(HK_Q, pred.CastPosition)
-				end
-				end
+function Cassiopeia:Clear()
+	for i = 1, Game.MinionCount() do 
+	local Minion = Game.Minion(i)		
+	local QValue = Cass.w.Q:Value()
+	local WValue = Cass.w.W:Value()				
+	if Minion.team == TEAM_ENEMY then	
+		if Ready(_Q) and QValue and myHero.mana/myHero.maxMana > Cass.m.QW:Value()/100 then
+			if IsValidCreep(Minion, 850) and GetDistanceSqr(Minion.pos, myHero.pos) < QRange then 
+				Control.CastSpell(HK_Q, Minion.pos)
 			end
-			local Pos = GetPred(Minion, 1500, 0.25 + Game.Latency()/1000)
-			local Dist = GetDistanceSqr(Minion.pos, myHero.pos)	
-			if Ready(_W) and IsRecalling() == false and WValue and myHero.mana/myHero.maxMana > Cass.m.WW:Value()/100 then
-				if Dist < MaxWRange and Dist > MinWRange then	
-					if IsValidCreep(Minion, 800) and GetDistanceSqr(Pos, myHero.pos) < MaxWRange and MinionsNear(myHero.pos,800) >= Cass.w.Count:Value() then 
-						self:CastW(HK_W, Pos)
+		end
+		local Pos = GetPred(Minion, 1500, 0.25 + Game.Latency()/1000)
+		local Dist = GetDistanceSqr(Minion.pos, myHero.pos)	
+		if Ready(_W) and IsRecalling() == false and WValue and myHero.mana/myHero.maxMana > Cass.m.WW:Value()/100 then
+			if Dist < MaxWRange and Dist > MinWRange then	
+				if IsValidCreep(Minion, 800) and GetDistanceSqr(Pos, myHero.pos) < MaxWRange and MinionsNear(myHero.pos,800) >= Cass.w.Count:Value() then 
+					self:CastW(HK_W, Pos)
 													
 					
-					end
 				end
-			end			
-		end
+			end
+		end			
 	end
+	end
+end
 
 	
-	function Cassiopeia:KsE()
-		local target = GetTarget(750)
-		if target == nil then 
-			return
+function Cassiopeia:JClear()
+	for i = 1, Game.MinionCount() do 
+	local Minion = Game.Minion(i)		
+	local QValue = Cass.j.Q:Value()
+	local WValue = Cass.j.W:Value()
+	local EValue = Cass.j.E:Value()
+	if Minion.team == TEAM_JUNGLE then	
+		if Ready(_Q) and IsRecalling() == false and QValue and myHero.mana/myHero.maxMana > Cass.m.QW:Value()/100 then
+			if IsValidCreep(Minion, 850) and GetDistanceSqr(Minion.pos, myHero.pos) < QRange then 
+				Control.CastSpell(HK_Q, Minion.pos)
+				
+			end
 		end
+		
+		local Pos = GetPred(Minion, 1500, 0.25 + Game.Latency()/1000)
+		local Dist = GetDistanceSqr(Minion.pos, myHero.pos)	
+		if Ready(_W) and IsRecalling() == false and WValue and myHero.mana/myHero.maxMana > Cass.m.WW:Value()/100 then
+			if Dist < MaxWRange and Dist > MinWRange then	
+				if IsValidCreep(Minion, 800) and GetDistanceSqr(Pos, myHero.pos) < MaxWRange then 
+					self:CastW(HK_W, Pos)
+				end
+			end
+		end
+		
+		if Ready(_E) and IsRecalling() == false and EValue then
+			if IsValidCreep(Minion, 750) and GetDistanceSqr(Minion.pos, myHero.pos) < ERange then 
+				if HasPoison(Minion) then
+					Block(true)
+					Control.CastSpell(HK_E, Minion)
+					break
+				elseif self:Edmg(Minion) > Minion.health then
+					Block(true)
+					Control.CastSpell(HK_E, Minion)
+					break	
+				end
+			end
+		end
+		Block(false)
+	end
+	end
+end
+
+	
+function Cassiopeia:KsE()
+local target = GetTarget(750)
+if target == nil then 
+	return
+end
+	if IsValid(target) then	
 		if Cass.ks.E:Value() and Ready(_E) and GetDistanceSqr(target.pos, myHero.pos) < ERange then 
 			if self:Edmg(target) > target.health then
 				Control.CastSpell(HK_E, target)
@@ -910,17 +971,67 @@ end
 			end
 		end
 	end	
+end	
 	
-	function Cassiopeia:AntiCC()
-		local Immobile = Cleans(myHero)
-		if Immobile then
-			if myHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) then
-				Control.CastSpell(HK_SUMMONER_1, myHero)
-			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBoost" and Ready(SUMMONER_2) then
-				Control.CastSpell(HK_SUMMONER_2, myHero)
+function Cassiopeia:KsQ()
+local target = GetTarget(900)
+if target == nil then 
+	return
+end
+	if IsValid(target) then	
+		if Cass.ks.Q:Value() and Ready(_Q) and GetDistanceSqr(target.pos, myHero.pos) < QRange then 
+			if self:Qdmg(target) > target.health then
+				Control.CastSpell(HK_Q, target.pos)
+			
+			end
+		end
+	end
+end	
+
+function Cassiopeia:KsW()
+local target = GetTarget(900)
+if target == nil then 
+	return
+end
+	if IsValid(target) then
+		if Cass.ks.W:Value() and Ready(_W) and GetDistanceSqr(target.pos, myHero.pos) < 800 then 
+			if self:Wdmg(target) > target.health then
+				Control.CastSpell(HK_W, target.pos)
+			
 			end
 		end
 	end	
+end	
+
+function Cassiopeia:KsIG()
+local target = GetTarget(650)
+if target == nil then 
+	return
+end
+	if IsValid(target) then		
+		if Cass.ks.IG:Value() and GetDistanceSqr(target.pos, myHero.pos) < 600 then 
+			if self:Ignitedmg(target) > target.health then
+				if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
+					Control.CastSpell(HK_SUMMONER_1, target)
+				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
+					Control.CastSpell(HK_SUMMONER_2, target)
+				end
+			end
+		end
+	end
+end	
+			
+	
+function Cassiopeia:AntiCC()
+	local Immobile = Cleans(myHero)
+	if Immobile then
+		if myHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) then
+			Control.CastSpell(HK_SUMMONER_1, myHero)
+		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBoost" and Ready(SUMMONER_2) then
+			Control.CastSpell(HK_SUMMONER_2, myHero)
+		end
+	end
+end	
 	
 	function Cassiopeia:Engage()
 		local target = GetTarget(1200)
@@ -930,53 +1041,51 @@ end
 		local fulldmg = self:Qdmg(target) + self:Wdmg(target) + self:Edmg(target) + self:Rdmg(target)
 		local Dist = GetDistanceSqr(myHero.pos, target.pos)
 		local RCheck = Ready(_R)
-		for i = 1, Game.HeroCount() do
-		local hero = Game.Hero(i)
-			if Cass.kill.Eng:Value() and hero.isEnemy and not hero.dead then
-				if EnemiesNear(myHero.pos,825) == 1 and Ready(_R) and Ready(_W) then 
-					if EnemyInRange(RRange) and self:IsFacing() and fulldmg > target.health then
-					Control.SetCursorPos(hero)
-					Control.CastSpell(HK_R, hero)
-					end
-				end 
-				if 	RCheck == false then
-					if myHero:GetSpellData(SUMMONER_1).name == "SummonerHaste" and Ready(SUMMONER_1) then
-						Control.CastSpell(HK_SUMMONER_1)
-					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHaste" and Ready(SUMMONER_2) then
-						Control.CastSpell(HK_SUMMONER_2)
-					end
-				end	
-				if self:Ignitedmg(target) > target.health and Dist <= 600 then
-					if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
-						Control.CastSpell(HK_SUMMONER_1, target)
-					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
-						Control.CastSpell(HK_SUMMONER_2, target)
-					end
-				end	
-				if Ready(_Q) and RCheck == false then 
-					if Dist < QRange then 
-					local pred = GetGamsteronPrediction(target, QData, myHero)
-						if GetDistanceSqr(target.pos, myHero.pos) < QRange and pred.Hitchance >= _G.HITCHANCE_HIGH then
-							Control.CastSpell(HK_Q, pred.CastPosition)
-						end
-					end
+		local RTarget, ShouldCast = self:RLogic()
+		if Cass.kill.Eng:Value() and IsValid(target) then
+			if EnemiesNear(myHero.pos,825) == 1 and Ready(_R) and Ready(_W) then 
+				if EnemyInRange(RRange) and ShouldCast >= 1 and fulldmg > target.health then
+					Control.CastSpell(HK_R, RTarget)
 				end
-				if Ready(_E) and RCheck == false then 
-					if Dist < ERange then
-						Control.CastSpell(HK_E, target)
-					end
-				end	
-				if Ready(_W) and RCheck == false then 
-					if Dist < MaxWRange and Dist > MinWRange then
-					local Pos = GetPred(target, 1500, 0.25 + Game.Latency()/1000)
-						if GetDistanceSqr(target.pos, myHero.pos) < MaxWRange then 
-							self:CastW(HK_W, Pos)
-						end
-					end
+			end 
+			if not Ready(_R) then
+				if myHero:GetSpellData(SUMMONER_1).name == "SummonerHaste" and Ready(SUMMONER_1) then
+					Control.CastSpell(HK_SUMMONER_1)
+				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHaste" and Ready(SUMMONER_2) then
+					Control.CastSpell(HK_SUMMONER_2)
 				end
 			end	
-		end
+			if self:Ignitedmg(target) > target.health and Dist <= 600 then
+				if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
+					Control.CastSpell(HK_SUMMONER_1, target)
+				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
+					Control.CastSpell(HK_SUMMONER_2, target)
+				end
+			end	
+			if Ready(_Q) and not Ready(_R) then 
+				if Dist < QRange then 
+				local pred = GetGamsteronPrediction(target, QData, myHero)
+					if GetDistanceSqr(target.pos, myHero.pos) < QRange and pred.Hitchance >= _G.HITCHANCE_HIGH then
+						Control.CastSpell(HK_Q, pred.CastPosition)
+					end
+				end
+			end
+			if Ready(_E) and not Ready(_R) then 
+				if Dist < ERange then
+					Control.CastSpell(HK_E, target)
+				end
+			end	
+			if Ready(_W) and not Ready(_R) then 
+				if Dist < MaxWRange and Dist > MinWRange then
+				local Pos = GetPred(target, 1500, 0.25 + Game.Latency()/1000)
+					if GetDistanceSqr(target.pos, myHero.pos) < MaxWRange then 
+						self:CastW(HK_W, Pos)
+					end
+				end
+			end
+		end	
 	end
+	
 	
 	
 	function Cassiopeia:AutoE()
@@ -1068,4 +1177,5 @@ self:DrawEngage()
 
 		end
 	end
+
 
