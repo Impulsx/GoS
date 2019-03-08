@@ -353,7 +353,7 @@ function Kayle:LoadMenu()
 	self.Menu:MenuElement({type = MENU, id = "AutoW", name = "Auto Heal"})
 	self.Menu.AutoW:MenuElement({id = "self", name = "Heal self", value = true})
 	self.Menu.AutoW:MenuElement({id = "ally", name = "Heal Ally", value = true})
-	self.Menu.AutoW:MenuElement({id = "HP", name = "HP Self/Ally", value = 20, min = 0, max = 100, step = 1, identifier = "%"})
+	self.Menu.AutoW:MenuElement({id = "HP", name = "HP Self/Ally", value = 50, min = 0, max = 100, step = 1, identifier = "%"})
 	
 	--ComboMenu  
 	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -362,7 +362,7 @@ function Kayle:LoadMenu()
 	self.Menu.Combo:MenuElement({type = MENU, id = "UseR", name = "Ult Settings"})
 	self.Menu.Combo.UseR:MenuElement({id = "self", name = "Ult self", value = true})
 	self.Menu.Combo.UseR:MenuElement({id = "ally", name = "Ult Ally", value = true})
-	self.Menu.Combo.UseR:MenuElement({id = "HP", name = "HP Self/Ally", value = 20, min = 0, max = 100, step = 1, identifier = "%"})	
+	self.Menu.Combo.UseR:MenuElement({id = "HP", name = "HP Self/Ally", value = 40, min = 0, max = 100, step = 1, identifier = "%"})	
 	
 
 	--HarassMenu
