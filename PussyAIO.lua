@@ -29,7 +29,7 @@ do
         Lua = {
             Path = SCRIPT_PATH,
             Name = "PussyAIO.lua",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyCassio.lua"
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIO.lua"
         },
         Version = {
             Path = SCRIPT_PATH,
