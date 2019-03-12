@@ -23,7 +23,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.01
+    local Version = 0.02
     
     local Files = {
         Lua = {
@@ -720,7 +720,7 @@ Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = math
 
 		--Engage
 		Cass:MenuElement({type = MENU, id = "kill", name = "Engage FullDmg + Ghost or Ignite"})
-		Cass.kill:MenuElement({id = "Eng", name = "EngageKill 1vs1 Key=T", value = true, tooltip = "Press Key when Engage is Drawing"})
+		Cass.kill:MenuElement({id = "Eng", name = "EngageKill 1vs1", value = true, key = string.byte("T")})
 		
 		--Mana
 		Cass:MenuElement({type = MENU, id = "m", name = "Mana Manager"})
@@ -791,13 +791,26 @@ Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = math
 		local base = (48 + 4 * level) + (0.1 * myHero.ap)
 		return CalcMagicalDamage(myHero,unit, base)
 	end
-
+	
 	function Cassiopeia:PEdmg(unit)
 		local level = myHero:GetSpellData(_E).level
 		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * myHero.ap)
 		local PEdamage = self:Edmg(unit) + bonus
 		return CalcMagicalDamage(myHero,unit, PEdamage)
 	end
+	
+	function Cassiopeia:EdmgCreep(unit)
+		local level = myHero.levelData.lvl
+		local base = (48 + 4 * level) + (0.1 * myHero.ap)
+		return base
+	end	
+
+	function Cassiopeia:PEdmgCreep(unit)
+		local level = myHero:GetSpellData(_E).level
+		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * myHero.ap)
+		local PEdamage = self:EdmgCreep(unit) + bonus
+		return PEdamage
+	end	
 	
 	function Cassiopeia:Rdmg(unit)
 		local level = myHero:GetSpellData(_R).level
@@ -851,11 +864,14 @@ Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = math
 				self:Clear()
 				self:JClear()
 			elseif Mode == "Flee" then
-				self:Engage()
+				
 			end
 			if Cass.w.E:Value() and Mode ~= "Combo" then
 				self:AutoE()
 			end
+			if Cass.kill.Eng:Value() then
+				self:Engage()
+			end	
 			if Cass.c.SR:Value() then
 				self:SemiR()
 			end	
@@ -1210,10 +1226,14 @@ function Cassiopeia:JClear()
 					Block(true)
 					Control.CastSpell(HK_E, Minion)
 					break
-				elseif self:Edmg(Minion) > Minion.health then
+				elseif self:EdmgCreep(Minion) > Minion.health then
 					Block(true)
 					Control.CastSpell(HK_E, Minion)
-					break	
+					break
+				elseif HasPoison(Minion) and self:PEdmgCreep(Minion) > Minion.health then
+					Block(true)
+					Control.CastSpell(HK_E, Minion)
+					break					
 				end
 			end
 		end
@@ -1310,9 +1330,9 @@ end
 		local Dist = GetDistanceSqr(myHero.pos, target.pos)
 		local RCheck = Ready(_R)
 		local RTarget, ShouldCast = self:RLogic()
-		if Cass.kill.Eng:Value() and IsValid(target, 1200) then
+		if IsValid(target) then
 			if EnemiesNear(myHero.pos,825) == 1 and Ready(_R) and Ready(_W) and Ready(_Q) and Ready(_E) then 
-				if EnemyInRange(RRange) and ShouldCast >= 1 and fulldmg > target.health then
+				if EnemyInRange(RRange) and fulldmg > target.health then
 					Control.CastSpell(HK_R, RTarget)
 				end
 			end 
@@ -1356,16 +1376,17 @@ end
 	
 	
 	
-	function Cassiopeia:AutoE()
-		if Ready(_E) and IsRecalling() == false and myHero.mana/myHero.maxMana > Cass.m.EW:Value()/100 and Cass.w.E:Value() then
-			for i = 1, Game.MinionCount() do 
-			local Minion = Game.Minion(i) 
+function Cassiopeia:AutoE()
+	if Ready(_E) and IsRecalling() == false and myHero.mana/myHero.maxMana > Cass.m.EW:Value()/100 and Cass.w.E:Value() then
+		for i = 1, Game.MinionCount() do 
+		local Minion = Game.Minion(i) 
+			if Minion.team == TEAM_ENEMY then	
 				if IsValid(Minion, 690) and GetDistanceSqr(Minion.pos, myHero.pos) < ERange then 
-					if HasPoison(Minion) and self:PEdmg(Minion) > Minion.health then 
+					if HasPoison(Minion) and self:PEdmgCreep(Minion) > Minion.health then 
 						Block(true)
 						Control.CastSpell(HK_E, Minion)
 						break
-					elseif self:Edmg(Minion) > Minion.health then 
+					elseif self:EdmgCreep(Minion) > Minion.health then 
 						Block(true)
 						Control.CastSpell(HK_E, Minion)
 						break
@@ -1374,7 +1395,8 @@ end
 			end
 		end
 		Block(false)
-	end
+	end	
+end
 					
 
 	function Cassiopeia:Draw()
@@ -1427,7 +1449,7 @@ if target == nil then return end
 	if EnemiesNear(myHero.pos,1200) == 1 and Ready(_R) and Ready(_W) and Ready(_E) and Ready(_Q) then	
 		local fulldmg = self:Qdmg(target) + self:Wdmg(target) + self:Edmg(target) + self:Rdmg(target)
 		local textPos = target.pos:To2D()
-		if Cass.kill.Eng:Value() and IsValid(target, 1200) and target.isEnemy then
+		if IsValid(target, 1200) and target.isEnemy then
 			 if fulldmg > target.health then 
 					Draw.Text("Engage PressKey", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
 			end
@@ -2967,6 +2989,12 @@ function Neeko:__init()
 	end
 end
 
+function Neeko:QDmgMinion()
+	   local level = myHero:GetSpellData(_Q).level
+    local qdamage = (({70,115,160,205,250})[level] + 0.5 * myHero.ap)
+	return qdamage
+end
+
 function Neeko:LoadSpells()
 	
 	Q = {range = 800, width = 225, delay = 0.25, speed = 500, collision = false}    
@@ -3099,8 +3127,8 @@ function Neeko:Tick()
 					if minion.team == TEAM_ENEMY and not minion.dead and (myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) then	
 						local count = GetMinionCount(225, minion)			
 						local hp = minion.health
-						local QDmg = getdmg("Q", minion, myHero)
-						if IsValid(minion,800) and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Harass.LH.UseQL:Value() and count >= self.Menu.Harass.LH.UseQLM:Value() and hp <= QDmg then
+						local QDmg = self:QDmgMinion()
+						if IsValid(minion,900) and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Harass.LH.UseQL:Value() and count >= self.Menu.Harass.LH.UseQLM:Value() and hp <= QDmg then
 							Control.CastSpell(HK_Q, minion)
 						end	 
 					end
@@ -3808,7 +3836,7 @@ function Neeko:Clear()
 
 		if minion.team == TEAM_ENEMY and (myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) then	
 		local hp = minion.health
-		local QDmg = getdmg("Q", minion, myHero)		
+		local QDmg = self:QDmgMinion()		
 			local count = GetMinionCount(225, minion)			
 			if IsValid(minion,800) and Ready(_Q) and hp <= QDmg and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Clear.UseQL:Value() and count >= self.Menu.Clear.UseQLM:Value() then
 				Control.CastSpell(HK_Q, minion)
