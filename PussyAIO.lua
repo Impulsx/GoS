@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.04
+    local Version = 0.05
     
     local Files = {
         Lua = {
@@ -419,25 +419,25 @@ local ChanellingSpells = {
 }
 
 
-function IsValid(unit, range)
+local function IsValid(unit, range)
     if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) and GetDistanceSqr(PussymyHero.pos, unit.pos) <= (range + PussymyHero.boundingRadius + unit.boundingRadius) then
         return true;
     end
     return false;
 end
 
-function IsValid(unit)
+local function IsValid(unit)
     if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) then
         return true;
     end
     return false;
 end
 
-function Ready(spell)
+local function Ready(spell)
     return PussymyHero:GetSpellData(spell).currentCd == 0 and PussymyHero:GetSpellData(spell).level > 0 and PussymyHero:GetSpellData(spell).mana <= PussymyHero.mana
 end 
 
-function CalculateMagicalDamage(target, damage)
+local function CalculateMagicalDamage(target, damage)
 	
 	if target and damage then	
 		local targetMR = target.magicResist * PussymyHero.magicPenPercent - PussymyHero.magicPen
@@ -451,7 +451,7 @@ function CalculateMagicalDamage(target, damage)
 	return 0
 end
 
-function CalculatePhysicalDamage(target, damage)			
+local function CalculatePhysicalDamage(target, damage)			
 	local targetArmor = target.armor * PussymyHero.armorPenPercent - PussymyHero.armorPen
 	local damageReduction = 100 / ( 100 + targetArmor)
 	if targetArmor < 0 then
@@ -461,7 +461,7 @@ function CalculatePhysicalDamage(target, damage)
 	return damage
 end
 
-function GetTarget(range) 
+local function GetTarget(range) 
 	local target = nil 
 	if Orb == 1 then
 		target = EOW:GetTarget(range)
@@ -476,7 +476,7 @@ function GetTarget(range)
 end
 
 
-function GetMode()
+local function GetMode()
 	if Orb == 1 then
 		return intToMode[EOW.CurrentMode]
 	elseif Orb == 2 then
@@ -508,7 +508,7 @@ function GetMode()
 	end
 end	
 
-function SetAttack(bool)
+local function SetAttack(bool)
 	if _G.EOWLoaded then
 		EOW:SetAttacks(bool)
 	elseif _G.SDK then                                                        
@@ -521,7 +521,7 @@ function SetAttack(bool)
 
 end
 
-function SetMovement(bool)
+local function SetMovement(bool)
 	if _G.EOWLoaded then
 		EOW:SetMovements(bool)
 		EOW:SetAttacks(bool)
@@ -540,37 +540,37 @@ function SetMovement(bool)
 	end
 end
 
-function DisableOrb()
+local function DisableOrb()
 	if _G.SDK.TargetSelector:GetTarget(900) then
 		_G.SDK.Orbwalker:SetMovement(false)
 		_G.SDK.Orbwalker:SetAttack(false)
 		end
 end
 
-function EnableOrb()
+local function EnableOrb()
 	if _G.SDK.TargetSelector:GetTarget(900) then
 		_G.SDK.Orbwalker:SetMovement(true)
 		_G.SDK.Orbwalker:SetAttack(true)	
 		end
 end
 
-function EnableMovement()
+local function EnableMovement()
 	SetMovement(true)
 end
 
-function ReturnCursor(pos)
+local function ReturnCursor(pos)
 	PussyControlSetCursorPos(pos)
 	DelayAction(EnableMovement,0.1)
 end
 
-function LeftClick(pos)
+local function LeftClick(pos)
 	PussyControlMouseEvent(MOUSEEVENTF_LEFTDOWN)
 	PussyControlMouseEvent(MOUSEEVENTF_LEFTUP)
 	DelayAction(ReturnCursor,0.05,{pos})
 end
 
 
-function CastSpellMM(spell,pos,range,delay)
+local function CastSpellMM(spell,pos,range,delay)
 	local range = range or PussyMathHuge
 	local delay = delay or 250
 	local ticker = PussyGetTickCount
@@ -601,7 +601,7 @@ function CastSpellMM(spell,pos,range,delay)
 end
 
 
-function CastSpell(HK, pos, delay)
+local function CastSpell(HK, pos, delay)
 	if spellcast.state == 2 then return end
 	if ExtLibEvade and ExtLibEvade.Evading then return end
 	
@@ -626,7 +626,7 @@ function CastSpell(HK, pos, delay)
 end
 
 
-function GetDistanceSqr(p1, p2)
+local function GetDistanceSqr(p1, p2)
 	if not p1 then return PussyMathHuge end
 	p2 = p2 or PussymyHero
 	local dx = p1.x - p2.x
@@ -634,16 +634,16 @@ function GetDistanceSqr(p1, p2)
 	return dx*dx + dz*dz
 end
 
-function GetDistance(p1, p2)
+local function GetDistance(p1, p2)
 	p2 = p2 or PussymyHero
 	return PussyMathSqrt(GetDistanceSqr(p1, p2))
 end
 
-function GetDistance2D(p1,p2)
-	return sqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y))
+local function GetDistance2D(p1,p2)
+	return PussyMathSqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y))
 end
 
-function OnProcessSpell()
+local function OnProcessSpell()
 	for i = 1, #Units do
 		local unit = Units[i].unit; local last = Units[i].spell; local spell = unit.activeSpell
 		if spell and last ~= (spell.name .. spell.startTime) and unit.activeSpell.isChanneling and unit.team ~= PussymyHero.team then
@@ -665,7 +665,7 @@ function LoadUnits()
 	end
 end
 
-function EnemiesAround(pos, range)
+local function EnemiesAround(pos, range)
     local pos = pos.pos
     local N = 0
     for i = 1, PussyGameHeroCount() do
@@ -677,7 +677,7 @@ function EnemiesAround(pos, range)
     return N
 end
 
-function HasPoison(unit)
+local function HasPoison(unit)
 	for i = 0, unit.buffCount do 
 	local buff = unit:GetBuff(i)
 		if buff.type == 23 and PussyGameTimer < buff.expireTime - 0.141  then
@@ -687,7 +687,7 @@ function HasPoison(unit)
 	return false
 end
 
-function CountObjectsNearPos(pos, range, radius, objects)
+local function CountObjectsNearPos(pos, range, radius, objects)
     local n = 0
     for i, object in pairs(objects) do
         if GetDistanceSqr(pos, object.pos) <= radius * radius then
@@ -697,7 +697,7 @@ function CountObjectsNearPos(pos, range, radius, objects)
     return n
 end
 
-function GetBestCircularFarmPosition(range, radius, objects)
+local function GetBestCircularFarmPosition(range, radius, objects)
     local BestPos 
     local BestHit = 0
     for i, object in pairs(objects) do
@@ -713,7 +713,7 @@ function GetBestCircularFarmPosition(range, radius, objects)
     return BestPos, BestHit
 end
 
-function CountEnemiesNear(origin, range)
+local function CountEnemiesNear(origin, range)
 	local count = 0
 	for i  = 1,PussyGameHeroCount(i) do
 		local enemy = PussyGameHero(i)
@@ -724,7 +724,7 @@ function CountEnemiesNear(origin, range)
 	return count
 end
 
-function GetEnemyHeroes()
+local function GetEnemyHeroes()
     local _EnemyHeroes = {}
     for i = 1, PussyGameHeroCount() do
         local unit = PussyGameHero(i)
@@ -735,7 +735,7 @@ function GetEnemyHeroes()
     return _EnemyHeroes
 end 
 
-function IsRecalling()
+local function IsRecalling()
 	for i = 1, 63 do
 	local buff = PussymyHero:GetBuff(i) 
 		if buff.count > 0 and buff.name == "recall" and PussyGameTimer < buff.expireTime then
@@ -745,7 +745,7 @@ function IsRecalling()
 	return false
 end
 
-function IsImmobileTarget(unit)
+local function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
 		if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.name == 10 ) and buff.count > 0 then
@@ -755,7 +755,7 @@ function IsImmobileTarget(unit)
 	return false	
 end
 
-function GetImmobileCount(range, pos)
+local function GetImmobileCount(range, pos)
     local pos = pos.pos
 	local count = 0
 	for i = 1, PussyGameHeroCount() do 
@@ -768,7 +768,7 @@ function GetImmobileCount(range, pos)
 	return count
 end
 
-function Cleans(unit)
+local function Cleans(unit)
 	if unit == nil then return false end
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
@@ -779,7 +779,7 @@ function Cleans(unit)
 	return false	
 end
 
-function HasBuff(unit, buffname)
+local function HasBuff(unit, buffname)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
 		if buff.name == buffname and buff.count > 0 then 
@@ -789,7 +789,7 @@ function HasBuff(unit, buffname)
 	return false
 end
 
-function Block(boolean) 
+local function Block(boolean) 
 	if boolean == true then 
 		if Orb == 1 then
 			EOW:SetAttacks(false)
@@ -809,7 +809,7 @@ function Block(boolean)
 	end
 end
  
-function OnVision(unit)
+local function OnVision(unit)
 	if _OnVision[unit.networkID] == nil then _OnVision[unit.networkID] = {state = unit.visible , tick = PussyGetTickCount, pos = unit.pos} end
 	if _OnVision[unit.networkID].state == true and not unit.visible then _OnVision[unit.networkID].state = false _OnVision[unit.networkID].tick = PussyGetTickCount end
 	if _OnVision[unit.networkID].state == false and unit.visible then _OnVision[unit.networkID].state = true _OnVision[unit.networkID].tick = PussyGetTickCount end
@@ -825,7 +825,7 @@ function OnVisionF()
 	end
 end
 
-function OnWaypoint(unit)
+local function OnWaypoint(unit)
 	if _OnWaypoint[unit.networkID] == nil then _OnWaypoint[unit.networkID] = {pos = unit.posTo , speed = unit.ms, time = Game.Timer()} end
 	if _OnWaypoint[unit.networkID].pos ~= unit.posTo then 
 		_OnWaypoint[unit.networkID] = {startPos = unit.pos, pos = unit.posTo , speed = unit.ms, time = Game.Timer()}
@@ -841,7 +841,7 @@ function OnWaypoint(unit)
 	return _OnWaypoint[unit.networkID]
 end
 
-function GetPred(unit,speed,delay) 
+local function GetPred(unit,speed,delay) 
 	local speed = speed or PussyMathHuge
 	local delay = delay or 0.25
 	local unitSpeed = unit.ms
@@ -864,7 +864,7 @@ function GetPred(unit,speed,delay)
 	end	
 end
 
-function EnemyInRange(range)
+local function EnemyInRange(range)
 	local count = 0
 	for i, target in ipairs(GetEnemyHeroes()) do
 		if target.pos:DistanceTo(PussymyHero.pos) < range and IsValid(target) then 
@@ -874,7 +874,7 @@ function EnemyInRange(range)
 	return count
 end
 
-function EnemiesNear(pos,range)
+local function EnemiesNear(pos,range)
 	local N = 0
 	for i = 1,PussyGameHeroCount()  do
 		local hero = PussyGameHero(i)	
@@ -885,7 +885,7 @@ function EnemiesNear(pos,range)
 	return N	
 end	
 
-function MinionsNear(pos,range)
+local function MinionsNear(pos,range)
 	local N = 0
 		for i = 1, PussyGameMinionCount() do 
 		local Minion = PussyGameMinion(i)	
@@ -896,7 +896,7 @@ function MinionsNear(pos,range)
 	return N	
 end	
 
-function GetMinionCount(range, pos)
+local function GetMinionCount(range, pos)
     local pos = pos.pos
 	local count = 0
 	for i = 1,PussyGameMinionCount() do
@@ -909,7 +909,7 @@ function GetMinionCount(range, pos)
 	return count
 end
 
-function GetEnemyCount(range, pos)
+local function GetEnemyCount(range, pos)
     local pos = pos.pos
 	local count = 0
 	for i = 1, PussyGameHeroCount() do 
@@ -922,7 +922,7 @@ function GetEnemyCount(range, pos)
 	return count
 end
 
-function GetAllyCount(range, pos)
+local function GetAllyCount(range, pos)
     local pos = pos.pos
 	local count = 0
 	for i = 1, PussyGameHeroCount() do 
@@ -935,7 +935,7 @@ function GetAllyCount(range, pos)
 	return count
 end
 
-function IsUnderTurret(unit)
+local function IsUnderTurret(unit)
     for i = 1, PussyGameTurretCount() do
         local turret = PussyGameTurret(i)
         local range = (turret.boundingRadius + 750 + unit.boundingRadius / 2)
@@ -948,7 +948,7 @@ function IsUnderTurret(unit)
     return false
 end
 
-function GetAllyHeroes() 
+local function GetAllyHeroes() 
 	AllyHeroes = {}
 	for i = 1, PussyGameHeroCount() do
 		local Hero = PussyGameHero(i)
@@ -959,7 +959,7 @@ function GetAllyHeroes()
 	return AllyHeroes
 end
 
-function GetAllyTurret() 
+local function GetAllyTurret() 
 	Allyturret = {}
     for i = 1, PussyGameTurretCount() do
         local turret = PussyGameTurret(i)
@@ -970,7 +970,7 @@ function GetAllyTurret()
 	return Allyturret
 end
 
-function GetItemSlot(unit, id)
+local function GetItemSlot(unit, id)
   for i = ITEM_1, ITEM_7 do
     if unit:GetItemData(i).itemID == id then
       return i
@@ -1180,16 +1180,6 @@ Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = Puss
 	end
 	
 
- 
-	function Cassiopeia:IsFacing(unit)
-	    local V = PussyVector((unit.pos - PussymyHero.pos))
-	    local D = PussyVector(unit.dir)
-	    local Angle = 180 - PussyMathDeg(PussyMathAcos(V*D/(V:Len()*D:Len())))
-	    if PussyMathAbs(Angle) < 80 then 
-	        return true  
-	    end
-	    return false
-	end
 
 	function Cassiopeia:GetAngle(v1, v2)
 		local vec1 = v1:Len()
@@ -1237,23 +1227,15 @@ Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = Puss
 		end
 	end
 
-function Cassiopeia:IsFacing(target)
-local target = GetTarget(RRange)
-if target == nil then return end
-	local dotProduct = PussymyHero.dir.x*target.dir.x + PussymyHero.dir.z*target.dir.z
-	if (dotProduct < 0) then
-		if (PussymyHero.dir.x > 0 and PussymyHero.dir.z > 0) then
-			return ((target.pos.x - PussymyHero.pos.x > 0) and (target.pos.z - PussymyHero.pos.z > 0))
-		elseif (PussymyHero.dir.x < 0 and PussymyHero.dir.z < 0) then
-			return ((target.pos.x - PussymyHero.pos.x < 0) and (target.pos.z - PussymyHero.pos.z < 0))
-		elseif (PussymyHero.dir.x > 0 and PussymyHero.dir.z < 0) then
-			return ((target.pos.x - PussymyHero.pos.x > 0) and (target.pos.z - PussymyHero.pos.z < 0))
-		elseif (PussymyHero.dir.x < 0 and PussymyHero.dir.z > 0) then
-			return ((target.pos.x - PussymyHero.pos.x < 0) and (target.pos.z - PussymyHero.pos.z > 0))
-		end
+	function Cassiopeia:IsFacing(unit)
+	    local V = PussyVector((unit.pos - PussymyHero.pos))
+	    local D = PussyVector(unit.dir)
+	    local Angle = 180 - PussyMathDeg(PussyMathAcos(V*D/(V:Len()*D:Len())))
+	    if PussyMathAbs(Angle) < 80 then 
+	        return true  
+	    end
+	    return false
 	end
-	return false
-end
 
 	function Cassiopeia:RLogic()
 		local RTarget = nil 
@@ -1459,15 +1441,15 @@ function Cassiopeia:Combo()
 		end
 		if Cass.c.R:Value() and Ready(_R) and (HasPoison(target) or Panic) and ((WCheck == false or (WCheck and (PussyGameTimer + WData.cd) - WData.castTime > 2)) or WValue == false) then
 			if Panic then
-				if Dist < RRange and self:PEdmg(target) < target.health then
-					if RTarget then
-						Control.CastSpell(HK_R, RTarget)
-					else
-						Control.CastSpell(HK_R, target)
-					end
+				if RTarget and Dist < RRange and self:PEdmg(target) < target.health then
+				
+					Control.CastSpell(HK_R, RTarget)
+				else
+					Control.CastSpell(HK_R, target)
+					
 				end
 			end
-
+						
 			if Cass.c.R:Value() and Ready(_R) then
 				if Dist < RRange then 
 					if RTarget then
@@ -11310,7 +11292,7 @@ function HPred:GetIncomingDamage(target)
 end
 
 
-local _maxCacheRange = 3000
+
 
 --Right now only used to cache enemy windwalls
 function HPred:CacheParticles()	
