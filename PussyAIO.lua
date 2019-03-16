@@ -2,28 +2,10 @@ local Heroes = {"XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cass
 if not table.contains(Heroes, myHero.charName) then return end
 
 
-
---[[
-
-function OnLoad()
-	if myHero.visible then
-		MenuElement({type = MENU, id = "logo", name = "Supported Champions"})
-		logo:MenuElement({id = "on", name = "Show supported Champs", key = string.byte("X"), toggle = true})	
-	end
-	local textPos = myHero.pos:To2D()
-	if myHero.visible then
-		if logo.on:MenuElement:Value() then
-			Draw.Text("BlaBlaBla", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 000, 255, 000))
-		end
-	end
-end
-]]
-
-
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.03
+    local Version = 0.04
     
     local Files = {
         Lua = {
@@ -68,56 +50,397 @@ do
 
 end
 
-local MathAbs = math.abs
-local MathAcos = math.acos
-local MathAtan = math.atan
-local MathAtan2 = math.atan2
-local MathCeil = math.ceil
-local MathCos = math.cos
-local MathDeg = math.deg
-local MathFloor = math.floor
-local MathHuge = math.huge
-local MathMax = math.max
-local MathMin = math.min
-local MathPi = math.pi
-local MathRad = math.rad
-local MathRandom = math.random
-local MathSin = math.sin
-local MathSqrt = math.sqrt
-local TableInsert = table.insert
-local TableRemove = table.remove
-local TableSort = table.sort
+function OnLoad()
+	if table.contains(Heroes, myHero.charName) then _G[myHero.charName]() end
+	LoadUnits()
+	HPred()	
+end
+
+	
+---------Für meinen Lehrer!! :) --------------
+local PussyGetTickCount = GetTickCount()
+local PussymyHero = myHero
+local PussyVector = Vector
+local PussyCallbackAdd = Callback.Add
+local PussyDrawLine = Draw.Linek
+local PussyDrawColor = Draw.Color
+local PussyDrawCircle = Draw.Circle
+local PussyDrawText = Draw.Text
+local PussyControlMouseEvent = Control.mouse_event
+local PussyControlSetCursorPos = Control.SetCursorPos
+local PussyControlKeyUp = Control.KeyUp
+local PussyControlKeyDown = Control.KeyDown
+local PussyGameCanUseSpell = Game.CanUseSpell
+local PussyGameLatency = Game.Latency()
+local PussyGameTimer = Game.Timer()
+local PussyGameParticleCount = Game.ParticleCount
+local PussyGameParticle = Game.Particle
+local PussyGameHeroCount = Game.HeroCount
+local PussyGameHero = Game.Hero
+local PussyGameMinionCount = Game.MinionCount
+local PussyGameMinion = Game.Minion
+local PussyGameTurretCount = Game.TurretCount
+local PussyGameTurret = Game.Turret
+local PussyGameObjectCount = Game.ObjectCount
+local PussyGameObject = Game.Object
+local PussyGameMissileCount = Game.MissileCount
+local PussyGameMissile = Game.Missile
+local PussyGameIsChatOpen = Game.IsChatOpen
+
+
+
+local PussyMathAbs = math.abs
+local PussyMathAcos = math.acos
+local PussyMathAtan = math.atan
+local PussyMathAtan2 = math.atan2
+local PussyMathCeil = math.ceil
+local PussyMathCos = math.cos
+local PussyMathDeg = math.deg
+local PussyMathFloor = math.floor
+local PussyMathHuge = math.huge
+local PussyMathMax = math.max
+local PussyMathMin = math.min
+local PussyMathPi = math.pi
+local PussyMathRad = math.rad
+local PussyMathRandom = math.random
+local PussyMathSin = math.sin
+local PussyMathSqrt = math.sqrt
+local PussyTableInsert = table.insert
+local PussyTableRemove = table.remove
+local PussyTableSort = table.sort
+
+
+
 local menu = 1
+local _OnWaypoint = {}
+local _OnVision = {}
+local GameLatency = Game.Latency
+local GameTimer = Game.Timer
 local TEAM_ALLY = myHero.team
 local TEAM_ENEMY = 300 - myHero.team
 local TEAM_JUNGLE = 300
 local Allies = {}; local Enemies = {}; local Turrets = {}; local Units = {}; local AllyHeroes = {}
-local GameLatency = Game.Latency
-local GameTimer = Game.Timer
+local intToMode = {[0] = "", [1] = "Combo", [2] = "Harass", [3] = "LastHit", [4] = "Clear"}
+local castSpell = {state = 0, tick = PussyGetTickCount, casting = PussyGetTickCount - 1000, mouse = mousePos}
+local spellcast = {state = 1, mouse = mousePos}
+local ItemHotKey = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2,[ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6,}
+
+local cancelSpells = {
+  ["Caitlyn"] = {
+    ["CaitlynAceintheHole"] = {name = "Ace in the Hole"} --R
+  },
+  ["Darius"] = {
+    ["DariusExecute"] = {name = "Noxian Guillotine"} --R
+  },
+  ["FiddleSticks"] = {
+    ["DrainChannel"] = {name = "Drain"},  --W 
+    ["Crowstorm"] = {name = "Crowstorm"}  --R 
+  },
+  ["Gragas"] = {
+    ["GragasW"] = {name = "Drunken Rage"} --W 
+  },
+  ["Janna"] = {
+    ["ReapTheWhirlwind"] = {name = "Monsoon"} --R
+  },
+  ["Karthus"] = {
+    ["KarthusFallenOne"] = {name = "Requiem"} --R karthusfallenonecastsound
+  },
+  ["Katarina"] = {
+    ["KatarinaR"] = {name = "Death Lotus"} --R 
+  },
+  ["Malzahar"] = {
+    ["AlZaharNetherGrasp"] = {name = "Nether Grasp"} --R
+  },
+  ["MasterYi"] = {
+    ["Meditate"] = {name = "Meditate"} --W 
+  },
+  ["MissFortune"] = {
+    ["MissFortuneBulletTime"] = {name = "Bullet Time"} --R missfortunebulletsound   
+  },
+  ["Nunu"] = {
+    ["AbsoluteZero"] = {name = "Absolute Zero"} --R
+  },
+  ["Pantheon"] = {
+    ["PantheonE"] = {name = "Heartseeker Strike"}, --E
+    ["PantheonRJump"] = {name = "Grand Skyfall"} --R
+  },
+  ["TwistedFate"] = {
+    ["Destiny"] = {name = "Gate"} --R 
+  },
+  ["Warwick"] = {
+    ["InfiniteDuress"] = {name = "Infinite Duress"} --R warwickrsound
+  },
+  ["Rammus"] = {
+    ["PowerBall"] = {name = "Powerball"} --Q 
+  }
+}
+local units = {}
+local foundAUnit = false
+
+local CCExceptions = {
+	["CamilleEMissile"] = true,
+	["HecarimUltMissile"] = true,
+	["HowlingGaleSpell"] = true,
+	["JhinETrap"] = true,
+	["JhinRShotMis"] = true,
+	["JinxEHit"] = true,
+	["SyndraESphereMissile"] = true,
+	["ThreshQMissile"] = true,
+}
+
+local CCSpells = {
+	["AatroxW"] = {charName = "Aatrox", displayName = "Infernal Chains", slot = _W, origin = "spell", type = "linear", speed = 1800, range = 825, delay = 0.25, radius = 80, collision = true},
+	["AhriSeduce"] = {charName = "Ahri", displayName = "Seduce", slot = _E, origin = "spell", type = "linear", speed = 1500, range = 975, delay = 0.25, radius = 60, collision = true},
+	["AhriSeduceMissile"] = {charName = "Ahri", displayName = "Seduce [Missile]", slot = _E, origin = "missile", type = "linear", speed = 1500, range = 975, delay = 0.25, radius = 60, collision = true},
+	["AkaliR"] = {charName = "Akali", displayName = "Perfect Execution [First]", slot = _R, origin = "spell", type = "linear", speed = 1800, range = 525, delay = 0, radius = 65, collision = false},
+	["Pulverize"] = {charName = "Alistar", displayName = "Pulverize", slot = _Q, origin = "spell", type = "circular", speed = PussyMathHuge, range = 0, delay = 0.25, radius = 365, collision = false},
+	["BandageToss"] = {charName = "Amumu", displayName = "Bandage Toss", slot = _Q, origin = "spell", type = "linear", speed = 2000, range = 1100, delay = 0.25, radius = 80, collision = true},
+	["SadMummyBandageToss"] = {charName = "Amumu", displayName = "Bandage Toss [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 2000, range = 1100, delay = 0.25, radius = 80, collision = true},
+	["CurseoftheSadMummy"] = {charName = "Amumu", displayName = "Curse of the Sad Mummy", slot = _R, origin = "spell", type = "circular", speed = PussyMathHuge, range = 0, delay = 0.25, radius = 550, collision = false},
+	["FlashFrostSpell"] = {charName = "Anivia", displayName = "Flash Frost",missileName = "FlashFrostSpell", slot = _Q, origin = "both", type = "linear", speed = 850, range = 1100, delay = 0.25, radius = 110, collision = false},
+	["EnchantedCrystalArrow"] = {charName = "Ashe", displayName = "Enchanted Crystal Arrow", slot = _R, origin = "both", type = "linear", speed = 1600, range = 25000, delay = 0.25, radius = 130, collision = false},
+	["AurelionSolQ"] = {charName = "AurelionSol", displayName = "Starsurge", slot = _Q, origin = "spell", type = "linear", speed = 850, range = 25000, delay = 0, radius = 110, collision = false},
+	["AurelionSolQMissile"] = {charName = "AurelionSol", displayName = "Starsurge [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 850, range = 25000, delay = 0, radius = 110, collision = false},
+	["AzirR"] = {charName = "Azir", displayName = "Emperor's Divide", slot = _R, origin = "spell", type = "linear", speed = 1400, range = 500, delay = 0.3, radius = 250, collision = false},
+	["BardQ"] = {charName = "Bard", displayName = "Cosmic Binding", slot = _Q, origin = "spell", type = "linear", speed = 1500, range = 950, delay = 0.25, radius = 60, collision = true},
+	["BardQMissile"] = {charName = "Bard", displayName = "Cosmic Binding [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1500, range = 950, delay = 0.25, radius = 60, collision = true},
+	["BardR"] = {charName = "Bard", displayName = "Tempered Fate", slot = _R, origin = "spell", type = "circular", speed = 2100, range = 3400, delay = 0.5, radius = 350, collision = false},
+	["BardRMissile"] = {charName = "Bard", displayName = "Tempered Fate [Missile]", slot = _R, origin = "missile", type = "circular", speed = 2100, range = 3400, delay = 0.5, radius = 350, collision = false},
+	["RocketGrab"] = {charName = "Blitzcrank", displayName = "Rocket Grab", slot = _Q, origin = "spell", type = "linear", speed = 1800, range = 1050, delay = 0.25, radius = 70, collision = true},
+	["RocketGrabMissile"] = {charName = "Blitzcrank", displayName = "Rocket Grab [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1800, range = 1050, delay = 0.25, radius = 70, collision = true},
+	["BraumQ"] = {charName = "Braum", displayName = "Winter's Bite", slot = _Q, origin = "spell", type = "linear", speed = 1700, range = 1000, delay = 0.25, radius = 70, collision = true},
+	["BraumQMissile"] = {charName = "Braum", displayName = "Winter's Bite [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1700, range = 1000, delay = 0.25, radius = 70, collision = true},
+	["BraumR"] = {charName = "Braum", displayName = "Glacial Fissure", slot = _R, origin = "spell", type = "linear", speed = 1400, range = 1250, delay = 0.5, radius = 115, collision = false},
+	["BraumRMissile"] = {charName = "Braum", displayName = "Glacial Fissure [Missile]", slot = _R, origin = "missile", type = "linear", speed = 1400, range = 1250, delay = 0.5, radius = 115, collision = false},
+	["CaitlynYordleTrap"] = {charName = "Caitlyn", displayName = "Yordle Trap", slot = _W, origin = "spell", type = "circular", speed = PussyMathHuge, range = 800, delay = 0.25, radius = 75, collision = false},
+	["CaitlynEntrapment"] = {charName = "Caitlyn", displayName = "Entrapment", slot = _E, origin = "spell", type = "linear", speed = 1600, range = 750, delay = 0.15, radius = 70, collision = true},
+	["CassiopeiaW"] = {charName = "Cassiopeia", displayName = "Miasma", slot = _W, origin = "spell", type = "circular", speed = 2500, range = 800, delay = 0.75, radius = 160, collision = false},
+	["Rupture"] = {charName = "Chogath", displayName = "Rupture", slot = _Q, origin = "spell", type = "circular", speed = PussyMathHuge, range = 950, delay = 1.2, radius = 250, collision = false},
+	["InfectedCleaverMissile"] = {charName = "DrMundo", displayName = "Infected Cleaver", slot = _Q, origin = "both", type = "linear", speed = 2000, range = 975, delay = 0.25, radius = 60, collision = true},
+	["DravenDoubleShot"] = {charName = "Draven", displayName = "Double Shot", slot = _E, origin = "spell", type = "linear", speed = 1600, range = 1050, delay = 0.25, radius = 130, collision = false},
+	["DravenDoubleShotMissile"] = {charName = "Draven", displayName = "Double Shot [Missile]", slot = _E, origin = "missile", type = "linear", speed = 1600, range = 1050, delay = 0.25, radius = 130, collision = false},
+	["EkkoQ"] = {charName = "Ekko", displayName = "Timewinder", slot = _Q, origin = "spell", type = "linear", speed = 1650, range = 1175, delay = 0.25, radius = 60, collision = false},
+	["EkkoQMis"] = {charName = "Ekko", displayName = "Timewinder [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1650, range = 1175, delay = 0.25, radius = 60, collision = false},
+	["EkkoW"] = {charName = "Ekko", displayName = "Parallel Convergence", slot = _W, origin = "spell", type = "circular", speed = PussyMathHuge, range = 1600, delay = 3.35, radius = 400, collision = false},
+	["EkkoWMis"] = {charName = "Ekko", displayName = "Parallel Convergence [Missile]", slot = _W, origin = "missile", type = "circular", speed = PussyMathHuge, range = 1600, delay = 3.35, radius = 400, collision = false},
+	["EliseHumanE"] = {charName = "Elise", displayName = "Cocoon", slot = _E, origin = "both", type = "linear", speed = 1600, range = 1075, delay = 0.25, radius = 55, collision = true},
+	["FizzR"] = {charName = "Fizz", displayName = "Chum the Waters", slot = _R, origin = "spell", type = "linear", speed = 1300, range = 1300, delay = 0.25, radius = 150, collision = false},
+	["FizzRMissile"] = {charName = "Fizz", displayName = "Chum the Waters [Missile]", slot = _R, origin = "missile", type = "linear", speed = 1300, range = 1300, delay = 0.25, radius = 150, collision = false},
+	["GalioE"] = {charName = "Galio", displayName = "Justice Punch", slot = _E, origin = "spell", type = "linear", speed = 2300, range = 650, delay = 0.4, radius = 160, collision = false},
+	["GnarQMissile"] = {charName = "Gnar", displayName = "Boomerang Throw", slot = _Q, origin = "both", type = "linear", speed = 2500, range = 1125, delay = 0.25, radius = 55, collision = false},
+	["GnarBigQMissile"] = {charName = "Gnar", displayName = "Boulder Toss", slot = _Q, origin = "both", type = "linear", speed = 2100, range = 1125, delay = 0.5, radius = 90, collision = true},
+	["GnarBigW"] = {charName = "Gnar", displayName = "Wallop", slot = _W, origin = "spell", type = "linear", speed = PussyMathHuge, range = 575, delay = 0.6, radius = 100, collision = false},
+	["GnarR"] = {charName = "Gnar", displayName = "GNAR!", slot = _R, origin = "spell", type = "circular", speed = PussyMathHuge, range = 0, delay = 0.25, radius = 475, collision = false},
+	["GragasQ"] = {charName = "Gragas", displayName = "Barrel Roll", slot = _Q, origin = "spell", type = "circular", speed = 1000, range = 850, delay = 0.25, radius = 275, collision = false},
+	["GragasQMissile"] = {charName = "Gragas", displayName = "Barrel Roll [Missile]", slot = _Q, origin = "missile", type = "circular", speed = 1000, range = 850, delay = 0.25, radius = 275, collision = false},
+	["GragasR"] = {charName = "Gragas", displayName = "Explosive Cask", slot = _R, origin = "spell", type = "circular", speed = 1800, range = 1000, delay = 0.25, radius = 400, collision = false},
+	["GragasRBoom"] = {charName = "Gragas", displayName = "Explosive Cask [Missile]", slot = _R, origin = "missile", type = "circular", speed = 1800, range = 1000, delay = 0.25, radius = 400, collision = false},
+	["GravesSmokeGrenade"] = {charName = "Graves", displayName = "Smoke Grenade", slot = _W, origin = "spell", type = "circular", speed = 1500, range = 950, delay = 0.15, radius = 250, collision = false},
+	["GravesSmokeGrenadeBoom"] = {charName = "Graves", displayName = "Smoke Grenade [Missile]", slot = _W, origin = "missile", type = "circular", speed = 1500, range = 950, delay = 0.15, radius = 250, collision = false},
+	["HecarimUltMissile"] = {charName = "Hecarim", displayName = "Onslaught of Shadows", slot = _R, origin = "missile", type = "linear", speed = 1100, range = 1650, delay = 0.2, radius = 280, collision = false},
+	["HeimerdingerE"] = {charName = "Heimerdinger", displayName = "CH-2 Electron Storm Grenade", slot = _E, origin = "spell", type = "circular", speed = 1200, range = 970, delay = 0.25, radius = 250, collision = false},
+	["HeimerdingerESpell"] = {charName = "Heimerdinger", displayName = "CH-2 Electron Storm Grenade [Missile]", slot = _E, origin = "missile", type = "circular", speed = 1200, range = 970, delay = 0.25, radius = 250, collision = false},
+	["HeimerdingerEUlt"] = {charName = "Heimerdinger", displayName = "CH-2 Electron Storm Grenade", slot = _E, origin = "spell", type = "circular", speed = 1200, range = 970, delay = 0.25, radius = 250, collision = false},
+	["HeimerdingerESpell_ult"] = {charName = "Heimerdinger", displayName = "CH-2 Electron Storm Grenade [Missile]", slot = _E, origin = "missile", type = "circular", speed = 1200, range = 970, delay = 0.25, radius = 250, collision = false},
+	["IreliaW2"] = {charName = "Illaoi", displayName = "Defiant Dance", slot = _W, origin = "spell", type = "linear", speed = PussyMathHuge, range = 775, delay = 0.25, radius = 120, collision = false},
+	["IreliaR"] = {charName = "Illaoi", displayName = "Vanguard's Edge", slot = _R, origin = "both", type = "linear", speed = 2000, range = 950, delay = 0.4, radius = 160, collision = false},
+	["IvernQ"] = {charName = "Illaoi", displayName = "Rootcaller", slot = _Q, origin = "both", type = "linear", speed = 1300, range = 1075, delay = 0.25, radius = 80, collision = true},
+	["HowlingGaleSpell"] = {charName = "Janna", displayName = "Howling Gale [1]", slot = _Q, origin = "missile", type = "linear", speed = 667, range = 995, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell2"] = {charName = "Janna", displayName = "Howling Gale [2]", slot = _Q, origin = "missile", type = "linear", speed = 700, range = 1045, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell3"] = {charName = "Janna", displayName = "Howling Gale [3]", slot = _Q, origin = "missile", type = "linear", speed = 733, range = 1095, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell4"] = {charName = "Janna", displayName = "Howling Gale [4]", slot = _Q, origin = "missile", type = "linear", speed = 767, range = 1145, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell5"] = {charName = "Janna", displayName = "Howling Gale [5]", slot = _Q, origin = "missile", type = "linear", speed = 800, range = 1195, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell6"] = {charName = "Janna", displayName = "Howling Gale [6]", slot = _Q, origin = "missile", type = "linear", speed = 833, range = 1245, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell7"] = {charName = "Janna", displayName = "Howling Gale [7]", slot = _Q, origin = "missile", type = "linear", speed = 867, range = 1295, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell8"] = {charName = "Janna", displayName = "Howling Gale [8]", slot = _Q, origin = "missile", type = "linear", speed = 900, range = 1345, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell9"] = {charName = "Janna", displayName = "Howling Gale [9]", slot = _Q, origin = "missile", type = "linear", speed = 933, range = 1395, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell10"] = {charName = "Janna", displayName = "Howling Gale [10]", slot = _Q, origin = "missile", type = "linear", speed = 967, range = 1445, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell11"] = {charName = "Janna", displayName = "Howling Gale [11]", slot = _Q, origin = "missile", type = "linear", speed = 1000, range = 1495, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell12"] = {charName = "Janna", displayName = "Howling Gale [12]", slot = _Q, origin = "missile", type = "linear", speed = 1033, range = 1545, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell13"] = {charName = "Janna", displayName = "Howling Gale [13]", slot = _Q, origin = "missile", type = "linear", speed = 1067, range = 1595, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell14"] = {charName = "Janna", displayName = "Howling Gale [14]", slot = _Q, origin = "missile", type = "linear", speed = 1100, range = 1645, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell15"] = {charName = "Janna", displayName = "Howling Gale [15]", slot = _Q, origin = "missile", type = "linear", speed = 1133, range = 1695, delay = 0, radius = 120, collision = false},
+	["HowlingGaleSpell16"] = {charName = "Janna", displayName = "Howling Gale [16]", slot = _Q, origin = "missile", type = "linear", speed = 1167, range = 1745, delay = 0, radius = 120, collision = false},
+	["JarvanIVDragonStrike"] = {charName = "JarvanIV", displayName = "Dragon Strike", slot = _Q, origin = "spell", type = "linear", speed = PussyMathHuge, range = 770, delay = 0.4, radius = 70, collision = false},
+	["JhinW"] = {charName = "Jhin", displayName = "Deadly Flourish", slot = _W, origin = "spell", type = "linear", speed = 5000, range = 2550, delay = 0.75, radius = 40, collision = false},
+	["JhinE"] = {charName = "Jhin", displayName = "Captive Audience", slot = _E, origin = "spell", type = "circular", speed = 1600, range = 750, delay = 0.25, radius = 130, collision = false},
+	["JhinETrap"] = {charName = "Jhin", displayName = "Captive Audience [Missile]", slot = _E, origin = "missile", type = "circular", speed = 1600, range = 750, delay = 0.25, radius = 130, collision = false},
+	["JhinRShotMis"] = {charName = "Jhin", displayName = "Curtain Call [Missile]", slot = _R, origin = "missile", type = "linear", speed = 5000, range = 3500, delay = 0.25, radius = 80, collision = false},
+	["JinxWMissile"] = {charName = "Jinx", displayName = "Zap!", slot = _W, origin = "both", type = "linear", speed = 3300, range = 1450, delay = 0.6, radius = 60, collision = true},
+	["JinxEHit"] = {charName = "Jinx", displayName = "Flame Chompers! [Missile]", slot = _E, origin = "missile", type = "circular", speed = 1750, range = 900, delay = 0, radius = 120, collision = false},
+	["KarmaQ"] = {charName = "Karma", displayName = "Inner Flame", slot = _Q, origin = "spell", type = "linear", speed = 1700, range = 950, delay = 0.25, radius = 60, collision = true},
+	["KarmaQMissile"] = {charName = "Karma", displayName = "Inner Flame [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1700, range = 950, delay = 0.25, radius = 60, collision = true},
+	["KarmaQMantra"] = {charName = "Karma", displayName = "Inner Flame [Mantra]", slot = _Q, origin = "linear", type = "linear", speed = 1700, range = 950, delay = 0.25, radius = 80, collision = true},
+	["KarmaQMissileMantra"] = {charName = "Karma", displayName = "Inner Flame [Mantra, Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1700, range = 950, delay = 0.25, radius = 80, collision = true},
+	["KaynW"] = {charName = "Kayn", displayName = "Blade's Reach", slot = _W, origin = "spell", type = "linear", speed = PussyMathHuge, range = 700, delay = 0.55, radius = 90, collision = false},
+	["KhazixWLong"] = {charName = "Khazix", displayName = "Void Spike [Threeway]", slot = _W, origin = "spell", type = "threeway", speed = 1700, range = 1000, delay = 0.25, radius = 70,angle = 23, collision = true},
+	["KledQ"] = {charName = "Kled", displayName = "Beartrap on a Rope", slot = _Q, origin = "spell", type = "linear", speed = 1600, range = 800, delay = 0.25, radius = 45, collision = true},
+	["KledQMissile"] = {charName = "Kled", displayName = "Beartrap on a Rope [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1600, range = 800, delay = 0.25, radius = 45, collision = true},
+	["KogMawVoidOozeMissile"] = {charName = "KogMaw", displayName = "Void Ooze", slot = _E, origin = "both", type = "linear", speed = 1400, range = 1360, delay = 0.25, radius = 120, collision = false},
+	["LeblancE"] = {charName = "Leblanc", displayName = "Ethereal Chains [Standard]", slot = _E, origin = "spell", type = "linear", speed = 1750, range = 925, delay = 0.25, radius = 55, collision = true},
+	["LeblancEMissile"] = {charName = "Leblanc", displayName = "Ethereal Chains [Standard, Missile]", slot = _E, origin = "missile", type = "linear", speed = 1750, range = 925, delay = 0.25, radius = 55, collision = true},
+	["LeblancRE"] = {charName = "Leblanc", displayName = "Ethereal Chains [Ultimate]", slot = _E, origin = "spell", type = "linear", speed = 1750, range = 925, delay = 0.25, radius = 55, collision = true},
+	["LeblancREMissile"] = {charName = "Leblanc", displayName = "Ethereal Chains [Ultimate, Missile]", slot = _E, origin = "missile", type = "linear", speed = 1750, range = 925, delay = 0.25, radius = 55, collision = true},
+	["LeonaZenithBlade"] = {charName = "Leona", displayName = "Zenith Blade", slot = _E, origin = "spell", type = "linear", speed = 2000, range = 875, delay = 0.25, radius = 70, collision = false},
+	["LeonaSolarFlare"] = {charName = "Leona", displayName = "Solar Flare", slot = _R, origin = "spell", type = "circular", speed = PussyMathHuge, range = 1200, delay = 0.85, radius = 300, collision = false},
+	["LissandraQMissile"] = {charName = "Lissandra", displayName = "Ice Shard", slot = _Q, origin = "both", type = "linear", speed = 2200, range = 750, delay = 0.25, radius = 75, collision = false},
+	["LuluQ"] = {charName = "Lulu", displayName = "Glitterlance", slot = _Q, origin = "spell", type = "linear", speed = 1450, range = 925, delay = 0.25, radius = 60, collision = false},
+	["LuluQMissile"] = {charName = "Lulu", displayName = "Glitterlance [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1450, range = 925, delay = 0.25, radius = 60, collision = false},
+	["LuxLightBinding"] = {charName = "Lux", displayName = "Light Binding", slot = _Q, origin = "spell", type = "linear", speed = 1200, range = 1175, delay = 0.25, radius = 50, collision = true},
+	["LuxLightBindingDummy"] = {charName = "Lux", displayName = "Light Binding [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1200, range = 1175, delay = 0.25, radius = 50, collision = true},
+	["LuxLightStrikeKugel"] = {charName = "Lux", displayName = "Light Strike Kugel", slot = _E, origin = "both", type = "circular", speed = 1200, range = 1100, delay = 0.25, radius = 300, collision = true},
+	["Landslide"] = {charName = "Malphite", displayName = "Ground Slam", slot = _E, origin = "spell", type = "circular", speed = PussyMathHuge, range = 0, delay = 0.242, radius = 400, collision = false},
+	["MalzaharQ"] = {charName = "Malzahar", displayName = "Call of the Void", slot = _Q, origin = "spell", type = "rectangular", speed = 1600, range = 900, delay = 0.5, radius = 400, radius2 = 100, collision = false},
+	["MalzaharQMissile"] = {charName = "Malzahar", displayName = "Call of the Void [Missile]", slot = _Q, origin = "missile", type = "rectangular", speed = 1600, range = 900, delay = 0.5, radius = 400, radius2 = 100, collision = false},
+	["MaokaiQ"] = {charName = "Maokai", displayName = "Bramble Smash", slot = _Q, origin = "spell", type = "linear", speed = 1600, range = 600, delay = 0.375, radius = 110, collision = false},
+	["MaokaiQMissile"] = {charName = "Maokai", displayName = "Bramble Smash [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1600, range = 600, delay = 0.375, radius = 110, collision = false},
+	["DarkBindingMissile"] = {charName = "Morgana", displayName = "Dark Binding", slot = _Q, origin = "both", type = "linear", speed = 1200, range = 1175, delay = 0.25, radius = 70, collision = true},
+	["NamiQ"] = {charName = "Nami", displayName = "Aqua Prison", slot = _Q, origin = "spell", type = "circular", speed = PussyMathHuge, range = 875, delay = 1, radius = 180, collision = false},
+	["NamiRMissile"] = {charName = "Nami", displayName = "Tidal Wave", slot = _R, origin = "both", type = "linear", speed = 850, range = 2750, delay = 0.5, radius = 250, collision = false},
+	["NautilusAnchorDragMissile"] = {charName = "Nautilus", displayName = "Dredge Line", slot = _Q, origin = "both", type = "linear", speed = 2000, range = 925, delay = 0.25, radius = 90, collision = true},
+	["NeekoQ"] = {charName = "Neeko", displayName = "Blooming Burst", slot = _Q, origin = "both", type = "circular", speed = 1500, range = 800, delay = 0.25, radius = 200, collision = false},
+	["NeekoE"] = {charName = "Neeko", displayName = "Tangle-Barbs", slot = _E, origin = "both", type = "linear", speed = 1400, range = 1000, delay = 0.25, radius = 65, collision = false},
+	["NunuR"] = {charName = "Nunu", displayName = "Absolute Zero", slot = _R, origin = "spell", type = "circular", speed = PussyMathHuge, range = 0, delay = 3, radius = 650, collision = false},
+	["OlafAxeThrowCast"] = {charName = "Olaf", displayName = "Undertow", slot = _Q, origin = "spell", type = "linear", speed = 1600, range = 1000, delay = 0.25, radius = 90, collision = false},
+	["OlafAxeThrow"] = {charName = "Olaf", displayName = "Undertow [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1600, range = 1000, delay = 0.25, radius = 90, collision = false},
+	["OrnnQ"] = {charName = "Ornn", displayName = "Volcanic Rupture", slot = _Q, origin = "spell", type = "linear", speed = 1800, range = 800, delay = 0.3, radius = 65, collision = false},
+	-- OrnnQMissile
+	["OrnnE"] = {charName = "Ornn", displayName = "Searing Charge", slot = _E, origin = "spell", type = "linear", speed = 1800, range = 800, delay = 0.35, radius = 150, collision = false},
+	["OrnnRCharge"] = {charName = "Ornn", displayName = "Call of the Forge God", slot = _R, origin = "spell", type = "linear", speed = 1650, range = 2500, delay = 0.5, radius = 200, collision = false},
+	-- OrnnRMissile
+	["PoppyQSpell"] = {charName = "Poppy", displayName = "Hammer Shock", slot = _Q, origin = "spell", type = "linear", speed = PussyMathHuge, range = 430, delay = 0.332, radius = 100, collision = false},
+	["PoppyRSpell"] = {charName = "Poppy", displayName = "Keeper's Verdict", slot = _R, origin = "spell", type = "linear", speed = 2000, range = 1200, delay = 0.33, radius = 100, collision = false},
+	["PoppyRSpellMissile"] = {charName = "Poppy", displayName = "Keeper's Verdict [Missile]", slot = _R, origin = "missile", type = "linear", speed = 2000, range = 1200, delay = 0.33, radius = 100, collision = false},
+	["PykeQMelee"] = {charName = "Pyke", displayName = "Bone Skewer [Melee]", slot = _Q, origin = "spell", type = "linear", speed = PussyMathHuge, range = 400, delay = 0.25, radius = 70, collision = false},
+	["PykeQRange"] = {charName = "Pyke", displayName = "Bone Skewer [Range]", slot = _Q, origin = "both", type = "linear", speed = 2000, range = 1100, delay = 0.2, radius = 70, collision = true},
+	["PykeE"] = {charName = "Pyke", displayName = "Phantom Undertow", slot = _E, origin = "spell", type = "linear", speed = 3000, range = 25000, delay = 0, radius = 110, collision = false},
+	["PykeEMissile"] = {charName = "Pyke", displayName = "Phantom Undertow [Missile]", slot = _E, origin = "missile", type = "linear", speed = 3000, range = 25000, delay = 0, radius = 110, collision = false},
+	["RakanW"] = {charName = "Rakan", displayName = "Grand Entrance", slot = _W, origin = "spell", type = "circular", speed = PussyMathHuge, range = 650, delay = 0.7, radius = 265, collision = false},
+	["RengarE"] = {charName = "Rengar", displayName = "Bola Strike", slot = _E, origin = "spell", type = "linear", speed = 1500, range = 1000, delay = 0.25, radius = 70, collision = true},
+	["RengarEMis"] = {charName = "Rengar", displayName = "Bola Strike [Missile]", slot = _E, origin = "missile", type = "linear", speed = 1500, range = 1000, delay = 0.25, radius = 70, collision = true},
+	["RumbleGrenade"] = {charName = "Rumble", displayName = "Electro Harpoon", slot = _E, origin = "spell", type = "linear", speed = 2000, range = 850, delay = 0.25, radius = 60, collision = true},
+	["RumbleGrenadeMissile"] = {charName = "Rumble", displayName = "Electro Harpoon [Missile]", slot = _E, origin = "missile", type = "linear", speed = 2000, range = 850, delay = 0.25, radius = 60, collision = true},
+	["SejuaniR"] = {charName = "Sejuani", displayName = "Glacial Prison", slot = _R, origin = "spell", type = "linear", speed = 1600, range = 1300, delay = 0.25, radius = 120, collision = false},
+	["SejuaniRMissile"] = {charName = "Sejuani", displayName = "Glacial Prison [Missile]", slot = _R, origin = "missile", type = "linear", speed = 1600, range = 1300, delay = 0.25, radius = 120, collision = false},
+	["ShyvanaTransformLeap"] = {charName = "Shyvana", displayName = "Transform Leap", slot = _R, origin = "spell", type = "linear", speed = 700, range = 850, delay = 0.25, radius = 150, collision = false},
+	["SionQ"] = {charName = "Sion", displayName = "Decimating Smash", slot = _Q, origin = "", type = "linear", speed = PussyMathHuge, range = 750, delay = 2, radius = 150, collision = false},
+	["SionE"] = {charName = "Sion", displayName = "Roar of the Slayer", slot = _E, origin = "spell", type = "linear", speed = 1800, range = 800, delay = 0.25, radius = 80, collision = false},
+	["SionEMissile"] = {charName = "Sion", displayName = "Roar of the Slayer [Missile]", slot = _E, origin = "missile", type = "linear", speed = 1800, range = 800, delay = 0.25, radius = 80, collision = false},
+	["SkarnerFractureMissile"] = {charName = "Skarner", displayName = "Fracture", slot = _E, origin = "both", type = "linear", speed = 1500, range = 1000, delay = 0.25, radius = 70, collision = false},
+	["SonaR"] = {charName = "Sona", displayName = "Crescendo", slot = _R, origin = "spell", type = "linear", speed = 2400, range = 1000, delay = 0.25, radius = 140, collision = false},
+	["SonaRMissile"] = {charName = "Sona", displayName = "Crescendo [Missile]", slot = _R, origin = "missile", type = "linear", speed = 2400, range = 1000, delay = 0.25, radius = 140, collision = false},
+	["SorakaQ"] = {charName = "Soraka", displayName = "Starcall", slot = _Q, origin = "spell", type = "circular", speed = 1150, range = 810, delay = 0.25, radius = 235, collision = false},
+	["SorakaQMissile"] = {charName = "Soraka", displayName = "Starcall [Missile]", slot = _Q, origin = "missile", type = "circular", speed = 1150, range = 810, delay = 0.25, radius = 235, collision = false},
+	["SwainW"] = {charName = "Swain", displayName = "Vision of Empire", slot = _W, origin = "spell", type = "circular", speed = PussyMathHuge, range = 3500, delay = 1.5, radius = 300, collision = false},
+	["SwainE"] = {charName = "Swain", displayName = "Nevermove", slot = _E, origin = "both", type = "linear", speed = 1800, range = 850, delay = 0.25, radius = 85, collision = false},
+	["SyndraESphereMissile"] = {charName = "Syndra", displayName = "Scatter the Weak [Seed]", slot = _E, origin = "missile", type = "linear", speed = 2000, range = 950, delay = 0.25, radius = 100, collision = false},
+	["TahmKenchQ"] = {charName = "TahmKench", displayName = "Tongue Lash", slot = _Q, origin = "spell", type = "linear", speed = 2800, range = 800, delay = 0.25, radius = 70, collision = true},
+	["TahmKenchQMissile"] = {charName = "TahmKench", displayName = "Tongue Lash [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 2800, range = 800, delay = 0.25, radius = 70, collision = true},
+	["TaliyahWVC"] = {charName = "Taliyah", displayName = "Seismic Shove", slot = _W, origin = "spell", type = "circular", speed = PussyMathHuge, range = 900, delay = 0.85, radius = 150, collision = false},
+	["TaliyahR"] = {charName = "Taliyah", displayName = "Weaver's Wall", slot = _R, origin = "spell", type = "linear", speed = 1700, range = 3000, delay = 1, radius = 120, collision = false},
+	["TaliyahRMis"] = {charName = "Taliyah", displayName = "Weaver's Wall [Missile]", slot = _R, origin = "missile", type = "linear", speed = 1700, range = 3000, delay = 1, radius = 120, collision = false},
+	["ThreshQMissile"] = {charName = "Thresh", displayName = "Death Sentence [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1900, range = 1075, delay = 0.5, radius = 70, collision = true},
+	["ThreshE"] = {charName = "Thresh", displayName = "Flay", slot = _E, origin = "spell", type = "linear", speed = PussyMathHuge, range = 500, delay = 0.389, radius = 110, collision = true},
+	["ThreshEMissile1"] = {charName = "Thresh", displayName = "Flay [Missile]", slot = _E, origin = "missile", type = "linear", speed = PussyMathHuge, range = 500, delay = 0.389, radius = 110, collision = true},
+	["TristanaW"] = {charName = "Tristana", displayName = "Rocket Jump", slot = _W, origin = "spell", type = "circular", speed = 1100, range = 900, delay = 0.25, radius = 300, collision = false},
+	["UrgotQ"] = {charName = "Urgot", displayName = "Corrosive Charge", slot = _Q, origin = "spell", type = "circular", speed = PussyMathHuge, range = 800, delay = 0.6, radius = 180, collision = false},
+	["UrgotQMissile"] = {charName = "Urgot", displayName = "Corrosive Charge [Missile]", slot = _Q, origin = "missile", type = "circular", speed = PussyMathHuge, range = 800, delay = 0.6, radius = 180, collision = false},
+	["UrgotE"] = {charName = "Urgot", displayName = "Disdain", slot = _E, origin = "spell", type = "linear", speed = 1500, range = 475, delay = 0.45, radius = 100, collision = false},
+	["UrgotR"] = {charName = "Urgot", displayName = "Fear Beyond Death", slot = _R, origin = "both", type = "linear", speed = 3200, range = 1600, delay = 0.4, radius = 80, collision = false},
+	["VarusE"] = {charName = "Varus", displayName = "Hail of Arrows", slot = _E, origin = "spell", type = "linear", speed = 1500, range = 925, delay = 0.242, radius = 260, collision = false},
+	["VarusEMissile"] = {charName = "Varus", displayName = "Hail of Arrows [Missile]", slot = _E, origin = "missile", type = "linear", speed = 1500, range = 925, delay = 0.242, radius = 260, collision = false},
+	["VarusR"] = {charName = "Varus", displayName = "Chain of Corruption", slot = _R, origin = "spell", type = "linear", speed = 1950, range = 1200, delay = 0.25, radius = 120, collision = false},
+	["VarusRMissile"] = {charName = "Varus", displayName = "Chain of Corruption [Missile]", slot = _R, origin = "missile", type = "linear", speed = 1950, range = 1200, delay = 0.25, radius = 120, collision = false},
+	["VelkozQ"] = {charName = "Velkoz", displayName = "Plasma Fission", slot = _Q, origin = "spell", type = "linear", speed = 1300, range = 1050, delay = 0.25, radius = 50, collision = true},
+	["VelkozQMissile"] = {charName = "Velkoz", displayName = "Plasma Fission [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1300, range = 1050, delay = 0.25, radius = 50, collision = true},
+	["VelkozQMissileSplit"] = {charName = "Velkoz", displayName = "Plasma Fission [Split]", slot = _Q, origin = "missile", type = "linear", speed = 2100, range = 1100, delay = 0.25, radius = 45, collision = true},
+	["VelkozE"] = {charName = "Velkoz", displayName = "Tectonic Disruption", slot = _E, origin = "spell", type = "circular", speed = PussyMathHuge, range = 800, delay = 0.8, radius = 185, collision = false},
+	["VelkozEMissile"] = {charName = "Velkoz", displayName = "Tectonic Disruption [Missile]", slot = _E, origin = "missile", type = "circular", speed = PussyMathHuge, range = 800, delay = 0.8, radius = 185, collision = false},
+	["ViktorGravitonField"] = {charName = "Viktor", displayName = "Graviton Field", slot = _W, origin = "spell", type = "circular", speed = PussyMathHuge, range = 800, delay = 1.75, radius = 270, collision = false},
+	["WarwickR"] = {charName = "Warwick", displayName = "Infinite Duress", slot = _R, origin = "spell", type = "linear", speed = 1800, range = 3000, delay = 0.1, radius = 55, collision = false},
+	["XerathArcaneBarrage2"] = {charName = "Xerath", displayName = "Arcane Barrage", slot = _W, origin = "spell", type = "circular", speed = PussyMathHuge, range = 1000, delay = 0.75, radius = 235, collision = false},
+	["XerathMageSpear"] = {charName = "Xerath", displayName = "Mage Spear", slot = _E, origin = "spell", type = "linear", speed = 1400, range = 1050, delay = 0.2, radius = 60, collision = true},
+	["XerathMageSpearMissile"] = {charName = "Xerath", displayName = "Mage Spear [Missile]", slot = _E, origin = "missile", type = "linear", speed = 1400, range = 1050, delay = 0.2, radius = 60, collision = true},
+	["XinZhaoW"] = {charName = "XinZhao", displayName = "Wind Becomes Lightning", slot = _W, origin = "spell", type = "linear", speed = 5000, range = 900, delay = 0.5, radius = 40, collision = false},
+	["YasuoQ3Mis"] = {charName = "Yasuo", displayName = "Gathering Storm [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1200, range = 1100, delay = 0.318, radius = 90, collision = false},
+	["ZacQ"] = {charName = "Zac", displayName = "Stretching Strikes", slot = _Q, origin = "spell", type = "linear", speed = 2800, range = 800, delay = 0.33, radius = 120, collision = false},
+	["ZacQMissile"] = {charName = "Zac", displayName = "Stretching Strikes [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 2800, range = 800, delay = 0.33, radius = 120, collision = false},
+	["ZiggsW"] = {charName = "Ziggs", displayName = "Satchel Charge", slot = _W, origin = "both", type = "circular", speed = 1750, range = 1000, delay = 0.25, radius = 240, collision = false},
+	["ZiggsE"] = {charName = "Ziggs", displayName = "Hexplosive Minefield", slot = _E, origin = "both", type = "circular", speed = 1800, range = 900, delay = 0.25, radius = 250, collision = false},
+	["ZileanQ"] = {charName = "Zilean", displayName = "Time Bomb", slot = _Q, origin = "spell", type = "circular", speed = PussyMathHuge, range = 900, delay = 0.8, radius = 150, collision = false},
+	["ZileanQMissile"] = {charName = "Zilean", displayName = "Time Bomb [Missile]", slot = _Q, origin = "missile", type = "circular", speed = PussyMathHuge, range = 900, delay = 0.8, radius = 150, collision = false},
+	["ZoeE"] = {charName = "Zoe", displayName = "Sleepy Trouble Bubble", slot = _E, origin = "spell", type = "linear", speed = 1700, range = 800, delay = 0.3, radius = 50, collision = true},
+	["ZoeEMissile"] = {charName = "Zoe", displayName = "Sleepy Trouble Bubble [Missile]", slot = _E, origin = "missile", type = "linear", speed = 1700, range = 800, delay = 0.3, radius = 50, collision = true},
+	["ZyraE"] = {charName = "Zyra", displayName = "Grasping Roots", slot = _E, origin = "both", type = "linear", speed = 1150, range = 1100, delay = 0.25, radius = 70, collision = false},
+	["ZyraR"] = {charName = "Zyra", displayName = "Stranglethorns", slot = _R, origin = "spell", type = "circular", speed = PussyMathHuge, range = 700, delay = 2, radius = 500, collision = false},
+	["BrandConflagration"] = {charName = "Brand", slot = _R, type = "targeted", displayName = "Conflagration", range = 625,cc = true},
+	["JarvanIVCataclysm"] = {charName = "JarvanIV", slot = _R, type = "targeted", displayName = "Cataclysm", range = 650},
+	["JayceThunderingBlow"] = {charName = "Jayce", slot = _E, type = "targeted", displayName = "Thundering Blow", range = 240},
+	["BlindMonkRKick"] = {charName = "LeeSin", slot = _R, type = "targeted", displayName = "Dragon's Rage", range = 375},
+	["LissandraR"] = {charName = "Lissandra", slot = _R, type = "targeted", displayName = "Frozen Tomb", range = 550},
+	["SeismicShard"] = {charName = "Malphite", slot = _Q, type = "targeted", displayName = "Seismic Shard", range = 625,cc = true},
+	["AlZaharNetherGrasp"] = {charName = "Malzahar", slot = _R, type = "targeted", displayName = "Nether Grasp", range = 700},
+	["MaokaiW"] = {charName = "Maokai", slot = _W, type = "targeted", displayName = "Twisted Advance", range = 525},
+	["NautilusR"] = {charName = "Nautilus", slot = _R, type = "targeted", displayName = "Depth Charge", range = 825},
+	["PoppyE"] = {charName = "Poppy", slot = _E, type = "targeted", displayName = "Heroic Charge", range = 475},
+	["RyzeW"] = {charName = "Ryze", slot = _W, type = "targeted", displayName = "Rune Prison", range = 615},
+	["Fling"] = {charName = "Singed", slot = _E, type = "targeted", displayName = "Fling", range = 125},
+	["SkarnerImpale"] = {charName = "Skarner", slot = _R, type = "targeted", displayName = "Impale", range = 350},
+	["TahmKenchW"] = {charName = "TahmKench", slot = _W, type = "targeted", displayName = "Devour", range = 250},
+	["TristanaR"] = {charName = "Tristana", slot = _R, type = "targeted", displayName = "Buster Shot", range = 669},
+}
+
+local ChanellingSpells = {
+	["CaitlynAceintheHole"] = {charName = "Caitlyn", slot = _R, type = "targeted", displayName = "Ace in the Hole", danger = 3},
+	["Drain"] = {charName = "Fiddlesticks", slot = _W, type = "targeted", displayName = "Drain", danger = 2},
+	["Crowstorm"] = {charName = "Fiddlesticks", slot = _R, type = "skillshot", displayName = "Crowstorm", danger = 3},
+	["GalioW"] = {charName = "Galio", slot = _W, type = "skillshot", displayName = "Shield of Durand", danger = 2},
+	["GalioR"] = {charName = "Galio", slot = _R, type = "skillshot", displayName = "Hero's Entrance", danger = 3},
+	["GragasW"] = {charName = "Gragas", slot = _W, type = "skillshot", displayName = "Drunken Rage", danger = 1},
+	["ReapTheWhirlwind"] = {charName = "Janna", slot = _R, type = "skillshot", displayName = "Monsoon", danger = 2},
+	["KarthusFallenOne"] = {charName = "Karthus", slot = _R, type = "skillshot", displayName = "Requiem", danger = 3},
+	["KatarinaR"] = {charName = "Katarina", slot = _R, type = "skillshot", displayName = "Death Lotus", danger = 3},
+	["LucianR"] = {charName = "Lucian", slot = _R, type = "skillshot", displayName = "The Culling", danger = 2},
+	["AlZaharNetherGrasp"] = {charName = "Malzahar", slot = _R, type = "targeted", displayName = "Nether Grasp", danger = 3},
+	["Meditate"] = {charName = "MasterYi", slot = _Q, type = "skillshot", displayName = "Meditate", danger = 1},
+	["MissFortuneBulletTime"] = {charName = "MissFortune", slot = _R, type = "skillshot", displayName = "Bullet Time", danger = 3},
+	["AbsoluteZero"] = {charName = "Nunu", slot = _R, type = "skillshot", displayName = "Absolute Zero", danger = 3},
+	["PantheonRFall"] = {charName = "Pantheon", slot = _R, type = "skillshot", displayName = "Grand Skyfall [Fall]", danger = 3},
+	["PantheonRJump"] = {charName = "Pantheon", slot = _R, type = "skillshot", displayName = "Grand Skyfall [Jump]", danger = 3},
+	["PykeQ"] = {charName = "Pyke", slot = _Q, type = "skillshot", displayName = "Bone Skewer", danger = 1},
+	["ShenR"] = {charName = "Shen", slot = _R, type = "skillshot", displayName = "Stand United", danger = 2},
+	["SionQ"] = {charName = "Sion", slot = _Q, type = "skillshot", displayName = "Decimating Smash", danger = 2},
+	["Destiny"] = {charName = "TwistedFate", slot = _R, type = "skillshot", displayName = "Destiny", danger = 2},
+	["VarusQ"] = {charName = "Varus", slot = _Q, type = "skillshot", displayName = "Piercing Arrow", danger = 1},
+	["VelKozR"] = {charName = "VelKoz", slot = _R, type = "skillshot", displayName = "Life Form Disintegration Ray", danger = 3},
+	["ViQ"] = {charName = "Vi", slot = _Q, type = "skillshot", displayName = "Vault Breaker", danger = 2},
+	["XerathLocusOfPower2"] = {charName = "Xerath", slot = _R, type = "skillshot", displayName = "Rite of the Arcane", danger = 3},
+	["ZacR"] = {charName = "Zac", slot = _R, type = "skillshot", displayName = "Let's Bounce!", danger = 3},
+}
 
 
-local function IsValid(unit, range)
-    if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) and GetDistanceSqr(myHero.pos, unit.pos) <= (range + myHero.boundingRadius + unit.boundingRadius) then
+function IsValid(unit, range)
+    if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) and GetDistanceSqr(PussymyHero.pos, unit.pos) <= (range + PussymyHero.boundingRadius + unit.boundingRadius) then
         return true;
     end
     return false;
 end
 
-local function IsValid(unit)
+function IsValid(unit)
     if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) then
         return true;
     end
     return false;
 end
 
-local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
+function Ready(spell)
+    return PussymyHero:GetSpellData(spell).currentCd == 0 and PussymyHero:GetSpellData(spell).level > 0 and PussymyHero:GetSpellData(spell).mana <= PussymyHero.mana
 end 
 
 function CalculateMagicalDamage(target, damage)
 	
 	if target and damage then	
-		local targetMR = target.magicResist * myHero.magicPenPercent - myHero.magicPen
+		local targetMR = target.magicResist * PussymyHero.magicPenPercent - PussymyHero.magicPen
 		local damageReduction = 100 / ( 100 + targetMR)
 		if targetMR < 0 then
 			damageReduction = 2 - (100 / (100 - targetMR))
@@ -129,7 +452,7 @@ function CalculateMagicalDamage(target, damage)
 end
 
 function CalculatePhysicalDamage(target, damage)			
-	local targetArmor = target.armor * myHero.armorPenPercent - myHero.armorPen
+	local targetArmor = target.armor * PussymyHero.armorPenPercent - PussymyHero.armorPen
 	local damageReduction = 100 / ( 100 + targetArmor)
 	if targetArmor < 0 then
 		damageReduction = 2 - (100 / (100 - targetArmor))
@@ -138,7 +461,7 @@ function CalculatePhysicalDamage(target, damage)
 	return damage
 end
 
-local function GetTarget(range) 
+function GetTarget(range) 
 	local target = nil 
 	if Orb == 1 then
 		target = EOW:GetTarget(range)
@@ -152,13 +475,6 @@ local function GetTarget(range)
 	return target 
 end
 
-local intToMode = {
-   	[0] = "",
-   	[1] = "Combo",
-   	[2] = "Harass",
-   	[3] = "LastHit",
-   	[4] = "Clear"
-}
 
 function GetMode()
 	if Orb == 1 then
@@ -243,48 +559,48 @@ function EnableMovement()
 end
 
 function ReturnCursor(pos)
-	Control.SetCursorPos(pos)
+	PussyControlSetCursorPos(pos)
 	DelayAction(EnableMovement,0.1)
 end
 
 function LeftClick(pos)
-	Control.mouse_event(MOUSEEVENTF_LEFTDOWN)
-	Control.mouse_event(MOUSEEVENTF_LEFTUP)
+	PussyControlMouseEvent(MOUSEEVENTF_LEFTDOWN)
+	PussyControlMouseEvent(MOUSEEVENTF_LEFTUP)
 	DelayAction(ReturnCursor,0.05,{pos})
 end
 
-local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
-local function CastSpellMM(spell,pos,range,delay)
-	local range = range or math.huge
+
+function CastSpellMM(spell,pos,range,delay)
+	local range = range or PussyMathHuge
 	local delay = delay or 250
-	local ticker = GetTickCount()
-	if castSpell.state == 0 and HPred:GetDistance(myHero.pos,pos) < range and ticker - castSpell.casting > delay + Game.Latency() then
+	local ticker = PussyGetTickCount
+	if castSpell.state == 0 and HPred:GetDistance(PussymyHero.pos,pos) < range and ticker - castSpell.casting > delay + PussyGameLatency then
 		castSpell.state = 1
 		castSpell.mouse = mousePos
 		castSpell.tick = ticker
 	end
 	if castSpell.state == 1 then
-		if ticker - castSpell.tick < Game.Latency() then
+		if ticker - castSpell.tick < PussyGameLatency then
 			local castPosMM = pos:ToMM()
-			Control.SetCursorPos(castPosMM.x,castPosMM.y)
-			Control.KeyDown(spell)
-			Control.KeyUp(spell)
+			PussyControlSetCursorPos(castPosMM.x,castPosMM.y)
+			PussyControlKeyDown(spell)
+			PussyControlKeyUp(spell)
 			castSpell.casting = ticker + delay
 			DelayAction(function()
 				if castSpell.state == 1 then
-					Control.SetCursorPos(castSpell.mouse)
+					PussyControlSetCursorPos(castSpell.mouse)
 					castSpell.state = 0
 				end
 			end,Game.Latency()/1000)
 		end
-		if ticker - castSpell.casting > Game.Latency() then
-			Control.SetCursorPos(castSpell.mouse)
+		if ticker - castSpell.casting > PussyGameLatency then
+			PussyControlSetCursorPos(castSpell.mouse)
 			castSpell.state = 0
 		end
 	end
 end
 
-local spellcast = {state = 1, mouse = mousePos}
+
 function CastSpell(HK, pos, delay)
 	if spellcast.state == 2 then return end
 	if ExtLibEvade and ExtLibEvade.Evading then return end
@@ -293,13 +609,13 @@ function CastSpell(HK, pos, delay)
 	DisableOrb()
 	spellcast.mouse = mousePos
 	DelayAction(function() 
-		Control.SetCursorPos(pos) 
-		Control.KeyDown(HK)
-		Control.KeyUp(HK)
+		PussyControlSetCursorPos(pos) 
+		PussyControlKeyDown(HK)
+		PussyControlKeyUp(HK)
 	end, 0.05) 
 	
 		DelayAction(function()
-			Control.SetCursorPos(spellcast.mouse)
+			PussyControlSetCursorPos(spellcast.mouse)
 		end,0.25)
 		
 		DelayAction(function()
@@ -309,23 +625,28 @@ function CastSpell(HK, pos, delay)
 	
 end
 
+
 function GetDistanceSqr(p1, p2)
-	if not p1 then return math.huge end
-	p2 = p2 or myHero
+	if not p1 then return PussyMathHuge end
+	p2 = p2 or PussymyHero
 	local dx = p1.x - p2.x
 	local dz = (p1.z or p1.y) - (p2.z or p2.y)
 	return dx*dx + dz*dz
 end
 
 function GetDistance(p1, p2)
-	p2 = p2 or myHero
-	return math.sqrt(GetDistanceSqr(p1, p2))
+	p2 = p2 or PussymyHero
+	return PussyMathSqrt(GetDistanceSqr(p1, p2))
 end
 
-local function OnProcessSpell()
+function GetDistance2D(p1,p2)
+	return sqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y))
+end
+
+function OnProcessSpell()
 	for i = 1, #Units do
 		local unit = Units[i].unit; local last = Units[i].spell; local spell = unit.activeSpell
-		if spell and last ~= (spell.name .. spell.startTime) and unit.activeSpell.isChanneling and unit.team ~= myHero.team then
+		if spell and last ~= (spell.name .. spell.startTime) and unit.activeSpell.isChanneling and unit.team ~= PussymyHero.team then
 			Units[i].spell = spell.name .. spell.startTime; return unit, spell
 		end
 	end
@@ -333,27 +654,22 @@ local function OnProcessSpell()
 end
 
 function LoadUnits()
-	for i = 1, Game.HeroCount() do
-		local unit = Game.Hero(i); Units[i] = {unit = unit, spell = nil}
-		if unit.team ~= myHero.team then TableInsert(Enemies, unit)
-		elseif unit.team == myHero.team and unit ~= myHero then TableInsert(Allies, unit) end
+	for i = 1, PussyGameHeroCount() do
+		local unit = PussyGameHero(i); Units[i] = {unit = unit, spell = nil}
+		if unit.team ~= PussymyHero.team then PussyTableInsert(Enemies, unit)
+		elseif unit.team == PussymyHero.team and unit ~= PussymyHero then PussyTableInsert(Allies, unit) end
+	end
+	for i = 1, PussyGameTurretCount() do
+		local turret = PussyGameTurret(i)
+		if turret and turret.isEnemy then PussyTableInsert(Turrets, turret) end
 	end
 end
-
-local ItemHotKey = {
-    [ITEM_1] = HK_ITEM_1,
-    [ITEM_2] = HK_ITEM_2,
-    [ITEM_3] = HK_ITEM_3,
-    [ITEM_4] = HK_ITEM_4,
-    [ITEM_5] = HK_ITEM_5,
-    [ITEM_6] = HK_ITEM_6,
-}
 
 function EnemiesAround(pos, range)
     local pos = pos.pos
     local N = 0
-    for i = 1, Game.HeroCount() do
-        local hero = Game.Hero(i)
+    for i = 1, PussyGameHeroCount() do
+        local hero = PussyGameHero(i)
         if (IsValid(hero, range) and hero.isEnemy and GetDistanceSqr(pos, hero.pos) < range * range) then
             N = N + 1
         end
@@ -361,10 +677,10 @@ function EnemiesAround(pos, range)
     return N
 end
 
-local function HasPoison(unit)
+function HasPoison(unit)
 	for i = 0, unit.buffCount do 
 	local buff = unit:GetBuff(i)
-		if buff.type == 23 and Game.Timer() < buff.expireTime - 0.141  then
+		if buff.type == 23 and PussyGameTimer < buff.expireTime - 0.141  then
 			return true
 		end
 	end
@@ -399,38 +715,37 @@ end
 
 function CountEnemiesNear(origin, range)
 	local count = 0
-	for i  = 1,Game.HeroCount(i) do
-		local enemy = Game.Hero(i)
-		if IsValid(enemy, range) and enemy.isEnemy and  HPred:CanTarget(enemy) and HPred:IsInRange(origin, enemy.pos, range) then
+	for i  = 1,PussyGameHeroCount(i) do
+		local enemy = PussyGameHero(i)
+		if enemy.isEnemy and  HPred:CanTarget(enemy) and HPred:IsInRange(origin, enemy.pos, range) then
 			count = count + 1
 		end			
 	end
 	return count
 end
 
-local function GetEnemyHeroes()
+function GetEnemyHeroes()
     local _EnemyHeroes = {}
-    for i = 1, Game.HeroCount() do
-        local unit = Game.Hero(i)
+    for i = 1, PussyGameHeroCount() do
+        local unit = PussyGameHero(i)
         if unit.isEnemy then
-            table.insert(_EnemyHeroes, unit)
+            PussyTableInsert(_EnemyHeroes, unit)
         end
     end
     return _EnemyHeroes
 end 
 
-
-local function IsRecalling()
+function IsRecalling()
 	for i = 1, 63 do
-	local buff = myHero:GetBuff(i) 
-		if buff.count > 0 and buff.name == "recall" and Game.Timer() < buff.expireTime then
+	local buff = PussymyHero:GetBuff(i) 
+		if buff.count > 0 and buff.name == "recall" and PussyGameTimer < buff.expireTime then
 			return true
 		end
 	end 
 	return false
 end
 
-local function IsImmobileTarget(unit)
+function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
 		if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.name == 10 ) and buff.count > 0 then
@@ -440,20 +755,20 @@ local function IsImmobileTarget(unit)
 	return false	
 end
 
-local function GetImmobileCount(range, pos)
+function GetImmobileCount(range, pos)
     local pos = pos.pos
 	local count = 0
-	for i = 1, Game.HeroCount() do 
-	local hero = Game.Hero(i)
+	for i = 1, PussyGameHeroCount() do 
+	local hero = PussyGameHero(i)
 	local Range = range * range
-		if IsValid(hero, Range) and hero.isEnemy and GetDistanceSqr(pos, hero.pos) < Range and IsImmobileTarget(hero) then
+		if hero.isEnemy and GetDistanceSqr(pos, hero.pos) < Range and IsImmobileTarget(hero) then
 		count = count + 1
 		end
 	end
 	return count
 end
 
-local function Cleans(unit)
+function Cleans(unit)
 	if unit == nil then return false end
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
@@ -474,7 +789,7 @@ function HasBuff(unit, buffname)
 	return false
 end
 
-local function Block(boolean) 
+function Block(boolean) 
 	if boolean == true then 
 		if Orb == 1 then
 			EOW:SetAttacks(false)
@@ -493,39 +808,32 @@ local function Block(boolean)
 		end
 	end
 end
-local sqrt = math.sqrt 
-local function GetDistance2D(p1,p2)
-	return sqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y))
-end
-
-local _OnVision = {}
+ 
 function OnVision(unit)
-	if _OnVision[unit.networkID] == nil then _OnVision[unit.networkID] = {state = unit.visible , tick = GetTickCount(), pos = unit.pos} end
-	if _OnVision[unit.networkID].state == true and not unit.visible then _OnVision[unit.networkID].state = false _OnVision[unit.networkID].tick = GetTickCount() end
-	if _OnVision[unit.networkID].state == false and unit.visible then _OnVision[unit.networkID].state = true _OnVision[unit.networkID].tick = GetTickCount() end
+	if _OnVision[unit.networkID] == nil then _OnVision[unit.networkID] = {state = unit.visible , tick = PussyGetTickCount, pos = unit.pos} end
+	if _OnVision[unit.networkID].state == true and not unit.visible then _OnVision[unit.networkID].state = false _OnVision[unit.networkID].tick = PussyGetTickCount end
+	if _OnVision[unit.networkID].state == false and unit.visible then _OnVision[unit.networkID].state = true _OnVision[unit.networkID].tick = PussyGetTickCount end
 	return _OnVision[unit.networkID]
 end
 
-Callback.Add("Tick", function() OnVisionF() end)
-local visionTick = GetTickCount()
+PussyCallbackAdd("Tick", function() OnVisionF() end)
 function OnVisionF()
-	if GetTickCount() - visionTick > 100 then
+	if PussyGetTickCount - PussyGetTickCount > 100 then
 		for i,v in pairs(GetEnemyHeroes()) do
 			OnVision(v)
 		end
 	end
 end
 
-local _OnWaypoint = {}
 function OnWaypoint(unit)
 	if _OnWaypoint[unit.networkID] == nil then _OnWaypoint[unit.networkID] = {pos = unit.posTo , speed = unit.ms, time = Game.Timer()} end
 	if _OnWaypoint[unit.networkID].pos ~= unit.posTo then 
 		_OnWaypoint[unit.networkID] = {startPos = unit.pos, pos = unit.posTo , speed = unit.ms, time = Game.Timer()}
 			DelayAction(function()
-				local time = (Game.Timer() - _OnWaypoint[unit.networkID].time)
-				local speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(Game.Timer() - _OnWaypoint[unit.networkID].time)
+				local time = (PussyGameTimer - _OnWaypoint[unit.networkID].time)
+				local speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(PussyGameTimer - _OnWaypoint[unit.networkID].time)
 				if speed > 1250 and time > 0 and unit.posTo == _OnWaypoint[unit.networkID].pos and GetDistance(unit.pos,_OnWaypoint[unit.networkID].pos) > 200 then
-					_OnWaypoint[unit.networkID].speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(Game.Timer() - _OnWaypoint[unit.networkID].time)
+					_OnWaypoint[unit.networkID].speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(PussyGameTimer - _OnWaypoint[unit.networkID].time)
 
 				end
 			end,0.05)
@@ -533,19 +841,19 @@ function OnWaypoint(unit)
 	return _OnWaypoint[unit.networkID]
 end
 
-local function GetPred(unit,speed,delay) 
-	local speed = speed or math.huge
+function GetPred(unit,speed,delay) 
+	local speed = speed or PussyMathHuge
 	local delay = delay or 0.25
 	local unitSpeed = unit.ms
 	if OnWaypoint(unit).speed > unitSpeed then unitSpeed = OnWaypoint(unit).speed end
 	if OnVision(unit).state == false then
-		local unitPos = unit.pos + Vector(unit.pos,unit.posTo):Normalized() * ((GetTickCount() - OnVision(unit).tick)/1000 * unitSpeed)
-		local predPos = unitPos + Vector(unit.pos,unit.posTo):Normalized() * (unitSpeed * (delay + (GetDistance(myHero.pos,unitPos)/speed)))
+		local unitPos = unit.pos + PussyVector(unit.pos,unit.posTo):Normalized() * ((PussyGetTickCount - OnVision(unit).tick)/1000 * unitSpeed)
+		local predPos = unitPos + PussyVector(unit.pos,unit.posTo):Normalized() * (unitSpeed * (delay + (GetDistance(PussymyHero.pos,unitPos)/speed)))
 		if GetDistance(unit.pos,predPos) > GetDistance(unit.pos,unit.posTo) then predPos = unit.posTo end
 		return predPos
 	else
 		if unitSpeed > unit.ms then
-			local predPos = unit.pos + Vector(OnWaypoint(unit).startPos,unit.posTo):Normalized() * (unitSpeed * (delay + (GetDistance(myHero.pos,unit.pos)/speed)))
+			local predPos = unit.pos + PussyVector(OnWaypoint(unit).startPos,unit.posTo):Normalized() * (unitSpeed * (delay + (GetDistance(PussymyHero.pos,unit.pos)/speed)))
 			if GetDistance(unit.pos,predPos) > GetDistance(unit.pos,unit.posTo) then predPos = unit.posTo end
 			return predPos
 		elseif IsImmobileTarget(unit) then
@@ -559,7 +867,7 @@ end
 function EnemyInRange(range)
 	local count = 0
 	for i, target in ipairs(GetEnemyHeroes()) do
-		if target.pos:DistanceTo(myHero.pos) < range then 
+		if target.pos:DistanceTo(PussymyHero.pos) < range and IsValid(target) then 
 			count = count + 1
 		end
 	end
@@ -568,8 +876,8 @@ end
 
 function EnemiesNear(pos,range)
 	local N = 0
-	for i = 1,Game.HeroCount()  do
-		local hero = Game.Hero(i)	
+	for i = 1,PussyGameHeroCount()  do
+		local hero = PussyGameHero(i)	
 		if IsValid(hero) and hero.isEnemy then
 			N = N + 1
 		end
@@ -579,8 +887,8 @@ end
 
 function MinionsNear(pos,range)
 	local N = 0
-		for i = 1, Game.MinionCount() do 
-		local Minion = Game.Minion(i)	
+		for i = 1, PussyGameMinionCount() do 
+		local Minion = PussyGameMinion(i)	
 		if IsValid(Minion, 800) and Minion.team == TEAM_ENEMY then
 			N = N + 1
 		end
@@ -588,11 +896,11 @@ function MinionsNear(pos,range)
 	return N	
 end	
 
-local function GetMinionCount(range, pos)
+function GetMinionCount(range, pos)
     local pos = pos.pos
 	local count = 0
-	for i = 1,Game.MinionCount() do
-	local hero = Game.Minion(i)
+	for i = 1,PussyGameMinionCount() do
+	local hero = PussyGameMinion(i)
 	local Range = range * range
 		if hero.team ~= TEAM_ALLY and hero.dead == false and GetDistanceSqr(pos, hero.pos) < Range then
 		count = count + 1
@@ -601,26 +909,26 @@ local function GetMinionCount(range, pos)
 	return count
 end
 
-local function GetEnemyCount(range, pos)
+function GetEnemyCount(range, pos)
     local pos = pos.pos
 	local count = 0
-	for i = 1, Game.HeroCount() do 
-	local hero = Game.Hero(i)
+	for i = 1, PussyGameHeroCount() do 
+	local hero = PussyGameHero(i)
 	local Range = range * range
-		if IsValid(hero, Range) and hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range then
+		if hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range then
 		count = count + 1
 		end
 	end
 	return count
 end
 
-local function GetAllyCount(range, pos)
+function GetAllyCount(range, pos)
     local pos = pos.pos
 	local count = 0
-	for i = 1, Game.HeroCount() do 
-	local hero = Game.Hero(i)
+	for i = 1, PussyGameHeroCount() do 
+	local hero = PussyGameHero(i)
 	local Range = range * range
-		if IsValid(hero, Range) and hero.team == TEAM_ALLY and hero ~= myHero and GetDistanceSqr(pos, hero.pos) < Range then
+		if hero.team == TEAM_ALLY and hero ~= PussymyHero and GetDistanceSqr(pos, hero.pos) < Range then
 		count = count + 1
 		end
 	end
@@ -628,8 +936,8 @@ local function GetAllyCount(range, pos)
 end
 
 function IsUnderTurret(unit)
-    for i = 1, Game.TurretCount() do
-        local turret = Game.Turret(i)
+    for i = 1, PussyGameTurretCount() do
+        local turret = PussyGameTurret(i)
         local range = (turret.boundingRadius + 750 + unit.boundingRadius / 2)
         if turret.isEnemy and not turret.dead then
             if turret.pos:DistanceTo(unit.pos) < range then
@@ -642,10 +950,10 @@ end
 
 function GetAllyHeroes() 
 	AllyHeroes = {}
-	for i = 1, Game.HeroCount() do
-		local Hero = Game.Hero(i)
-		if IsValid(Hero) and Hero.isAlly and not Hero.isMe then
-			table.insert(AllyHeroes, Hero)
+	for i = 1, PussyGameHeroCount() do
+		local Hero = PussyGameHero(i)
+		if Hero.isAlly and not Hero.isMe then
+			PussyTableInsert(AllyHeroes, Hero)
 		end
 	end
 	return AllyHeroes
@@ -653,13 +961,22 @@ end
 
 function GetAllyTurret() 
 	Allyturret = {}
-    for i = 1, Game.TurretCount() do
-        local turret = Game.Turret(i)
+    for i = 1, PussyGameTurretCount() do
+        local turret = PussyGameTurret(i)
 		if turret.isAlly and not turret.dead then
-			table.insert(Allyturret, turret)
+			PussyTableInsert(Allyturret, turret)
 		end
 	end
 	return Allyturret
+end
+
+function GetItemSlot(unit, id)
+  for i = ITEM_1, ITEM_7 do
+    if unit:GetItemData(i).itemID == id then
+      return i
+    end
+  end
+  return 0
 end
 
 
@@ -681,13 +998,13 @@ require('GamsteronPrediction')
 require "2DGeometry"
 
 function Cassiopeia:LoadSpells()
-	R = {Range = 825, Width = 200, Delay = 0.8, Speed = math.huge, Collision = false, aoe = false, Type = "circular"}
+	R = {Range = 825, Width = 200, Delay = 0.8, Speed = PussyMathHuge, Collision = false, aoe = false, Type = "circular"}
 
 end
 
 local QData =
 {
-Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = math.huge, Collision = false
+Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = PussyMathHuge, Collision = false
 }
 
 	local AA = false
@@ -700,8 +1017,8 @@ Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = math
 	local RRange = 825 * 825
 
 	function Cassiopeia:__init()
-		Callback.Add("Tick", function() self:Tick() end)
-		Callback.Add("Draw", function() self:Draw() end)
+		PussyCallbackAdd("Tick", function() self:Tick() end)
+		PussyCallbackAdd("Draw", function() self:Draw() end)
 		self:Menu()
 		self:LoadSpells()
 		if _G.EOWLoaded then
@@ -793,84 +1110,82 @@ Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = math
 		Cass.d:MenuElement({type = MENU, id = "Q", name = "Q"})
 		Cass.d.Q:MenuElement({id = "ON", name = "Enabled", value = true})       
 		Cass.d.Q:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
-		Cass.d.Q:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 255, 255, 255)})
+		Cass.d.Q:MenuElement({id = "Color", name = "Color", color = PussyDrawColor(255, 255, 255, 255)})
 		Cass.d:MenuElement({type = MENU, id = "W", name = "W"})
 		Cass.d.W:MenuElement({id = "ON", name = "Enabled", value = false})       
 		Cass.d.W:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
-		Cass.d.W:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 255, 255, 255)})
+		Cass.d.W:MenuElement({id = "Color", name = "Color", color = PussyDrawColor(255, 255, 255, 255)})
 		Cass.d:MenuElement({type = MENU, id = "E", name = "E"})
 		Cass.d.E:MenuElement({id = "ON", name = "Enabled", value = true})       
 		Cass.d.E:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
-		Cass.d.E:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 255, 255, 255)})
+		Cass.d.E:MenuElement({id = "Color", name = "Color", color = PussyDrawColor(255, 255, 255, 255)})
 		Cass.d:MenuElement({type = MENU, id = "R", name = "R"})
 		Cass.d.R:MenuElement({id = "ON", name = "Enabled", value = true})       
 		Cass.d.R:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
-		Cass.d.R:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 255, 255, 255)})				
+		Cass.d.R:MenuElement({id = "Color", name = "Color", color = PussyDrawColor(255, 255, 255, 255)})				
 		if Cass.c.Block:Value() then
 			AA = true 
 		end
 	end
 
 	function Cassiopeia:Qdmg(unit)
-		local level = myHero:GetSpellData(_Q).level
-		local base = (({75, 110, 145, 180, 215})[level] + 0.90 * myHero.ap)
-		return CalcMagicalDamage(myHero,unit, base)
+		local level = PussymyHero:GetSpellData(_Q).level
+		local base = (({75, 110, 145, 180, 215})[level] + 0.90 * PussymyHero.ap)
+		return CalcMagicalDamage(PussymyHero,unit, base)
 	end
 	
 	function Cassiopeia:Wdmg(unit)
-		local level = myHero:GetSpellData(_W).level
-		local base = ({100, 125, 150, 175, 200})[level] + 0.75 * myHero.ap
-		return CalcMagicalDamage(myHero,unit, base)
+		local level = PussymyHero:GetSpellData(_W).level
+		local base = ({100, 125, 150, 175, 200})[level] + 0.75 * PussymyHero.ap
+		return CalcMagicalDamage(PussymyHero,unit, base)
 	end
 
 	function Cassiopeia:Edmg(unit)
-		local level = myHero.levelData.lvl
-		local base = (48 + 4 * level) + (0.1 * myHero.ap)
-		return CalcMagicalDamage(myHero,unit, base)
+		local level = PussymyHero.levelData.lvl
+		local base = (48 + 4 * level) + (0.1 * PussymyHero.ap)
+		return CalcMagicalDamage(PussymyHero,unit, base)
 	end
 	
 	function Cassiopeia:PEdmg(unit)
-		local level = myHero:GetSpellData(_E).level
-		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * myHero.ap)
+		local level = PussymyHero:GetSpellData(_E).level
+		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * PussymyHero.ap)
 		local PEdamage = self:Edmg(unit) + bonus
-		return CalcMagicalDamage(myHero,unit, PEdamage)
+		return CalcMagicalDamage(PussymyHero,unit, PEdamage)
 	end
 	
 	function Cassiopeia:EdmgCreep(unit)
-		local level = myHero.levelData.lvl
-		local base = (48 + 4 * level) + (0.1 * myHero.ap)
+		local level = PussymyHero.levelData.lvl
+		local base = (48 + 4 * level) + (0.1 * PussymyHero.ap)
 		return base
 	end	
 
 	function Cassiopeia:PEdmgCreep(unit)
-		local level = myHero:GetSpellData(_E).level
-		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * myHero.ap)
+		local level = PussymyHero:GetSpellData(_E).level
+		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * PussymyHero.ap)
 		local PEdamage = self:EdmgCreep(unit) + bonus
 		return PEdamage
 	end	
 	
 	function Cassiopeia:Rdmg(unit)
-		local level = myHero:GetSpellData(_R).level
-		local base = ({150, 250, 350})[level] + 0.5 * myHero.ap
-		return CalcMagicalDamage(myHero,unit, base)
+		local level = PussymyHero:GetSpellData(_R).level
+		local base = ({150, 250, 350})[level] + 0.5 * PussymyHero.ap
+		return CalcMagicalDamage(PussymyHero,unit, base)
 		
 	end				
 	
 	function Cassiopeia:Ignitedmg(unit)
-		local level = myHero.levelData.lvl
+		local level = PussymyHero.levelData.lvl
 		local base = 50 + (20 * level)
 		return base
 	end
 	
 
-	local abs = math.abs 
-	local deg = math.deg 
-	local acos = math.acos 
+ 
 	function Cassiopeia:IsFacing(unit)
-	    local V = Vector((unit.pos - myHero.pos))
-	    local D = Vector(unit.dir)
-	    local Angle = 180 - deg(acos(V*D/(V:Len()*D:Len())))
-	    if abs(Angle) < 80 then 
+	    local V = PussyVector((unit.pos - PussymyHero.pos))
+	    local D = PussyVector(unit.dir)
+	    local Angle = 180 - PussyMathDeg(PussyMathAcos(V*D/(V:Len()*D:Len())))
+	    if PussyMathAbs(Angle) < 80 then 
 	        return true  
 	    end
 	    return false
@@ -879,7 +1194,7 @@ Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = math
 	function Cassiopeia:GetAngle(v1, v2)
 		local vec1 = v1:Len()
 		local vec2 = v2:Len()
-		local Angle = abs(deg(acos((v1*v2)/(vec1*vec2))))
+		local Angle = PussyMathAbs(PussyMathDeg(PussyMathAcos((v1*v2)/(vec1*vec2))))
 		if Angle < 90 then
 			return true
 		end
@@ -887,7 +1202,7 @@ Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = math
 	end
 
 	function Cassiopeia:Tick()
-		if myHero.dead == false and Game.IsChatOpen() == false then
+		if PussymyHero.dead == false and PussyGameIsChatOpen() == false then
 		local Mode = GetMode()
 			if Mode == "Combo" then
 				self:BlockAA()
@@ -925,16 +1240,16 @@ Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = math
 function Cassiopeia:IsFacing(target)
 local target = GetTarget(RRange)
 if target == nil then return end
-	local dotProduct = myHero.dir.x*target.dir.x + myHero.dir.z*target.dir.z
+	local dotProduct = PussymyHero.dir.x*target.dir.x + PussymyHero.dir.z*target.dir.z
 	if (dotProduct < 0) then
-		if (myHero.dir.x > 0 and myHero.dir.z > 0) then
-			return ((target.pos.x - myHero.pos.x > 0) and (target.pos.z - myHero.pos.z > 0))
-		elseif (myHero.dir.x < 0 and myHero.dir.z < 0) then
-			return ((target.pos.x - myHero.pos.x < 0) and (target.pos.z - myHero.pos.z < 0))
-		elseif (myHero.dir.x > 0 and myHero.dir.z < 0) then
-			return ((target.pos.x - myHero.pos.x > 0) and (target.pos.z - myHero.pos.z < 0))
-		elseif (myHero.dir.x < 0 and myHero.dir.z > 0) then
-			return ((target.pos.x - myHero.pos.x < 0) and (target.pos.z - myHero.pos.z > 0))
+		if (PussymyHero.dir.x > 0 and PussymyHero.dir.z > 0) then
+			return ((target.pos.x - PussymyHero.pos.x > 0) and (target.pos.z - PussymyHero.pos.z > 0))
+		elseif (PussymyHero.dir.x < 0 and PussymyHero.dir.z < 0) then
+			return ((target.pos.x - PussymyHero.pos.x < 0) and (target.pos.z - PussymyHero.pos.z < 0))
+		elseif (PussymyHero.dir.x > 0 and PussymyHero.dir.z < 0) then
+			return ((target.pos.x - PussymyHero.pos.x > 0) and (target.pos.z - PussymyHero.pos.z < 0))
+		elseif (PussymyHero.dir.x < 0 and PussymyHero.dir.z > 0) then
+			return ((target.pos.x - PussymyHero.pos.x < 0) and (target.pos.z - PussymyHero.pos.z > 0))
 		end
 	end
 	return false
@@ -945,10 +1260,10 @@ end
 		local Most = 0
 		local Cast = false
 			local InFace = {}
-			for i = 1, Game.HeroCount() do
-			local Hero = Game.Hero(i)
+			for i = 1, PussyGameHeroCount() do
+			local Hero = PussyGameHero(i)
 				if IsValid(Hero, 850) then 
-					--local LS = LineSegment(myHero.pos, Hero.pos)
+					--local LS = LineSegment(PussymyHero.pos, Hero.pos)
 					--LS:__draw()
 					InFace[#InFace + 1] = Hero
 				end
@@ -957,8 +1272,8 @@ end
 			for r = 1, #InFace do 
 			local FHero = InFace[r]
 				if self:IsFacing(FHero) then
-					local Vectori = Vector(myHero.pos - FHero.pos)
-					IsFace[#IsFace + 1] = {Vector = Vectori, Host = FHero}
+					local Vectori = PussyVector(PussymyHero.pos - FHero.pos)
+					IsFace[#IsFace + 1] = {PussyVector = Vectori, Host = FHero}
 				end
 			end
 			local Count = {}
@@ -968,10 +1283,10 @@ end
 			if Count[MainLine] == nil then Count[MainLine] = 1 end
 				for w = 1, #IsFace do 
 				local CloseLine = IsFace[w] 
-				local A = CloseLine.Vector
-				local B = MainLine.Vector
+				local A = CloseLine.PussyVector
+				local B = MainLine.PussyVector
 					if A ~= B then
-						if self:GetAngle(A,B) and GetDistanceSqr(MainLine.Host.pos, myHero.pos) < RRange and HasPoison(CloseLine.Host) then 
+						if self:GetAngle(A,B) and GetDistanceSqr(MainLine.Host.pos, PussymyHero.pos) < RRange and HasPoison(CloseLine.Host) then 
 							Count[MainLine] = Count[MainLine] + 1
 						end
 					end
@@ -1023,8 +1338,8 @@ end
 	
 	function Cassiopeia:Check(Mode)
 		if AA == false or Mode ~= "Combo" then
-		local activeSpell = myHero.activeSpell
-		local cd = myHero:GetSpellData(_E).currentCd
+		local activeSpell = PussymyHero.activeSpell
+		local cd = PussymyHero:GetSpellData(_E).currentCd
 			if activeSpell.windup > cd then
 				if Orb == 1 then
 					EOW:SetAttacks(false)
@@ -1052,8 +1367,8 @@ end
 	function Cassiopeia:CastW(key, pos)
 		local key = key or HK_W
 		local Dist = pos:DistanceTo()
-		local h = myHero.pos
-		local v = Vector(pos - myHero.pos):Normalized()
+		local h = PussymyHero.pos
+		local v = PussyVector(pos - PussymyHero.pos):Normalized()
 		if Dist < WMinCRange then
 			Control.CastSpell(key, h + v*500)
 		elseif Dist > WMaxCRange then
@@ -1068,24 +1383,24 @@ function Cassiopeia:Activator(Mode)
 	if target == nil then return end		
 	if IsValid(target, 800) then
 		if Cass.a.Zhonyas.ON:Value() then
-		local Zhonyas = GetItemSlot(myHero, 3157) or GetItemSlot(myHero, 2420)
+		local Zhonyas = GetItemSlot(PussymyHero, 3157) or GetItemSlot(PussymyHero, 2420)
 			if Zhonyas >= 1 and Ready(Zhonyas) then 
-				if myHero.health/myHero.maxHealth < Cass.a.Zhonyas.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth < Cass.a.Zhonyas.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Zhonyas])
 				end
 			end
 		end
 		if Cass.a.Seraphs.ON:Value() then
-		local Seraphs = GetItemSlot(myHero, 3040)
+		local Seraphs = GetItemSlot(PussymyHero, 3040)
 			if Seraphs >= 1 and Ready(Seraphs) then
-				if myHero.health/myHero.maxHealth < Cass.a.Seraphs.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth < Cass.a.Seraphs.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Seraphs])
 				end
 			end
 		end
 		if Mode == "Combo" then
 			if Cass.a.Hextech.ON:Value() then
-			local Hextech = GetItemSlot(myHero, 3030)
+			local Hextech = GetItemSlot(PussymyHero, 3030)
 				if Hextech >= 1 and Ready(Hextech) and target.health/target.maxHealth < Cass.a.Hextech.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Hextech], target)
 				end
@@ -1096,7 +1411,7 @@ function Cassiopeia:Activator(Mode)
 end	
 
 function Cassiopeia:Combo()
-	local activeSpell = myHero.activeSpell
+	local activeSpell = PussymyHero.activeSpell
    	if activeSpell.valid and activeSpell.spellWasCast == false then
    		return
    	end
@@ -1106,7 +1421,7 @@ function Cassiopeia:Combo()
 	local QValue = Cass.c.Q:Value()
 	local WValue = Cass.c.W:Value()
 	local RValue = Cass.c.R:Value()
-	local Dist = GetDistanceSqr(myHero.pos, target.pos)
+	local Dist = GetDistanceSqr(PussymyHero.pos, target.pos)
 	local QWReady = Ready(_Q) 
 	local RTarget, ShouldCast = self:RLogic()
 	if IsValid(target, 950) then	
@@ -1114,15 +1429,15 @@ function Cassiopeia:Combo()
 		if Cass.c.W:Value() and Ready(_W)  then 
 			if Dist < MaxWRange and Dist > MinWRange then
 			local Pos = GetPred(target, 1500, 0.25 + Game.Latency()/1000)
-				if GetDistanceSqr(Pos, myHero.pos) < MaxWRange then 
+				if GetDistanceSqr(Pos, PussymyHero.pos) < MaxWRange then 
 					self:CastW(HK_W, Pos)
 				end
 			end
 		end
 		if QValue and Ready(_Q) then 
 			if Dist < QRange then 
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-				if GetDistanceSqr(target.pos, myHero.pos) < QRange and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+				if GetDistanceSqr(target.pos, PussymyHero.pos) < QRange and pred.Hitchance >= _G.HITCHANCE_HIGH then
 					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
 			end
@@ -1132,17 +1447,17 @@ function Cassiopeia:Combo()
 				Control.CastSpell(HK_E, target)
 			end
 		end		
-		local WData = myHero:GetSpellData(_W) 
+		local WData = PussymyHero:GetSpellData(_W) 
 		local WCheck = Ready(_W)
-		local Panic = Cass.c.P:Value() and myHero.health/myHero.maxHealth < Cass.c.HP:Value()/100 
+		local Panic = Cass.c.P:Value() and PussymyHero.health/PussymyHero.maxHealth < Cass.c.HP:Value()/100 
 		if Panic then
-			if myHero:GetSpellData(SUMMONER_1).name == "SummonerHaste" and Ready(SUMMONER_1) then
+			if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerHaste" and Ready(SUMMONER_1) then
 				Control.CastSpell(HK_SUMMONER_1)
-			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHaste" and Ready(SUMMONER_2) then
+			elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerHaste" and Ready(SUMMONER_2) then
 				Control.CastSpell(HK_SUMMONER_2)
 			end
 		end
-		if Cass.c.R:Value() and Ready(_R) and (HasPoison(target) or Panic) and ((WCheck == false or (WCheck and (Game.Timer() + WData.cd) - WData.castTime > 2)) or WValue == false) then
+		if Cass.c.R:Value() and Ready(_R) and (HasPoison(target) or Panic) and ((WCheck == false or (WCheck and (PussyGameTimer + WData.cd) - WData.castTime > 2)) or WValue == false) then
 			if Panic then
 				if Dist < RRange and self:PEdmg(target) < target.health then
 					if RTarget then
@@ -1168,10 +1483,10 @@ function Cassiopeia:SemiR()
 	local target = GetTarget(950)
 	if target == nil then return end
 	local RTarget, ShouldCast = self:RLogic()
-	local Dist = GetDistanceSqr(myHero.pos, target.pos)	
+	local Dist = GetDistanceSqr(PussymyHero.pos, target.pos)	
 	if IsValid(target, 950) and Ready(_R) then
 		if RTarget and Dist < RRange then
-			Control.SetCursorPos(target)
+			PussyControlSetCursorPos(target)
 			Control.CastSpell(HK_R, RTarget)
 		end
 	end 
@@ -1180,24 +1495,24 @@ end
 		
 
 function Cassiopeia:Harass()
-	local activeSpell = myHero.activeSpell
+	local activeSpell = PussymyHero.activeSpell
    	if activeSpell.valid and activeSpell.spellWasCast == false then
 	return end
 	local target = GetTarget(950)
 	if target == nil then return end
 	local QValue = Cass.h.Q:Value()
-	local Dist = GetDistanceSqr(myHero.pos, target.pos)
+	local Dist = GetDistanceSqr(PussymyHero.pos, target.pos)
 	if IsValid(target, 950) then	
-		if QValue and Ready(_Q) and myHero.mana/myHero.maxMana > Cass.m.Q:Value()/100 then 
+		if QValue and Ready(_Q) and PussymyHero.mana/PussymyHero.maxMana > Cass.m.Q:Value()/100 then 
 			if Dist < QRange then 
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-				if GetDistanceSqr(target.pos, myHero.pos) < QRange and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+				if GetDistanceSqr(target.pos, PussymyHero.pos) < QRange and pred.Hitchance >= _G.HITCHANCE_HIGH then
 					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
 			end
 		end
 
-		if Cass.h.E:Value() and Ready(_E) and (HasPoison(target) or self:Edmg(target) * 2  > target.health) and myHero.mana/myHero.maxMana > Cass.m.E:Value()/100 then 
+		if Cass.h.E:Value() and Ready(_E) and (HasPoison(target) or self:Edmg(target) * 2  > target.health) and PussymyHero.mana/PussymyHero.maxMana > Cass.m.E:Value()/100 then 
 			if Dist < ERange then
 				Control.CastSpell(HK_E, target)
 			end
@@ -1208,21 +1523,21 @@ end
 	
 
 function Cassiopeia:Clear()
-	for i = 1, Game.MinionCount() do 
-	local Minion = Game.Minion(i)		
+	for i = 1, PussyGameMinionCount() do 
+	local Minion = PussyGameMinion(i)		
 	local QValue = Cass.w.Q:Value()
 	local WValue = Cass.w.W:Value()				
 	if Minion.team == TEAM_ENEMY then	
-		if Ready(_Q) and QValue and myHero.mana/myHero.maxMana > Cass.m.QW:Value()/100 then
-			if IsValid(Minion, 850) and GetDistanceSqr(Minion.pos, myHero.pos) < QRange then 
+		if Ready(_Q) and QValue and PussymyHero.mana/PussymyHero.maxMana > Cass.m.QW:Value()/100 then
+			if IsValid(Minion, 850) and GetDistanceSqr(Minion.pos, PussymyHero.pos) < QRange then 
 				Control.CastSpell(HK_Q, Minion.pos)
 			end
 		end
 		local Pos = GetPred(Minion, 1500, 0.25 + Game.Latency()/1000)
-		local Dist = GetDistanceSqr(Minion.pos, myHero.pos)	
-		if Ready(_W) and IsRecalling() == false and WValue and myHero.mana/myHero.maxMana > Cass.m.WW:Value()/100 then
+		local Dist = GetDistanceSqr(Minion.pos, PussymyHero.pos)	
+		if Ready(_W) and IsRecalling() == false and WValue and PussymyHero.mana/PussymyHero.maxMana > Cass.m.WW:Value()/100 then
 			if Dist < MaxWRange and Dist > MinWRange then	
-				if IsValid(Minion, 800) and GetDistanceSqr(Pos, myHero.pos) < MaxWRange and MinionsNear(myHero.pos,800) >= Cass.w.Count:Value() then 
+				if IsValid(Minion, 800) and GetDistanceSqr(Pos, PussymyHero.pos) < MaxWRange and MinionsNear(PussymyHero.pos,800) >= Cass.w.Count:Value() then 
 					self:CastW(HK_W, Pos)
 													
 					
@@ -1235,31 +1550,31 @@ end
 
 	
 function Cassiopeia:JClear()
-	for i = 1, Game.MinionCount() do 
-	local Minion = Game.Minion(i)		
+	for i = 1, PussyGameMinionCount() do 
+	local Minion = PussyGameMinion(i)		
 	local QValue = Cass.j.Q:Value()
 	local WValue = Cass.j.W:Value()
 	local EValue = Cass.j.E:Value()
 	if Minion.team == TEAM_JUNGLE then	
-		if Ready(_Q) and IsRecalling() == false and QValue and myHero.mana/myHero.maxMana > Cass.m.QW:Value()/100 then
-			if IsValid(Minion, 850) and GetDistanceSqr(Minion.pos, myHero.pos) < QRange then 
+		if Ready(_Q) and IsRecalling() == false and QValue and PussymyHero.mana/PussymyHero.maxMana > Cass.m.QW:Value()/100 then
+			if IsValid(Minion, 850) and GetDistanceSqr(Minion.pos, PussymyHero.pos) < QRange then 
 				Control.CastSpell(HK_Q, Minion.pos)
 				
 			end
 		end
 		
 		local Pos = GetPred(Minion, 1500, 0.25 + Game.Latency()/1000)
-		local Dist = GetDistanceSqr(Minion.pos, myHero.pos)	
-		if Ready(_W) and IsRecalling() == false and WValue and myHero.mana/myHero.maxMana > Cass.m.WW:Value()/100 then
+		local Dist = GetDistanceSqr(Minion.pos, PussymyHero.pos)	
+		if Ready(_W) and IsRecalling() == false and WValue and PussymyHero.mana/PussymyHero.maxMana > Cass.m.WW:Value()/100 then
 			if Dist < MaxWRange and Dist > MinWRange then	
-				if IsValid(Minion, 800) and GetDistanceSqr(Pos, myHero.pos) < MaxWRange then 
+				if IsValid(Minion, 800) and GetDistanceSqr(Pos, PussymyHero.pos) < MaxWRange then 
 					self:CastW(HK_W, Pos)
 				end
 			end
 		end
 		
 		if Ready(_E) and IsRecalling() == false and EValue then
-			if IsValid(Minion, 750) and GetDistanceSqr(Minion.pos, myHero.pos) < ERange then 
+			if IsValid(Minion, 750) and GetDistanceSqr(Minion.pos, PussymyHero.pos) < ERange then 
 				if HasPoison(Minion) then
 					Block(true)
 					Control.CastSpell(HK_E, Minion)
@@ -1287,7 +1602,7 @@ if target == nil then
 	return
 end
 	if IsValid(target, 750) then	
-		if Cass.ks.E:Value() and Ready(_E) and GetDistanceSqr(target.pos, myHero.pos) < ERange then 
+		if Cass.ks.E:Value() and Ready(_E) and GetDistanceSqr(target.pos, PussymyHero.pos) < ERange then 
 			if self:Edmg(target) > target.health then
 				Control.CastSpell(HK_E, target)
 				
@@ -1305,7 +1620,7 @@ if target == nil then
 	return
 end
 	if IsValid(target, 900) then	
-		if Cass.ks.Q:Value() and Ready(_Q) and GetDistanceSqr(target.pos, myHero.pos) < QRange then 
+		if Cass.ks.Q:Value() and Ready(_Q) and GetDistanceSqr(target.pos, PussymyHero.pos) < QRange then 
 			if self:Qdmg(target) > target.health then
 				Control.CastSpell(HK_Q, target.pos)
 			
@@ -1320,7 +1635,7 @@ if target == nil then
 	return
 end
 	if IsValid(target, 900) then
-		if Cass.ks.W:Value() and Ready(_W) and GetDistanceSqr(target.pos, myHero.pos) < 800 then 
+		if Cass.ks.W:Value() and Ready(_W) and GetDistanceSqr(target.pos, PussymyHero.pos) < 800 then 
 			if self:Wdmg(target) > target.health then
 				Control.CastSpell(HK_W, target.pos)
 			
@@ -1331,15 +1646,13 @@ end
 
 function Cassiopeia:KsIG()
 local target = GetTarget(650)
-if target == nil then 
-	return
-end
-	if IsValid(target, 650) then		
-		if Cass.ks.IG:Value() and GetDistanceSqr(target.pos, myHero.pos) < 600 then 
+if target == nil then return end
+	if IsValid(target) then		
+		if Cass.ks.IG:Value() and GetDistanceSqr(target.pos, PussymyHero.pos) < 600 then 
 			if self:Ignitedmg(target) > target.health then
-				if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
+				if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
 					Control.CastSpell(HK_SUMMONER_1, target)
-				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
+				elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
 					Control.CastSpell(HK_SUMMONER_2, target)
 				end
 			end
@@ -1349,12 +1662,12 @@ end
 			
 	
 function Cassiopeia:AntiCC()
-	local Immobile = Cleans(myHero)
+	local Immobile = Cleans(PussymyHero)
 	if Immobile then
-		if myHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) then
-			Control.CastSpell(HK_SUMMONER_1, myHero)
-		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBoost" and Ready(SUMMONER_2) then
-			Control.CastSpell(HK_SUMMONER_2, myHero)
+		if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) then
+			Control.CastSpell(HK_SUMMONER_1, PussymyHero)
+		elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerBoost" and Ready(SUMMONER_2) then
+			Control.CastSpell(HK_SUMMONER_2, PussymyHero)
 		end
 	end
 end	
@@ -1365,33 +1678,33 @@ end
 			return
 		end
 		local fulldmg = self:Qdmg(target) + self:Wdmg(target) + self:Edmg(target) + self:Rdmg(target)
-		local Dist = GetDistanceSqr(myHero.pos, target.pos)
+		local Dist = GetDistanceSqr(PussymyHero.pos, target.pos)
 		local RCheck = Ready(_R)
 		local RTarget, ShouldCast = self:RLogic()
 		if IsValid(target) then
-			if EnemiesNear(myHero.pos,825) == 1 and Ready(_R) and Ready(_W) and Ready(_Q) and Ready(_E) then 
+			if EnemiesNear(PussymyHero.pos,825) == 1 and Ready(_R) and Ready(_W) and Ready(_Q) and Ready(_E) then 
 				if RTarget and EnemyInRange(RRange) and fulldmg > target.health then
 					Control.CastSpell(HK_R, RTarget)
 				end
 			end 
 			if not Ready(_R) then
-				if myHero:GetSpellData(SUMMONER_1).name == "SummonerHaste" and Ready(SUMMONER_1) then
+				if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerHaste" and Ready(SUMMONER_1) then
 					Control.CastSpell(HK_SUMMONER_1)
-				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHaste" and Ready(SUMMONER_2) then
+				elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerHaste" and Ready(SUMMONER_2) then
 					Control.CastSpell(HK_SUMMONER_2)
 				end
 			end	
 			if self:Ignitedmg(target) > target.health and Dist <= 600 then
-				if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
+				if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
 					Control.CastSpell(HK_SUMMONER_1, target)
-				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
+				elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
 					Control.CastSpell(HK_SUMMONER_2, target)
 				end
 			end	
 			if Ready(_Q) and not Ready(_R) then 
 				if Dist < QRange then 
-				local pred = GetGamsteronPrediction(target, QData, myHero)
-					if GetDistanceSqr(target.pos, myHero.pos) < QRange and pred.Hitchance >= _G.HITCHANCE_HIGH then
+				local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+					if GetDistanceSqr(target.pos, PussymyHero.pos) < QRange and pred.Hitchance >= _G.HITCHANCE_HIGH then
 						Control.CastSpell(HK_Q, pred.CastPosition)
 					end
 				end
@@ -1404,7 +1717,7 @@ end
 			if Ready(_W) and not Ready(_R) then 
 				if Dist < MaxWRange and Dist > MinWRange then
 				local Pos = GetPred(target, 1500, 0.25 + Game.Latency()/1000)
-					if GetDistanceSqr(target.pos, myHero.pos) < MaxWRange then 
+					if GetDistanceSqr(target.pos, PussymyHero.pos) < MaxWRange then 
 						self:CastW(HK_W, Pos)
 					end
 				end
@@ -1415,11 +1728,11 @@ end
 	
 	
 function Cassiopeia:AutoE()
-	if Ready(_E) and IsRecalling() == false and myHero.mana/myHero.maxMana > Cass.m.EW:Value()/100 and Cass.w.E:Value() then
-		for i = 1, Game.MinionCount() do 
-		local Minion = Game.Minion(i) 
+	if Ready(_E) and IsRecalling() == false and PussymyHero.mana/PussymyHero.maxMana > Cass.m.EW:Value()/100 and Cass.w.E:Value() then
+		for i = 1, PussyGameMinionCount() do 
+		local Minion = PussyGameMinion(i) 
 			if Minion.team == TEAM_ENEMY then	
-				if IsValid(Minion, 690) and GetDistanceSqr(Minion.pos, myHero.pos) < ERange then 
+				if IsValid(Minion, 690) and GetDistanceSqr(Minion.pos, PussymyHero.pos) < ERange then 
 					if HasPoison(Minion) and self:PEdmgCreep(Minion) > Minion.health then 
 						Block(true)
 						Control.CastSpell(HK_E, Minion)
@@ -1438,15 +1751,15 @@ end
 					
 
 	function Cassiopeia:Draw()
-		if myHero.dead == false and Cass.d.ON:Value() then
-			local textPos = myHero.pos:To2D()
+		if PussymyHero.dead == false and Cass.d.ON:Value() then
+			local textPos = PussymyHero.pos:To2D()
 			if Cass.d.Lines:Value() then
 				local InFace = {}
-				for i = 1, Game.HeroCount() do
-				local Hero = Game.Hero(i)
+				for i = 1, PussyGameHeroCount() do
+				local Hero = PussyGameHero(i)
 					if IsValid(Hero, 850) and self:IsFacing(Hero) then 
-						local Vectori = Vector(myHero.pos - Hero.pos)
-						local LS = LineSegment(myHero.pos, Hero.pos)
+						local Vectori = PussyVector(PussymyHero.pos - Hero.pos)
+						local LS = LineSegment(PussymyHero.pos, Hero.pos)
 						LS:__draw()
 					end
 				end
@@ -1458,23 +1771,23 @@ end
 			end
 			if Cass.d.Text:Value() then 
 				if Cass.w.E:Value() then 
-					Draw.Text("Auto E ON", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 000, 255, 000))
+					PussyDrawText("Auto E ON", 20, textPos.x - 80, textPos.y + 40, PussyDrawColor(255, 000, 255, 000))
 				else
-					Draw.Text("Auto E OFF", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 220, 050, 000)) 
+					PussyDrawText("Auto E OFF", 20, textPos.x - 80, textPos.y + 40, PussyDrawColor(255, 220, 050, 000)) 
 				end
 			end
 			if Cass.d.Q.ON:Value() then
-				Draw.Circle(myHero.pos, 850, Cass.d.Q.Width:Value(), Cass.d.Q.Color:Value())
+				PussyDrawCircle(PussymyHero.pos, 850, Cass.d.Q.Width:Value(), Cass.d.Q.Color:Value())
 			end
 			if Cass.d.W.ON:Value() then
-				Draw.Circle(myHero.pos, 340, Cass.d.W.Width:Value(), Cass.d.W.Color:Value())
-				Draw.Circle(myHero.pos, 960, Cass.d.W.Width:Value(), Cass.d.W.Color:Value())
+				PussyDrawCircle(PussymyHero.pos, 340, Cass.d.W.Width:Value(), Cass.d.W.Color:Value())
+				PussyDrawCircle(PussymyHero.pos, 960, Cass.d.W.Width:Value(), Cass.d.W.Color:Value())
 			end
 			if Cass.d.E.ON:Value() then
-				Draw.Circle(myHero.pos, 750, Cass.d.E.Width:Value(), Cass.d.E.Color:Value())
+				PussyDrawCircle(PussymyHero.pos, 750, Cass.d.E.Width:Value(), Cass.d.E.Color:Value())
 			end	
 			if Cass.d.R.ON:Value() then
-				Draw.Circle(myHero.pos, 750, Cass.d.E.Width:Value(), Cass.d.E.Color:Value())
+				PussyDrawCircle(PussymyHero.pos, 750, Cass.d.E.Width:Value(), Cass.d.E.Color:Value())
 			end			
 		end
 self:DrawEngage()		
@@ -1484,12 +1797,12 @@ function Cassiopeia:DrawEngage()
 	 local target = GetTarget(1200)
 if target == nil then return end
 	
-	if EnemiesNear(myHero.pos,1200) == 1 and Ready(_R) and Ready(_W) and Ready(_E) and Ready(_Q) then	
+	if EnemiesNear(PussymyHero.pos,1200) == 1 and Ready(_R) and Ready(_W) and Ready(_E) and Ready(_Q) then	
 		local fulldmg = self:Qdmg(target) + self:Wdmg(target) + self:Edmg(target) + self:Rdmg(target)
 		local textPos = target.pos:To2D()
 		if IsValid(target, 1200) and target.isEnemy then
 			 if fulldmg > target.health then 
-					Draw.Text("Engage PressKey", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
+					PussyDrawText("Engage PressKey", 25, textPos.x - 33, textPos.y + 60, PussyDrawColor(255, 255, 0, 0))
 			end
 		end
 	end
@@ -1509,21 +1822,16 @@ end
 require('GamsteronPrediction')
 
 
-local menu = 1
-local TEAM_ALLY = myHero.team
-local TEAM_ENEMY = 300 - myHero.team
-local TEAM_JUNGLE = 300
-local Allies = {}; local Enemies = {}; local Turrets = {}; local Units = {}
-local GameLatency = Game.Latency
-local GameTimer = Game.Timer
+
 
 function Ekko:__init()
 	self.DetectedMissiles = {}; self.DetectedSpells = {}; self.Target = nil; self.Timer = 0
 	if menu ~= 1 then return end
 	menu = 2   	
-	self:LoadMenu()                                            
-	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("Draw", function() self:Draw() end) 
+	self:LoadMenu()
+	self:TwinPos()
+	PussyCallbackAdd("Tick", function() self:Tick() end)
+	PussyCallbackAdd("Draw", function() self:Draw() end) 
 	if _G.EOWLoaded then
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
@@ -1608,7 +1916,7 @@ function Ekko:LoadMenu()
 end
 
 function Ekko:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if PussymyHero.dead == false and PussyGameIsChatOpen() == false then
 		local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -1632,33 +1940,32 @@ function Ekko:Tick()
 end
 
 Twin = {}	
-
-function TwinPos()
-		for i = 0, Game.ObjectCount() do
-			local particle = Game.Object(i)
-			if particle and not particle.dead and particle.name:find("Ekko") then
-			Twin[particle.networkID] = particle
-			end
-		end	
+function Ekko:TwinPos()
+	for i = 0, PussyGameObjectCount() do
+		local particle = PussyGameObject(i)
+		if particle and not particle.dead and particle.name:find("Ekko") then
+		Twin[particle.networkID] = particle
+		end
+	end	
 end
 
 function Ekko:Activator()
 
 			--Zhonyas
-	if EnemiesAround(myHero.pos,2000) then	
+	if EnemiesAround(PussymyHero.pos,2000) then	
 		if self.Menu.a.ON:Value() then
-		local Zhonyas = GetItemSlot(myHero, 3157)
+		local Zhonyas = GetItemSlot(PussymyHero, 3157)
 			if Zhonyas > 0 and Ready(Zhonyas) then 
-				if myHero.health/myHero.maxHealth <= self.Menu.a.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.a.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Zhonyas])
 				end
 			end
 		end
 			--Stopwatch
 		if self.Menu.a.ON:Value() then
-		local Stop = GetItemSlot(myHero, 2420)
+		local Stop = GetItemSlot(PussymyHero, 2420)
 			if Stop > 0 and Ready(Stop) then 
-				if myHero.health/myHero.maxHealth <= self.Menu.a.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.a.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Stop])
 				end
 			end
@@ -1667,40 +1974,40 @@ function Ekko:Activator()
 end	
 	
 function Ekko:Proto()	
-if myHero.dead then return end	
+if PussymyHero.dead then return end	
 	local target = GetTarget(600)
 	if target == nil then return end
-	local Protobelt = GetItemSlot(myHero, 3152)
+	local Protobelt = GetItemSlot(PussymyHero, 3152)
 	if IsValid(target,600) and self.Menu.a.Belt:Value() then
-		if myHero.pos:DistanceTo(target.pos) < 500 and Protobelt > 0 and Ready(Protobelt) then	
+		if PussymyHero.pos:DistanceTo(target.pos) < 500 and Protobelt > 0 and Ready(Protobelt) then	
 			Control.CastSpell(ItemHotKey[Protobelt], target.pos)
 		end
 	end
 end	
 
 function Ekko:Draw()
-  if myHero.dead then return end                                               
+  if PussymyHero.dead then return end                                               
 	if self.Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-    Draw.Circle(myHero, 1075, 1, Draw.Color(225, 225, 0, 10))
+    PussyDrawCircle(PussymyHero, 1075, 1, PussyDrawColor(225, 225, 0, 10))
 	end
 	if self.Menu.Drawing.DrawW:Value() and Ready(_W) then
-    Draw.Circle(myHero, 1600, 1, Draw.Color(225, 225, 125, 10))
+    PussyDrawCircle(PussymyHero, 1600, 1, PussyDrawColor(225, 225, 125, 10))
 	end
 	local target = GetTarget(1600)     	
 	if target == nil then return end
 	if self.Menu.Drawing.DrawW:Value() and Ready(_W) and IsValid(target) then
-    Draw.Circle(target, 400, 1, Draw.Color(225, 225, 125, 10))
+    PussyDrawCircle(target, 400, 1, PussyDrawColor(225, 225, 125, 10))
 	end	
 end
 
 function Ekko:SafeLife()
 	local target = GetTarget(1200)     	
 	if target == nil then return end
-	local hp = myHero.health
+	local hp = PussymyHero.health
 	for i, twin in pairs(Twin) do
 		local enemys = EnemiesAround(twin.pos, 600)
 		if self.Menu.Life.UseR:Value() and Ready(_R) and IsValid(target) then
-			if myHero.pos:DistanceTo(target.pos) <= 1200 and hp <= self.Menu.Life.life:Value() and enemys == 0 then
+			if PussymyHero.pos:DistanceTo(target.pos) <= 1200 and hp <= self.Menu.Life.life:Value() and enemys == 0 then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -1710,11 +2017,11 @@ end
 function Ekko:Auto()
 	local target = GetTarget(1700)     	
 	if target == nil then return end
-	local pred = GetGamsteronPrediction(target, WData, myHero)
+	local pred = GetGamsteronPrediction(target, WData, PussymyHero)
 	local Immo = GetImmobileCount(400, target)
 	if IsValid(target) then
 		if self.Menu.Auto.UseW:Value() and Ready(_W) then
-			if myHero.pos:DistanceTo(target.pos) <= 1600 and Immo >= self.Menu.Auto.Targets:Value() and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			if PussymyHero.pos:DistanceTo(target.pos) <= 1600 and Immo >= self.Menu.Auto.Targets:Value() and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(HK_W, pred.CastPosition)
 			end
 		end	
@@ -1724,11 +2031,11 @@ end
 function Ekko:Auto2()
 	local target = GetTarget(450)     	
 	if target == nil then return end		
-	local pred = GetGamsteronPrediction(target, WData, myHero)
+	local pred = GetGamsteronPrediction(target, WData, PussymyHero)
 	if Ready(_W) and self.Menu.Auto2.UseWE:Value() and IsValid(target) then
-		if EnemiesAround(target.pos, 375) >= self.Menu.Auto2.Targets:Value() and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+		if EnemiesAround(target.pos, 375) >= self.Menu.Auto2.Targets:Value() and PussymyHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 			Control.CastSpell(HK_W, pred.CastPosition)
-		if myHero.pos:DistanceTo(target.pos) <= 405 and Ready(_E) then
+		if PussymyHero.pos:DistanceTo(target.pos) <= 405 and Ready(_E) then
 			Control.CastSpell(HK_E, target.pos)
 		end
 		end	
@@ -1738,9 +2045,9 @@ end
 function Ekko:AutoWE()
 	local target = GetTarget(450)     	
 	if target == nil then return end		
-	local pred = GetGamsteronPrediction(target, WData, myHero)
+	local pred = GetGamsteronPrediction(target, WData, PussymyHero)
 	if Ready(_W) and Ready(_E) and IsValid(target) then
-		if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+		if PussymyHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 			Control.CastSpell(HK_W, pred.CastPosition)
 			Control.CastSpell(HK_E, target.pos)
 		end	
@@ -1751,33 +2058,33 @@ function Ekko:KillSteal()
 	local target = GetTarget(1700)     	
 	if target == nil then return end
 	local hp = target.health
-	local IGdamage = 80 + 25 * myHero.levelData.lvl
-	local QDmg = getdmg("Q", target, myHero)
-	local RDmg = getdmg("R", target, myHero)	
+	local IGdamage = 80 + 25 * PussymyHero.levelData.lvl
+	local QDmg = getdmg("Q", target, PussymyHero)
+	local RDmg = getdmg("R", target, PussymyHero)	
 	local FullDmg = RDmg + QDmg
 	local FullIgn = FullDmg + IGdamage
 	if IsValid(target) then	
 		
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if QDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		for i, twin in pairs(Twin) do
 		if EnemiesAround(twin.pos, 375) >= 1 and self.Menu.ks.UseR:Value() then
-			if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) and Ready(_R) and Ready(_Q) and hp <= FullIgn then
+			if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) and Ready(_R) and Ready(_Q) and hp <= FullIgn then
 				Control.CastSpell(HK_R)
 				self:AutoWE()
 				Control.CastSpell(HK_Q, target.pos)
-				if myHero.pos:DistanceTo(target.pos) <= 600 then
+				if PussymyHero.pos:DistanceTo(target.pos) <= 600 then
 					Control.CastSpell(HK_SUMMONER_1, target)
 				end	
-			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) and Ready(_R) and Ready(_Q) and hp <= FullIgn then
+			elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) and Ready(_R) and Ready(_Q) and hp <= FullIgn then
 				Control.CastSpell(HK_R)
 				self:AutoWE()
 				Control.CastSpell(HK_Q, target.pos)
-				if myHero.pos:DistanceTo(target.pos) <= 600 then
+				if PussymyHero.pos:DistanceTo(target.pos) <= 600 then
 					Control.CastSpell(HK_SUMMONER_2, target)
 				end
 			elseif Ready(_R) and Ready(_Q) and hp <= FullDmg then
@@ -1793,13 +2100,13 @@ function Ekko:KillSteal()
 		
 		if self.Menu.ks.UseIgn:Value() then 
 			
-			if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and myHero.pos:DistanceTo(target.pos) <= 600 then
+			if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and PussymyHero.pos:DistanceTo(target.pos) <= 600 then
 				if Ready(SUMMONER_1) then
 					if IGdamage >= hp + target.hpRegen * 3 then
 						Control.CastSpell(HK_SUMMONER_1, target)
 					end
 				end
-			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and myHero.pos:DistanceTo(target.pos) <= 600  then
+			elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and PussymyHero.pos:DistanceTo(target.pos) <= 600  then
 				if Ready(SUMMONER_2) then
 					if IGdamage >= hp + target.hpRegen * 3 then
 						Control.CastSpell(HK_SUMMONER_2, target)
@@ -1816,13 +2123,13 @@ if target == nil then return end
 	if IsValid(target) then
 				
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
 		end
 		
-		if self.Menu.Combo.UseWE:Value() and myHero.pos:DistanceTo(target.pos) <= 600 then
+		if self.Menu.Combo.UseWE:Value() and PussymyHero.pos:DistanceTo(target.pos) <= 600 then
 			Control.CastSpell(HK_E, target.pos)
 		end		
 	end
@@ -1831,11 +2138,11 @@ end
 function Ekko:Harass()
 local target = GetTarget(1200)
 if target == nil then return end
-	if IsValid(target) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
+	if IsValid(target) and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
 		
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 			Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
@@ -1843,17 +2150,17 @@ if target == nil then return end
 end	
 
 function Ekko:Clear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
-    local TEAM_ALLY = myHero.team
-	local TEAM_ENEMY = 300 - myHero.team
-		if minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)
+    local TEAM_ALLY = PussymyHero.team
+	local TEAM_ENEMY = 300 - PussymyHero.team
+		if minion.team == TEAM_ENEMY and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
 			
-			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.Clear.UseQ:Value() then
+			if Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.Clear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
 			end	
 
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 325 and self.Menu.Clear.UseE:Value() then
+			if Ready(_E) and PussymyHero.pos:DistanceTo(minion.pos) <= 325 and self.Menu.Clear.UseE:Value() then
 				Control.CastSpell(HK_E, minion.pos)
 			end  
 		end
@@ -1861,15 +2168,15 @@ function Ekko:Clear()
 end
 
 function Ekko:JungleClear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)	
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)	
 	local TEAM_JUNGLE = 300
-		if minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
-			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.JClear.UseQ:Value() then
+		if minion.team == TEAM_JUNGLE and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
+			if Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.JClear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
 			end
 
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 325 and self.Menu.JClear.UseE:Value() then
+			if Ready(_E) and PussymyHero.pos:DistanceTo(minion.pos) <= 325 and self.Menu.JClear.UseE:Value() then
 				Control.CastSpell(HK_E, minion.pos)
 			end  
 		end
@@ -1897,8 +2204,8 @@ end
 require('GamsteronPrediction')
 
 function GunbladeDMG() 
-    local level = myHero.levelData.lvl
-    local damage = ({175,180,184,189,193,198,203,207,212,216,221,225,230,235,239,244,248,253})[level] + 0.30 * myHero.ap
+    local level = PussymyHero.levelData.lvl
+    local damage = ({175,180,184,189,193,198,203,207,212,216,221,225,230,235,239,244,248,253})[level] + 0.30 * PussymyHero.ap
 	return damage
 end
 
@@ -1911,8 +2218,8 @@ Type = _G.SPELLTYPE_LINE, Delay = 0.5, Radius = 195, Range = 850, Speed = 500, C
 
 function Kayle:__init()
 	self:LoadMenu()                                            
-	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("Draw", function() self:Draw() end) 
+	PussyCallbackAdd("Tick", function() self:Tick() end)
+	PussyCallbackAdd("Draw", function() self:Draw() end) 
 	if _G.EOWLoaded then
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
@@ -1986,7 +2293,7 @@ function Kayle:LoadMenu()
 end
 
 function Kayle:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if PussymyHero.dead == false and PussyGameIsChatOpen() == false then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -2009,33 +2316,33 @@ end
 
 
 function Kayle:Draw()
-  if myHero.dead then return end
+  if PussymyHero.dead then return end
 	if self.Menu.Drawing.DrawR:Value() and Ready(_R) then
-    Draw.Circle(myHero, 500, 1, Draw.Color(255, 225, 255, 10))
+    PussyDrawCircle(PussymyHero, 500, 1, PussyDrawColor(255, 225, 255, 10))
 	end                                                 
 	if self.Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-    Draw.Circle(myHero, 850, 1, Draw.Color(225, 225, 0, 10))
+    PussyDrawCircle(PussymyHero, 850, 1, PussyDrawColor(225, 225, 0, 10))
 	end
 	if self.Menu.Drawing.DrawW:Value() and Ready(_W) then
-    Draw.Circle(myHero, 900, 1, Draw.Color(225, 225, 125, 10))
+    PussyDrawCircle(PussymyHero, 900, 1, PussyDrawColor(225, 225, 125, 10))
 	end
 end
 
 function Kayle:AutoW()
 local target = GetTarget(1200)     	
 if target == nil then return end		
-	if IsValid(target, 1200) and myHero.mana/myHero.maxMana >= self.Menu.AutoW.Mana:Value() / 100 then
+	if IsValid(target, 1200) and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.AutoW.Mana:Value() / 100 then
 		if self.Menu.AutoW.self:Value() and Ready(_W) then
-			if myHero.health/myHero.maxHealth <= self.Menu.AutoW.HP:Value()/100 then
-				Control.CastSpell(HK_W, myHero)
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.AutoW.HP:Value()/100 then
+				Control.CastSpell(HK_W, PussymyHero)
 			end	
 		end
 		if self.Menu.AutoW.ally:Value() and Ready(_W) then		
-			for i = 1, Game.HeroCount() do
-			local unit = Game.Hero(i)
+			for i = 1, PussyGameHeroCount() do
+			local unit = PussyGameHero(i)
 				if unit.isAlly and IsValid(unit, 1000) then
 				local Hp = GetPercentHP(unit)
-						if Hp <= self.Menu.AutoW.HP:Value() and myHero.pos:DistanceTo(unit.pos) <= 900 then
+						if Hp <= self.Menu.AutoW.HP:Value() and PussymyHero.pos:DistanceTo(unit.pos) <= 900 then
 							Control.CastSpell(HK_W, unit)	
 						end	
 					end
@@ -2048,10 +2355,10 @@ if target == nil then return end
 function Kayle:Gunblade()
 	local target = GetTarget(1000)     	
 	if target == nil then return end
-	local Gun = GetItemSlot(myHero, 3146)		
+	local Gun = GetItemSlot(PussymyHero, 3146)		
 	if IsValid(target, 1000) then	
 		if self.Menu.a.gun:Value() and Gun > 0 and Ready(Gun) then
-			if target.health/target.maxHealth <= self.Menu.a.HP:Value()/100 and myHero.pos:DistanceTo(target.pos) <= 700 then
+			if target.health/target.maxHealth <= self.Menu.a.HP:Value()/100 and PussymyHero.pos:DistanceTo(target.pos) <= 700 then
 				Control.CastSpell(ItemHotKey[Gun], target.pos)
 			end
 		end
@@ -2061,22 +2368,22 @@ end
 function Kayle:KillStealE()	
 	local target = GetTarget(600)     	
 	if target == nil then return end
-	local level = myHero.levelData.lvl
+	local level = PussymyHero.levelData.lvl
 	local hp = target.health
-	local EDmg = getdmg("E", target, myHero, 1)
-	local E2Dmg = getdmg("E", target, myHero, 2)
-	local E3Dmg = getdmg("E", target, myHero, 2) + getdmg("E", target, myHero, 3)
+	local EDmg = getdmg("E", target, PussymyHero, 1)
+	local E2Dmg = getdmg("E", target, PussymyHero, 2)
+	local E3Dmg = getdmg("E", target, PussymyHero, 2) + getdmg("E", target, PussymyHero, 3)
 	if IsValid(target, 600) then	
 		
 		if self.Menu.ks.UseE:Value() and Ready(_E) then
-			if level >= 1 and level < 6 and EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 550 then
+			if level >= 1 and level < 6 and EDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 550 then
 				Control.CastSpell(HK_E)
 		
 			
-			elseif level >= 6 and level < 16 and E2Dmg >= hp and myHero.pos:DistanceTo(target.pos) <= 550 then
+			elseif level >= 6 and level < 16 and E2Dmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 550 then
 				Control.CastSpell(HK_E)
 				
-			elseif level >= 16 and E3Dmg >= hp and myHero.pos:DistanceTo(target.pos) <= 550 then
+			elseif level >= 16 and E3Dmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 550 then
 				Control.CastSpell(HK_E)				
 			end			
 		end	
@@ -2087,26 +2394,26 @@ function Kayle:KillSteal()
 	local target = GetTarget(1000)     	
 	if target == nil then return end
 	local hp = target.health
-	local QDmg = getdmg("Q", target, myHero)
-	local IGdamage = 80 + 25 * myHero.levelData.lvl
+	local QDmg = getdmg("Q", target, PussymyHero)
+	local IGdamage = 80 + 25 * PussymyHero.levelData.lvl
 	local GunDmg = GunbladeDMG()
 	if IsValid(target, 1000) then	
 		
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 850 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if QDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 850 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 
 		if self.Menu.ks.UseIgn:Value() then 
-			if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and myHero.pos:DistanceTo(target.pos) <= 600 then
+			if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and PussymyHero.pos:DistanceTo(target.pos) <= 600 then
 				if Ready(SUMMONER_1) then
 					if IGdamage >= hp + target.hpRegen * 3 then
 						Control.CastSpell(HK_SUMMONER_1, target)
 					end
 				end
-			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and myHero.pos:DistanceTo(target.pos) <= 600  then
+			elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and PussymyHero.pos:DistanceTo(target.pos) <= 600  then
 				if Ready(SUMMONER_2) then
 					if IGdamage >= hp + target.hpRegen * 3 then
 						Control.CastSpell(HK_SUMMONER_2, target)
@@ -2114,10 +2421,10 @@ function Kayle:KillSteal()
 				end
 			end
 		end
-		local Gun = GetItemSlot(myHero, 3146)
+		local Gun = GetItemSlot(PussymyHero, 3146)
 		if self.Menu.ks.gun:Value() and Ready(_Q) and Gun > 0 and Ready(Gun) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if (QDmg + GunDmg) >= hp and myHero.pos:DistanceTo(target.pos) <= 700 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if (QDmg + GunDmg) >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 700 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(ItemHotKey[Gun], target.pos)
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
@@ -2132,30 +2439,30 @@ if target == nil then return end
 			
 		
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 850 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 850 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
 		end
 		
 		if self.Menu.Combo.UseE:Value() and Ready(_E) then			
-			if myHero.pos:DistanceTo(target.pos) <= 400 then			
+			if PussymyHero.pos:DistanceTo(target.pos) <= 400 then			
 				Control.CastSpell(HK_E)
 	
 			end
 		end
 		
 		if Ready(_R) and self.Menu.Combo.UseR.self:Value() then
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.UseR.HP:Value()/100 then 
-				Control.CastSpell(HK_R, myHero)
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.UseR.HP:Value()/100 then 
+				Control.CastSpell(HK_R, PussymyHero)
 			end
 		end
 		if Ready(_R) and self.Menu.Combo.UseR.ally:Value() then
-			for i = 1, Game.HeroCount() do
-			local unit = Game.Hero(i)
+			for i = 1, PussyGameHeroCount() do
+			local unit = PussyGameHero(i)
 				if unit.isAlly and IsValid(unit, 1000) then
 				local enemy = EnemiesAround(unit.pos, 650)			
-					if enemy >= 1 and unit.health/unit.maxHealth <= self.Menu.Combo.UseR.HP:Value()/100 and myHero.pos:DistanceTo(unit.pos) <= 900  then
+					if enemy >= 1 and unit.health/unit.maxHealth <= self.Menu.Combo.UseR.HP:Value()/100 and PussymyHero.pos:DistanceTo(unit.pos) <= 900  then
 						Control.CastSpell(HK_R, unit)
 					end
 				end
@@ -2167,17 +2474,17 @@ end
 function Kayle:Harass()
 local target = GetTarget(1000)
 if target == nil then return end
-	if IsValid(target, 1000) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
+	if IsValid(target, 1000) and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
 		
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 850 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 850 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if self.Menu.Harass.UseE:Value() and Ready(_E) then
 		
-			if myHero.pos:DistanceTo(target.pos) <= 400 then			
+			if PussymyHero.pos:DistanceTo(target.pos) <= 400 then			
 				Control.CastSpell(HK_E)
 	
 			end
@@ -2186,17 +2493,17 @@ if target == nil then return end
 end	
 
 function Kayle:Clear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
-	local level = myHero.levelData.lvl
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)
+	local level = PussymyHero.levelData.lvl
 	local HP = minion.health
-	local QDmg = getdmg("Q", minion, myHero)	
-	local EDmg = getdmg("E", minion, myHero, 1)
-	local E2Dmg = getdmg("E", minion, myHero, 2)
-	local E3Dmg = getdmg("E", minion, myHero, 2) + getdmg("E", minion, myHero, 3)
+	local QDmg = getdmg("Q", minion, PussymyHero)	
+	local EDmg = getdmg("E", minion, PussymyHero, 1)
+	local E2Dmg = getdmg("E", minion, PussymyHero, 2)
+	local E3Dmg = getdmg("E", minion, PussymyHero, 2) + getdmg("E", minion, PussymyHero, 3)
 		
-		if IsValid(minion, 1000) and minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 500 and self.Menu.Clear.UseE:Value() then
+		if IsValid(minion, 1000) and minion.team == TEAM_ENEMY and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
+			if Ready(_E) and PussymyHero.pos:DistanceTo(minion.pos) <= 500 and self.Menu.Clear.UseE:Value() then
 				if level >= 1 and level < 6 and EDmg > HP then
 					Control.CastSpell(HK_E)
 				
@@ -2208,7 +2515,7 @@ function Kayle:Clear()
 				end
 			end
 			
-			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 850 and self.Menu.Clear.UseQ:Value() and QDmg > HP then
+			if Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) <= 850 and self.Menu.Clear.UseQ:Value() and QDmg > HP then
 				Control.CastSpell(HK_Q, minion.pos)
 			end	 
 		end
@@ -2216,14 +2523,14 @@ function Kayle:Clear()
 end
 
 function Kayle:JungleClear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)	
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)	
 			
-		if IsValid(minion, 1000) and minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
-			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 850 and self.Menu.JClear.UseQ:Value() then
+		if IsValid(minion, 1000) and minion.team == TEAM_JUNGLE and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
+			if Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) <= 850 and self.Menu.JClear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
 			end
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 550 and self.Menu.JClear.UseE:Value() then
+			if Ready(_E) and PussymyHero.pos:DistanceTo(minion.pos) <= 550 and self.Menu.JClear.UseE:Value() then
 				Control.CastSpell(HK_E)
 			end		
 		end
@@ -2240,57 +2547,7 @@ class "Kassadin"
 
 
 
-local cancelSpells = {
-  ["Caitlyn"] = {
-    ["CaitlynAceintheHole"] = {name = "Ace in the Hole"} --R
-  },
-  ["Darius"] = {
-    ["DariusExecute"] = {name = "Noxian Guillotine"} --R
-  },
-  ["FiddleSticks"] = {
-    ["DrainChannel"] = {name = "Drain"},  --W 
-    ["Crowstorm"] = {name = "Crowstorm"}  --R 
-  },
-  ["Gragas"] = {
-    ["GragasW"] = {name = "Drunken Rage"} --W 
-  },
-  ["Janna"] = {
-    ["ReapTheWhirlwind"] = {name = "Monsoon"} --R
-  },
-  ["Karthus"] = {
-    ["KarthusFallenOne"] = {name = "Requiem"} --R karthusfallenonecastsound
-  },
-  ["Katarina"] = {
-    ["KatarinaR"] = {name = "Death Lotus"} --R 
-  },
-  ["Malzahar"] = {
-    ["AlZaharNetherGrasp"] = {name = "Nether Grasp"} --R
-  },
-  ["MasterYi"] = {
-    ["Meditate"] = {name = "Meditate"} --W 
-  },
-  ["MissFortune"] = {
-    ["MissFortuneBulletTime"] = {name = "Bullet Time"} --R missfortunebulletsound   
-  },
-  ["Nunu"] = {
-    ["AbsoluteZero"] = {name = "Absolute Zero"} --R
-  },
-  ["Pantheon"] = {
-    ["PantheonE"] = {name = "Heartseeker Strike"}, --E
-    ["PantheonRJump"] = {name = "Grand Skyfall"} --R
-  },
-  ["TwistedFate"] = {
-    ["Destiny"] = {name = "Gate"} --R 
-  },
-  ["Warwick"] = {
-    ["InfiniteDuress"] = {name = "Infinite Duress"} --R warwickrsound
-  },
-  ["Rammus"] = {
-    ["PowerBall"] = {name = "Powerball"} --Q 
-  }
-}
-local units = {}
-local foundAUnit = false
+
 
 function Kassadin:__init()
  
@@ -2303,8 +2560,8 @@ function Kassadin:__init()
   rdmg = 0
   self:LoadSpells()   	
   self:LoadMenu()                                            
-  Callback.Add("Tick", function() self:Tick() end)
-  Callback.Add("Draw", function() self:Draw() end) 
+  PussyCallbackAdd("Tick", function() self:Tick() end)
+  PussyCallbackAdd("Draw", function() self:Draw() end) 
  
 	if _G.EOWLoaded then
 		Orb = 1
@@ -2317,10 +2574,10 @@ end
 
 function Kassadin:LoadSpells()
 
-  Q = { range = 650, delay = 0.25, speed = 1400, width = myHero:GetSpellData(_Q).width, radius = 50, Collision = false }
-  W = { range = myHero:GetSpellData(_W).range, delay = myHero:GetSpellData(_W).delay, speed = myHero:GetSpellData(_W).speed, width = myHero:GetSpellData(_W).width }
-  E = { range = myHero:GetSpellData(_E).range, delay = myHero:GetSpellData(_E).delay, speed = myHero:GetSpellData(_E).speed, width = myHero:GetSpellData(_E).width }
-  R = { range = myHero:GetSpellData(_R).range, delay = myHero:GetSpellData(_R).delay, speed = myHero:GetSpellData(_R).speed, width = myHero:GetSpellData(_R).width }
+  Q = { range = 650, delay = 0.25, speed = 1400, width = PussymyHero:GetSpellData(_Q).width, radius = 50, Collision = false }
+  W = { range = PussymyHero:GetSpellData(_W).range, delay = PussymyHero:GetSpellData(_W).delay, speed = PussymyHero:GetSpellData(_W).speed, width = PussymyHero:GetSpellData(_W).width }
+  E = { range = PussymyHero:GetSpellData(_E).range, delay = PussymyHero:GetSpellData(_E).delay, speed = PussymyHero:GetSpellData(_E).speed, width = PussymyHero:GetSpellData(_E).width }
+  R = { range = PussymyHero:GetSpellData(_R).range, delay = PussymyHero:GetSpellData(_R).delay, speed = PussymyHero:GetSpellData(_R).speed, width = PussymyHero:GetSpellData(_R).width }
 end
 
 local Icons = {
@@ -2399,9 +2656,9 @@ function Kassadin:LoadMenu()
  
 	--BlockSpellsMenu
 	self.Menu:MenuElement({type = MENU, id = "block", leftIcon = Icons["BlockSpells"]})
-	for i = 1, Game.HeroCount() do
-	local unit = Game.Hero(i)
-		if unit.team ~= myHero.team then
+	for i = 1, PussyGameHeroCount() do
+	local unit = PussyGameHero(i)
+		if unit.team ~= PussymyHero.team then
 		units[#units + 1] = unit
 			if cancelSpells[unit.charName] then
 			foundAUnit = true
@@ -2436,10 +2693,10 @@ function Kassadin:LoadMenu()
 end
 
 function Kassadin:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then	
+	if PussymyHero.dead == false and PussyGameIsChatOpen() == false then	
 	self:Activator()
 	self:EscapeR()
-	self:OnBuff(myHero)
+	self:OnBuff(PussymyHero)
 	self:KillSteal()
 
 	
@@ -2453,9 +2710,9 @@ function Kassadin:Tick()
 			if spellToCancel == nil then return end
 			local ignore = (unit.activeSpell.name == "PowerBall") or (unit.activeSpell.name == "PantheonE") or (unit.activeSpell.name == "Meditate") or (unit.activeSpell.name == "GragasW") or (unit.activeSpell.name == "FiddleSticksDrain")	
 				if spellToCancel[activeSpell] and self.Menu.block[unit.charName][activeSpell]:Value() then
-					if myHero.pos:DistanceTo(unit.pos) <= 650 then
+					if PussymyHero.pos:DistanceTo(unit.pos) <= 650 then
 						Control.CastSpell(HK_Q, unit)
-					elseif Ready(_R) and myHero.pos:DistanceTo(unit.pos) > 650 and myHero.pos:DistanceTo(unit.pos) <= 1150 then
+					elseif Ready(_R) and PussymyHero.pos:DistanceTo(unit.pos) > 650 and PussymyHero.pos:DistanceTo(unit.pos) <= 1150 then
 						if ignore then return end
 						Control.CastSpell(HK_R, unit.pos)
 						Control.CastSpell(HK_Q, unit)
@@ -2503,31 +2760,31 @@ function Kassadin:Tick()
 end
 
 function Kassadin:Activator()
-if myHero.dead then return end
+if PussymyHero.dead then return end
 			--Zhonyas
-	if EnemiesAround(myHero.pos,1000) then
+	if EnemiesAround(PussymyHero.pos,1000) then
 		if self.Menu.a.Zhonyas.ON:Value()  then
-		local Zhonyas = GetItemSlot(myHero, 3157)
+		local Zhonyas = GetItemSlot(PussymyHero, 3157)
 			if Zhonyas > 0 and Ready(Zhonyas) then 
-				if myHero.health/myHero.maxHealth < self.Menu.a.Zhonyas.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth < self.Menu.a.Zhonyas.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Zhonyas])
 				end
 			end
 		end
 			--Stopwatch
 		if self.Menu.a.Zhonyas.ON:Value() then
-		local Stop = GetItemSlot(myHero, 2420)
+		local Stop = GetItemSlot(PussymyHero, 2420)
 			if Stop > 0 and Ready(Stop) then 
-				if myHero.health/myHero.maxHealth < self.Menu.a.Zhonyas.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth < self.Menu.a.Zhonyas.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Stop])
 				end
 			end
 		end
 			--Seraph's Embrace
 		if self.Menu.a.Seraphs.ON:Value() then
-		local Seraphs = GetItemSlot(myHero, 3040)
+		local Seraphs = GetItemSlot(PussymyHero, 3040)
 			if Seraphs > 0 and Ready(Seraphs) then
-				if myHero.health/myHero.maxHealth < self.Menu.a.Seraphs.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth < self.Menu.a.Seraphs.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Seraphs])
 				end
 			end
@@ -2536,12 +2793,12 @@ if myHero.dead then return end
 end
 
 function Kassadin:Draw()
-  if myHero.dead then return end
+  if PussymyHero.dead then return end
 	if(self.Menu.Drawing.DrawR:Value()) and Ready(_R) then
-    Draw.Circle(myHero, 500, 1, Draw.Color(255, 225, 255, 10))
+    PussyDrawCircle(PussymyHero, 500, 1, PussyDrawColor(255, 225, 255, 10))
 	end                                                 
 	if(self.Menu.Drawing.DrawQ:Value()) and Ready(_Q) then
-    Draw.Circle(myHero, Q.range, 1, Draw.Color(225, 225, 0, 10))
+    PussyDrawCircle(PussymyHero, Q.range, 1, PussyDrawColor(225, 225, 0, 10))
 	end
   	local target = GetTarget(20000)
 	if target == nil then return end	
@@ -2553,24 +2810,24 @@ function Kassadin:Draw()
 	if IsValid(target, 20000) and self.Menu.Drawing.Kill:Value() then
 				
 		if Ready(_R) and getdmg("R", target) > hp then
-			Draw.Text("Killable Combo", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))
+			PussyDrawText("Killable Combo", 24, target.pos2D.x, target.pos2D.y,PussyDrawColor(0xFF00FF00))
+			PussyDrawText("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,PussyDrawColor(0xFF00FF00))
 		end	
-		if Ready(_R) and (getdmg("R", target) + getdmg("R", target, myHero, 2)) > hp then
-			Draw.Text("Killable Combo", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))		
+		if Ready(_R) and (getdmg("R", target) + getdmg("R", target, PussymyHero, 2)) > hp then
+			PussyDrawText("Killable Combo", 24, target.pos2D.x, target.pos2D.y,PussyDrawColor(0xFF00FF00))
+			PussyDrawText("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,PussyDrawColor(0xFF00FF00))		
 		end	
-		if FullReady and (getdmg("R", target) + getdmg("R", target, myHero, 2) + QWEdmg) > hp then
-			Draw.Text("Killable Combo", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))	
+		if FullReady and (getdmg("R", target) + getdmg("R", target, PussymyHero, 2) + QWEdmg) > hp then
+			PussyDrawText("Killable Combo", 24, target.pos2D.x, target.pos2D.y,PussyDrawColor(0xFF00FF00))
+			PussyDrawText("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,PussyDrawColor(0xFF00FF00))	
 		end	
 		if Dmg > hp then
-			Draw.Text("Killable Combo", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))			
+			PussyDrawText("Killable Combo", 24, target.pos2D.x, target.pos2D.y,PussyDrawColor(0xFF00FF00))
+			PussyDrawText("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,PussyDrawColor(0xFF00FF00))			
 		end
 		if QWEReady and QWEdmg > hp then
-			Draw.Text("Killable Combo", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))	
+			PussyDrawText("Killable Combo", 24, target.pos2D.x, target.pos2D.y,PussyDrawColor(0xFF00FF00))
+			PussyDrawText("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,PussyDrawColor(0xFF00FF00))	
 		end
 	end
 end
@@ -2593,8 +2850,8 @@ end
 function Kassadin:ClearLogic()
   local EPos = nil 
   local Most = 0 
-    for i = 1, Game.MinionCount() do
-    local Minion = Game.Minion(i)
+    for i = 1, PussyGameMinionCount() do
+    local Minion = PussyGameMinion(i)
       if IsValid(Minion, 650) then
         local Count = GetMinionCount(650, Minion)
         if Count > Most then
@@ -2615,25 +2872,25 @@ function Kassadin:KillSteal()
 	if IsValid(target, 1150) then
 		
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 650 then
+			if QDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 650 then
 				Control.CastSpell(HK_Q, target.pos)					
 			end				
 		end
 	
 		if self.Menu.ks.UseR:Value() and Ready(_R) and not IsUnderTurret(target) then
-			if RDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 500 then
+			if RDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 500 then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 		if self.Menu.ks.UseQR:Value() and Ready(_R) and Ready(_Q) then
-			if (RDmg + QDmg) >= hp and myHero.pos:DistanceTo(target.pos) <= 500 and not IsUnderTurret(target) then
+			if (RDmg + QDmg) >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 500 and not IsUnderTurret(target) then
 				Control.CastSpell(HK_Q, target.pos)
 				Control.CastSpell(HK_R, target)
 								
 			end
 		end	
 		if self.Menu.ks.UseRQ:Value() and Ready(_R) and Ready(_Q) then
-			if (RDmg + QDmg) >= hp and myHero.pos:DistanceTo(target.pos) < 1150 and myHero.pos:DistanceTo(target.pos) > 650 and not IsUnderTurret(target) then
+			if (RDmg + QDmg) >= hp and PussymyHero.pos:DistanceTo(target.pos) < 1150 and PussymyHero.pos:DistanceTo(target.pos) > 650 and not IsUnderTurret(target) then
 				Control.CastSpell(HK_R, target)
 				Control.CastSpell(HK_Q, target.pos)
 								
@@ -2645,19 +2902,19 @@ end
 function Kassadin:AutoW()  
 	local target = GetTarget(300)
 	if target == nil then return end
-	if IsValid(target, 300) and Ready(_W) and myHero.pos:DistanceTo(target.pos) <= 300 then
+	if IsValid(target, 300) and Ready(_W) and PussymyHero.pos:DistanceTo(target.pos) <= 300 then
 		Control.CastSpell(HK_W)
 	end
 end	
 	
 function Kassadin:AutoW1()	
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
-	local TEAM_ENEMY = 300 - myHero.team 
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)
+	local TEAM_ENEMY = 300 - PussymyHero.team 
 	local TEAM_JUNGLE = 300
 	if minion.team == TEAM_ENEMY or minion.team == TEAM_JUNGLE then
 	if minion == nil then return end	
-	if minion and not minion.dead and Ready(_W) and myHero.pos:DistanceTo(minion.pos) <= 300 then
+	if minion and not minion.dead and Ready(_W) and PussymyHero.pos:DistanceTo(minion.pos) <= 300 then
 		Control.CastSpell(HK_W)
 		end
 	end
@@ -2671,13 +2928,13 @@ local target = GetTarget(650)
 if target == nil then return end
 	
 	if IsValid(target, 650) and self.Menu.Combo.UseQ:Value() and Ready(_Q) then	
-		if myHero.pos:DistanceTo(target.pos) < 650 then
+		if PussymyHero.pos:DistanceTo(target.pos) < 650 then
 			Control.CastSpell(HK_Q, target.pos)
 			
 		end	
 	end	
 	
-	if IsValid(target, 600) and self.passiveTracker >= 1 and self.Menu.Combo.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 600 then	
+	if IsValid(target, 600) and self.passiveTracker >= 1 and self.Menu.Combo.UseE:Value() and Ready(_E) and PussymyHero.pos:DistanceTo(target.pos) < 600 then	
 		Control.CastSpell(HK_E, target)
 	end
 end	
@@ -2686,16 +2943,16 @@ end
 function Kassadin:EscapeR()
 	local target = GetTarget(2000)
 	if target == nil then return end
-	if IsValid(target, 2000) and self.Menu.evade.Life.UseR:Value() and Ready(_R) and 100*myHero.health/myHero.maxHealth <= self.Menu.evade.Life.MinR:Value() and myHero.pos:DistanceTo(target.pos) <= 600 then 
+	if IsValid(target, 2000) and self.Menu.evade.Life.UseR:Value() and Ready(_R) and 100*PussymyHero.health/PussymyHero.maxHealth <= self.Menu.evade.Life.MinR:Value() and PussymyHero.pos:DistanceTo(target.pos) <= 600 then 
 		for i,ally in pairs(GetAllyHeroes()) do
-			if self:ValidTarget(ally, 2000) and myHero.pos:DistanceTo(ally.pos) < 2000 and myHero.pos:DistanceTo(ally.pos) > 500 then
+			if IsValid(ally, 2000) and PussymyHero.pos:DistanceTo(ally.pos) < 2000 and PussymyHero.pos:DistanceTo(ally.pos) > 500 then
 				if GetEnemyCount(1000, ally) < 1 then
 				Control.CastSpell(HK_R, ally.pos)
 				end
 			end	
 		end
 		for i,tower in pairs(GetAllyTurret()) do
-			if IsValid(tower, 2000) and myHero.pos:DistanceTo(tower.pos) < 2000 and myHero.pos:DistanceTo(tower.pos) > 750 then
+			if IsValid(tower, 2000) and PussymyHero.pos:DistanceTo(tower.pos) < 2000 and PussymyHero.pos:DistanceTo(tower.pos) > 750 then
 				Control.CastSpell(HK_R, tower.pos)
 			end	
 		end
@@ -2706,14 +2963,14 @@ end
 function Kassadin:Flee()
 	if self.Menu.evade.Flee.UseR:Value() and Ready(_R) then		
 	for i,ally in pairs(GetAllyHeroes()) do
-			if IsValid(ally, 2000) and myHero.pos:DistanceTo(ally.pos) < 2000 and myHero.pos:DistanceTo(ally.pos) > 500 then
+			if IsValid(ally, 2000) and PussymyHero.pos:DistanceTo(ally.pos) < 2000 and PussymyHero.pos:DistanceTo(ally.pos) > 500 then
 				if GetEnemyCount(1000, ally) < 1 then
 					Control.CastSpell(HK_R, ally)
 				end
 			end
 		end	
 		for i,tower in pairs(GetAllyTurret()) do
-			if IsValid(tower, 2000) and myHero.pos:DistanceTo(tower.pos) < 2000 and myHero.pos:DistanceTo(tower.pos) > 750 then
+			if IsValid(tower, 2000) and PussymyHero.pos:DistanceTo(tower.pos) < 2000 and PussymyHero.pos:DistanceTo(tower.pos) > 750 then
 				Control.CastSpell(HK_R, tower)
 					
 			end	
@@ -2734,8 +2991,8 @@ local ready = Ready(_Q), Ready(_E), Ready(_R)
 
 	if IsValid(target, 1100) then
 	
-		if self.Menu.Harass.UseR:Value() and ready and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) then	
-			if myHero.pos:DistanceTo(target.pos) <= 1000 and myHero.pos:DistanceTo(target.pos) >= 700 then	
+		if self.Menu.Harass.UseR:Value() and ready and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) then	
+			if PussymyHero.pos:DistanceTo(target.pos) <= 1000 and PussymyHero.pos:DistanceTo(target.pos) >= 700 then	
 				if self.stacks == 0 and self.passiveTracker >= 1 and not IsUnderTurret(target) then	
 					Control.CastSpell(HK_R, target)
 					Control.CastSpell(HK_E, target)
@@ -2744,28 +3001,26 @@ local ready = Ready(_Q), Ready(_E), Ready(_R)
 				end				
 			end
 		end
-		if self.Menu.Harass.UseE:Value() and Ready(_E) and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) and myHero.pos:DistanceTo(target.pos) <= 550 then
+		if self.Menu.Harass.UseE:Value() and Ready(_E) and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) and PussymyHero.pos:DistanceTo(target.pos) <= 550 then
 			if self.passiveTracker >= 1 then		
 				Control.CastSpell(HK_E, target)
 			end
 		end
-		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) and myHero.pos:DistanceTo(target.pos) <= 650 then
+		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) and PussymyHero.pos:DistanceTo(target.pos) <= 650 then
 			Control.CastSpell(HK_Q, target)
 		end 
 	end
 end
 
 function Kassadin:LasthitQ()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)
     local target = GetTarget(650)
 		if target == nil then
-		local TEAM_ALLY = myHero.team
-		local TEAM_ENEMY = 300 - myHero.team
 		local Qdamage = getdmg("Q", minion)
-			if minion.isEnemy and minion.team == TEAM_ENEMY and not minion.dead then	
+			if minion.team == TEAM_ENEMY and not minion.dead then	
 				if IsValid(minion,650) and Qdamage >= minion.health and self.Menu.Harass.LastQ:Value() then
-					if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 and myHero.pos:DistanceTo(minion.pos) > myHero.range then
+					if Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) < 650 and PussymyHero.pos:DistanceTo(minion.pos) > PussymyHero.range then
 						Control.CastSpell(HK_Q, minion)
 					end
 				end
@@ -2776,28 +3031,26 @@ end
 
 		
 function Kassadin:Clear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
-    local TEAM_ALLY = myHero.team
-	local TEAM_ENEMY = 300 - myHero.team
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)
 	local Qdamage = getdmg("Q", minion)
 	local Wdamage = getdmg("W", minion)	
 	local Rdamage = getdmg("R", minion)	
-	if minion.isEnemy and minion.team == TEAM_ENEMY and not minion.dead then	
+	if minion.team == TEAM_ENEMY and not minion.dead then	
 		if IsValid(minion,650) and Qdamage >= minion.health then
-			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 and self.Menu.Clear.lastQ:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) and myHero.pos:DistanceTo(minion.pos) > myHero.range then
+			if Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) < 650 and self.Menu.Clear.lastQ:Value() and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) and PussymyHero.pos:DistanceTo(minion.pos) > PussymyHero.range then
 				Control.CastSpell(HK_Q, minion)
 			end
 		end
 		if IsValid(minion,150) and Wdamage >= minion.health then
-			if self.Menu.Clear.lastW:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) <= myHero.range then
+			if self.Menu.Clear.lastW:Value() and Ready(_W) and PussymyHero.pos:DistanceTo(minion.pos) <= PussymyHero.range then
 				Control.CastSpell(HK_W, minion)
 			end
 		end	
 		local target = GetTarget(1000)
 		if target == nil then
 		if IsValid(minion,500) and Rdamage >= minion.health then
-			if Ready(_R) and self.stacks == 0 and myHero.pos:DistanceTo(minion.pos) < 500 and self.Menu.Clear.lastR:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) and myHero.pos:DistanceTo(minion.pos) > myHero.range then	
+			if Ready(_R) and self.stacks == 0 and PussymyHero.pos:DistanceTo(minion.pos) < 500 and self.Menu.Clear.lastR:Value() and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) and PussymyHero.pos:DistanceTo(minion.pos) > PussymyHero.range then	
 				local EPos, Count = self:ClearLogic()	
 				if Count >= self.Menu.Clear.RHit:Value() then
 					Control.CastSpell(HK_R, minion)
@@ -2807,12 +3060,12 @@ function Kassadin:Clear()
 		end
 		end
 		
-		if IsValid(minion,650) and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 and self.Menu.Clear.UseQ:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) and myHero.pos:DistanceTo(minion.pos) > myHero.range then
+		if IsValid(minion,650) and Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) < 650 and self.Menu.Clear.UseQ:Value() and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) and PussymyHero.pos:DistanceTo(minion.pos) > PussymyHero.range then
 			Control.CastSpell(HK_Q, minion)
 			
 		end
 		
-		if IsValid(minion,600) and Ready(_E) and self.passiveTracker >= 1 and myHero.pos:DistanceTo(minion.pos) < 600 and self.Menu.Clear.UseE:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) and myHero.pos:DistanceTo(minion.pos) > myHero.range then
+		if IsValid(minion,600) and Ready(_E) and self.passiveTracker >= 1 and PussymyHero.pos:DistanceTo(minion.pos) < 600 and self.Menu.Clear.UseE:Value() and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) and PussymyHero.pos:DistanceTo(minion.pos) > PussymyHero.range then
 		local EPos, Count = self:ClearLogic()
 				if Count >= self.Menu.Clear.EHit:Value() then
 						Control.CastSpell(HK_E, EPos)
@@ -2824,17 +3077,16 @@ function Kassadin:Clear()
 end
 
 function Kassadin:JungleClear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)	
-	local TEAM_JUNGLE = 300
-		if minion.isEnemy and minion.team == TEAM_JUNGLE and not minion.dead then	
-			if IsValid(minion,650) and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 650 and self.Menu.JClear.UseQ:Value() and (myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 ) then
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)	
+		if minion.team == TEAM_JUNGLE and not minion.dead then	
+			if IsValid(minion,650) and Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) < 650 and self.Menu.JClear.UseQ:Value() and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 ) then
 				CastSpell(HK_Q, minion)
 			end
-			if IsValid(minion,500) and Ready(_R) and myHero.pos:DistanceTo(minion.pos) < 500 and self.Menu.JClear.UseR:Value() and (myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 ) then
+			if IsValid(minion,500) and Ready(_R) and PussymyHero.pos:DistanceTo(minion.pos) < 500 and self.Menu.JClear.UseR:Value() and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 ) then
 				CastSpell(HK_R,minion.pos)			
 			end
-			if IsValid(minion,600) and Ready(_E) and self.passiveTracker >= 1 and myHero.pos:DistanceTo(minion.pos) < 600 and self.Menu.JClear.UseE:Value() then
+			if IsValid(minion,600) and Ready(_E) and self.passiveTracker >= 1 and PussymyHero.pos:DistanceTo(minion.pos) < 600 and self.Menu.JClear.UseE:Value() then
 				CastSpell(HK_E, minion.pos)
 			end  
 		end
@@ -2846,12 +3098,12 @@ function Kassadin:FullRKill()
 	if target == nil then return end
 	if self.Menu.Combo.UseR:Value() and Ready(_R) then
 	local hp = target.health
-	local dist = myHero.pos:DistanceTo(target.pos)
-	local level = myHero:GetSpellData(_R).level
-	local Fulldmg1 = CalcMagicalDamage(myHero, target,(({120, 150, 180})[level] + 0.5 * myHero.ap) + 0.03 * myHero.maxMana)
-	local Fulldmg2 = CalcMagicalDamage(myHero, target,(({160, 200, 240})[level] + 0.6 * myHero.ap) + 0.04 * myHero.maxMana)
-	local Fulldmg3 = CalcMagicalDamage(myHero, target,(({200, 250, 300})[level] + 0.7 * myHero.ap) + 0.05 * myHero.maxMana)
-	local Fulldmg4 = CalcMagicalDamage(myHero, target,(({240, 300, 360})[level] + 0.8 * myHero.ap) + 0.06 * myHero.maxMana)
+	local dist = PussymyHero.pos:DistanceTo(target.pos)
+	local level = PussymyHero:GetSpellData(_R).level
+	local Fulldmg1 = CalcMagicalDamage(PussymyHero, target,(({120, 150, 180})[level] + 0.5 * PussymyHero.ap) + 0.03 * PussymyHero.maxMana)
+	local Fulldmg2 = CalcMagicalDamage(PussymyHero, target,(({160, 200, 240})[level] + 0.6 * PussymyHero.ap) + 0.04 * PussymyHero.maxMana)
+	local Fulldmg3 = CalcMagicalDamage(PussymyHero, target,(({200, 250, 300})[level] + 0.7 * PussymyHero.ap) + 0.05 * PussymyHero.maxMana)
+	local Fulldmg4 = CalcMagicalDamage(PussymyHero, target,(({240, 300, 360})[level] + 0.8 * PussymyHero.ap) + 0.06 * PussymyHero.maxMana)
 	local QWEdmg = getdmg("Q", target) + getdmg("W", target) + getdmg("E", target)	
 	
 	if IsValid(target, 2500) then	
@@ -2910,7 +3162,7 @@ function Kassadin:FullRKill()
 	---------------------------------------------------------------
 		local Full1 = Fulldmg1 + QWEdmg
 		if getdmg("R", target) > target.health or Full1 > target.health then
-			if myHero.pos:DistanceTo(target.pos) < 1000 and myHero.pos:DistanceTo(target.pos) > 500 then
+			if PussymyHero.pos:DistanceTo(target.pos) < 1000 and PussymyHero.pos:DistanceTo(target.pos) > 500 then
 				Control.CastSpell(HK_R, target)
 					
 					
@@ -2919,7 +3171,7 @@ function Kassadin:FullRKill()
 		end	
 		local Full2 = Fulldmg2 + QWEdmg			
 		if getdmg("R", target) > target.health or Full2 > target.health then
-			if myHero.pos:DistanceTo(target.pos) < 1500 and myHero.pos:DistanceTo(target.pos) > 1000 then
+			if PussymyHero.pos:DistanceTo(target.pos) < 1500 and PussymyHero.pos:DistanceTo(target.pos) > 1000 then
 				Control.CastSpell(HK_R, target)
 					
 					
@@ -2928,7 +3180,7 @@ function Kassadin:FullRKill()
 		end
 		local Full3 = Fulldmg3 + QWEdmg			
 		if getdmg("R", target) > target.health or Full3 > target.health then
-			if myHero.pos:DistanceTo(target.pos) < 2000 and myHero.pos:DistanceTo(target.pos) > 1500 then
+			if PussymyHero.pos:DistanceTo(target.pos) < 2000 and PussymyHero.pos:DistanceTo(target.pos) > 1500 then
 				Control.CastSpell(HK_R, target)
 					
 				
@@ -2937,7 +3189,7 @@ function Kassadin:FullRKill()
 		end	
 		local Full4 = Fulldmg4 + QWEdmg		
 		if getdmg("R", target) > target.health or Full4 > target.health then
-			if myHero.pos:DistanceTo(target.pos) < 2500 and myHero.pos:DistanceTo(target.pos) > 2000 then
+			if PussymyHero.pos:DistanceTo(target.pos) < 2500 and PussymyHero.pos:DistanceTo(target.pos) > 2000 then
 				Control.CastSpell(HK_R, target)
 					
 					
@@ -2951,7 +3203,7 @@ function Kassadin:Combo1()
 	local target = GetTarget(2000)
 	if target == nil then return end
 	local hp = target.health
-	local dist = myHero.pos:DistanceTo(target.pos)
+	local dist = PussymyHero.pos:DistanceTo(target.pos)
 	local qdmg = getdmg("Q", target) 		
 	local wdmg = getdmg("W", target) 
 	local edmg = getdmg("E", target) 
@@ -3015,10 +3267,10 @@ end
 
 function OnDraw()
 
-	local Spells = myHero:GetSpellData(_Q).level < 1  
-	local textPos = myHero.pos:To2D()
+	local Spells = PussymyHero:GetSpellData(_Q).level < 1  
+	local textPos = PussymyHero.pos:To2D()
 	if foundAUnit and Spells then
-		Draw.Text("Blockable Spell Found", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
+		PussyDrawText("Blockable Spell Found", 25, textPos.x - 33, textPos.y + 60, PussyDrawColor(255, 255, 0, 0))
 	end
 end	
 
@@ -3047,8 +3299,8 @@ function Malzahar:__init()
   if menu ~= 1 then return end
   menu = 2   	
   self:LoadMenu()                                            
-  Callback.Add("Tick", function() self:Tick() end)
-  Callback.Add("Draw", function() self:Draw() end) 
+  PussyCallbackAdd("Tick", function() self:Tick() end)
+  PussyCallbackAdd("Draw", function() self:Draw() end) 
 	if _G.EOWLoaded then
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
@@ -3124,7 +3376,7 @@ function Malzahar:LoadMenu()
 end
 
 function Malzahar:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if PussymyHero.dead == false and PussyGameIsChatOpen() == false then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -3148,9 +3400,9 @@ end
 function Malzahar:AutoQ()
 local target = GetTarget(1000)     	
 if target == nil then return end	
-local pred = GetGamsteronPrediction(target, QData, myHero)	
+local pred = GetGamsteronPrediction(target, QData, PussymyHero)	
 	if IsValid(target,1000) and self.Menu.AutoQ.UseQ:Value() and Ready(_Q) then
-		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+		if IsImmobileTarget(target) and PussymyHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 			Control.CastSpell(HK_Q, pred.CastPosition)
 		end	
 	end
@@ -3159,20 +3411,20 @@ end
 function Malzahar:Activator()
 
 			--Zhonyas
-	if EnemiesAround(myHero.pos,2000) then	
+	if EnemiesAround(PussymyHero.pos,2000) then	
 		if self.Menu.a.ON:Value() then
-		local Zhonyas = GetItemSlot(myHero, 3157)
+		local Zhonyas = GetItemSlot(PussymyHero, 3157)
 			if Zhonyas > 0 and Ready(Zhonyas) then 
-				if myHero.health/myHero.maxHealth <= self.Menu.a.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.a.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Zhonyas])
 				end
 			end
 		end
 			--Stopwatch
 		if self.Menu.a.ON:Value() then
-		local Stop = GetItemSlot(myHero, 2420)
+		local Stop = GetItemSlot(PussymyHero, 2420)
 			if Stop > 0 and Ready(Stop) then 
-				if myHero.health/myHero.maxHealth <= self.Menu.a.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.a.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Stop])
 				end
 			end
@@ -3183,18 +3435,18 @@ end
 
 
 function Malzahar:Draw()
-  if myHero.dead then return end
+  if PussymyHero.dead then return end
 	if self.Menu.Drawing.DrawR:Value() and Ready(_R) then
-    Draw.Circle(myHero, 700, 1, Draw.Color(255, 225, 255, 10))
+    PussyDrawCircle(PussymyHero, 700, 1, PussyDrawColor(255, 225, 255, 10))
 	end                                                 
 	if self.Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-    Draw.Circle(myHero, 800, 1, Draw.Color(225, 225, 0, 10))
+    PussyDrawCircle(PussymyHero, 800, 1, PussyDrawColor(225, 225, 0, 10))
 	end
 	if self.Menu.Drawing.DrawE:Value() and Ready(_E) then
-    Draw.Circle(myHero, 1100, 1, Draw.Color(225, 225, 125, 10))
+    PussyDrawCircle(PussymyHero, 1100, 1, PussyDrawColor(225, 225, 125, 10))
 	end
 	if self.Menu.Drawing.DrawW:Value() and Ready(_W) then
-    Draw.Circle(myHero, 850, 1, Draw.Color(225, 225, 125, 10))
+    PussyDrawCircle(PussymyHero, 850, 1, PussyDrawColor(225, 225, 125, 10))
 	end
 end
        
@@ -3205,48 +3457,48 @@ function Malzahar:KillSteal()
 	if target == nil then return end
 	local ready = Ready(_Q) and Ready(_E) and Ready(_W) and Ready(_R)
 	local hp = target.health
-	local QDmg = getdmg("Q", target, myHero)
-	local EDmg = getdmg("E", target, myHero)
-	local WDmg = getdmg("W", target, myHero)
-	local RDmg = getdmg("R", target, myHero)
+	local QDmg = getdmg("Q", target, PussymyHero)
+	local EDmg = getdmg("E", target, PussymyHero)
+	local WDmg = getdmg("W", target, PussymyHero)
+	local RDmg = getdmg("R", target, PussymyHero)
 	local fullDmg = QDmg + EDmg + WDmg + RDmg
-	local IGdamage = 80 + 25 * myHero.levelData.lvl
+	local IGdamage = 80 + 25 * PussymyHero.levelData.lvl
 	if IsValid(target,1000) then	
 		
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if QDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if self.Menu.ks.UseE:Value() and Ready(_E) then
-			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 650 then
+			if EDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 650 then
 				Control.CastSpell(HK_E, target)
 	
 			end
 		end
 		if self.Menu.ks.UseW:Value() and Ready(_W) then
-			if WDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 650 then
+			if WDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 650 then
 				Control.CastSpell(HK_W, target.pos)
 	
 			end
 		end
 		if self.Menu.ks.UseR:Value() and Ready(_R) then
-			if RDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 700 then
+			if RDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 700 then
 				Control.CastSpell(HK_R, target)
 	
 			end
 		end
 		if self.Menu.ks.full:Value() and ready then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if (fullDmg + IGdamage) >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if (fullDmg + IGdamage) >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				DelayAction(function()
 				Control.CastSpell(HK_E, target)				
 				Control.CastSpell(HK_Q, pred.CastPosition)
 				Control.CastSpell(HK_W, target.pos)
 				Control.CastSpell(HK_R, target)
 				end, 0.05)
-			elseif fullDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			elseif fullDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				DelayAction(function()
 				Control.CastSpell(HK_E, target)				
 				Control.CastSpell(HK_Q, pred.CastPosition)
@@ -3256,13 +3508,13 @@ function Malzahar:KillSteal()
 			end
 		end
 		if self.Menu.ks.UseIgn:Value() then 
-			if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and myHero.pos:DistanceTo(target.pos) <= 600 then
+			if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and PussymyHero.pos:DistanceTo(target.pos) <= 600 then
 				if Ready(SUMMONER_1) then
 					if IGdamage >= hp + target.hpRegen * 3 then
 						Control.CastSpell(HK_SUMMONER_1, target)
 					end
 				end
-			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and myHero.pos:DistanceTo(target.pos) <= 600  then
+			elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and PussymyHero.pos:DistanceTo(target.pos) <= 600  then
 				if Ready(SUMMONER_2) then
 					if IGdamage >= hp + target.hpRegen * 3 then
 						Control.CastSpell(HK_SUMMONER_2, target)
@@ -3280,27 +3532,27 @@ if target == nil then return end
 	if IsValid(target,1000) then
 
 		if self.Menu.Combo.UseW:Value() and Ready(_W) then
-			if myHero.pos:DistanceTo(target.pos) <= 650 then 
+			if PussymyHero.pos:DistanceTo(target.pos) <= 650 then 
 				Control.CastSpell(HK_W, target.pos) 
 			end
 		end			
 		
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
 		end
 		
 		if self.Menu.Combo.UseE:Value() and Ready(_E) then
-			if myHero.pos:DistanceTo(target.pos) <= 650 then			
+			if PussymyHero.pos:DistanceTo(target.pos) <= 650 then			
 				Control.CastSpell(HK_E, target)
 	
 			end
 		end
 		
 		if Ready(_R) and self.Menu.Combo.UseR:Value() then
-			if myHero.pos:DistanceTo(target.pos) <= 700 then
+			if PussymyHero.pos:DistanceTo(target.pos) <= 700 then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -3313,22 +3565,22 @@ end
 function Malzahar:Harass()
 local target = GetTarget(1000)
 if target == nil then return end
-	if IsValid(target,1000) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
+	if IsValid(target,1000) and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
 		
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if self.Menu.Harass.UseE:Value() and Ready(_E) then
-			if myHero.pos:DistanceTo(target.pos) <= 650 then			
+			if PussymyHero.pos:DistanceTo(target.pos) <= 650 then			
 				Control.CastSpell(HK_E, target)
 	
 			end
 		end
 		if self.Menu.Harass.UseW:Value() and Ready(_W) then
-			if myHero.pos:DistanceTo(target.pos) <= 650 then			
+			if PussymyHero.pos:DistanceTo(target.pos) <= 650 then			
 				Control.CastSpell(HK_W, target.pos)
 	
 			end
@@ -3340,21 +3592,19 @@ end
 
 
 function Malzahar:Clear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
-    local TEAM_ALLY = myHero.team
-	local TEAM_ENEMY = 300 - myHero.team
-		if IsValid(minion, 1000) and minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)
+		if IsValid(minion, 1000) and minion.team == TEAM_ENEMY and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
 			local count = GetMinionCount(650, minion)
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 650 and self.Menu.Clear.UseE:Value() and count >= self.Menu.Clear.UseEM:Value() then
+			if Ready(_E) and PussymyHero.pos:DistanceTo(minion.pos) <= 650 and self.Menu.Clear.UseE:Value() and count >= self.Menu.Clear.UseEM:Value() then
 				Control.CastSpell(HK_E, minion)
 			end
 			
-			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.Clear.UseQ:Value() then
+			if Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.Clear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
 			end	
 
-			if Ready(_W) and myHero.pos:DistanceTo(minion.pos) <= 650 and self.Menu.Clear.UseW:Value() then
+			if Ready(_W) and PussymyHero.pos:DistanceTo(minion.pos) <= 650 and self.Menu.Clear.UseW:Value() then
 				Control.CastSpell(HK_W, minion.pos)
 			end  
 		end
@@ -3362,18 +3612,17 @@ function Malzahar:Clear()
 end
 
 function Malzahar:JungleClear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)	
-	local TEAM_JUNGLE = 300
-		if IsValid(minion, 1000) and minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
-			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.JClear.UseQ:Value() then
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)	
+		if IsValid(minion, 1000) and minion.team == TEAM_JUNGLE and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
+			if Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.JClear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
 			end
 
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 650 and self.Menu.JClear.UseE:Value() then
+			if Ready(_E) and PussymyHero.pos:DistanceTo(minion.pos) <= 650 and self.Menu.JClear.UseE:Value() then
 				Control.CastSpell(HK_E, minion)
 			end
-			if Ready(_W) and myHero.pos:DistanceTo(minion.pos) <= 650 and self.Menu.JClear.UseW:Value() then
+			if Ready(_W) and PussymyHero.pos:DistanceTo(minion.pos) <= 650 and self.Menu.JClear.UseW:Value() then
 				Control.CastSpell(HK_W, minion.pos)
 			end			
 		end
@@ -3395,278 +3644,8 @@ end
 require('GamsteronPrediction')
 
 
-local CCExceptions = {
-	["CamilleEMissile"] = true,
-	["HecarimUltMissile"] = true,
-	["HowlingGaleSpell"] = true,
-	["JhinETrap"] = true,
-	["JhinRShotMis"] = true,
-	["JinxEHit"] = true,
-	["SyndraESphereMissile"] = true,
-	["ThreshQMissile"] = true,
-}
 
-local CCSpells = {
-	["AatroxW"] = {charName = "Aatrox", displayName = "Infernal Chains", slot = _W, origin = "spell", type = "linear", speed = 1800, range = 825, delay = 0.25, radius = 80, collision = true},
-	["AhriSeduce"] = {charName = "Ahri", displayName = "Seduce", slot = _E, origin = "spell", type = "linear", speed = 1500, range = 975, delay = 0.25, radius = 60, collision = true},
-	["AhriSeduceMissile"] = {charName = "Ahri", displayName = "Seduce [Missile]", slot = _E, origin = "missile", type = "linear", speed = 1500, range = 975, delay = 0.25, radius = 60, collision = true},
-	["AkaliR"] = {charName = "Akali", displayName = "Perfect Execution [First]", slot = _R, origin = "spell", type = "linear", speed = 1800, range = 525, delay = 0, radius = 65, collision = false},
-	["Pulverize"] = {charName = "Alistar", displayName = "Pulverize", slot = _Q, origin = "spell", type = "circular", speed = MathHuge, range = 0, delay = 0.25, radius = 365, collision = false},
-	["BandageToss"] = {charName = "Amumu", displayName = "Bandage Toss", slot = _Q, origin = "spell", type = "linear", speed = 2000, range = 1100, delay = 0.25, radius = 80, collision = true},
-	["SadMummyBandageToss"] = {charName = "Amumu", displayName = "Bandage Toss [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 2000, range = 1100, delay = 0.25, radius = 80, collision = true},
-	["CurseoftheSadMummy"] = {charName = "Amumu", displayName = "Curse of the Sad Mummy", slot = _R, origin = "spell", type = "circular", speed = MathHuge, range = 0, delay = 0.25, radius = 550, collision = false},
-	["FlashFrostSpell"] = {charName = "Anivia", displayName = "Flash Frost",missileName = "FlashFrostSpell", slot = _Q, origin = "both", type = "linear", speed = 850, range = 1100, delay = 0.25, radius = 110, collision = false},
-	["EnchantedCrystalArrow"] = {charName = "Ashe", displayName = "Enchanted Crystal Arrow", slot = _R, origin = "both", type = "linear", speed = 1600, range = 25000, delay = 0.25, radius = 130, collision = false},
-	["AurelionSolQ"] = {charName = "AurelionSol", displayName = "Starsurge", slot = _Q, origin = "spell", type = "linear", speed = 850, range = 25000, delay = 0, radius = 110, collision = false},
-	["AurelionSolQMissile"] = {charName = "AurelionSol", displayName = "Starsurge [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 850, range = 25000, delay = 0, radius = 110, collision = false},
-	["AzirR"] = {charName = "Azir", displayName = "Emperor's Divide", slot = _R, origin = "spell", type = "linear", speed = 1400, range = 500, delay = 0.3, radius = 250, collision = false},
-	["BardQ"] = {charName = "Bard", displayName = "Cosmic Binding", slot = _Q, origin = "spell", type = "linear", speed = 1500, range = 950, delay = 0.25, radius = 60, collision = true},
-	["BardQMissile"] = {charName = "Bard", displayName = "Cosmic Binding [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1500, range = 950, delay = 0.25, radius = 60, collision = true},
-	["BardR"] = {charName = "Bard", displayName = "Tempered Fate", slot = _R, origin = "spell", type = "circular", speed = 2100, range = 3400, delay = 0.5, radius = 350, collision = false},
-	["BardRMissile"] = {charName = "Bard", displayName = "Tempered Fate [Missile]", slot = _R, origin = "missile", type = "circular", speed = 2100, range = 3400, delay = 0.5, radius = 350, collision = false},
-	["RocketGrab"] = {charName = "Blitzcrank", displayName = "Rocket Grab", slot = _Q, origin = "spell", type = "linear", speed = 1800, range = 1050, delay = 0.25, radius = 70, collision = true},
-	["RocketGrabMissile"] = {charName = "Blitzcrank", displayName = "Rocket Grab [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1800, range = 1050, delay = 0.25, radius = 70, collision = true},
-	["BraumQ"] = {charName = "Braum", displayName = "Winter's Bite", slot = _Q, origin = "spell", type = "linear", speed = 1700, range = 1000, delay = 0.25, radius = 70, collision = true},
-	["BraumQMissile"] = {charName = "Braum", displayName = "Winter's Bite [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1700, range = 1000, delay = 0.25, radius = 70, collision = true},
-	["BraumR"] = {charName = "Braum", displayName = "Glacial Fissure", slot = _R, origin = "spell", type = "linear", speed = 1400, range = 1250, delay = 0.5, radius = 115, collision = false},
-	["BraumRMissile"] = {charName = "Braum", displayName = "Glacial Fissure [Missile]", slot = _R, origin = "missile", type = "linear", speed = 1400, range = 1250, delay = 0.5, radius = 115, collision = false},
-	["CaitlynYordleTrap"] = {charName = "Caitlyn", displayName = "Yordle Trap", slot = _W, origin = "spell", type = "circular", speed = MathHuge, range = 800, delay = 0.25, radius = 75, collision = false},
-	["CaitlynEntrapment"] = {charName = "Caitlyn", displayName = "Entrapment", slot = _E, origin = "spell", type = "linear", speed = 1600, range = 750, delay = 0.15, radius = 70, collision = true},
-	["CassiopeiaW"] = {charName = "Cassiopeia", displayName = "Miasma", slot = _W, origin = "spell", type = "circular", speed = 2500, range = 800, delay = 0.75, radius = 160, collision = false},
-	["Rupture"] = {charName = "Chogath", displayName = "Rupture", slot = _Q, origin = "spell", type = "circular", speed = MathHuge, range = 950, delay = 1.2, radius = 250, collision = false},
-	["InfectedCleaverMissile"] = {charName = "DrMundo", displayName = "Infected Cleaver", slot = _Q, origin = "both", type = "linear", speed = 2000, range = 975, delay = 0.25, radius = 60, collision = true},
-	["DravenDoubleShot"] = {charName = "Draven", displayName = "Double Shot", slot = _E, origin = "spell", type = "linear", speed = 1600, range = 1050, delay = 0.25, radius = 130, collision = false},
-	["DravenDoubleShotMissile"] = {charName = "Draven", displayName = "Double Shot [Missile]", slot = _E, origin = "missile", type = "linear", speed = 1600, range = 1050, delay = 0.25, radius = 130, collision = false},
-	["EkkoQ"] = {charName = "Ekko", displayName = "Timewinder", slot = _Q, origin = "spell", type = "linear", speed = 1650, range = 1175, delay = 0.25, radius = 60, collision = false},
-	["EkkoQMis"] = {charName = "Ekko", displayName = "Timewinder [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1650, range = 1175, delay = 0.25, radius = 60, collision = false},
-	["EkkoW"] = {charName = "Ekko", displayName = "Parallel Convergence", slot = _W, origin = "spell", type = "circular", speed = MathHuge, range = 1600, delay = 3.35, radius = 400, collision = false},
-	["EkkoWMis"] = {charName = "Ekko", displayName = "Parallel Convergence [Missile]", slot = _W, origin = "missile", type = "circular", speed = MathHuge, range = 1600, delay = 3.35, radius = 400, collision = false},
-	["EliseHumanE"] = {charName = "Elise", displayName = "Cocoon", slot = _E, origin = "both", type = "linear", speed = 1600, range = 1075, delay = 0.25, radius = 55, collision = true},
-	["FizzR"] = {charName = "Fizz", displayName = "Chum the Waters", slot = _R, origin = "spell", type = "linear", speed = 1300, range = 1300, delay = 0.25, radius = 150, collision = false},
-	["FizzRMissile"] = {charName = "Fizz", displayName = "Chum the Waters [Missile]", slot = _R, origin = "missile", type = "linear", speed = 1300, range = 1300, delay = 0.25, radius = 150, collision = false},
-	["GalioE"] = {charName = "Galio", displayName = "Justice Punch", slot = _E, origin = "spell", type = "linear", speed = 2300, range = 650, delay = 0.4, radius = 160, collision = false},
-	["GnarQMissile"] = {charName = "Gnar", displayName = "Boomerang Throw", slot = _Q, origin = "both", type = "linear", speed = 2500, range = 1125, delay = 0.25, radius = 55, collision = false},
-	["GnarBigQMissile"] = {charName = "Gnar", displayName = "Boulder Toss", slot = _Q, origin = "both", type = "linear", speed = 2100, range = 1125, delay = 0.5, radius = 90, collision = true},
-	["GnarBigW"] = {charName = "Gnar", displayName = "Wallop", slot = _W, origin = "spell", type = "linear", speed = MathHuge, range = 575, delay = 0.6, radius = 100, collision = false},
-	["GnarR"] = {charName = "Gnar", displayName = "GNAR!", slot = _R, origin = "spell", type = "circular", speed = MathHuge, range = 0, delay = 0.25, radius = 475, collision = false},
-	["GragasQ"] = {charName = "Gragas", displayName = "Barrel Roll", slot = _Q, origin = "spell", type = "circular", speed = 1000, range = 850, delay = 0.25, radius = 275, collision = false},
-	["GragasQMissile"] = {charName = "Gragas", displayName = "Barrel Roll [Missile]", slot = _Q, origin = "missile", type = "circular", speed = 1000, range = 850, delay = 0.25, radius = 275, collision = false},
-	["GragasR"] = {charName = "Gragas", displayName = "Explosive Cask", slot = _R, origin = "spell", type = "circular", speed = 1800, range = 1000, delay = 0.25, radius = 400, collision = false},
-	["GragasRBoom"] = {charName = "Gragas", displayName = "Explosive Cask [Missile]", slot = _R, origin = "missile", type = "circular", speed = 1800, range = 1000, delay = 0.25, radius = 400, collision = false},
-	["GravesSmokeGrenade"] = {charName = "Graves", displayName = "Smoke Grenade", slot = _W, origin = "spell", type = "circular", speed = 1500, range = 950, delay = 0.15, radius = 250, collision = false},
-	["GravesSmokeGrenadeBoom"] = {charName = "Graves", displayName = "Smoke Grenade [Missile]", slot = _W, origin = "missile", type = "circular", speed = 1500, range = 950, delay = 0.15, radius = 250, collision = false},
-	["HecarimUltMissile"] = {charName = "Hecarim", displayName = "Onslaught of Shadows", slot = _R, origin = "missile", type = "linear", speed = 1100, range = 1650, delay = 0.2, radius = 280, collision = false},
-	["HeimerdingerE"] = {charName = "Heimerdinger", displayName = "CH-2 Electron Storm Grenade", slot = _E, origin = "spell", type = "circular", speed = 1200, range = 970, delay = 0.25, radius = 250, collision = false},
-	["HeimerdingerESpell"] = {charName = "Heimerdinger", displayName = "CH-2 Electron Storm Grenade [Missile]", slot = _E, origin = "missile", type = "circular", speed = 1200, range = 970, delay = 0.25, radius = 250, collision = false},
-	["HeimerdingerEUlt"] = {charName = "Heimerdinger", displayName = "CH-2 Electron Storm Grenade", slot = _E, origin = "spell", type = "circular", speed = 1200, range = 970, delay = 0.25, radius = 250, collision = false},
-	["HeimerdingerESpell_ult"] = {charName = "Heimerdinger", displayName = "CH-2 Electron Storm Grenade [Missile]", slot = _E, origin = "missile", type = "circular", speed = 1200, range = 970, delay = 0.25, radius = 250, collision = false},
-	["IreliaW2"] = {charName = "Illaoi", displayName = "Defiant Dance", slot = _W, origin = "spell", type = "linear", speed = MathHuge, range = 775, delay = 0.25, radius = 120, collision = false},
-	["IreliaR"] = {charName = "Illaoi", displayName = "Vanguard's Edge", slot = _R, origin = "both", type = "linear", speed = 2000, range = 950, delay = 0.4, radius = 160, collision = false},
-	["IvernQ"] = {charName = "Illaoi", displayName = "Rootcaller", slot = _Q, origin = "both", type = "linear", speed = 1300, range = 1075, delay = 0.25, radius = 80, collision = true},
-	["HowlingGaleSpell"] = {charName = "Janna", displayName = "Howling Gale [1]", slot = _Q, origin = "missile", type = "linear", speed = 667, range = 995, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell2"] = {charName = "Janna", displayName = "Howling Gale [2]", slot = _Q, origin = "missile", type = "linear", speed = 700, range = 1045, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell3"] = {charName = "Janna", displayName = "Howling Gale [3]", slot = _Q, origin = "missile", type = "linear", speed = 733, range = 1095, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell4"] = {charName = "Janna", displayName = "Howling Gale [4]", slot = _Q, origin = "missile", type = "linear", speed = 767, range = 1145, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell5"] = {charName = "Janna", displayName = "Howling Gale [5]", slot = _Q, origin = "missile", type = "linear", speed = 800, range = 1195, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell6"] = {charName = "Janna", displayName = "Howling Gale [6]", slot = _Q, origin = "missile", type = "linear", speed = 833, range = 1245, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell7"] = {charName = "Janna", displayName = "Howling Gale [7]", slot = _Q, origin = "missile", type = "linear", speed = 867, range = 1295, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell8"] = {charName = "Janna", displayName = "Howling Gale [8]", slot = _Q, origin = "missile", type = "linear", speed = 900, range = 1345, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell9"] = {charName = "Janna", displayName = "Howling Gale [9]", slot = _Q, origin = "missile", type = "linear", speed = 933, range = 1395, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell10"] = {charName = "Janna", displayName = "Howling Gale [10]", slot = _Q, origin = "missile", type = "linear", speed = 967, range = 1445, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell11"] = {charName = "Janna", displayName = "Howling Gale [11]", slot = _Q, origin = "missile", type = "linear", speed = 1000, range = 1495, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell12"] = {charName = "Janna", displayName = "Howling Gale [12]", slot = _Q, origin = "missile", type = "linear", speed = 1033, range = 1545, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell13"] = {charName = "Janna", displayName = "Howling Gale [13]", slot = _Q, origin = "missile", type = "linear", speed = 1067, range = 1595, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell14"] = {charName = "Janna", displayName = "Howling Gale [14]", slot = _Q, origin = "missile", type = "linear", speed = 1100, range = 1645, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell15"] = {charName = "Janna", displayName = "Howling Gale [15]", slot = _Q, origin = "missile", type = "linear", speed = 1133, range = 1695, delay = 0, radius = 120, collision = false},
-	["HowlingGaleSpell16"] = {charName = "Janna", displayName = "Howling Gale [16]", slot = _Q, origin = "missile", type = "linear", speed = 1167, range = 1745, delay = 0, radius = 120, collision = false},
-	["JarvanIVDragonStrike"] = {charName = "JarvanIV", displayName = "Dragon Strike", slot = _Q, origin = "spell", type = "linear", speed = MathHuge, range = 770, delay = 0.4, radius = 70, collision = false},
-	["JhinW"] = {charName = "Jhin", displayName = "Deadly Flourish", slot = _W, origin = "spell", type = "linear", speed = 5000, range = 2550, delay = 0.75, radius = 40, collision = false},
-	["JhinE"] = {charName = "Jhin", displayName = "Captive Audience", slot = _E, origin = "spell", type = "circular", speed = 1600, range = 750, delay = 0.25, radius = 130, collision = false},
-	["JhinETrap"] = {charName = "Jhin", displayName = "Captive Audience [Missile]", slot = _E, origin = "missile", type = "circular", speed = 1600, range = 750, delay = 0.25, radius = 130, collision = false},
-	["JhinRShotMis"] = {charName = "Jhin", displayName = "Curtain Call [Missile]", slot = _R, origin = "missile", type = "linear", speed = 5000, range = 3500, delay = 0.25, radius = 80, collision = false},
-	["JinxWMissile"] = {charName = "Jinx", displayName = "Zap!", slot = _W, origin = "both", type = "linear", speed = 3300, range = 1450, delay = 0.6, radius = 60, collision = true},
-	["JinxEHit"] = {charName = "Jinx", displayName = "Flame Chompers! [Missile]", slot = _E, origin = "missile", type = "circular", speed = 1750, range = 900, delay = 0, radius = 120, collision = false},
-	["KarmaQ"] = {charName = "Karma", displayName = "Inner Flame", slot = _Q, origin = "spell", type = "linear", speed = 1700, range = 950, delay = 0.25, radius = 60, collision = true},
-	["KarmaQMissile"] = {charName = "Karma", displayName = "Inner Flame [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1700, range = 950, delay = 0.25, radius = 60, collision = true},
-	["KarmaQMantra"] = {charName = "Karma", displayName = "Inner Flame [Mantra]", slot = _Q, origin = "linear", type = "linear", speed = 1700, range = 950, delay = 0.25, radius = 80, collision = true},
-	["KarmaQMissileMantra"] = {charName = "Karma", displayName = "Inner Flame [Mantra, Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1700, range = 950, delay = 0.25, radius = 80, collision = true},
-	["KaynW"] = {charName = "Kayn", displayName = "Blade's Reach", slot = _W, origin = "spell", type = "linear", speed = MathHuge, range = 700, delay = 0.55, radius = 90, collision = false},
-	["KhazixWLong"] = {charName = "Khazix", displayName = "Void Spike [Threeway]", slot = _W, origin = "spell", type = "threeway", speed = 1700, range = 1000, delay = 0.25, radius = 70,angle = 23, collision = true},
-	["KledQ"] = {charName = "Kled", displayName = "Beartrap on a Rope", slot = _Q, origin = "spell", type = "linear", speed = 1600, range = 800, delay = 0.25, radius = 45, collision = true},
-	["KledQMissile"] = {charName = "Kled", displayName = "Beartrap on a Rope [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1600, range = 800, delay = 0.25, radius = 45, collision = true},
-	["KogMawVoidOozeMissile"] = {charName = "KogMaw", displayName = "Void Ooze", slot = _E, origin = "both", type = "linear", speed = 1400, range = 1360, delay = 0.25, radius = 120, collision = false},
-	["LeblancE"] = {charName = "Leblanc", displayName = "Ethereal Chains [Standard]", slot = _E, origin = "spell", type = "linear", speed = 1750, range = 925, delay = 0.25, radius = 55, collision = true},
-	["LeblancEMissile"] = {charName = "Leblanc", displayName = "Ethereal Chains [Standard, Missile]", slot = _E, origin = "missile", type = "linear", speed = 1750, range = 925, delay = 0.25, radius = 55, collision = true},
-	["LeblancRE"] = {charName = "Leblanc", displayName = "Ethereal Chains [Ultimate]", slot = _E, origin = "spell", type = "linear", speed = 1750, range = 925, delay = 0.25, radius = 55, collision = true},
-	["LeblancREMissile"] = {charName = "Leblanc", displayName = "Ethereal Chains [Ultimate, Missile]", slot = _E, origin = "missile", type = "linear", speed = 1750, range = 925, delay = 0.25, radius = 55, collision = true},
-	["LeonaZenithBlade"] = {charName = "Leona", displayName = "Zenith Blade", slot = _E, origin = "spell", type = "linear", speed = 2000, range = 875, delay = 0.25, radius = 70, collision = false},
-	["LeonaSolarFlare"] = {charName = "Leona", displayName = "Solar Flare", slot = _R, origin = "spell", type = "circular", speed = MathHuge, range = 1200, delay = 0.85, radius = 300, collision = false},
-	["LissandraQMissile"] = {charName = "Lissandra", displayName = "Ice Shard", slot = _Q, origin = "both", type = "linear", speed = 2200, range = 750, delay = 0.25, radius = 75, collision = false},
-	["LuluQ"] = {charName = "Lulu", displayName = "Glitterlance", slot = _Q, origin = "spell", type = "linear", speed = 1450, range = 925, delay = 0.25, radius = 60, collision = false},
-	["LuluQMissile"] = {charName = "Lulu", displayName = "Glitterlance [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1450, range = 925, delay = 0.25, radius = 60, collision = false},
-	["LuxLightBinding"] = {charName = "Lux", displayName = "Light Binding", slot = _Q, origin = "spell", type = "linear", speed = 1200, range = 1175, delay = 0.25, radius = 50, collision = true},
-	["LuxLightBindingDummy"] = {charName = "Lux", displayName = "Light Binding [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1200, range = 1175, delay = 0.25, radius = 50, collision = true},
-	["LuxLightStrikeKugel"] = {charName = "Lux", displayName = "Light Strike Kugel", slot = _E, origin = "both", type = "circular", speed = 1200, range = 1100, delay = 0.25, radius = 300, collision = true},
-	["Landslide"] = {charName = "Malphite", displayName = "Ground Slam", slot = _E, origin = "spell", type = "circular", speed = MathHuge, range = 0, delay = 0.242, radius = 400, collision = false},
-	["MalzaharQ"] = {charName = "Malzahar", displayName = "Call of the Void", slot = _Q, origin = "spell", type = "rectangular", speed = 1600, range = 900, delay = 0.5, radius = 400, radius2 = 100, collision = false},
-	["MalzaharQMissile"] = {charName = "Malzahar", displayName = "Call of the Void [Missile]", slot = _Q, origin = "missile", type = "rectangular", speed = 1600, range = 900, delay = 0.5, radius = 400, radius2 = 100, collision = false},
-	["MaokaiQ"] = {charName = "Maokai", displayName = "Bramble Smash", slot = _Q, origin = "spell", type = "linear", speed = 1600, range = 600, delay = 0.375, radius = 110, collision = false},
-	["MaokaiQMissile"] = {charName = "Maokai", displayName = "Bramble Smash [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1600, range = 600, delay = 0.375, radius = 110, collision = false},
-	["DarkBindingMissile"] = {charName = "Morgana", displayName = "Dark Binding", slot = _Q, origin = "both", type = "linear", speed = 1200, range = 1175, delay = 0.25, radius = 70, collision = true},
-	["NamiQ"] = {charName = "Nami", displayName = "Aqua Prison", slot = _Q, origin = "spell", type = "circular", speed = MathHuge, range = 875, delay = 1, radius = 180, collision = false},
-	["NamiRMissile"] = {charName = "Nami", displayName = "Tidal Wave", slot = _R, origin = "both", type = "linear", speed = 850, range = 2750, delay = 0.5, radius = 250, collision = false},
-	["NautilusAnchorDragMissile"] = {charName = "Nautilus", displayName = "Dredge Line", slot = _Q, origin = "both", type = "linear", speed = 2000, range = 925, delay = 0.25, radius = 90, collision = true},
-	["NeekoQ"] = {charName = "Neeko", displayName = "Blooming Burst", slot = _Q, origin = "both", type = "circular", speed = 1500, range = 800, delay = 0.25, radius = 200, collision = false},
-	["NeekoE"] = {charName = "Neeko", displayName = "Tangle-Barbs", slot = _E, origin = "both", type = "linear", speed = 1400, range = 1000, delay = 0.25, radius = 65, collision = false},
-	["NunuR"] = {charName = "Nunu", displayName = "Absolute Zero", slot = _R, origin = "spell", type = "circular", speed = MathHuge, range = 0, delay = 3, radius = 650, collision = false},
-	["OlafAxeThrowCast"] = {charName = "Olaf", displayName = "Undertow", slot = _Q, origin = "spell", type = "linear", speed = 1600, range = 1000, delay = 0.25, radius = 90, collision = false},
-	["OlafAxeThrow"] = {charName = "Olaf", displayName = "Undertow [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1600, range = 1000, delay = 0.25, radius = 90, collision = false},
-	["OrnnQ"] = {charName = "Ornn", displayName = "Volcanic Rupture", slot = _Q, origin = "spell", type = "linear", speed = 1800, range = 800, delay = 0.3, radius = 65, collision = false},
-	-- OrnnQMissile
-	["OrnnE"] = {charName = "Ornn", displayName = "Searing Charge", slot = _E, origin = "spell", type = "linear", speed = 1800, range = 800, delay = 0.35, radius = 150, collision = false},
-	["OrnnRCharge"] = {charName = "Ornn", displayName = "Call of the Forge God", slot = _R, origin = "spell", type = "linear", speed = 1650, range = 2500, delay = 0.5, radius = 200, collision = false},
-	-- OrnnRMissile
-	["PoppyQSpell"] = {charName = "Poppy", displayName = "Hammer Shock", slot = _Q, origin = "spell", type = "linear", speed = MathHuge, range = 430, delay = 0.332, radius = 100, collision = false},
-	["PoppyRSpell"] = {charName = "Poppy", displayName = "Keeper's Verdict", slot = _R, origin = "spell", type = "linear", speed = 2000, range = 1200, delay = 0.33, radius = 100, collision = false},
-	["PoppyRSpellMissile"] = {charName = "Poppy", displayName = "Keeper's Verdict [Missile]", slot = _R, origin = "missile", type = "linear", speed = 2000, range = 1200, delay = 0.33, radius = 100, collision = false},
-	["PykeQMelee"] = {charName = "Pyke", displayName = "Bone Skewer [Melee]", slot = _Q, origin = "spell", type = "linear", speed = MathHuge, range = 400, delay = 0.25, radius = 70, collision = false},
-	["PykeQRange"] = {charName = "Pyke", displayName = "Bone Skewer [Range]", slot = _Q, origin = "both", type = "linear", speed = 2000, range = 1100, delay = 0.2, radius = 70, collision = true},
-	["PykeE"] = {charName = "Pyke", displayName = "Phantom Undertow", slot = _E, origin = "spell", type = "linear", speed = 3000, range = 25000, delay = 0, radius = 110, collision = false},
-	["PykeEMissile"] = {charName = "Pyke", displayName = "Phantom Undertow [Missile]", slot = _E, origin = "missile", type = "linear", speed = 3000, range = 25000, delay = 0, radius = 110, collision = false},
-	["RakanW"] = {charName = "Rakan", displayName = "Grand Entrance", slot = _W, origin = "spell", type = "circular", speed = MathHuge, range = 650, delay = 0.7, radius = 265, collision = false},
-	["RengarE"] = {charName = "Rengar", displayName = "Bola Strike", slot = _E, origin = "spell", type = "linear", speed = 1500, range = 1000, delay = 0.25, radius = 70, collision = true},
-	["RengarEMis"] = {charName = "Rengar", displayName = "Bola Strike [Missile]", slot = _E, origin = "missile", type = "linear", speed = 1500, range = 1000, delay = 0.25, radius = 70, collision = true},
-	["RumbleGrenade"] = {charName = "Rumble", displayName = "Electro Harpoon", slot = _E, origin = "spell", type = "linear", speed = 2000, range = 850, delay = 0.25, radius = 60, collision = true},
-	["RumbleGrenadeMissile"] = {charName = "Rumble", displayName = "Electro Harpoon [Missile]", slot = _E, origin = "missile", type = "linear", speed = 2000, range = 850, delay = 0.25, radius = 60, collision = true},
-	["SejuaniR"] = {charName = "Sejuani", displayName = "Glacial Prison", slot = _R, origin = "spell", type = "linear", speed = 1600, range = 1300, delay = 0.25, radius = 120, collision = false},
-	["SejuaniRMissile"] = {charName = "Sejuani", displayName = "Glacial Prison [Missile]", slot = _R, origin = "missile", type = "linear", speed = 1600, range = 1300, delay = 0.25, radius = 120, collision = false},
-	["ShyvanaTransformLeap"] = {charName = "Shyvana", displayName = "Transform Leap", slot = _R, origin = "spell", type = "linear", speed = 700, range = 850, delay = 0.25, radius = 150, collision = false},
-	["SionQ"] = {charName = "Sion", displayName = "Decimating Smash", slot = _Q, origin = "", type = "linear", speed = MathHuge, range = 750, delay = 2, radius = 150, collision = false},
-	["SionE"] = {charName = "Sion", displayName = "Roar of the Slayer", slot = _E, origin = "spell", type = "linear", speed = 1800, range = 800, delay = 0.25, radius = 80, collision = false},
-	["SionEMissile"] = {charName = "Sion", displayName = "Roar of the Slayer [Missile]", slot = _E, origin = "missile", type = "linear", speed = 1800, range = 800, delay = 0.25, radius = 80, collision = false},
-	["SkarnerFractureMissile"] = {charName = "Skarner", displayName = "Fracture", slot = _E, origin = "both", type = "linear", speed = 1500, range = 1000, delay = 0.25, radius = 70, collision = false},
-	["SonaR"] = {charName = "Sona", displayName = "Crescendo", slot = _R, origin = "spell", type = "linear", speed = 2400, range = 1000, delay = 0.25, radius = 140, collision = false},
-	["SonaRMissile"] = {charName = "Sona", displayName = "Crescendo [Missile]", slot = _R, origin = "missile", type = "linear", speed = 2400, range = 1000, delay = 0.25, radius = 140, collision = false},
-	["SorakaQ"] = {charName = "Soraka", displayName = "Starcall", slot = _Q, origin = "spell", type = "circular", speed = 1150, range = 810, delay = 0.25, radius = 235, collision = false},
-	["SorakaQMissile"] = {charName = "Soraka", displayName = "Starcall [Missile]", slot = _Q, origin = "missile", type = "circular", speed = 1150, range = 810, delay = 0.25, radius = 235, collision = false},
-	["SwainW"] = {charName = "Swain", displayName = "Vision of Empire", slot = _W, origin = "spell", type = "circular", speed = MathHuge, range = 3500, delay = 1.5, radius = 300, collision = false},
-	["SwainE"] = {charName = "Swain", displayName = "Nevermove", slot = _E, origin = "both", type = "linear", speed = 1800, range = 850, delay = 0.25, radius = 85, collision = false},
-	["SyndraESphereMissile"] = {charName = "Syndra", displayName = "Scatter the Weak [Seed]", slot = _E, origin = "missile", type = "linear", speed = 2000, range = 950, delay = 0.25, radius = 100, collision = false},
-	["TahmKenchQ"] = {charName = "TahmKench", displayName = "Tongue Lash", slot = _Q, origin = "spell", type = "linear", speed = 2800, range = 800, delay = 0.25, radius = 70, collision = true},
-	["TahmKenchQMissile"] = {charName = "TahmKench", displayName = "Tongue Lash [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 2800, range = 800, delay = 0.25, radius = 70, collision = true},
-	["TaliyahWVC"] = {charName = "Taliyah", displayName = "Seismic Shove", slot = _W, origin = "spell", type = "circular", speed = MathHuge, range = 900, delay = 0.85, radius = 150, collision = false},
-	["TaliyahR"] = {charName = "Taliyah", displayName = "Weaver's Wall", slot = _R, origin = "spell", type = "linear", speed = 1700, range = 3000, delay = 1, radius = 120, collision = false},
-	["TaliyahRMis"] = {charName = "Taliyah", displayName = "Weaver's Wall [Missile]", slot = _R, origin = "missile", type = "linear", speed = 1700, range = 3000, delay = 1, radius = 120, collision = false},
-	["ThreshQMissile"] = {charName = "Thresh", displayName = "Death Sentence [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1900, range = 1075, delay = 0.5, radius = 70, collision = true},
-	["ThreshE"] = {charName = "Thresh", displayName = "Flay", slot = _E, origin = "spell", type = "linear", speed = MathHuge, range = 500, delay = 0.389, radius = 110, collision = true},
-	["ThreshEMissile1"] = {charName = "Thresh", displayName = "Flay [Missile]", slot = _E, origin = "missile", type = "linear", speed = MathHuge, range = 500, delay = 0.389, radius = 110, collision = true},
-	["TristanaW"] = {charName = "Tristana", displayName = "Rocket Jump", slot = _W, origin = "spell", type = "circular", speed = 1100, range = 900, delay = 0.25, radius = 300, collision = false},
-	["UrgotQ"] = {charName = "Urgot", displayName = "Corrosive Charge", slot = _Q, origin = "spell", type = "circular", speed = MathHuge, range = 800, delay = 0.6, radius = 180, collision = false},
-	["UrgotQMissile"] = {charName = "Urgot", displayName = "Corrosive Charge [Missile]", slot = _Q, origin = "missile", type = "circular", speed = MathHuge, range = 800, delay = 0.6, radius = 180, collision = false},
-	["UrgotE"] = {charName = "Urgot", displayName = "Disdain", slot = _E, origin = "spell", type = "linear", speed = 1500, range = 475, delay = 0.45, radius = 100, collision = false},
-	["UrgotR"] = {charName = "Urgot", displayName = "Fear Beyond Death", slot = _R, origin = "both", type = "linear", speed = 3200, range = 1600, delay = 0.4, radius = 80, collision = false},
-	["VarusE"] = {charName = "Varus", displayName = "Hail of Arrows", slot = _E, origin = "spell", type = "linear", speed = 1500, range = 925, delay = 0.242, radius = 260, collision = false},
-	["VarusEMissile"] = {charName = "Varus", displayName = "Hail of Arrows [Missile]", slot = _E, origin = "missile", type = "linear", speed = 1500, range = 925, delay = 0.242, radius = 260, collision = false},
-	["VarusR"] = {charName = "Varus", displayName = "Chain of Corruption", slot = _R, origin = "spell", type = "linear", speed = 1950, range = 1200, delay = 0.25, radius = 120, collision = false},
-	["VarusRMissile"] = {charName = "Varus", displayName = "Chain of Corruption [Missile]", slot = _R, origin = "missile", type = "linear", speed = 1950, range = 1200, delay = 0.25, radius = 120, collision = false},
-	["VelkozQ"] = {charName = "Velkoz", displayName = "Plasma Fission", slot = _Q, origin = "spell", type = "linear", speed = 1300, range = 1050, delay = 0.25, radius = 50, collision = true},
-	["VelkozQMissile"] = {charName = "Velkoz", displayName = "Plasma Fission [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1300, range = 1050, delay = 0.25, radius = 50, collision = true},
-	["VelkozQMissileSplit"] = {charName = "Velkoz", displayName = "Plasma Fission [Split]", slot = _Q, origin = "missile", type = "linear", speed = 2100, range = 1100, delay = 0.25, radius = 45, collision = true},
-	["VelkozE"] = {charName = "Velkoz", displayName = "Tectonic Disruption", slot = _E, origin = "spell", type = "circular", speed = MathHuge, range = 800, delay = 0.8, radius = 185, collision = false},
-	["VelkozEMissile"] = {charName = "Velkoz", displayName = "Tectonic Disruption [Missile]", slot = _E, origin = "missile", type = "circular", speed = MathHuge, range = 800, delay = 0.8, radius = 185, collision = false},
-	["ViktorGravitonField"] = {charName = "Viktor", displayName = "Graviton Field", slot = _W, origin = "spell", type = "circular", speed = MathHuge, range = 800, delay = 1.75, radius = 270, collision = false},
-	["WarwickR"] = {charName = "Warwick", displayName = "Infinite Duress", slot = _R, origin = "spell", type = "linear", speed = 1800, range = 3000, delay = 0.1, radius = 55, collision = false},
-	["XerathArcaneBarrage2"] = {charName = "Xerath", displayName = "Arcane Barrage", slot = _W, origin = "spell", type = "circular", speed = MathHuge, range = 1000, delay = 0.75, radius = 235, collision = false},
-	["XerathMageSpear"] = {charName = "Xerath", displayName = "Mage Spear", slot = _E, origin = "spell", type = "linear", speed = 1400, range = 1050, delay = 0.2, radius = 60, collision = true},
-	["XerathMageSpearMissile"] = {charName = "Xerath", displayName = "Mage Spear [Missile]", slot = _E, origin = "missile", type = "linear", speed = 1400, range = 1050, delay = 0.2, radius = 60, collision = true},
-	["XinZhaoW"] = {charName = "XinZhao", displayName = "Wind Becomes Lightning", slot = _W, origin = "spell", type = "linear", speed = 5000, range = 900, delay = 0.5, radius = 40, collision = false},
-	["YasuoQ3Mis"] = {charName = "Yasuo", displayName = "Gathering Storm [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 1200, range = 1100, delay = 0.318, radius = 90, collision = false},
-	["ZacQ"] = {charName = "Zac", displayName = "Stretching Strikes", slot = _Q, origin = "spell", type = "linear", speed = 2800, range = 800, delay = 0.33, radius = 120, collision = false},
-	["ZacQMissile"] = {charName = "Zac", displayName = "Stretching Strikes [Missile]", slot = _Q, origin = "missile", type = "linear", speed = 2800, range = 800, delay = 0.33, radius = 120, collision = false},
-	["ZiggsW"] = {charName = "Ziggs", displayName = "Satchel Charge", slot = _W, origin = "both", type = "circular", speed = 1750, range = 1000, delay = 0.25, radius = 240, collision = false},
-	["ZiggsE"] = {charName = "Ziggs", displayName = "Hexplosive Minefield", slot = _E, origin = "both", type = "circular", speed = 1800, range = 900, delay = 0.25, radius = 250, collision = false},
-	["ZileanQ"] = {charName = "Zilean", displayName = "Time Bomb", slot = _Q, origin = "spell", type = "circular", speed = MathHuge, range = 900, delay = 0.8, radius = 150, collision = false},
-	["ZileanQMissile"] = {charName = "Zilean", displayName = "Time Bomb [Missile]", slot = _Q, origin = "missile", type = "circular", speed = MathHuge, range = 900, delay = 0.8, radius = 150, collision = false},
-	["ZoeE"] = {charName = "Zoe", displayName = "Sleepy Trouble Bubble", slot = _E, origin = "spell", type = "linear", speed = 1700, range = 800, delay = 0.3, radius = 50, collision = true},
-	["ZoeEMissile"] = {charName = "Zoe", displayName = "Sleepy Trouble Bubble [Missile]", slot = _E, origin = "missile", type = "linear", speed = 1700, range = 800, delay = 0.3, radius = 50, collision = true},
-	["ZyraE"] = {charName = "Zyra", displayName = "Grasping Roots", slot = _E, origin = "both", type = "linear", speed = 1150, range = 1100, delay = 0.25, radius = 70, collision = false},
-	["ZyraR"] = {charName = "Zyra", displayName = "Stranglethorns", slot = _R, origin = "spell", type = "circular", speed = MathHuge, range = 700, delay = 2, radius = 500, collision = false},
-	["BrandConflagration"] = {charName = "Brand", slot = _R, type = "targeted", displayName = "Conflagration", range = 625,cc = true},
-	["JarvanIVCataclysm"] = {charName = "JarvanIV", slot = _R, type = "targeted", displayName = "Cataclysm", range = 650},
-	["JayceThunderingBlow"] = {charName = "Jayce", slot = _E, type = "targeted", displayName = "Thundering Blow", range = 240},
-	["BlindMonkRKick"] = {charName = "LeeSin", slot = _R, type = "targeted", displayName = "Dragon's Rage", range = 375},
-	["LissandraR"] = {charName = "Lissandra", slot = _R, type = "targeted", displayName = "Frozen Tomb", range = 550},
-	["SeismicShard"] = {charName = "Malphite", slot = _Q, type = "targeted", displayName = "Seismic Shard", range = 625,cc = true},
-	["AlZaharNetherGrasp"] = {charName = "Malzahar", slot = _R, type = "targeted", displayName = "Nether Grasp", range = 700},
-	["MaokaiW"] = {charName = "Maokai", slot = _W, type = "targeted", displayName = "Twisted Advance", range = 525},
-	["NautilusR"] = {charName = "Nautilus", slot = _R, type = "targeted", displayName = "Depth Charge", range = 825},
-	["PoppyE"] = {charName = "Poppy", slot = _E, type = "targeted", displayName = "Heroic Charge", range = 475},
-	["RyzeW"] = {charName = "Ryze", slot = _W, type = "targeted", displayName = "Rune Prison", range = 615},
-	["Fling"] = {charName = "Singed", slot = _E, type = "targeted", displayName = "Fling", range = 125},
-	["SkarnerImpale"] = {charName = "Skarner", slot = _R, type = "targeted", displayName = "Impale", range = 350},
-	["TahmKenchW"] = {charName = "TahmKench", slot = _W, type = "targeted", displayName = "Devour", range = 250},
-	["TristanaR"] = {charName = "Tristana", slot = _R, type = "targeted", displayName = "Buster Shot", range = 669},
-}
 
-local ChanellingSpells = {
-	["CaitlynAceintheHole"] = {charName = "Caitlyn", slot = _R, type = "targeted", displayName = "Ace in the Hole", danger = 3},
-	["Drain"] = {charName = "Fiddlesticks", slot = _W, type = "targeted", displayName = "Drain", danger = 2},
-	["Crowstorm"] = {charName = "Fiddlesticks", slot = _R, type = "skillshot", displayName = "Crowstorm", danger = 3},
-	["GalioW"] = {charName = "Galio", slot = _W, type = "skillshot", displayName = "Shield of Durand", danger = 2},
-	["GalioR"] = {charName = "Galio", slot = _R, type = "skillshot", displayName = "Hero's Entrance", danger = 3},
-	["GragasW"] = {charName = "Gragas", slot = _W, type = "skillshot", displayName = "Drunken Rage", danger = 1},
-	["ReapTheWhirlwind"] = {charName = "Janna", slot = _R, type = "skillshot", displayName = "Monsoon", danger = 2},
-	["KarthusFallenOne"] = {charName = "Karthus", slot = _R, type = "skillshot", displayName = "Requiem", danger = 3},
-	["KatarinaR"] = {charName = "Katarina", slot = _R, type = "skillshot", displayName = "Death Lotus", danger = 3},
-	["LucianR"] = {charName = "Lucian", slot = _R, type = "skillshot", displayName = "The Culling", danger = 2},
-	["AlZaharNetherGrasp"] = {charName = "Malzahar", slot = _R, type = "targeted", displayName = "Nether Grasp", danger = 3},
-	["Meditate"] = {charName = "MasterYi", slot = _Q, type = "skillshot", displayName = "Meditate", danger = 1},
-	["MissFortuneBulletTime"] = {charName = "MissFortune", slot = _R, type = "skillshot", displayName = "Bullet Time", danger = 3},
-	["AbsoluteZero"] = {charName = "Nunu", slot = _R, type = "skillshot", displayName = "Absolute Zero", danger = 3},
-	["PantheonRFall"] = {charName = "Pantheon", slot = _R, type = "skillshot", displayName = "Grand Skyfall [Fall]", danger = 3},
-	["PantheonRJump"] = {charName = "Pantheon", slot = _R, type = "skillshot", displayName = "Grand Skyfall [Jump]", danger = 3},
-	["PykeQ"] = {charName = "Pyke", slot = _Q, type = "skillshot", displayName = "Bone Skewer", danger = 1},
-	["ShenR"] = {charName = "Shen", slot = _R, type = "skillshot", displayName = "Stand United", danger = 2},
-	["SionQ"] = {charName = "Sion", slot = _Q, type = "skillshot", displayName = "Decimating Smash", danger = 2},
-	["Destiny"] = {charName = "TwistedFate", slot = _R, type = "skillshot", displayName = "Destiny", danger = 2},
-	["VarusQ"] = {charName = "Varus", slot = _Q, type = "skillshot", displayName = "Piercing Arrow", danger = 1},
-	["VelKozR"] = {charName = "VelKoz", slot = _R, type = "skillshot", displayName = "Life Form Disintegration Ray", danger = 3},
-	["ViQ"] = {charName = "Vi", slot = _Q, type = "skillshot", displayName = "Vault Breaker", danger = 2},
-	["XerathLocusOfPower2"] = {charName = "Xerath", slot = _R, type = "skillshot", displayName = "Rite of the Arcane", danger = 3},
-	["ZacR"] = {charName = "Zac", slot = _R, type = "skillshot", displayName = "Let's Bounce!", danger = 3},
-}
-
-function GetAllyHeroes() 
-	AllyHeroes = {}
-	for i = 1, Game.HeroCount() do
-		local Hero = Game.Hero(i)
-		if Hero.isAlly and not Hero.isMe then
-			table.insert(AllyHeroes, Hero)
-		end
-	end
-	return AllyHeroes
-end
-
-local function OnProcessSpell()
-	for i = 1, #Units do
-		local unit = Units[i].unit; local last = Units[i].spell; local spell = unit.activeSpell
-		if spell and last ~= (spell.name .. spell.startTime) and unit.activeSpell.isChanneling and unit.team ~= myHero.team then
-			Units[i].spell = spell.name .. spell.startTime; return unit, spell
-		end
-	end
-	return nil, nil
-end
-
-function Morgana:GetDistanceSqr(pos1, pos2)
-	local pos2 = pos2 or myHero.pos
-	local dx = pos1.x - pos2.x
-	local dz = (pos1.z or pos1.y) - (pos2.z or pos2.y)
-	return dx * dx + dz * dz
-end
-
-function Morgana:GetDistance(pos1, pos2)
-	return MathSqrt(self:GetDistanceSqr(pos1, pos2))
-end
  
 function Morgana:VectorPointProjectionOnLineSegment(v1, v2, v)
 	local cx, cy, ax, ay, bx, by = v.x, v.z, v1.x, v1.z, v2.x, v2.z
@@ -3681,21 +3660,21 @@ end
 function Morgana:CalculateCollisionTime(startPos, endPos, unitPos, startTime, speed, delay, origin)
 	local delay = origin == "spell" and delay or 0
 	local pos = startPos:Extended(endPos, speed * (GameTimer() - delay - startTime))
-	return self:GetDistance(unitPos, pos) / speed
+	return GetDistance(unitPos, pos) / speed
 end
 
 function Morgana:CalculateEndPos(startPos, placementPos, unitPos, range, radius, collision, type)
 	local range = range or 3000; local endPos = startPos:Extended(placementPos, range)
 	if type == "circular" or type == "rectangular" then
-		if range > 0 then if self:GetDistance(unitPos, placementPos) < range then endPos = placementPos end
+		if range > 0 then if GetDistance(unitPos, placementPos) < range then endPos = placementPos end
 		else endPos = unitPos end
 	elseif collision then
-		for i = 1, Game.MinionCount() do
-			local minion = Game.Minion(i)
-			if minion and minion.team == myHero.team and not minion.dead and self:GetDistance(minion.pos, startPos) < range then
+		for i = 1, PussyGameMinionCount() do
+			local minion = PussyGameMinion(i)
+			if minion and minion.team == PussymyHero.team and not minion.dead and GetDistance(minion.pos, startPos) < range then
 				local col = self:VectorPointProjectionOnLineSegment(startPos, placementPos, minion.pos)
-				if col and self:GetDistance(col, minion.pos) < (radius + minion.boundingRadius / 2) then
-					range = self:GetDistance(startPos, col); endPos = startPos:Extended(placementPos, range); break
+				if col and GetDistance(col, minion.pos) < (radius + minion.boundingRadius / 2) then
+					range = GetDistance(startPos, col); endPos = startPos:Extended(placementPos, range); break
 				end
 			end
 		end
@@ -3709,8 +3688,8 @@ function Morgana:__init()
 	menu = 2
 	self:LoadSpells()   	
 	self:LoadMenu()
-	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("Draw", function() self:Draw() end) 
+	PussyCallbackAdd("Tick", function() self:Tick() end)
+	PussyCallbackAdd("Draw", function() self:Draw() end) 
 	if _G.EOWLoaded then
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
@@ -3723,7 +3702,7 @@ end
 function Morgana:LoadSpells()
  
 	Q = {range = 1175, radius = 70, delay = 0.25, speed = 1200, collision = true}    
-	W = {range = 900, radius = 280, delay = 0.25, speed = math.huge, collision = false}   
+	W = {range = 900, radius = 280, delay = 0.25, speed = PussyMathHuge, collision = false}   
 	E = {range = 800,}    
 	R = {range = 625,}  
 
@@ -3732,7 +3711,7 @@ end
 
 local WData =
 {
-Type = _G.SPELLTYPE_CIRCLE, Collision = false, Delay = 0.25, Radius = 150, Range = 900, Speed = math.huge
+Type = _G.SPELLTYPE_CIRCLE, Collision = false, Delay = 0.25, Radius = 150, Range = 900, Speed = PussyMathHuge
 }
 
 local QData =
@@ -3830,7 +3809,7 @@ function Morgana:LoadMenu()
 end
 
 function Morgana:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if PussymyHero.dead == false and PussyGameIsChatOpen() == false then
 		local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -3869,43 +3848,43 @@ function Morgana:Auto1()
 end 
 
 function Morgana:GetHeroByHandle(handle)
-	for i = 1, Game.HeroCount() do
-		local unit = Game.Hero(i)
+	for i = 1, PussyGameHeroCount() do
+		local unit = PussyGameHero(i)
 		if unit.handle == handle then return unit end
 	end
 end
 
 function Morgana:UseE(i, s)
 	local startPos = s.startPos; local endPos = s.endPos; local travelTime = 0
-	if s.speed == MathHuge then travelTime = s.delay else travelTime = s.range / s.speed + s.delay end
+	if s.speed == PussyMathHuge then travelTime = s.delay else travelTime = s.range / s.speed + s.delay end
 	if s.type == "rectangular" then
-		local StartPosition = endPos-Vector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
-		local EndPosition = endPos+Vector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
+		local StartPosition = endPos-PussyVector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
+		local EndPosition = endPos+PussyVector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
 		startPos = StartPosition; endPos = EndPosition
 	end
 	if s.startTime + travelTime > GameTimer() then
-		local Col = Morgana:VectorPointProjectionOnLineSegment(startPos, endPos, myHero.pos)
-		if s.type == "circular" and Morgana:GetDistanceSqr(myHero.pos, endPos) < (s.radius + myHero.boundingRadius) ^ 2 or Morgana:GetDistanceSqr(myHero.pos, Col) < (s.radius + myHero.boundingRadius * 1.25) ^ 2 then
-			local t = s.speed ~= MathHuge and Morgana:CalculateCollisionTime(startPos, endPos, myHero.pos, s.startTime, s.speed, s.delay, s.origin) or 0.29
-			if t < 0.3 then Control.CastSpell(HK_E, myHero) end
+		local Col = Morgana:VectorPointProjectionOnLineSegment(startPos, endPos, PussymyHero.pos)
+		if s.type == "circular" and GetDistanceSqr(PussymyHero.pos, endPos) < (s.radius + PussymyHero.boundingRadius) ^ 2 or GetDistanceSqr(PussymyHero.pos, Col) < (s.radius + PussymyHero.boundingRadius * 1.25) ^ 2 then
+			local t = s.speed ~= PussyMathHuge and Morgana:CalculateCollisionTime(startPos, endPos, PussymyHero.pos, s.startTime, s.speed, s.delay, s.origin) or 0.29
+			if t < 0.3 then Control.CastSpell(HK_E, PussymyHero) end
 		end
-	else TableRemove(self.DetectedSpells, i) end
+	else PussyTableRemove(self.DetectedSpells, i) end
 end
 
 function Morgana:OnProcessSpell()
 	local unit, spell = OnProcessSpell()
 	if unit and spell and CCSpells[spell.name] then
-		if Morgana:GetDistance(unit.pos, myHero.pos) > 3000 or not self.Menu.ESet.BlockList["Dodge"..spell.name]:Value() then return end
+		if GetDistance(unit.pos, PussymyHero.pos) > 3000 or not self.Menu.ESet.BlockList["Dodge"..spell.name]:Value() then return end
 		local Detected = CCSpells[spell.name]
 		if Detected.origin ~= "missile" then
 			local type = Detected.type
 			if type == "targeted" then
-				if spell.target == myHero.handle then Control.CastSpell(HK_E, myHero) end
+				if spell.target == PussymyHero.handle then Control.CastSpell(HK_E, PussymyHero) end
 			else
-				local startPos = Vector(spell.startPos); local placementPos = Vector(spell.placementPos); local unitPos = unit.pos
+				local startPos = PussyVector(spell.startPos); local placementPos = PussyVector(spell.placementPos); local unitPos = unit.pos
 				local radius = Detected.radius; local range = Detected.range; local col = Detected.collision; local type = Detected.type
 				local endPos, range2 = Morgana:CalculateEndPos(startPos, placementPos, unitPos, range, radius, col, type)
-				TableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = GameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "spell"})
+				PussyTableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = GameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "spell"})
 			end
 		end
 	end
@@ -3914,23 +3893,23 @@ end
 
 function Morgana:OnMissileCreate()
 	if GameTimer() > self.Timer + 0.15 then
-		for i, mis in pairs(self.DetectedMissiles) do if GameTimer() > mis.timer + 2 then TableRemove(self.DetectedMissiles, i) end end
+		for i, mis in pairs(self.DetectedMissiles) do if GameTimer() > mis.timer + 2 then PussyTableRemove(self.DetectedMissiles, i) end end
 		self.Timer = GameTimer()
 	end
-	for i = 1, Game.MissileCount() do
-		local missile = Game.Missile(i)
+	for i = 1, PussyGameMissileCount() do
+		local missile = PussyGameMissile(i)
 		if CCSpells[missile.missileData.name] then
 			local unit = self:GetHeroByHandle(missile.missileData.owner)
 			if (not unit.visible and CCSpells[missile.missileData.name].origin ~= "spell") or CCExceptions[missile.missileData.name] then
-				if Morgana:GetDistance(unit.pos, myHero.pos) > 3000 or not self.Menu.ESet.BlockList["Dodge"..missile.missileData.name]:Value() then return end
+				if GetDistance(unit.pos, PussymyHero.pos) > 3000 or not self.Menu.ESet.BlockList["Dodge"..missile.missileData.name]:Value() then return end
 				local Detected = CCSpells[missile.missileData.name]
 				if Detected.origin ~= "spell" then
 					for i, mis in pairs(self.DetectedMissiles) do if mis.name == missile.missileData.name then return end end
-					TableInsert(self.DetectedMissiles, {name = missile.missileData.name, timer = GameTimer()})
-					local startPos = Vector(missile.missileData.startPos); local placementPos = Vector(missile.missileData.placementPos); local unitPos = unit.pos
+					PussyTableInsert(self.DetectedMissiles, {name = missile.missileData.name, timer = GameTimer()})
+					local startPos = PussyVector(missile.missileData.startPos); local placementPos = PussyVector(missile.missileData.placementPos); local unitPos = unit.pos
 					local radius = Detected.radius; local range = Detected.range; local col = Detected.collision; local type = Detected.type
 					local endPos, range2 = Morgana:CalculateEndPos(startPos, placementPos, unitPos, range, radius, col, type)
-					TableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = GameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "missile"})
+					PussyTableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = GameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "missile"})
 				end
 			end
 		end
@@ -3940,40 +3919,40 @@ end
 
 
 function Morgana:UseEally(i, s)
-for i, Hero in pairs(AllyHeroes) do	
+for i, Hero in pairs(GetAllyHeroes()) do	
 	local startPos = s.startPos; local endPos = s.endPos; local travelTime = 0
-	if s.speed == MathHuge then travelTime = s.delay else travelTime = s.range / s.speed + s.delay end
+	if s.speed == PussyMathHuge then travelTime = s.delay else travelTime = s.range / s.speed + s.delay end
 	if s.type == "rectangular" then
-		local StartPosition = endPos-Vector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
-		local EndPosition = endPos+Vector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
+		local StartPosition = endPos-PussyVector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
+		local EndPosition = endPos+PussyVector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
 		startPos = StartPosition; endPos = EndPosition
 	end
 	if s.startTime + travelTime > GameTimer() then
 		local Col = Morgana:VectorPointProjectionOnLineSegment(startPos, endPos, Hero.pos)
-		if s.type == "circular" and Morgana:GetDistanceSqr(Hero.pos, endPos) < (s.radius + Hero.boundingRadius) ^ 2 or Morgana:GetDistanceSqr(Hero.pos, Col) < (s.radius + Hero.boundingRadius * 1.25) ^ 2 then
-			local t = s.speed ~= MathHuge and Morgana:CalculateCollisionTime(startPos, endPos, Hero.pos, s.startTime, s.speed, s.delay, s.origin) or 0.29
-			if t < 0.3 and myHero.pos:DistanceTo(Hero.pos) <= 800 then Control.CastSpell(HK_E, Hero) end
+		if s.type == "circular" and GetDistanceSqr(Hero.pos, endPos) < (s.radius + Hero.boundingRadius) ^ 2 or GetDistanceSqr(Hero.pos, Col) < (s.radius + Hero.boundingRadius * 1.25) ^ 2 then
+			local t = s.speed ~= PussyMathHuge and Morgana:CalculateCollisionTime(startPos, endPos, Hero.pos, s.startTime, s.speed, s.delay, s.origin) or 0.29
+			if t < 0.3 and PussymyHero.pos:DistanceTo(Hero.pos) <= 800 then Control.CastSpell(HK_E, Hero) end
 		end
-	else TableRemove(self.DetectedSpells, i) end
+	else PussyTableRemove(self.DetectedSpells, i) end
 end
 end
 
 function Morgana:OnProcessSpell1()
-for i, Hero in pairs(AllyHeroes) do
+for i, Hero in pairs(GetAllyHeroes()) do
 	
 	local unit, spell = OnProcessSpell()
 	if unit and spell and CCSpells[spell.name] then
-		if Morgana:GetDistance(unit.pos, Hero.pos) > 3000 or not self.Menu.ESet.BlockList["Dodge"..spell.name]:Value() then return end
+		if GetDistance(unit.pos, Hero.pos) > 3000 or not self.Menu.ESet.BlockList["Dodge"..spell.name]:Value() then return end
 		local Detected = CCSpells[spell.name]
 		if Detected.origin ~= "missile" then
 			local type = Detected.type
 			if type == "targeted" then
-				if spell.target == Hero.handle and myHero.pos:DistanceTo(Hero.pos) <= 800 then Control.CastSpell(HK_E, Hero) end
+				if spell.target == Hero.handle and PussymyHero.pos:DistanceTo(Hero.pos) <= 800 then Control.CastSpell(HK_E, Hero) end
 			else
-				local startPos = Vector(spell.startPos); local placementPos = Vector(spell.placementPos); local unitPos = unit.pos
+				local startPos = PussyVector(spell.startPos); local placementPos = PussyVector(spell.placementPos); local unitPos = unit.pos
 				local radius = Detected.radius; local range = Detected.range; local col = Detected.collision; local type = Detected.type
 				local endPos, range2 = Morgana:CalculateEndPos(startPos, placementPos, unitPos, range, radius, col, type)
-				TableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = GameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "spell"})
+				PussyTableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = GameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "spell"})
 			end
 		end
 	end
@@ -3982,25 +3961,25 @@ end
 
 
 function Morgana:OnMissileCreate1()
-for i, Hero in pairs(AllyHeroes) do
+for i, Hero in pairs(GetAllyHeroes()) do
 	if GameTimer() > self.Timer + 0.15 then
-		for i, mis in pairs(self.DetectedMissiles) do if GameTimer() > mis.timer + 2 then TableRemove(self.DetectedMissiles, i) end end
+		for i, mis in pairs(self.DetectedMissiles) do if GameTimer() > mis.timer + 2 then PussyTableRemove(self.DetectedMissiles, i) end end
 		self.Timer = GameTimer()
 	end
-	for i = 1, Game.MissileCount() do
-		local missile = Game.Missile(i)
+	for i = 1, PussyGameMissileCount() do
+		local missile = PussyGameMissile(i)
 		if CCSpells[missile.missileData.name] then
 			local unit = self:GetHeroByHandle(missile.missileData.owner)
 			if (not unit.visible and CCSpells[missile.missileData.name].origin ~= "spell") or CCExceptions[missile.missileData.name] then
-				if Morgana:GetDistance(unit.pos, Hero.pos) > 3000 or not self.Menu.ESet.BlockList["Dodge"..missile.missileData.name]:Value() then return end
+				if GetDistance(unit.pos, Hero.pos) > 3000 or not self.Menu.ESet.BlockList["Dodge"..missile.missileData.name]:Value() then return end
 				local Detected = CCSpells[missile.missileData.name]
 				if Detected.origin ~= "spell" then
 					for i, mis in pairs(self.DetectedMissiles) do if mis.name == missile.missileData.name then return end end
-					TableInsert(self.DetectedMissiles, {name = missile.missileData.name, timer = GameTimer()})
-					local startPos = Vector(missile.missileData.startPos); local placementPos = Vector(missile.missileData.placementPos); local unitPos = unit.pos
+					PussyTableInsert(self.DetectedMissiles, {name = missile.missileData.name, timer = GameTimer()})
+					local startPos = PussyVector(missile.missileData.startPos); local placementPos = PussyVector(missile.missileData.placementPos); local unitPos = unit.pos
 					local radius = Detected.radius; local range = Detected.range; local col = Detected.collision; local type = Detected.type
 					local endPos, range2 = Morgana:CalculateEndPos(startPos, placementPos, unitPos, range, radius, col, type)
-					TableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = GameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "missile"})
+					PussyTableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = GameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "missile"})
 				end
 			end
 		end
@@ -4009,14 +3988,14 @@ end
 end
 
 function Morgana:AutoE()
-		if self.Menu.AutoE.self:Value() and Ready(_E) and IsImmobileTarget(myHero) then
-			Control.CastSpell(HK_E, myHero)
+		if self.Menu.AutoE.self:Value() and Ready(_E) and IsImmobileTarget(PussymyHero) then
+			Control.CastSpell(HK_E, PussymyHero)
 		end
-		for i = 1, Game.HeroCount() do
-		local ally = Game.Hero(i)
-		if ally.isAlly and ally ~= myHero then
-		if IsValid(ally)  then 
-			if self.Menu.AutoE.ally:Value() and self.Menu.AutoE.Targets[ally.charName] and self.Menu.AutoE.Targets[ally.charName]:Value() and Ready(_E) and myHero.pos:DistanceTo(ally.pos) <= 800 and IsImmobileTarget(ally) then
+		for i = 1, PussyGameHeroCount() do
+		local ally = PussyGameHero(i)
+		if ally.isAlly and ally ~= PussymyHero then
+		if IsValid(ally) then 
+			if self.Menu.AutoE.ally:Value() and self.Menu.AutoE.Targets[ally.charName] and self.Menu.AutoE.Targets[ally.charName]:Value() and Ready(_E) and PussymyHero.pos:DistanceTo(ally.pos) <= 800 and IsImmobileTarget(ally) then
 				Control.CastSpell(HK_E, ally.pos)
 			end
 		end
@@ -4025,22 +4004,22 @@ function Morgana:AutoE()
 end
 	
 function Morgana:Activator()
-if myHero.dead then return end
+if PussymyHero.dead then return end
 			--Zhonyas
-	if EnemiesAround(myHero.pos,2000) then	
+	if EnemiesAround(PussymyHero.pos,2000) then	
 		if self.Menu.a.ON:Value() then
-		local Zhonyas = GetItemSlot(myHero, 3157)
+		local Zhonyas = GetItemSlot(PussymyHero, 3157)
 			if Zhonyas > 0 and Ready(Zhonyas) then 
-				if myHero.health/myHero.maxHealth <= self.Menu.a.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.a.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Zhonyas])
 				end
 			end
 		end
 			--Stopwatch
 		if self.Menu.a.ON:Value() then
-		local Stop = GetItemSlot(myHero, 2420)
+		local Stop = GetItemSlot(PussymyHero, 2420)
 			if Stop > 0 and Ready(Stop) then 
-				if myHero.health/myHero.maxHealth <= self.Menu.a.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.a.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Stop])
 				end
 			end
@@ -4049,51 +4028,51 @@ if myHero.dead then return end
 end	
 			
 function Morgana:Draw()
-  if myHero.dead then return end
+  if PussymyHero.dead then return end
 	if self.Menu.Drawing.DrawR:Value() and Ready(_R) then
-    Draw.Circle(myHero, 625, 3, Draw.Color(255, 225, 255, 10))
+    PussyDrawCircle(PussymyHero, 625, 3, PussyDrawColor(255, 225, 255, 10))
 	end                                                 
 	if self.Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-    Draw.Circle(myHero, 1175, 3, Draw.Color(225, 225, 0, 10))
+    PussyDrawCircle(PussymyHero, 1175, 3, PussyDrawColor(225, 225, 0, 10))
 	end
 	if self.Menu.Drawing.DrawE:Value() and Ready(_E) then
-    Draw.Circle(myHero, 800, 3, Draw.Color(225, 225, 125, 10))
+    PussyDrawCircle(PussymyHero, 800, 3, PussyDrawColor(225, 225, 125, 10))
 	end
 	if self.Menu.Drawing.DrawW:Value() and Ready(_W) then
-    Draw.Circle(myHero, 900, 3, Draw.Color(225, 225, 125, 10))
+    PussyDrawCircle(PussymyHero, 900, 3, PussyDrawColor(225, 225, 125, 10))
 	end
 	local target = GetTarget(20000)
 	if target == nil then return end	
 	if target and self.Menu.Drawing.Kill:Value() and not target.dead then
 	local hp = target.health	
 		if Ready(_Q) and getdmg("Q", target) > hp then
-			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))
+			PussyDrawText("Killable", 24, target.pos2D.x, target.pos2D.y,PussyDrawColor(0xFF00FF00))
+			PussyDrawText("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,PussyDrawColor(0xFF00FF00))
 		end	
 		if Ready(_W) and getdmg("W", target) > hp then
-			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))		
+			PussyDrawText("Killable", 24, target.pos2D.x, target.pos2D.y,PussyDrawColor(0xFF00FF00))
+			PussyDrawText("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,PussyDrawColor(0xFF00FF00))		
 		end	
 	end
 end
 
 function Morgana:KillSteal()
-if myHero.dead then return end	
+if PussymyHero.dead then return end	
 	local target = GetTarget(1200)     	
 	if target == nil then return end
 	local hp = target.health
-	local QDmg = getdmg("Q", target, myHero)
-	local WDmg = getdmg("W", target, myHero)
+	local QDmg = getdmg("Q", target, PussymyHero)
+	local WDmg = getdmg("W", target, PussymyHero)
 	if IsValid(target) then	
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1175 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if QDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 1175 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if self.Menu.ks.UseW:Value() and Ready(_W) then
-			local pred = GetGamsteronPrediction(target, WData, myHero)
-			if WDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
+			local pred = GetGamsteronPrediction(target, WData, PussymyHero)
+			if WDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
 				Control.CastSpell(HK_W, pred.CastPosition)
 	
 			end
@@ -4105,14 +4084,14 @@ function Morgana:AutoW()
 	local target = GetTarget(1200)
 	if target == nil then return end
 	if IsValid(target) then	
-		if self.Menu.AutoW.UseW:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) <= 900 and IsImmobileTarget(target) then
+		if self.Menu.AutoW.UseW:Value() and Ready(_W) and PussymyHero.pos:DistanceTo(target.pos) <= 900 and IsImmobileTarget(target) then
 			Control.CastSpell(HK_W, target)
 		
-		elseif self.Menu.AutoW.UseW:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) > 900 and myHero.pos:DistanceTo(target.pos) < 1175 and IsImmobileTarget(target) then
-			local WPos = myHero.pos:Shortened(target.pos - 900)
-			Control.SetCursorPos(WPos)
-			Control.KeyDown(HK_W)
-			Control.KeyUp(HK_W)
+		elseif self.Menu.AutoW.UseW:Value() and Ready(_W) and PussymyHero.pos:DistanceTo(target.pos) > 900 and PussymyHero.pos:DistanceTo(target.pos) < 1175 and IsImmobileTarget(target) then
+			local WPos = PussymyHero.pos:Shortened(target.pos - 900)
+			PussyControlSetCursorPos(WPos)
+			PussyControlKeyDown(HK_W)
+			PussyControlKeyUp(HK_W)
 		end	
 	end
 end	
@@ -4122,22 +4101,22 @@ function Morgana:Combo()
 	if target == nil then return end
 
 	if IsValid(target) then
-		if self.Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 1175 then 	
-			local pred = GetGamsteronPrediction(target, QData, myHero)
+		if self.Menu.Combo.UseQ:Value() and Ready(_Q) and PussymyHero.pos:DistanceTo(target.pos) <= 1175 then 	
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
 			if pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
 		end
 		
 		if self.Menu.Combo.UseW:Value() and Ready(_W) and not Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, WData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
+			local pred = GetGamsteronPrediction(target, WData, PussymyHero)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
 				Control.CastSpell(HK_W, pred.CastPosition)
 	
 			end
 		end	
 		
-		local count = GetEnemyCount(625, myHero)
+		local count = GetEnemyCount(625, PussymyHero)
 		if Ready(_R) and self.Menu.Combo.Ult.UseR:Value() and count >= self.Menu.Combo.Ult.UseRE:Value() then
 			Control.CastSpell(HK_R)
 		end
@@ -4147,16 +4126,16 @@ end
 function Morgana:Harass()
 local target = GetTarget(1200)
 if target == nil then return end
-	if IsValid(target) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
-		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 1175 then 
-			local pred = GetGamsteronPrediction(target, QData, myHero)
+	if IsValid(target) and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
+		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and PussymyHero.pos:DistanceTo(target.pos) <= 1175 then 
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
 			if pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if self.Menu.Harass.UseW:Value() and Ready(_W) and not Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, WData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
+			local pred = GetGamsteronPrediction(target, WData, PussymyHero)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
 				Control.CastSpell(HK_W, pred.CastPosition)
 	
 			end
@@ -4165,19 +4144,17 @@ if target == nil then return end
 end	
 
 function Morgana:Clear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
-    local TEAM_ALLY = myHero.team
-	local TEAM_ENEMY = 300 - myHero.team
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)
 
-		if minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100  then	
-		local hp = minion.health
-		local QDmg = getdmg("Q", minion, myHero)				
-			if Ready(_Q) and hp <= QDmg and myHero.pos:DistanceTo(minion.pos) <= 1175 and self.Menu.Clear.UseQL:Value() then
+		if minion.team == TEAM_ENEMY and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Clear.Mana:Value() / 100  then	
+			local hp = minion.health
+			local QDmg = getdmg("Q", minion, PussymyHero)				
+			if Ready(_Q) and hp <= QDmg and PussymyHero.pos:DistanceTo(minion.pos) <= 1175 and self.Menu.Clear.UseQL:Value() then
 				Control.CastSpell(HK_Q, minion)
 			end	
 			local count = GetMinionCount(275, minion)
-			if Ready(_W) and myHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.Clear.UseW:Value() and count >= self.Menu.Clear.UseWM:Value() then
+			if Ready(_W) and PussymyHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.Clear.UseW:Value() and count >= self.Menu.Clear.UseWM:Value() then
 				Control.CastSpell(HK_W, minion)
 			end  
 		end
@@ -4185,15 +4162,15 @@ function Morgana:Clear()
 end
 
 function Morgana:JungleClear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)	
-	local TEAM_JUNGLE = 300
-		if minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
-			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 1175 and self.Menu.JClear.UseQ:Value() then
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)	
+
+		if minion.team == TEAM_JUNGLE and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
+			if Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) <= 1175 and self.Menu.JClear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion)
 			end
 			local count = GetMinionCount(275, minion)
-			if Ready(_W) and myHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.JClear.UseW:Value() and count >= self.Menu.JClear.UseWM:Value() then
+			if Ready(_W) and PussymyHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.JClear.UseW:Value() and count >= self.Menu.JClear.UseWM:Value() then
 				Control.CastSpell(HK_W, minion)
 			end  
 		end
@@ -4217,8 +4194,8 @@ function Neeko:__init()
 	menu = 2
 	self:LoadSpells()   	
 	self:LoadMenu()                                            
-	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("Draw", function() self:Draw() end) 
+	PussyCallbackAdd("Tick", function() self:Tick() end)
+	PussyCallbackAdd("Draw", function() self:Draw() end) 
  
 	if _G.EOWLoaded then
 		Orb = 1
@@ -4230,8 +4207,8 @@ function Neeko:__init()
 end
 
 function Neeko:QDmgMinion()
-	   local level = myHero:GetSpellData(_Q).level
-    local qdamage = (({70,115,160,205,250})[level] + 0.5 * myHero.ap)
+	   local level = PussymyHero:GetSpellData(_Q).level
+    local qdamage = (({70,115,160,205,250})[level] + 0.5 * PussymyHero.ap)
 	return qdamage
 end
 
@@ -4348,7 +4325,7 @@ function Neeko:LoadMenu()
 end
 
 function Neeko:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if PussymyHero.dead == false and PussyGameIsChatOpen() == false then
 	
 	local Mode = GetMode()
 		if Mode == "Combo" then
@@ -4358,17 +4335,15 @@ function Neeko:Tick()
 			self:AutoR1()
 		elseif Mode == "Harass" then
 			self:Harass()
-			for i = 1, Game.MinionCount() do
-			local minion = Game.Minion(i)
-			local TEAM_ALLY = myHero.team
-			local TEAM_ENEMY = 300 - myHero.team
+			for i = 1, PussyGameMinionCount() do
+			local minion = PussyGameMinion(i)
 			local target = GetTarget(1000)
 				if target == nil then	
-					if minion.team == TEAM_ENEMY and not minion.dead and (myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) then	
+					if minion.team == TEAM_ENEMY and not minion.dead and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) then	
 						local count = GetMinionCount(225, minion)			
 						local hp = minion.health
 						local QDmg = self:QDmgMinion()
-						if IsValid(minion,900) and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Harass.LH.UseQL:Value() and count >= self.Menu.Harass.LH.UseQLM:Value() and hp <= QDmg then
+						if IsValid(minion,900) and Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Harass.LH.UseQL:Value() and count >= self.Menu.Harass.LH.UseQLM:Value() and hp <= QDmg then
 							Control.CastSpell(HK_Q, minion)
 						end	 
 					end
@@ -4389,12 +4364,12 @@ function Neeko:Tick()
 end 
 
 function Neeko:Activator()
-if myHero.dead then return end
+if PussymyHero.dead then return end
 			--Zhonyas
-	if EnemiesAround(myHero.pos,2000) then
-	local hp = myHero.health	
+	if EnemiesAround(PussymyHero.pos,2000) then
+		local hp = PussymyHero.health	
 		if self.Menu.a.Zhonyas.ON:Value()  then
-		local Zhonyas = GetItemSlot(myHero, 3157)
+		local Zhonyas = GetItemSlot(PussymyHero, 3157)
 			if Zhonyas > 0 and Ready(Zhonyas) then 
 				if hp <= self.Menu.a.Zhonyas.HP:Value() then
 					Control.CastSpell(ItemHotKey[Zhonyas])
@@ -4403,7 +4378,7 @@ if myHero.dead then return end
 		end
 			--Stopwatch
 		if self.Menu.a.Zhonyas.ON:Value() then
-		local Stop = GetItemSlot(myHero, 2420)
+		local Stop = GetItemSlot(PussymyHero, 2420)
 			if Stop > 0 and Ready(Stop) then 
 				if hp <= self.Menu.a.Zhonyas.HP:Value() then
 					Control.CastSpell(ItemHotKey[Stop])
@@ -4416,37 +4391,33 @@ end
 
 
 function Neeko:Draw()
-  if myHero.dead then return end
+  if PussymyHero.dead then return end
 	if(self.Menu.Drawing.DrawR:Value()) and Ready(_R) then
-    Draw.Circle(myHero, 600, 1, Draw.Color(255, 225, 255, 10))
+    PussyDrawCircle(PussymyHero, 600, 1, PussyDrawColor(255, 225, 255, 10))
 	end                                                 
 	if(self.Menu.Drawing.DrawQ:Value()) and Ready(_Q) then
-    Draw.Circle(myHero, 800, 1, Draw.Color(225, 225, 0, 10))
+    PussyDrawCircle(PussymyHero, 800, 1, PussyDrawColor(225, 225, 0, 10))
 	end
 	if(self.Menu.Drawing.DrawE:Value()) and Ready(_E) then
-    Draw.Circle(myHero, 1000, 1, Draw.Color(225, 225, 125, 10))
+    PussyDrawCircle(PussymyHero, 1000, 1, PussyDrawColor(225, 225, 125, 10))
 	end
 	local target = GetTarget(20000)
 	if target == nil then return end	
 	if target and self.Menu.Drawing.Kill:Value() and not target.dead then
 	local hp = target.health	
 		if Ready(_Q) and getdmg("Q", target) > hp then
-			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))
+			PussyDrawText("Killable", 24, target.pos2D.x, target.pos2D.y,PussyDrawColor(0xFF00FF00))
+			PussyDrawText("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,PussyDrawColor(0xFF00FF00))
 		end	
 		if Ready(_E) and getdmg("E", target) > hp then
-			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))		
+			PussyDrawText("Killable", 24, target.pos2D.x, target.pos2D.y,PussyDrawColor(0xFF00FF00))
+			PussyDrawText("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,PussyDrawColor(0xFF00FF00))		
 		end	
 		if Ready(_E) and Ready(_Q) and (getdmg("E", target) + getdmg("Q", target)) > hp then
-			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))	
+			PussyDrawText("Killable", 24, target.pos2D.x, target.pos2D.y,PussyDrawColor(0xFF00FF00))
+			PussyDrawText("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,PussyDrawColor(0xFF00FF00))	
 		end	
 	end
-end
-       
-function Neeko:ValidTarget(unit,range) 
-  return unit ~= nil and unit.valid and unit.visible and not unit.dead and unit.isTargetable and not unit.isImmortal 
 end
 
 			
@@ -4454,9 +4425,9 @@ function Neeko:AutoE()
 local target = GetTarget(1500)     	
 if target == nil then return end
 	if IsValid(target,1000) and self.Menu.AutoE.UseE:Value() and Ready(_E)	then	
-	local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
-	local targetCount = HPred:GetLineTargetCount(myHero.pos, aimPosition, E.delay, E.speed, E.width, false)	
-		if myHero.pos:DistanceTo(target.pos) <= 1000 and hitRate and hitRate >= 1 and targetCount >= 2 then
+		local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
+		local targetCount = HPred:GetLineTargetCount(PussymyHero.pos, aimPosition, E.delay, E.speed, E.width, false)	
+		if PussymyHero.pos:DistanceTo(target.pos) <= 1000 and hitRate and hitRate >= 1 and targetCount >= 2 then
 			Control.CastSpell(HK_E, aimPosition)
 		end
 	end
@@ -4468,15 +4439,15 @@ local target = GetTarget(1500)
 if target == nil then return end
 
 if IsValid(target,1000) then
-local Protobelt = GetItemSlot(myHero, 3152)		
+	local Protobelt = GetItemSlot(PussymyHero, 3152)		
 	
-	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
+	if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
 		if  Ready(_R) and Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt1()
 			self:Immo1()
 			self:Proto()
 		end
-	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
+	elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
 		if Ready(_R) and Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt1()
 			self:Immo1()
@@ -4484,13 +4455,13 @@ local Protobelt = GetItemSlot(myHero, 3152)
 		end	
 	end
 
-	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
+	if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
 		if Ready(_R) and not Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt2()
 			self:Immo2()
 			self:Proto()	
 		end
-	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
+	elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
 		if  Ready(_R) and not Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt2()
 			self:Immo2()
@@ -4498,25 +4469,25 @@ local Protobelt = GetItemSlot(myHero, 3152)
 		end	
 	end
 	
-	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
+	if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
 		if  Ready(_R) and Ready(_W) and (Protobelt > 0 and not Ready(Protobelt) or Protobelt == 0) then
 			self:AutoUlt3()
 			self:Immo3()
 		end
-	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
+	elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
 		if  Ready(_R) and Ready(_W) and (Protobelt > 0 and not Ready(Protobelt) or Protobelt == 0) then
 			self:AutoUlt3()
 			self:Immo3()
 		end	
 	end
 	
-	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and not Ready(SUMMONER_1) then
+	if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and not Ready(SUMMONER_1) then
 		if  Ready(_R) and Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt4()
 			self:Immo4()
 			self:Proto()	
 		end
-	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and not Ready(SUMMONER_2) then
+	elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and not Ready(SUMMONER_2) then
 		if Ready(_R) and Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt4()
 			self:Immo4()
@@ -4524,13 +4495,13 @@ local Protobelt = GetItemSlot(myHero, 3152)
 		end	
 	end	
 	
-	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and not Ready(SUMMONER_1) then
+	if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and not Ready(SUMMONER_1) then
 		if Ready(_R) and not Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt5()
 			self:Immo5()
 			self:Proto()	
 		end
-	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and not Ready(SUMMONER_2) then
+	elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and not Ready(SUMMONER_2) then
 		if Ready(_R) and not Ready(_W) and Protobelt > 0 and Ready(Protobelt) then
 			self:AutoUlt5()
 			self:Immo5()
@@ -4538,12 +4509,12 @@ local Protobelt = GetItemSlot(myHero, 3152)
 		end	
 	end	
 	
-	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
+	if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
 		if Ready(_R) and not Ready(_W) and (Protobelt > 0 and not Ready(Protobelt)) or Protobelt == 0 then
 			self:AutoUlt6()
 			self:Immo6()
 		end
-	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
+	elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
 		if Ready(_R) and not Ready(_W) and (Protobelt > 0 and not Ready(Protobelt)) or Protobelt == 0 then
 			self:AutoUlt6()
 			self:Immo6()
@@ -4554,29 +4525,29 @@ end
 
 
 function Neeko:KillSteal()
-if myHero.dead then return end	
+if PussymyHero.dead then return end	
 	local target = GetTarget(2000)     	
 	if target == nil then return end
 	local hp = target.health
-	local EDmg = getdmg("E", target, myHero)
-	local QDmg = getdmg("Q", target, myHero)
+	local EDmg = getdmg("E", target, PussymyHero)
+	local QDmg = getdmg("Q", target, PussymyHero)
 	if IsValid(target,1100) then
-		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
+		local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) and hitRate and hitRate >= self.Menu.ks.PredQ:Value() then
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 800 then
+			if QDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 800 then
 				Control.CastSpell(HK_Q, aimPosition)
 			end
 		end
-		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
+		local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
 		if self.Menu.ks.UseE:Value() and Ready(_E) and hitRate and hitRate >= self.Menu.ks.PredE:Value() then
-			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1000 then
+			if EDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 1000 then
 				Control.CastSpell(HK_E, aimPosition)
 			end
 		end
-		local hitRateE, aimPositionE = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
-		local hitRateQ, aimPositionQ = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
+		local hitRateE, aimPositionE = HPred:GetHitchance(PussymyHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
+		local hitRateQ, aimPositionQ = HPred:GetHitchance(PussymyHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
 		if self.Menu.ks.UseEQ:Value() and Ready(_E) and Ready(_Q) and hitRateE and hitRateQ and hitRateE >= self.Menu.ks.PredE:Value() and hitRateQ >= self.Menu.ks.PredQ:Value() then
-			if (EDmg + QDmg) >= hp and myHero.pos:DistanceTo(target.pos) <= 800 then
+			if (EDmg + QDmg) >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 800 then
 				Control.CastSpell(HK_E, aimPositionE)
 				Control.CastSpell(HK_Q, aimPositionQ)
 			end
@@ -4588,16 +4559,16 @@ end
 function Neeko:EscapeW()  
 	local target = GetTarget(1500)
 	if target == nil then return end
-	if target and not target.dead and not myHero.dead then
-	local hp = myHero.health
-		if self.Menu.evade.UseW:Value() and hp <= self.Menu.evade.Min:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) <= 1000 then
+	if target and not target.dead and not PussymyHero.dead then
+	local hp = PussymyHero.health
+		if self.Menu.evade.UseW:Value() and hp <= self.Menu.evade.Min:Value() and Ready(_W) and PussymyHero.pos:DistanceTo(target.pos) <= 1000 then
 			local attackFalse = _G.SDK.Orbwalker:SetAttack(false)
 			local attackTrue = _G.SDK.Orbwalker:SetAttack(true)
-			local MPos = myHero.pos:Shortened(target.pos, 1000)
+			local MPos = PussymyHero.pos:Shortened(target.pos, 1000)
 			DelayAction(attackFalse,0)
-			Control.SetCursorPos(MPos)
-			Control.KeyDown(HK_W)
-			Control.KeyUp(HK_W)
+			PussyControlSetCursorPos(MPos)
+			PussyControlKeyDown(HK_W)
+			PussyControlKeyUp(HK_W)
 			DelayAction(attackTrue, 0.2)
 		end
 	end
@@ -4606,18 +4577,18 @@ end
 function Neeko:GankW()  
 	local target = GetTarget(1500)
 	if target == nil then return end
-	if target and not target.dead and not myHero.dead then
+	if target and not target.dead and not PussymyHero.dead then
 		if self.Menu.evade.gank:Value() and Ready(_W) then
-			local targetCount = CountEnemiesNear(myHero.pos, 1000)
-			local allyCount = GetAllyCount(1500, myHero)
+			local targetCount = CountEnemiesNear(PussymyHero.pos, 1000)
+			local allyCount = GetAllyCount(1500, PussymyHero)
 			if targetCount > 1 and allyCount == 0 then
 				local attackFalse = _G.SDK.Orbwalker:SetAttack(false)
 				local attackTrue = _G.SDK.Orbwalker:SetAttack(true)
-				local MPos = myHero.pos:Shortened(target.pos, 1000)
+				local MPos = PussymyHero.pos:Shortened(target.pos, 1000)
 				DelayAction(attackFalse,0)
-				Control.SetCursorPos(MPos)
-				Control.KeyDown(HK_W)
-				Control.KeyUp(HK_W)
+				PussyControlSetCursorPos(MPos)
+				PussyControlKeyDown(HK_W)
+				PussyControlKeyUp(HK_W)
 				DelayAction(attackTrue, 0.2)				
 			end
 		end
@@ -4629,11 +4600,11 @@ function Neeko:AutoR()
 local target = GetTarget(1000)
 if target == nil then return end
 
-local Protobelt = GetItemSlot(myHero, 3152)	
+local Protobelt = GetItemSlot(PussymyHero, 3152)	
 	if IsValid(target,1000) and self.Menu.Combo.Ult.WR.UseR:Value() and self.Menu.a.ON:Value() then
 		if Ready(_R) and Ready(_W) and ((Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
-			local targetCount = CountEnemiesNear(myHero.pos, 600)
-			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and myHero.pos:DistanceTo(target.pos) < 400 then
+			local targetCount = CountEnemiesNear(PussymyHero.pos, 600)
+			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and PussymyHero.pos:DistanceTo(target.pos) < 400 then
 				SetAttack(false)
 				Control.CastSpell(HK_W)
 				self:Proto()
@@ -4642,8 +4613,8 @@ local Protobelt = GetItemSlot(myHero, 3152)
 			end
 			
 		elseif Ready(_R) and not Ready(_W) and ((Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then	
-			local targetCount = CountEnemiesNear(myHero.pos, 600)
-			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and myHero.pos:DistanceTo(target.pos) < 400 then
+			local targetCount = CountEnemiesNear(PussymyHero.pos, 600)
+			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and PussymyHero.pos:DistanceTo(target.pos) < 400 then
 				SetAttack(false)
 				self:Proto()
 				Control.CastSpell(HK_R)	
@@ -4651,8 +4622,8 @@ local Protobelt = GetItemSlot(myHero, 3152)
 			end
 		
 		elseif Ready(_R) and Ready(_W) and ((not Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
-			local targetCount = CountEnemiesNear(myHero.pos, 600)
-			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and myHero.pos:DistanceTo(target.pos) < 400 then
+			local targetCount = CountEnemiesNear(PussymyHero.pos, 600)
+			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and PussymyHero.pos:DistanceTo(target.pos) < 400 then
 				SetAttack(false)
 				Control.CastSpell(HK_W)
 				Control.CastSpell(HK_R)	
@@ -4660,8 +4631,8 @@ local Protobelt = GetItemSlot(myHero, 3152)
 			end
 			
 		elseif Ready(_R) and not Ready(_W) and ((not Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then	
-			local targetCount = CountEnemiesNear(myHero.pos, 600)
-			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and myHero.pos:DistanceTo(target.pos) < 400 then
+			local targetCount = CountEnemiesNear(PussymyHero.pos, 600)
+			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and PussymyHero.pos:DistanceTo(target.pos) < 400 then
 				SetAttack(false)
 				Control.CastSpell(HK_R)	
 				DelayAction(function()SetAttack(true) end, 0.3)
@@ -4677,16 +4648,16 @@ function Neeko:AutoR1()
 local target = GetTarget(2000)
 if target == nil then return end
 local hp = target.health
-local RDmg = getdmg("R", target, myHero)
-local QDmg = getdmg("Q", target, myHero)
-local EDmg = getdmg("E", target, myHero)
-local Protobelt = GetItemSlot(myHero, 3152)	
+local RDmg = getdmg("R", target, PussymyHero)
+local QDmg = getdmg("Q", target, PussymyHero)
+local EDmg = getdmg("E", target, PussymyHero)
+local Protobelt = GetItemSlot(PussymyHero, 3152)	
 	if IsValid(target,500) then
 		
 		if self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and Ready(_W) and ((Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
-			local targetCount = CountEnemiesNear(myHero.pos, 2000)
-			local allyCount = GetAllyCount(1500, myHero)
-			if targetCount <= 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 400 and hp < (RDmg+QDmg+EDmg) then
+			local targetCount = CountEnemiesNear(PussymyHero.pos, 2000)
+			local allyCount = GetAllyCount(1500, PussymyHero)
+			if targetCount <= 1 and allyCount == 0 and PussymyHero.pos:DistanceTo(target.pos) <= 400 and hp < (RDmg+QDmg+EDmg) then
 				SetAttack(false)
 				Control.CastSpell(HK_W)
 				self:Proto()
@@ -4694,27 +4665,27 @@ local Protobelt = GetItemSlot(myHero, 3152)
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end
 		elseif self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and not Ready(_W) and ((Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
-			local targetCount = CountEnemiesNear(myHero.pos, 2000)
-			local allyCount = GetAllyCount(1500, myHero)
-			if targetCount <= 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 400 and hp < (RDmg+QDmg+EDmg) then
+			local targetCount = CountEnemiesNear(PussymyHero.pos, 2000)
+			local allyCount = GetAllyCount(1500, PussymyHero)
+			if targetCount <= 1 and allyCount == 0 and PussymyHero.pos:DistanceTo(target.pos) <= 400 and hp < (RDmg+QDmg+EDmg) then
 				SetAttack(false)
 				self:Proto()
 				Control.CastSpell(HK_R)	
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end	
 		elseif self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and Ready(_W) and ((not Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
-			local targetCount = CountEnemiesNear(myHero.pos, 2000)
-			local allyCount = GetAllyCount(1500, myHero)
-			if targetCount <= 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 300 and hp < (RDmg+QDmg+EDmg) then
+			local targetCount = CountEnemiesNear(PussymyHero.pos, 2000)
+			local allyCount = GetAllyCount(1500, PussymyHero)
+			if targetCount <= 1 and allyCount == 0 and PussymyHero.pos:DistanceTo(target.pos) <= 300 and hp < (RDmg+QDmg+EDmg) then
 				SetAttack(false)
 				Control.CastSpell(HK_W)
 				Control.CastSpell(HK_R)	
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end
 		elseif self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and not Ready(_W) and (( not Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
-			local targetCount = CountEnemiesNear(myHero.pos, 2000)
-			local allyCount = GetAllyCount(1500, myHero)
-			if targetCount <= 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 300 and hp < (RDmg+QDmg+EDmg) then
+			local targetCount = CountEnemiesNear(PussymyHero.pos, 2000)
+			local allyCount = GetAllyCount(1500, PussymyHero)
+			if targetCount <= 1 and allyCount == 0 and PussymyHero.pos:DistanceTo(target.pos) <= 300 and hp < (RDmg+QDmg+EDmg) then
 				SetAttack(false)
 				Control.CastSpell(HK_R)	
 				DelayAction(function()SetAttack(true) end, 0.3)
@@ -4725,12 +4696,12 @@ end
 
 			--Hextech Protobelt
 function Neeko:Proto()	
-if myHero.dead then return end	
+if PussymyHero.dead then return end	
 	local target = GetTarget(1000)
 	if target == nil then return end
-	local Protobelt = GetItemSlot(myHero, 3152)
+	local Protobelt = GetItemSlot(PussymyHero, 3152)
 	if IsValid(target,600) and self.Menu.a.ON:Value() then
-		if myHero.pos:DistanceTo(target.pos) < 500 and Protobelt > 0 and Ready(Protobelt)  then	
+		if PussymyHero.pos:DistanceTo(target.pos) < 500 and Protobelt > 0 and Ready(Protobelt)  then	
 			Control.CastSpell(ItemHotKey[Protobelt], target)
 			CastSpell(ItemHotKey[Protobelt], target, 2.0)
 		end
@@ -4745,16 +4716,16 @@ function Neeko:AutoUlt1() --full
 	for i,ally in pairs(GetAllyHeroes()) do	
 		if IsValid(ally,900) then
 		local targetCount = CountEnemiesNear(ally.pos, 600)	
-			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 800 and myHero.pos:DistanceTo(ally.pos) >= 300 then
-					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
+			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, PussymyHero) >= CountEnemiesNear(PussymyHero.pos, 2000)]] then
+				if targetCount >= 2 and PussymyHero.pos:DistanceTo(ally.pos) <= 800 and PussymyHero.pos:DistanceTo(ally.pos) >= 300 then
+					if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_1, ally.pos)
 						Control.CastSpell(HK_W)
 						Control.CastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
-					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
+					elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_2, ally.pos)
 						Control.CastSpell(HK_W)
@@ -4774,15 +4745,15 @@ function Neeko:AutoUlt2()   --no[W]
 	for i,ally in pairs(GetAllyHeroes()) do	
 		if IsValid(ally,900) then
 		local targetCount = CountEnemiesNear(ally.pos, 600)		
-			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 800 and myHero.pos:DistanceTo(ally.pos) >= 300 then
-					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
+			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, PussymyHero) >= CountEnemiesNear(PussymyHero.pos, 2000)]] then
+				if targetCount >= 2 and PussymyHero.pos:DistanceTo(ally.pos) <= 800 and PussymyHero.pos:DistanceTo(ally.pos) >= 300 then
+					if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_1, ally.pos)
 						Control.CastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
-					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
+					elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_2, ally.pos)
 						Control.CastSpell(HK_R)
@@ -4801,16 +4772,16 @@ function Neeko:AutoUlt3() --noProtobelt
 	for i,ally in pairs(GetAllyHeroes()) do	
 		if IsValid(ally,500) then
 		local targetCount = CountEnemiesNear(ally.pos, 600)		
-			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 500 and myHero.pos:DistanceTo(ally.pos) >= 200 then
-					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
+			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, PussymyHero) >= CountEnemiesNear(PussymyHero.pos, 2000)]] then
+				if targetCount >= 2 and PussymyHero.pos:DistanceTo(ally.pos) <= 500 and PussymyHero.pos:DistanceTo(ally.pos) >= 200 then
+					if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_1, ally.pos)
 						Control.CastSpell(HK_W)
 						Control.CastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
-					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
+					elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_2, ally.pos)
 						Control.CastSpell(HK_W)
@@ -4830,8 +4801,8 @@ function Neeko:AutoUlt4()  --noFlash
 	for i,ally in pairs(GetAllyHeroes()) do	
 		if IsValid(ally,500) then
 		local targetCount = CountEnemiesNear(ally.pos, 600)		
-			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 400 and myHero.pos:DistanceTo(ally.pos) >= 100 then
+			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, PussymyHero) >= CountEnemiesNear(PussymyHero.pos, 2000)]] then
+				if targetCount >= 2 and PussymyHero.pos:DistanceTo(ally.pos) <= 400 and PussymyHero.pos:DistanceTo(ally.pos) >= 100 then
 					SetAttack(false)
 					Control.CastSpell(HK_W)
 					Control.CastSpell(HK_R)
@@ -4851,8 +4822,8 @@ function Neeko:AutoUlt5()  --noFlash, no[W]
 	for i,ally in pairs(GetAllyHeroes()) do	
 		if IsValid(ally,500) then
 		local targetCount = CountEnemiesNear(ally.pos, 600)	
-			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 400 and myHero.pos:DistanceTo(ally.pos) >= 100 then
+			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, PussymyHero) >= CountEnemiesNear(PussymyHero.pos, 2000)]] then
+				if targetCount >= 2 and PussymyHero.pos:DistanceTo(ally.pos) <= 400 and PussymyHero.pos:DistanceTo(ally.pos) >= 100 then
 					SetAttack(false)
 					Control.CastSpell(HK_R)
 					DelayAction(function()SetAttack(true) end, 0.3)
@@ -4869,15 +4840,15 @@ function Neeko:AutoUlt6() --noProtobelt, no[W]
 	for i,ally in pairs(GetAllyHeroes()) do
 		if IsValid(ally,500) then
 		local targetCount = CountEnemiesNear(ally.pos, 600)		
-			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 400 and myHero.pos:DistanceTo(ally.pos) >= 200 then
-					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
+			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, PussymyHero) >= CountEnemiesNear(PussymyHero.pos, 2000)]] then
+				if targetCount >= 2 and PussymyHero.pos:DistanceTo(ally.pos) <= 400 and PussymyHero.pos:DistanceTo(ally.pos) >= 200 then
+					if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_1, ally.pos)
 						Control.CastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
-					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
+					elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_2, ally.pos)
 						Control.CastSpell(HK_R)
@@ -4895,16 +4866,16 @@ function Neeko:Immo1() --full
 	if target == nil then return end
 	local targetCount = GetImmobileCount(600, target.pos)
 	if IsValid(target,900) and targetCount >= self.Menu.Combo.Ult.Immo.UseR3M:Value() then			
-		if self.Menu.Combo.Ult.Immo.UseR3:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-			if myHero.pos:DistanceTo(target.pos) <= 800 and myHero.pos:DistanceTo(target.pos) >= 300 then
-				if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
+		if self.Menu.Combo.Ult.Immo.UseR3:Value()  --[[and GetAllyCount(1500, PussymyHero) >= CountEnemiesNear(PussymyHero.pos, 2000)]] then
+			if PussymyHero.pos:DistanceTo(target.pos) <= 800 and PussymyHero.pos:DistanceTo(target.pos) >= 300 then
+				if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_1, target.pos)
 						Control.CastSpell(HK_W)
 						Control.CastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
-				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
+				elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_2, target.pos)
 						Control.CastSpell(HK_W)
@@ -4921,15 +4892,15 @@ function Neeko:Immo2() --no[W]
 	if target == nil then return end
 	local targetCount = GetImmobileCount(600, target.pos)
 	if IsValid(target,900) and targetCount >= self.Menu.Combo.Ult.Immo.UseR3M:Value() then		
-		if self.Menu.Combo.Ult.Immo.UseR3:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-			if myHero.pos:DistanceTo(target.pos) <= 800 and myHero.pos:DistanceTo(target.pos) >= 300 then
-				if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
+		if self.Menu.Combo.Ult.Immo.UseR3:Value()  --[[and GetAllyCount(1500, PussymyHero) >= CountEnemiesNear(PussymyHero.pos, 2000)]] then
+			if PussymyHero.pos:DistanceTo(target.pos) <= 800 and PussymyHero.pos:DistanceTo(target.pos) >= 300 then
+				if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_1, target.pos)
 						Control.CastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
-				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
+				elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_2, target.pos)
 						Control.CastSpell(HK_R)
@@ -4945,16 +4916,16 @@ function Neeko:Immo3() --noProtobelt
 	if target == nil then return end
 	local targetCount = GetImmobileCount(600, target.pos)
 	if IsValid(target,500) and targetCount >= self.Menu.Combo.Ult.Immo.UseR3M:Value() then			
-		if self.Menu.Combo.Ult.Immo.UseR3:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-			if myHero.pos:DistanceTo(target.pos) <= 500 and myHero.pos:DistanceTo(target.pos) >= 200 then
-				if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
+		if self.Menu.Combo.Ult.Immo.UseR3:Value()  --[[and GetAllyCount(1500, PussymyHero) >= CountEnemiesNear(PussymyHero.pos, 2000)]] then
+			if PussymyHero.pos:DistanceTo(target.pos) <= 500 and PussymyHero.pos:DistanceTo(target.pos) >= 200 then
+				if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_1, target.pos)
 						Control.CastSpell(HK_W)
 						Control.CastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
-				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
+				elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_2, target.pos)
 						Control.CastSpell(HK_W)
@@ -4971,8 +4942,8 @@ function Neeko:Immo4() --noFlash
 	if target == nil then return end
 	local targetCount = GetImmobileCount(600, target.pos)
 	if IsValid(target,500) and targetCount >= self.Menu.Combo.Ult.Immo.UseR3M:Value() then			
-		if self.Menu.Combo.Ult.Immo.UseR3:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-			if myHero.pos:DistanceTo(target.pos) <= 400 and myHero.pos:DistanceTo(target.pos) >= 100 then
+		if self.Menu.Combo.Ult.Immo.UseR3:Value()  --[[and GetAllyCount(1500, PussymyHero) >= CountEnemiesNear(PussymyHero.pos, 2000)]] then
+			if PussymyHero.pos:DistanceTo(target.pos) <= 400 and PussymyHero.pos:DistanceTo(target.pos) >= 100 then
 				SetAttack(false)
 				Control.CastSpell(HK_W)
 				Control.CastSpell(HK_R)
@@ -4987,8 +4958,8 @@ function Neeko:Immo5() --noFlash, no[W]
 	if target == nil then return end
 	local targetCount = GetImmobileCount(600, target.pos)
 	if IsValid(target,500) and targetCount >= self.Menu.Combo.Ult.Immo.UseR3M:Value() then		
-		if self.Menu.Combo.Ult.Immo.UseR3:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-			if myHero.pos:DistanceTo(target.pos) <= 400 and myHero.pos:DistanceTo(target.pos) >= 100 then
+		if self.Menu.Combo.Ult.Immo.UseR3:Value()  --[[and GetAllyCount(1500, PussymyHero) >= CountEnemiesNear(PussymyHero.pos, 2000)]] then
+			if PussymyHero.pos:DistanceTo(target.pos) <= 400 and PussymyHero.pos:DistanceTo(target.pos) >= 100 then
 				SetAttack(false)
 				Control.CastSpell(HK_R)
 				DelayAction(function()SetAttack(true) end, 0.3)
@@ -5002,15 +4973,15 @@ function Neeko:Immo6() --noProtobelt, no[W]
 	if target == nil then return end
 	local targetCount = GetImmobileCount(600, target.pos)
 	if IsValid(target,500) and targetCount >= self.Menu.Combo.Ult.Immo.UseR3M:Value() then			
-		if self.Menu.Combo.Ult.Immo.UseR3:Value() --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
-			if myHero.pos:DistanceTo(target.pos) <= 500 and myHero.pos:DistanceTo(target.pos) >= 200 then
-				if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
+		if self.Menu.Combo.Ult.Immo.UseR3:Value() --[[and GetAllyCount(1500, PussymyHero) >= CountEnemiesNear(PussymyHero.pos, 2000)]] then
+			if PussymyHero.pos:DistanceTo(target.pos) <= 500 and PussymyHero.pos:DistanceTo(target.pos) >= 200 then
+				if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_1, target.pos)
 						Control.CastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
-				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
+				elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
 						Control.CastSpell(HK_SUMMONER_2, target.pos)
 						Control.CastSpell(HK_R)
@@ -5027,17 +4998,17 @@ function Neeko:Combo()
 	local target = GetTarget(1100)
 	if target == nil then return end
 	if IsValid(target,1000) then
-		local hitRateE, aimPositionE = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
-		if self.Menu.Combo.UseE:Value() and Ready(_E) and hitRateE and hitRateE >= self.Menu.Combo.PredE:Value() and myHero.pos:DistanceTo(target.pos) <= 1000 then			
+		local hitRateE, aimPositionE = HPred:GetHitchance(PussymyHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
+		if self.Menu.Combo.UseE:Value() and Ready(_E) and hitRateE and hitRateE >= self.Menu.Combo.PredE:Value() and PussymyHero.pos:DistanceTo(target.pos) <= 1000 then			
 			Control.CastSpell(HK_E, aimPositionE)
 		
-		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
-		if self.Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 800 and hitRate and hitRate >= self.Menu.Combo.PredQ:Value() then 
+		local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
+		if self.Menu.Combo.UseQ:Value() and Ready(_Q) and PussymyHero.pos:DistanceTo(target.pos) <= 800 and hitRate and hitRate >= self.Menu.Combo.PredQ:Value() then 
 			Control.CastSpell(HK_Q, aimPosition)
 		end
 		end
-		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
-		if self.Menu.Combo.UseQ:Value() and Ready(_Q) and not Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 800 and hitRate and hitRate >= self.Menu.Combo.PredQ:Value() and not IsImmobileTarget(target) then
+		local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
+		if self.Menu.Combo.UseQ:Value() and Ready(_Q) and not Ready(_E) and PussymyHero.pos:DistanceTo(target.pos) <= 800 and hitRate and hitRate >= self.Menu.Combo.PredQ:Value() and not IsImmobileTarget(target) then
 			Control.CastSpell(HK_Q, aimPosition)
 		end	
 	end
@@ -5049,19 +5020,19 @@ end
 function Neeko:Harass()	
 	local target = GetTarget(800)
 	if target == nil then return end	
-	if IsValid(target,900)  and (myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) then
-		local hitRateE, aimPositionE = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
-		if Ready(_E) and Ready(_Q) and hitRateE and hitRateE >= self.Menu.Harass.PredE:Value() and myHero.pos:DistanceTo(target.pos) <= 800 and self.Menu.Harass.UseE:Value() then
+	if IsValid(target,900)  and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) then
+		local hitRateE, aimPositionE = HPred:GetHitchance(PussymyHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
+		if Ready(_E) and Ready(_Q) and hitRateE and hitRateE >= self.Menu.Harass.PredE:Value() and PussymyHero.pos:DistanceTo(target.pos) <= 800 and self.Menu.Harass.UseE:Value() then
 			Control.CastSpell(HK_E, aimPositionE)
 			
-		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
+		local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and hitRate and hitRate >= self.Menu.Harass.PredQ:Value() then	
 			Control.CastSpell(HK_Q, aimPosition)
 		end
 		end
 		
-		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
-		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and not Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 800 and hitRate and hitRate >= self.Menu.Harass.PredQ:Value() then
+		local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
+		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and not Ready(_E) and PussymyHero.pos:DistanceTo(target.pos) <= 800 and hitRate and hitRate >= self.Menu.Harass.PredQ:Value() then
 			Control.CastSpell(HK_Q, aimPosition)
 		end
 	end
@@ -5069,20 +5040,18 @@ end
 
 
 function Neeko:Clear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
-    local TEAM_ALLY = myHero.team
-	local TEAM_ENEMY = 300 - myHero.team
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)
 
-		if minion.team == TEAM_ENEMY and (myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) then	
+		if minion.team == TEAM_ENEMY and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) then	
 		local hp = minion.health
 		local QDmg = self:QDmgMinion()		
 			local count = GetMinionCount(225, minion)			
-			if IsValid(minion,800) and Ready(_Q) and hp <= QDmg and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Clear.UseQL:Value() and count >= self.Menu.Clear.UseQLM:Value() then
+			if IsValid(minion,800) and Ready(_Q) and hp <= QDmg and PussymyHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Clear.UseQL:Value() and count >= self.Menu.Clear.UseQLM:Value() then
 				Control.CastSpell(HK_Q, minion)
 			end	
-			local count = GetMinionCount(1000, myHero)
-			if IsValid(minion,1000) and Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 1000 and self.Menu.Clear.UseE:Value() and count >= self.Menu.Clear.UseEM:Value() then
+			local count = GetMinionCount(1000, PussymyHero)
+			if IsValid(minion,1000) and Ready(_E) and PussymyHero.pos:DistanceTo(minion.pos) <= 1000 and self.Menu.Clear.UseE:Value() and count >= self.Menu.Clear.UseEM:Value() then
 				Control.CastSpell(HK_E, minion)
 			end  
 		end
@@ -5090,14 +5059,14 @@ function Neeko:Clear()
 end
 
 function Neeko:JungleClear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)	
-	local TEAM_JUNGLE = 300
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)	
+
 		if minion.team == TEAM_JUNGLE then	
-			if IsValid(minion,800) and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.JClear.UseQ:Value() and (myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 ) then
+			if IsValid(minion,800) and Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.JClear.UseQ:Value() and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 ) then
 				Control.CastSpell(HK_Q, minion)
 			end
-			if IsValid(minion,1000) and Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 1000 and self.Menu.JClear.UseE:Value() and (myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 ) then
+			if IsValid(minion,1000) and Ready(_E) and PussymyHero.pos:DistanceTo(minion.pos) <= 1000 and self.Menu.JClear.UseE:Value() and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 ) then
 				Control.CastSpell(HK_E, minion)
 			end  
 		end
@@ -5121,8 +5090,8 @@ function Sylas:__init()
 	menu = 2
 	self:LoadSpells()   	
 	self:LoadMenu()                                            
-	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("Draw", function() self:Draw() end) 
+	PussyCallbackAdd("Tick", function() self:Tick() end)
+	PussyCallbackAdd("Draw", function() self:Draw() end) 
  
 	if _G.EOWLoaded then
 		Orb = 1
@@ -5239,7 +5208,7 @@ function Sylas:LoadMenu()
 end
 
 function Sylas:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if PussymyHero.dead == false and PussyGameIsChatOpen() == false then
 	local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
@@ -5426,17 +5395,15 @@ if myHero.dead == false and Game.IsChatOpen() == false then
 									--131 champs added  
 	elseif Mode == "Harass" then
 		self:Harass()
-		for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
-		local TEAM_ALLY = myHero.team
-		local TEAM_ENEMY = 300 - myHero.team
+		for i = 1, PussyGameMinionCount() do
+		local minion = PussyGameMinion(i)
 		local target = GetTarget(1000)
 			if target == nil then	
-				if minion.team == TEAM_ENEMY and not minion.dead and (myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) then	
+				if minion.team == TEAM_ENEMY and not minion.dead and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) then	
 					local count = GetMinionCount(225, minion)			
 					local hp = minion.health
-					local QDmg = getdmg("Q", minion, myHero)
-					if IsValid(minion,800) and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Harass.LH.UseQL:Value() and count >= self.Menu.Harass.LH.UseQLM:Value() and hp <= QDmg then
+					local QDmg = getdmg("Q", minion, PussymyHero)
+					if IsValid(minion,800) and Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Harass.LH.UseQL:Value() and count >= self.Menu.Harass.LH.UseQLM:Value() and hp <= QDmg then
 						Control.CastSpell(HK_Q, minion)
 					end	 
 				end
@@ -5458,13 +5425,13 @@ if myHero.dead == false and Game.IsChatOpen() == false then
 	local target = GetTarget(1200)  
 	if target == nil then return end
 	if IsValid(target,1200) and self.Menu.AutoR.UseR:Value() and self.Menu.AutoR.Target["ult"..target.charName]:Value() and Ready(_R) then		
-		if myHero.pos:DistanceTo(target.pos) <= 1050 and (myHero:GetSpellData(_R).name == "SylasR") and GotBuff(target, "SylasR") == 0 then                     
+		if PussymyHero.pos:DistanceTo(target.pos) <= 1050 and (PussymyHero:GetSpellData(_R).name == "SylasR") and GotBuff(target, "SylasR") == 0 then                     
 				Control.CastSpell(HK_R, target)
 		end
 	end	
  
 	if IsValid(target,600) and self.Menu.AutoW.UseW:Value() and Ready(_W) then
-		if myHero.pos:DistanceTo(target.pos) <= 400  and myHero.health/myHero.maxHealth <= self.Menu.AutoW.hp:Value()/100 then
+		if PussymyHero.pos:DistanceTo(target.pos) <= 400  and PussymyHero.health/PussymyHero.maxHealth <= self.Menu.AutoW.hp:Value()/100 then
 			Control.CastSpell(HK_W, target)
 		end
 	end	
@@ -5476,12 +5443,12 @@ end
 
 			--Hextech Protobelt
 function Sylas:Proto()	
-if myHero.dead then return end	
+if PussymyHero.dead then return end	
 	local target = GetTarget(1000)
 	if target == nil then return end
-	local Protobelt = GetItemSlot(myHero, 3152)
+	local Protobelt = GetItemSlot(PussymyHero, 3152)
 	if IsValid(target,600) and self.Menu.a.ON:Value() then
-		if myHero.pos:DistanceTo(target.pos) < 500 and Protobelt > 0 and Ready(Protobelt) then	
+		if PussymyHero.pos:DistanceTo(target.pos) < 500 and Protobelt > 0 and Ready(Protobelt) then	
 			Control.CastSpell(ItemHotKey[Protobelt], target.pos)
 
 		end
@@ -5492,22 +5459,22 @@ end
 
 function Sylas:Activator()
 local target = GetTarget(1000)
-if myHero.dead or target == nil then return end
+if PussymyHero.dead or target == nil then return end
 	if IsValid(target,1000) then
 			--Zhonyas
 		if self.Menu.a.Zhonyas.ON:Value()  then
-			local Zhonyas = GetItemSlot(myHero, 3157)
+			local Zhonyas = GetItemSlot(PussymyHero, 3157)
 			if Zhonyas > 0 and Ready(Zhonyas) then 
-				if myHero.health/myHero.maxHealth <= self.Menu.a.Zhonyas.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.a.Zhonyas.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Zhonyas])
 				end
 			end
 		end
 			--Stopwatch
 		if self.Menu.a.Zhonyas.ON:Value() then
-			local Stop = GetItemSlot(myHero, 2420)
+			local Stop = GetItemSlot(PussymyHero, 2420)
 			if Stop > 0 and Ready(Stop) then 
-				if myHero.health/myHero.maxHealth <= self.Menu.a.Zhonyas.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.a.Zhonyas.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Stop])
 				end
 			end
@@ -5519,39 +5486,39 @@ end
 
 
 function Sylas:Draw()
-  if myHero.dead then return end
+  if PussymyHero.dead then return end
 	if(self.Menu.Drawing.DrawR:Value()) and Ready(_R) then
-    Draw.Circle(myHero, 1050, 1, Draw.Color(255, 225, 255, 10)) --1050
+    PussyDrawCircle(PussymyHero, 1050, 1, PussyDrawColor(255, 225, 255, 10)) --1050
 	end                                                 
 	if(self.Menu.Drawing.DrawQ:Value()) and Ready(_Q) then
-    Draw.Circle(myHero, 755, 1, Draw.Color(225, 225, 0, 10))
+    PussyDrawCircle(PussymyHero, 755, 1, PussyDrawColor(225, 225, 0, 10))
 	end
 	if(self.Menu.Drawing.DrawE:Value()) and Ready(_E) then
-    Draw.Circle(myHero, 800, 1, Draw.Color(225, 225, 125, 10))
+    PussyDrawCircle(PussymyHero, 800, 1, PussyDrawColor(225, 225, 125, 10))
 	end
 	if(self.Menu.Drawing.DrawW:Value()) and Ready(_W) then
-    Draw.Circle(myHero, 400, 1, Draw.Color(225, 225, 125, 10))
+    PussyDrawCircle(PussymyHero, 400, 1, PussyDrawColor(225, 225, 125, 10))
 	end
 	local target = GetTarget(20000)
 	if target == nil then return end	
 	if target and self.Menu.Drawing.Kill:Value() and not target.dead then
 	local hp = target.health
-	local fullDmg = (getdmg("Q", target, myHero) + getdmg("E", target, myHero) + getdmg("W", target, myHero))	
-		if Ready(_Q) and getdmg("Q", target, myHero) > hp then
-			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))
+	local fullDmg = (getdmg("Q", target, PussymyHero) + getdmg("E", target, PussymyHero) + getdmg("W", target, PussymyHero))	
+		if Ready(_Q) and getdmg("Q", target, PussymyHero) > hp then
+			PussyDrawText("Killable", 24, target.pos2D.x, target.pos2D.y,PussyDrawColor(0xFF00FF00))
+			PussyDrawText("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,PussyDrawColor(0xFF00FF00))
 		end	
-		if Ready(_E) and getdmg("E", target, myHero) > hp then
-			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))		
+		if Ready(_E) and getdmg("E", target, PussymyHero) > hp then
+			PussyDrawText("Killable", 24, target.pos2D.x, target.pos2D.y,PussyDrawColor(0xFF00FF00))
+			PussyDrawText("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,PussyDrawColor(0xFF00FF00))		
 		end	
-		if Ready(_W) and getdmg("W", target, myHero) > hp then
-			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))	
+		if Ready(_W) and getdmg("W", target, PussymyHero) > hp then
+			PussyDrawText("Killable", 24, target.pos2D.x, target.pos2D.y,PussyDrawColor(0xFF00FF00))
+			PussyDrawText("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,PussyDrawColor(0xFF00FF00))	
 		end
 		if Ready(_W) and Ready(_E) and Ready(_Q) and fullDmg > hp then
-			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))	
+			PussyDrawText("Killable", 24, target.pos2D.x, target.pos2D.y,PussyDrawColor(0xFF00FF00))
+			PussyDrawText("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,PussyDrawColor(0xFF00FF00))	
 		end		
 	end
 end
@@ -5573,7 +5540,7 @@ function Sylas:UltAatrox()
 local target = GetTarget(500)     	
 if target == nil then return end
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "AatroxR") then										--Aatrox 
+		if (PussymyHero:GetSpellData(_R).name == "AatroxR") then										--Aatrox 
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -5585,8 +5552,8 @@ local target = GetTarget(600)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "AhriTumble") and myHero.pos:DistanceTo(target.pos) <= 450 then		--Ahri 
-			if getdmg("R", target, myHero, 70) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "AhriTumble") and PussymyHero.pos:DistanceTo(target.pos) <= 450 then		--Ahri 
+			if getdmg("R", target, PussymyHero, 70) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5598,8 +5565,8 @@ local target = GetTarget(600)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "AkaliR") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Akali 
-			if getdmg("R", target, myHero, 20) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "AkaliR") and PussymyHero.pos:DistanceTo(target.pos) <= 600 then		--Akali 
+			if getdmg("R", target, PussymyHero, 20) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5611,8 +5578,8 @@ local target = GetTarget(750)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,750) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "AkaliRb") and myHero.pos:DistanceTo(target.pos) <= 750 then		--Akalib
-			if getdmg("R", target, myHero, 21) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "AkaliRb") and PussymyHero.pos:DistanceTo(target.pos) <= 750 then		--Akalib
+			if getdmg("R", target, PussymyHero, 21) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5623,7 +5590,7 @@ function Sylas:UltAlistar()
 local target = GetTarget(500)     	
 if target == nil then return end
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "FerociousHowl") then										--Alistar
+		if (PussymyHero:GetSpellData(_R).name == "FerociousHowl") then										--Alistar
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -5635,8 +5602,8 @@ local target = GetTarget(550)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,550) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "CurseoftheSadMummy") and myHero.pos:DistanceTo(target.pos) <= 550 then		--Amumu 
-			if getdmg("R", target, myHero, 22) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "CurseoftheSadMummy") and PussymyHero.pos:DistanceTo(target.pos) <= 550 then		--Amumu 
+			if getdmg("R", target, PussymyHero, 22) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5648,8 +5615,8 @@ local target = GetTarget(750)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,750) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "GlacialStorm") and myHero.pos:DistanceTo(target.pos) <= 750 then		--Anivia
-			if getdmg("R", target, myHero, 13) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "GlacialStorm") and PussymyHero.pos:DistanceTo(target.pos) <= 750 then		--Anivia
+			if getdmg("R", target, PussymyHero, 13) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5661,8 +5628,8 @@ local target = GetTarget(600)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "AnnieR") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Annie   	 
-			if getdmg("R", target, myHero, 23) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "AnnieR") and PussymyHero.pos:DistanceTo(target.pos) <= 600 then		--Annie   	 
+			if getdmg("R", target, PussymyHero, 23) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5673,15 +5640,15 @@ function Sylas:KillUltAshe()
 local target = GetTarget(25000)     	
 if target == nil then return end
 local hp = target.health
-local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 25000, 0.25, 1600, 130, false)
+local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, 25000, 0.25, 1600, 130, false)
 	if IsValid(target,25000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "EnchantedCrystalArrow") and myHero.pos:DistanceTo(aimPosition.pos) <= 25000 then		--Ashe 
-			if getdmg("R", target, myHero, 3) > hp and hitRate and hitRate >= 1 then
+		if (PussymyHero:GetSpellData(_R).name == "EnchantedCrystalArrow") and PussymyHero.pos:DistanceTo(aimPosition.pos) <= 25000 then		--Ashe 
+			if getdmg("R", target, PussymyHero, 3) > hp and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
 				elseif not aimPosition:To2D().onScreen then	
-				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+				local castPos = PussymyHero.pos:Extended(aimPosition, 1000)   
 					Control.CastSpell(HK_R, castPos)
 				end
 			end
@@ -5694,8 +5661,8 @@ local target = GetTarget(1500)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "AurelionSolR") and myHero.pos:DistanceTo(target.pos) <= 1500 then		--AurelionSol
-			if getdmg("R", target, myHero, 14) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "AurelionSolR") and PussymyHero.pos:DistanceTo(target.pos) <= 1500 then		--AurelionSol
+			if getdmg("R", target, PussymyHero, 14) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5707,8 +5674,8 @@ local target = GetTarget(250)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,250) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "AzirR") and myHero.pos:DistanceTo(target.pos) <= 250 then		--Azir
-			if getdmg("R", target, myHero, 24) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "AzirR") and PussymyHero.pos:DistanceTo(target.pos) <= 250 then		--Azir
+			if getdmg("R", target, PussymyHero, 24) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5722,8 +5689,8 @@ local target = GetTarget(450)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,450) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "BlitzcrankR") and myHero.pos:DistanceTo(target.pos) <= 600 then	
-			if getdmg("R", target, myHero, 26) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "BlitzcrankR") and PussymyHero.pos:DistanceTo(target.pos) <= 600 then	
+			if getdmg("R", target, PussymyHero, 26) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5735,8 +5702,8 @@ local target = GetTarget(750)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,750) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "BrandR") and myHero.pos:DistanceTo(target.pos) <= 750 then		--brand
-			if getdmg("R", target, myHero, 48) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "BrandR") and PussymyHero.pos:DistanceTo(target.pos) <= 750 then		--brand
+			if getdmg("R", target, PussymyHero, 48) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5748,8 +5715,8 @@ local target = GetTarget(1250)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1250) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "BraumRWrapper") and myHero.pos:DistanceTo(target.pos) <= 1250 then		--Braum  
-			if getdmg("R", target, myHero, 15) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "BraumRWrapper") and PussymyHero.pos:DistanceTo(target.pos) <= 1250 then		--Braum  
+			if getdmg("R", target, PussymyHero, 15) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5760,15 +5727,15 @@ function Sylas:KillUltCailtyn()
 local target = GetTarget(3500)     	
 if target == nil then return end
 local hp = target.health
-local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 3.0, 3200, 50, true)
+local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, 3500, 3.0, 3200, 50, true)
 	if IsValid(target,3500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "CaitlynAceintheHole") and myHero.pos:DistanceTo(aimPosition.pos) <= 3500 then		--Caitlyn 
-			if getdmg("R", target, myHero, 64) > hp and hitRate and hitRate >= 1 then
+		if (PussymyHero:GetSpellData(_R).name == "CaitlynAceintheHole") and PussymyHero.pos:DistanceTo(aimPosition.pos) <= 3500 then		--Caitlyn 
+			if getdmg("R", target, PussymyHero, 64) > hp and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
 				elseif not aimPosition:To2D().onScreen then	
-				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+				local castPos = PussymyHero.pos:Extended(aimPosition, 1000)   
 					Control.CastSpell(HK_R, castPos)
 				end	
 			end
@@ -5781,7 +5748,7 @@ local target = GetTarget(475)
 if target == nil then return end
 
 	if IsValid(target,475) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "CamilleR") and myHero.pos:DistanceTo(target.pos) <= 475 then		--Camille
+		if (PussymyHero:GetSpellData(_R).name == "CamilleR") and PussymyHero.pos:DistanceTo(target.pos) <= 475 then		--Camille
 			Control.CastSpell(HK_R, target)
 		end
 	end
@@ -5793,8 +5760,8 @@ local target = GetTarget(850)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,850) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "CassiopeiaR") and myHero.pos:DistanceTo(target.pos) <= 825 then		--Cassiopeia
-			if getdmg("R", target, myHero, 10) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "CassiopeiaR") and PussymyHero.pos:DistanceTo(target.pos) <= 825 then		--Cassiopeia
+			if getdmg("R", target, PussymyHero, 10) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5806,8 +5773,8 @@ local target = GetTarget(200)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,200) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "Feast") and myHero.pos:DistanceTo(target.pos) <= 200 then		--Cho'gath
-			if getdmg("R", target, myHero, 2) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "Feast") and PussymyHero.pos:DistanceTo(target.pos) <= 200 then		--Cho'gath
+			if getdmg("R", target, PussymyHero, 2) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5819,8 +5786,8 @@ local target = GetTarget(1225)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1225) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "MissileBarrageMissile") and myHero.pos:DistanceTo(target.pos) <= 1225 then		--Corki
-			if getdmg("R", target, myHero, 30) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "MissileBarrageMissile") and PussymyHero.pos:DistanceTo(target.pos) <= 1225 then		--Corki
+			if getdmg("R", target, PussymyHero, 30) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5832,8 +5799,8 @@ local target = GetTarget(600)
 if target == nil then return end
 local hp = target.health
 	if IsValid(target,600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "DariusExecute") and myHero.pos:DistanceTo(target.pos) <= 460 then		--Darius
-			if getdmg("R", target, myHero, 71) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "DariusExecute") and PussymyHero.pos:DistanceTo(target.pos) <= 460 then		--Darius
+			if getdmg("R", target, PussymyHero, 71) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5845,8 +5812,8 @@ local target = GetTarget(825)
 if target == nil then return end
 local hp = target.health
 	if IsValid(target,825) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "DianaTeleport") and myHero.pos:DistanceTo(target.pos) <= 825 then		--Diana
-			if getdmg("R", target, myHero, 34) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "DianaTeleport") and PussymyHero.pos:DistanceTo(target.pos) <= 825 then		--Diana
+			if getdmg("R", target, PussymyHero, 34) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5858,15 +5825,15 @@ function Sylas:KillUltDraven()
 local target = GetTarget(25000)     	
 if target == nil then return end
 local hp = target.health
-local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 25000, 0.25, 2000, 160, false)
+local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, 25000, 0.25, 2000, 160, false)
 	if IsValid(target,25000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "DravenRCast") and myHero.pos:DistanceTo(aimPosition.pos) <= 25000 then		--Draven   
-			if getdmg("R", target, myHero, 27) > hp and hitRate and hitRate >= 1 then
+		if (PussymyHero:GetSpellData(_R).name == "DravenRCast") and PussymyHero.pos:DistanceTo(aimPosition.pos) <= 25000 then		--Draven   
+			if getdmg("R", target, PussymyHero, 27) > hp and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
 				elseif not aimPosition:To2D().onScreen then	
-				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+				local castPos = PussymyHero.pos:Extended(aimPosition, 1000)   
 					Control.CastSpell(HK_R, castPos)
 				end	
 			end
@@ -5879,8 +5846,8 @@ local target = GetTarget(400)
 if target == nil then return end
 local hp = target.health
 	if IsValid(target,400) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "EkkoR") and myHero.pos:DistanceTo(target.pos) <= 375 then		--Ekko
-			if getdmg("R", target, myHero, 72) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "EkkoR") and PussymyHero.pos:DistanceTo(target.pos) <= 375 then		--Ekko
+			if getdmg("R", target, PussymyHero, 72) > hp then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -5892,13 +5859,13 @@ end
 function Sylas:KillUltEvelynn()
 local target = GetTarget(500)     	
 if target == nil then return end
-	local damage = getdmg("R", target, myHero, 25)*2
+	local damage = getdmg("R", target, PussymyHero, 25)*2
 	local hp = target.health
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "EvelynnR") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Evelynn      
+		if (PussymyHero:GetSpellData(_R).name == "EvelynnR") and PussymyHero.pos:DistanceTo(target.pos) <= 500 then		--Evelynn      
 			if target.health/target.maxHealth <= 30/100 and damage > hp then
 				Control.CastSpell(HK_R, target)
-			elseif getdmg("R", target, myHero, 25) > hp then
+			elseif getdmg("R", target, PussymyHero, 25) > hp then
 				Control.CastSpell(HK_R, target)	
 			end
 		end
@@ -5909,15 +5876,15 @@ function Sylas:KillUltEzreal()
 local target = GetTarget(25000)     	
 if target == nil then return end
 local hp = target.health
-local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 25000, 1.0, 2000, 160, false)
+local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, 25000, 1.0, 2000, 160, false)
 	if IsValid(target,25000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "EzrealR") and myHero.pos:DistanceTo(aimPosition.pos) <= 25000 then		--ezreal
-			if getdmg("R", target, myHero, 6) > hp and hitRate and hitRate >= 1 then
+		if (PussymyHero:GetSpellData(_R).name == "EzrealR") and PussymyHero.pos:DistanceTo(aimPosition.pos) <= 25000 then		--ezreal
+			if getdmg("R", target, PussymyHero, 6) > hp and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
 				elseif not aimPosition:To2D().onScreen then	
-				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+				local castPos = PussymyHero.pos:Extended(aimPosition, 1000)   
 					Control.CastSpell(HK_R, castPos)
 				end	
 			end
@@ -5930,8 +5897,8 @@ local target = GetTarget(600)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "Crowstorm") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Fiddlesticks
-			if getdmg("R", target, myHero, 54) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "Crowstorm") and PussymyHero.pos:DistanceTo(target.pos) <= 600 then		--Fiddlesticks
+			if getdmg("R", target, PussymyHero, 54) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5945,8 +5912,8 @@ local target = GetTarget(1300)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1300) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "FizzR") and myHero.pos:DistanceTo(target.pos) <= 1300 then		--Fizz   
-			if getdmg("R", target, myHero, 28) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "FizzR") and PussymyHero.pos:DistanceTo(target.pos) <= 1300 then		--Fizz   
+			if getdmg("R", target, PussymyHero, 28) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -5957,12 +5924,12 @@ function Sylas:UltGalio()
 local target = GetTarget(6000)     	
 if target == nil then return end
 local hp = target.health
-local level = myHero:GetSpellData(_R).level
+local level = PussymyHero:GetSpellData(_R).level
 local range = ({4000, 4750, 5500})[level]
-local count = GetEnemyCount(1000, myHero)
+local count = GetEnemyCount(1000, PussymyHero)
 	if IsValid(target,6000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "GalioR") and myHero.pos:DistanceTo(target.pos) <= range and count == 0 then		--Galio   
-			if getdmg("R", target, myHero, 73) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "GalioR") and PussymyHero.pos:DistanceTo(target.pos) <= range and count == 0 then		--Galio   
+			if getdmg("R", target, PussymyHero, 73) > hp then
 				if target.pos:To2D().onScreen then						
 					Control.CastSpell(HK_R, target.pos) 
 				
@@ -5979,8 +5946,8 @@ local target = GetTarget(20000)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,20000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "GangplankR") and myHero.pos:DistanceTo(target.pos) <= 20000 then		--Gankplank   
-			if getdmg("R", target, myHero, 55) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "GangplankR") and PussymyHero.pos:DistanceTo(target.pos) <= 20000 then		--Gankplank   
+			if getdmg("R", target, PussymyHero, 55) > hp then
 				if target.pos:To2D().onScreen then						-----------check ist target in sichtweite
 					Control.CastSpell(HK_R, target.pos) 
 				
@@ -5999,12 +5966,12 @@ if target == nil then return end
 	local missingHP = (target.maxHealth - target.health)/100 * 0.286
 	local missingHP2 = (target.maxHealth - target.health)/100 * 0.333
 	local missingHP3 = (target.maxHealth - target.health)/100 * 0.4
-	local damage = getdmg("R", target, myHero, 49) + missingHP
-	local damage2 = getdmg("R", target, myHero, 49) + missingHP2
-	local damage3 = getdmg("R", target, myHero, 49) + missingHP3
+	local damage = getdmg("R", target, PussymyHero, 49) + missingHP
+	local damage2 = getdmg("R", target, PussymyHero, 49) + missingHP2
+	local damage3 = getdmg("R", target, PussymyHero, 49) + missingHP3
 	local hp = target.health
 	if IsValid(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "GarenR") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Garen
+		if (PussymyHero:GetSpellData(_R).name == "GarenR") and PussymyHero.pos:DistanceTo(target.pos) <= 1000 then		--Garen
 			if damage3  > hp then
 				Control.CastSpell(HK_R, target)
 			elseif damage2  > hp then
@@ -6021,8 +5988,8 @@ local target = GetTarget(475)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,475) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "GnarR") and myHero.pos:DistanceTo(target.pos) <= 475 then		--Gnar     
-			if getdmg("R", target, myHero, 29) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "GnarR") and PussymyHero.pos:DistanceTo(target.pos) <= 475 then		--Gnar     
+			if getdmg("R", target, PussymyHero, 29) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6034,8 +6001,8 @@ local target = GetTarget(1000)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "GragasR") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Gragas   
-			if getdmg("R", target, myHero, 30) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "GragasR") and PussymyHero.pos:DistanceTo(target.pos) <= 1000 then		--Gragas   
+			if getdmg("R", target, PussymyHero, 30) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6048,8 +6015,8 @@ local target = GetTarget(1000)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "GravesChargeShot") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Graves  
-			if getdmg("R", target, myHero, 31) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "GravesChargeShot") and PussymyHero.pos:DistanceTo(target.pos) <= 1000 then		--Graves  
+			if getdmg("R", target, PussymyHero, 31) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6061,8 +6028,8 @@ local target = GetTarget(1000)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "HecarimUlt") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Hecarim  
-			if getdmg("R", target, myHero, 32) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "HecarimUlt") and PussymyHero.pos:DistanceTo(target.pos) <= 1000 then		--Hecarim  
+			if getdmg("R", target, PussymyHero, 32) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6073,7 +6040,7 @@ function Sylas:KillUltHeimerdinger()
 local target = GetTarget(500)     	
 if target == nil then return end
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "HeimerdingerR") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Heimerdinger
+		if (PussymyHero:GetSpellData(_R).name == "HeimerdingerR") and PussymyHero.pos:DistanceTo(target.pos) <= 500 then		--Heimerdinger
 				Control.CastSpell(HK_R, target)
 			
 		end
@@ -6085,8 +6052,8 @@ local target = GetTarget(450)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,450) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "IllaoiR") and myHero.pos:DistanceTo(target.pos) <= 450 then		--Illaoi
-			if getdmg("R", target, myHero, 56) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "IllaoiR") and PussymyHero.pos:DistanceTo(target.pos) <= 450 then		--Illaoi
+			if getdmg("R", target, PussymyHero, 56) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6098,8 +6065,8 @@ local target = GetTarget(1000)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "IreliaR") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Irelia
-			if getdmg("R", target, myHero, 16) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "IreliaR") and PussymyHero.pos:DistanceTo(target.pos) <= 1000 then		--Irelia
+			if getdmg("R", target, PussymyHero, 16) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6110,7 +6077,7 @@ function Sylas:PetUltIvern()
 local target = GetTarget(500)     	
 if target == nil then return end
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "IvernR") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Ivern
+		if (PussymyHero:GetSpellData(_R).name == "IvernR") and PussymyHero.pos:DistanceTo(target.pos) <= 500 then		--Ivern
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -6123,8 +6090,8 @@ local target = GetTarget(650)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,650) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "JarvanIVCataclysm") and myHero.pos:DistanceTo(target.pos) <= 650 then		--jarvan
-			if getdmg("R", target, myHero, 57) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "JarvanIVCataclysm") and PussymyHero.pos:DistanceTo(target.pos) <= 650 then		--jarvan
+			if getdmg("R", target, PussymyHero, 57) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6140,8 +6107,8 @@ end
 --if target == nil then return end
 --	local hp = target.health
 --	if IsValid(target,525) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
---		if (myHero:GetSpellData(_R).name == "JhinRShot") and myHero.pos:DistanceTo(target.pos) <= 525 then		--Jhin   orbwalker block für die ulti
---			if getdmg("R", target, myHero, 33) > hp then
+--		if (PussymyHero:GetSpellData(_R).name == "JhinRShot") and PussymyHero.pos:DistanceTo(target.pos) <= 525 then		--Jhin   orbwalker block für die ulti
+--			if getdmg("R", target, PussymyHero, 33) > hp then
 --				Control.CastSpell(HK_R, target)
 --			end
 --		end
@@ -6152,15 +6119,15 @@ function Sylas:KillUltJinx()
 local target = GetTarget(25000)     	
 if target == nil then return end
 local hp = target.health
-local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 25000, 0.6, 1700, 140, false)
+local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, 25000, 0.6, 1700, 140, false)
 	if IsValid(target,25000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "JinxR") and myHero.pos:DistanceTo(aimPosition.pos) <= 25000 then		--jinx
-			if getdmg("R", target, myHero, 7) > hp and hitRate and hitRate >= 1 then
+		if (PussymyHero:GetSpellData(_R).name == "JinxR") and PussymyHero.pos:DistanceTo(aimPosition.pos) <= 25000 then		--jinx
+			if getdmg("R", target, PussymyHero, 7) > hp and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
 				elseif not aimPosition:To2D().onScreen then	
-				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+				local castPos = PussymyHero.pos:Extended(aimPosition, 1000)   
 					Control.CastSpell(HK_R, castPos)
 				end
 			end
@@ -6176,7 +6143,7 @@ function Sylas:KillUltKarma()
 local target = GetTarget(500)     	
 if target == nil then return end
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "KarmaMantra") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Karma
+		if (PussymyHero:GetSpellData(_R).name == "KarmaMantra") and PussymyHero.pos:DistanceTo(target.pos) <= 500 then		--Karma
 			Control.CastSpell(HK_R)
 			
 		end
@@ -6188,8 +6155,8 @@ local target = GetTarget(20000)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,20000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "KarthusFallenOne") and myHero.pos:DistanceTo(target.pos) <= 20000 then		--karthus
-			if getdmg("R", target, myHero, 8) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "KarthusFallenOne") and PussymyHero.pos:DistanceTo(target.pos) <= 20000 then		--karthus
+			if getdmg("R", target, PussymyHero, 8) > hp then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -6201,8 +6168,8 @@ local target = GetTarget(500)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "RiftWalk") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Kassadin
-			if getdmg("R", target, myHero, 58) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "RiftWalk") and PussymyHero.pos:DistanceTo(target.pos) <= 500 then		--Kassadin
+			if getdmg("R", target, PussymyHero, 58) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6215,13 +6182,13 @@ local target = GetTarget(550)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,550) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "KatarinaR") and myHero.pos:DistanceTo(target.pos) <= 550 then		
-			if getdmg("R", target, myHero, 35) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "KatarinaR") and PussymyHero.pos:DistanceTo(target.pos) <= 550 then		
+			if getdmg("R", target, PussymyHero, 35) > hp then
 				Control.CastSpell(HK_R, target)
-			if myHero.activeSpell.isChanneling == true then	
+			if PussymyHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
 				_G.SDK.Orbwalker:SetAttack(false)
-			elseif myHero.activeSpell.isChanneling == false then	
+			elseif PussymyHero.activeSpell.isChanneling == false then	
 				_G.SDK.Orbwalker:SetMovement(true)
 				_G.SDK.Orbwalker:SetAttack(true)
 			end
@@ -6234,7 +6201,7 @@ function Sylas:UltKaiSa()
 local target = GetTarget(1500)     	
 if target == nil then return end
 	if IsValid(target,1500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "KaisaR") and myHero.pos:DistanceTo(target.pos) <= 1500 then		--Kaisa  
+		if (PussymyHero:GetSpellData(_R).name == "KaisaR") and PussymyHero.pos:DistanceTo(target.pos) <= 1500 then		--Kaisa  
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -6245,7 +6212,7 @@ function Sylas:KillUltKayn()
 local target = GetTarget(550)     	
 if target == nil then return end
 	if IsValid(target,550) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "KaynR") and myHero.pos:DistanceTo(target.pos) <= 550 then		--Kayn 
+		if (PussymyHero:GetSpellData(_R).name == "KaynR") and PussymyHero.pos:DistanceTo(target.pos) <= 550 then		--Kayn 
 			Control.CastSpell(HK_R, target)
 			Control.CastSpell(HK_R, target)
 			Control.CastSpell(HK_R, target)
@@ -6259,8 +6226,8 @@ local target = GetTarget(550)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,550) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "KennenShurikenStorm") and myHero.pos:DistanceTo(target.pos) <= 550 then		--Kennen  
-			if getdmg("R", target, myHero, 36) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "KennenShurikenStorm") and PussymyHero.pos:DistanceTo(target.pos) <= 550 then		--Kennen  
+			if getdmg("R", target, PussymyHero, 36) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6271,7 +6238,7 @@ function Sylas:SpeedUltKled()
 local target = GetTarget(1000)     	
 if target == nil then return end
 	if IsValid(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "KledR") and myHero.pos:DistanceTo(target.pos) <= 700 then		--Kled   
+		if (PussymyHero:GetSpellData(_R).name == "KledR") and PussymyHero.pos:DistanceTo(target.pos) <= 700 then		--Kled   
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -6284,8 +6251,8 @@ local target = GetTarget(1300)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1300) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "KogMawLivingArtillery") and myHero.pos:DistanceTo(target.pos) <= 1300 then		--Kogmaw   
-			if getdmg("R", target, myHero, 59) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "KogMawLivingArtillery") and PussymyHero.pos:DistanceTo(target.pos) <= 1300 then		--Kogmaw   
+			if getdmg("R", target, PussymyHero, 59) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6298,8 +6265,8 @@ local target = GetTarget(600)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "LeblancSlideM") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Leblanc   
-			if getdmg("R", target, myHero, 60) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "LeblancSlideM") and PussymyHero.pos:DistanceTo(target.pos) <= 600 then		--Leblanc   
+			if getdmg("R", target, PussymyHero, 60) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6311,8 +6278,8 @@ local target = GetTarget(500)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "BlindMonkRKick") and myHero.pos:DistanceTo(target.pos) <= 375 then		--LeeSin   
-			if getdmg("R", target, myHero, 74) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "BlindMonkRKick") and PussymyHero.pos:DistanceTo(target.pos) <= 375 then		--LeeSin   
+			if getdmg("R", target, PussymyHero, 74) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6325,8 +6292,8 @@ local target = GetTarget(1200)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1200) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "LeonaSolarFlare") and myHero.pos:DistanceTo(target.pos) <= 1200 then		--leona   
-			if getdmg("R", target, myHero, 5) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "LeonaSolarFlare") and PussymyHero.pos:DistanceTo(target.pos) <= 1200 then		--leona   
+			if getdmg("R", target, PussymyHero, 5) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6338,8 +6305,8 @@ local target = GetTarget(550)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,550) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "LissandraR") and myHero.pos:DistanceTo(target.pos) <= 550 then		--Lissandra      
-			if getdmg("R", target, myHero, 18) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "LissandraR") and PussymyHero.pos:DistanceTo(target.pos) <= 550 then		--Lissandra      
+			if getdmg("R", target, PussymyHero, 18) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6351,8 +6318,8 @@ local target = GetTarget(1200)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1200) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "LucianR") and myHero.pos:DistanceTo(target.pos) <= 1200 then		--Lucian
-			if getdmg("R", target, myHero, 61) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "LucianR") and PussymyHero.pos:DistanceTo(target.pos) <= 1200 then		--Lucian
+			if getdmg("R", target, PussymyHero, 61) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6363,10 +6330,10 @@ function Sylas:KillUltLux()
 local target = GetTarget(3500)     						--Lux
 if target == nil then return end
 local hp = target.health
-local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 1, math.huge, 120, false) -- die Prediction,mußt werde von hand eingeben ////local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, range, delay, speed, radius, collision)/// ----bei collision true oder false----
+local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, 3500, 1, PussyMathHuge, 120, false) -- die Prediction,mußt werde von hand eingeben ////local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, range, delay, speed, radius, collision)/// ----bei collision true oder false----
 	if IsValid(target,3500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "LuxMaliceCannon") and myHero.pos:DistanceTo(aimPosition.pos) <= 3500 then		
-			if getdmg("R", target, myHero, 11) > hp and hitRate and hitRate >= 1 then
+		if (PussymyHero:GetSpellData(_R).name == "LuxMaliceCannon") and PussymyHero.pos:DistanceTo(aimPosition.pos) <= 3500 then		
+			if getdmg("R", target, PussymyHero, 11) > hp and hitRate and hitRate >= 1 then
 				
 				----- diese berechnung ob target in sichtweite ist nur für spells die in Linie castet werden (also nicht für Gankplank oder so)-----
 				
@@ -6374,7 +6341,7 @@ local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 1, mat
 					Control.CastSpell(HK_R, aimPosition) -- aimPosition ist die Predicted Position
 				
 				elseif not aimPosition:To2D().onScreen then	--ist target nicht in sichtweite
-				local castPos = myHero.pos:Extended(aimPosition, 1000)    --berechnug für target auserthalb der sichtweite,,,castet 1000range vor sich auf mousepos in richtung target,,,
+				local castPos = PussymyHero.pos:Extended(aimPosition, 1000)    --berechnug für target auserthalb der sichtweite,,,castet 1000range vor sich auf mousepos in richtung target,,,
 					Control.CastSpell(HK_R, castPos)
 				end	
 			end
@@ -6387,8 +6354,8 @@ local target = GetTarget(1000)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "UFSlash") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--malphite 
-			if getdmg("R", target, myHero, 50) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "UFSlash") and PussymyHero.pos:DistanceTo(target.pos) <= 1000 then		--malphite 
+			if getdmg("R", target, PussymyHero, 50) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6400,13 +6367,13 @@ local target = GetTarget(700)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,700) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "MalzaharR") and myHero.pos:DistanceTo(target.pos) <= 700 then		
-			if getdmg("R", target, myHero, 19) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "MalzaharR") and PussymyHero.pos:DistanceTo(target.pos) <= 700 then		
+			if getdmg("R", target, PussymyHero, 19) > hp then
 				Control.CastSpell(HK_R, target)
-			if myHero.activeSpell.isChanneling == true then	
+			if PussymyHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
 				_G.SDK.Orbwalker:SetAttack(false)
-			elseif myHero.activeSpell.isChanneling == false then	
+			elseif PussymyHero.activeSpell.isChanneling == false then	
 				_G.SDK.Orbwalker:SetMovement(true)
 				_G.SDK.Orbwalker:SetAttack(true)
 			end
@@ -6420,8 +6387,8 @@ local target = GetTarget(3000)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,3000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "MaokaiR") and myHero.pos:DistanceTo(target.pos) <= 3000 then		--Maokai 
-			if getdmg("R", target, myHero, 37) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "MaokaiR") and PussymyHero.pos:DistanceTo(target.pos) <= 3000 then		--Maokai 
+			if getdmg("R", target, PussymyHero, 37) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6433,7 +6400,7 @@ function Sylas:SpeedUltMasterYi()
 local target = GetTarget(500)     	
 if target == nil then return end
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "Highlander") and myHero.pos:DistanceTo(target.pos) <= 500 then		--MasterYi
+		if (PussymyHero:GetSpellData(_R).name == "Highlander") and PussymyHero.pos:DistanceTo(target.pos) <= 500 then		--MasterYi
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -6447,13 +6414,13 @@ local target = GetTarget(1400)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1400) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "MissFortuneBulletTime") and myHero.pos:DistanceTo(target.pos) <= 1400 then		
-			if getdmg("R", target, myHero, 38) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "MissFortuneBulletTime") and PussymyHero.pos:DistanceTo(target.pos) <= 1400 then		
+			if getdmg("R", target, PussymyHero, 38) > hp then
 				Control.CastSpell(HK_R, target)
-			if myHero.activeSpell.isChanneling == true then	
+			if PussymyHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
 				_G.SDK.Orbwalker:SetAttack(false)
-			elseif myHero.activeSpell.isChanneling == false then	
+			elseif PussymyHero.activeSpell.isChanneling == false then	
 				_G.SDK.Orbwalker:SetMovement(true)
 				_G.SDK.Orbwalker:SetAttack(true)
 			end				
@@ -6466,7 +6433,7 @@ function Sylas:KillUltMordekaiser()
 local target = GetTarget(650)     	
 if target == nil then return end
 	if IsValid(target,650) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "MordekaiserChildrenOfTheGrave") and myHero.pos:DistanceTo(target.pos) <= 650 then		--Mordekaiser  
+		if (PussymyHero:GetSpellData(_R).name == "MordekaiserChildrenOfTheGrave") and PussymyHero.pos:DistanceTo(target.pos) <= 650 then		--Mordekaiser  
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -6479,8 +6446,8 @@ local target = GetTarget(625)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,625) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "SoulShackles") and myHero.pos:DistanceTo(target.pos) <= 625 then		--morgana   
-			if getdmg("R", target, myHero, 52) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "SoulShackles") and PussymyHero.pos:DistanceTo(target.pos) <= 625 then		--morgana   
+			if getdmg("R", target, PussymyHero, 52) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6491,15 +6458,15 @@ function Sylas:StunUltNami()
 local target = GetTarget(2750)     	
 if target == nil then return end
 local hp = target.health
-local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 2750, 0.5, 850, 250, false)
+local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, 2750, 0.5, 850, 250, false)
 	if IsValid(target,2750) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "NamiR") and myHero.pos:DistanceTo(aimPosition.pos) <= 2750 then		--Nami 
-			if getdmg("R", target, myHero, 39) > hp and hitRate and hitRate >= 1 then
+		if (PussymyHero:GetSpellData(_R).name == "NamiR") and PussymyHero.pos:DistanceTo(aimPosition.pos) <= 2750 then		--Nami 
+			if getdmg("R", target, PussymyHero, 39) > hp and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
 				elseif not aimPosition:To2D().onScreen then	
-				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+				local castPos = PussymyHero.pos:Extended(aimPosition, 1000)   
 					Control.CastSpell(HK_R, castPos)
 				end
 			end
@@ -6514,8 +6481,8 @@ local target = GetTarget(825)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,825) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "NautilusR") and myHero.pos:DistanceTo(target.pos) <= 825 then		--Nautilus  
-			if getdmg("R", target, myHero, 40) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "NautilusR") and PussymyHero.pos:DistanceTo(target.pos) <= 825 then		--Nautilus  
+			if getdmg("R", target, PussymyHero, 40) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6528,8 +6495,8 @@ local target = GetTarget(600)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "NeekoR") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Neeko
-			if getdmg("R", target, myHero, 65) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "NeekoR") and PussymyHero.pos:DistanceTo(target.pos) <= 600 then		--Neeko
+			if getdmg("R", target, PussymyHero, 65) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6542,12 +6509,12 @@ function Sylas:KillUltNocturne()
 local target = GetTarget(4000)     	
 if target == nil then return end
 local hp = target.health
-local level = myHero:GetSpellData(_R).level
+local level = PussymyHero:GetSpellData(_R).level
 local range = ({2500, 3250, 4000})[level]
 
 	if IsValid(target,4000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "NocturneParanoia") and myHero.pos:DistanceTo(target.pos) <= range then		--Nocturne   
-			if getdmg("R", target, myHero, 75) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "NocturneParanoia") and PussymyHero.pos:DistanceTo(target.pos) <= range then		--Nocturne   
+			if getdmg("R", target, PussymyHero, 75) > hp then
 				if target.pos:To2D().onScreen then						
 					Control.CastSpell(HK_R, target.pos) 
 				
@@ -6565,13 +6532,13 @@ local target = GetTarget(650)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,650) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "NunuR") and myHero.pos:DistanceTo(target.pos) <= 650 then		
-			if getdmg("R", target, myHero, 17) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "NunuR") and PussymyHero.pos:DistanceTo(target.pos) <= 650 then		
+			if getdmg("R", target, PussymyHero, 17) > hp then
 				Control.CastSpell(HK_R, target)
-			if myHero.activeSpell.isChanneling == true then	
+			if PussymyHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
 				_G.SDK.Orbwalker:SetAttack(false)
-			elseif myHero.activeSpell.isChanneling == false then	
+			elseif PussymyHero.activeSpell.isChanneling == false then	
 				_G.SDK.Orbwalker:SetMovement(true)
 				_G.SDK.Orbwalker:SetAttack(true)
 			end					
@@ -6584,8 +6551,8 @@ function Sylas:BuffUltOlaf()
 local target = GetTarget(1200)     	
 if target == nil then return end
 	if IsValid(target,1200) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "OlafRagnarok") and myHero.pos:DistanceTo(target.pos) <= 1200 then		--Olaf  
-			if IsImmobileTarget(myHero) then
+		if (PussymyHero:GetSpellData(_R).name == "OlafRagnarok") and PussymyHero.pos:DistanceTo(target.pos) <= 1200 then		--Olaf  
+			if IsImmobileTarget(PussymyHero) then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -6598,8 +6565,8 @@ local target = GetTarget(325)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,325) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "OrianaDetonateCommand-") and myHero.pos:DistanceTo(target.pos) <= 325 then		--Orianna  
-			if getdmg("R", target, myHero, 66) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "OrianaDetonateCommand-") and PussymyHero.pos:DistanceTo(target.pos) <= 325 then		--Orianna  
+			if getdmg("R", target, PussymyHero, 66) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6610,7 +6577,7 @@ function Sylas:StunUltOrnn()
 local target = GetTarget(500)     	
 if target == nil then return end
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "OrnnR") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Ornn
+		if (PussymyHero:GetSpellData(_R).name == "OrnnR") and PussymyHero.pos:DistanceTo(target.pos) <= 500 then		--Ornn
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -6622,10 +6589,10 @@ function Sylas:UltPantheon()
 local target = GetTarget(5500)     	
 if target == nil then return end
 local hp = target.health
-local count = GetEnemyCount(1000, myHero)
+local count = GetEnemyCount(1000, PussymyHero)
 	if IsValid(target,5500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "PantheonRJump") and myHero.pos:DistanceTo(target.pos) <= 5500 and count == 0 then		--Phantheon   
-			if getdmg("R", target, myHero, 76) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "PantheonRJump") and PussymyHero.pos:DistanceTo(target.pos) <= 5500 and count == 0 then		--Phantheon   
+			if getdmg("R", target, PussymyHero, 76) > hp then
 				if target.pos:To2D().onScreen then						
 					Control.CastSpell(HK_R, target.pos) 
 				
@@ -6642,8 +6609,8 @@ local target = GetTarget(500)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "PoppyRSpell") and myHero.pos:DistanceTo(target.pos) <= 475 then		--Poppy  
-			if getdmg("R", target, myHero, 77) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "PoppyRSpell") and PussymyHero.pos:DistanceTo(target.pos) <= 475 then		--Poppy  
+			if getdmg("R", target, PussymyHero, 77) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6652,11 +6619,11 @@ end
 
 function Sylas:GetPykeDamage()
 	local total = 0
-	local Lvl = myHero.levelData.lvl
+	local Lvl = PussymyHero.levelData.lvl
 	if Lvl > 5 then
 		local raw = ({ 250, 250, 250, 250, 250, 250, 290, 330, 370, 400, 430, 450, 470, 490, 510, 530, 540, 550 })[Lvl]
-		local m = 1.5 * myHero.armorPen
-		local Dmg = m + raw + (0.4 * myHero.ap)
+		local m = 1.5 * PussymyHero.armorPen
+		local Dmg = m + raw + (0.4 * PussymyHero.ap)
 		total = Dmg   
 	end
 	return total
@@ -6670,7 +6637,7 @@ if target == nil then return end
 	local hp = target.health
 	local dmg = self:GetPykeDamage()
 	if IsValid(target,800) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "PykeR") and myHero.pos:DistanceTo(target.pos) <= 750 and dmg >= hp then	 
+		if (PussymyHero:GetSpellData(_R).name == "PykeR") and PussymyHero.pos:DistanceTo(target.pos) <= 750 and dmg >= hp then	 
 			Control.CastSpell(HK_R, target)
 		end
 	end
@@ -6680,7 +6647,7 @@ function Sylas:SpeedUltQuinn()
 local target = GetTarget(1000)     	
 if target == nil then return end
 	if IsValid(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "QuinnR") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Quinn   
+		if (PussymyHero:GetSpellData(_R).name == "QuinnR") and PussymyHero.pos:DistanceTo(target.pos) <= 1000 then		--Quinn   
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -6693,8 +6660,8 @@ local target = GetTarget(300)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,300) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "RakanR") and myHero.pos:DistanceTo(target.pos) <= 300 then		--Rakan  
-			if getdmg("R", target, myHero, 78) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "RakanR") and PussymyHero.pos:DistanceTo(target.pos) <= 300 then		--Rakan  
+			if getdmg("R", target, PussymyHero, 78) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6707,8 +6674,8 @@ local target = GetTarget(300)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,300) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "Tremors2") and myHero.pos:DistanceTo(target.pos) <= 300 then		--Rammus   
-			if getdmg("R", target, myHero, 62) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "Tremors2") and PussymyHero.pos:DistanceTo(target.pos) <= 300 then		--Rammus   
+			if getdmg("R", target, PussymyHero, 62) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6721,8 +6688,8 @@ local target = GetTarget(1500)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "RekSaiR") and myHero.pos:DistanceTo(target.pos) <= 1500 then		--RekSai   
-			if getdmg("R", target, myHero, 79) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "RekSaiR") and PussymyHero.pos:DistanceTo(target.pos) <= 1500 then		--RekSai   
+			if getdmg("R", target, PussymyHero, 79) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6733,7 +6700,7 @@ function Sylas:KillUltRengar()
 local target = GetTarget(1000)     	
 if target == nil then return end
 	if IsValid(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "RengarR") and myHero.pos:DistanceTo(target.pos) <= 800 then		--Rengar  
+		if (PussymyHero:GetSpellData(_R).name == "RengarR") and PussymyHero.pos:DistanceTo(target.pos) <= 800 then		--Rengar  
 			Control.CastSpell(HK_R, target)
 		
 		end
@@ -6744,7 +6711,7 @@ function Sylas:KillUltRiven()
 local target = GetTarget(500)     	
 if target == nil then return end
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "RivenFengShuiEngine") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Riven   
+		if (PussymyHero:GetSpellData(_R).name == "RivenFengShuiEngine") and PussymyHero.pos:DistanceTo(target.pos) <= 500 then		--Riven   
 			Control.CastSpell(HK_R)
 		
 		end
@@ -6757,8 +6724,8 @@ local target = GetTarget(1700)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1700) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "RumbleCarpetBombDummy") and myHero.pos:DistanceTo(target.pos) <= 1700 then		--Rumble   
-			if getdmg("R", target, myHero, 41) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "RumbleCarpetBombDummy") and PussymyHero.pos:DistanceTo(target.pos) <= 1700 then		--Rumble   
+			if getdmg("R", target, PussymyHero, 41) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6770,8 +6737,8 @@ local target = GetTarget(1300)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1300) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "SejuaniR") and myHero.pos:DistanceTo(target.pos) <= 1300 then		--Sejuani   
-			if getdmg("R", target, myHero, 42) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "SejuaniR") and PussymyHero.pos:DistanceTo(target.pos) <= 1300 then		--Sejuani   
+			if getdmg("R", target, PussymyHero, 42) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6783,8 +6750,8 @@ local target = GetTarget(500)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "HallucinateFull") and myHero.pos:DistanceTo(target.pos) <= 500 then --Shaco 
-			if getdmg("R", target, myHero, 80) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "HallucinateFull") and PussymyHero.pos:DistanceTo(target.pos) <= 500 then --Shaco 
+			if getdmg("R", target, PussymyHero, 80) > hp then
 				Control.CastSpell(HK_R)
 				Control.CastSpell(HK_R, target)
 				Control.CastSpell(HK_R, target)
@@ -6798,8 +6765,8 @@ local target = GetTarget(1000)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ShyvanaTransformCast") and myHero.pos:DistanceTo(target.pos) <= 1000 then --shyvana 
-			if getdmg("R", target, myHero, 51) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "ShyvanaTransformCast") and PussymyHero.pos:DistanceTo(target.pos) <= 1000 then --shyvana 
+			if getdmg("R", target, PussymyHero, 51) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6810,7 +6777,7 @@ function Sylas:StunUltSkarner()
 local target = GetTarget(500)     	
 if target == nil then return end
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "SkarnerImpale") and myHero.pos:DistanceTo(target.pos) <= 350 then		--Skarner    
+		if (PussymyHero:GetSpellData(_R).name == "SkarnerImpale") and PussymyHero.pos:DistanceTo(target.pos) <= 350 then		--Skarner    
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -6823,8 +6790,8 @@ local target = GetTarget(900)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,900) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "SonaR") and myHero.pos:DistanceTo(target.pos) <= 900 then		--Sona    
-			if getdmg("R", target, myHero, 43) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "SonaR") and PussymyHero.pos:DistanceTo(target.pos) <= 900 then		--Sona    
+			if getdmg("R", target, PussymyHero, 43) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6838,8 +6805,8 @@ local target = GetTarget(650)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,650) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "SwainMetamorphism") and myHero.pos:DistanceTo(target.pos) <= 650 then		--Swain    
-			if getdmg("R", target, myHero, 67) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "SwainMetamorphism") and PussymyHero.pos:DistanceTo(target.pos) <= 650 then		--Swain    
+			if getdmg("R", target, PussymyHero, 67) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6851,7 +6818,7 @@ function Sylas:KillUltSyndra()
 local target = GetTarget(675)     	
 if target == nil then return end
 	if IsValid(target,675) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "SyndraR") and myHero.pos:DistanceTo(target.pos) <= 675 then		--Syndra    
+		if (PussymyHero:GetSpellData(_R).name == "SyndraR") and PussymyHero.pos:DistanceTo(target.pos) <= 675 then		--Syndra    
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -6862,7 +6829,7 @@ function Sylas:UltTaliyah()
 local target = GetTarget(1000)     	
 if target == nil then return end
 	if IsValid(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "TaliyahR") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Taliyah   
+		if (PussymyHero:GetSpellData(_R).name == "TaliyahR") and PussymyHero.pos:DistanceTo(target.pos) <= 1000 then		--Taliyah   
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -6874,8 +6841,8 @@ local target = GetTarget(550)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,550) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "TalonShadowAssault") and myHero.pos:DistanceTo(target.pos) <= 550 then		--Talon   
-			if getdmg("R", target, myHero, 81) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "TalonShadowAssault") and PussymyHero.pos:DistanceTo(target.pos) <= 550 then		--Talon   
+			if getdmg("R", target, PussymyHero, 81) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6887,8 +6854,8 @@ local target = GetTarget(450)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,450) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ThreshRPenta") and myHero.pos:DistanceTo(target.pos) <= 450 then		--Tresh   
-			if getdmg("R", target, myHero, 68) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "ThreshRPenta") and PussymyHero.pos:DistanceTo(target.pos) <= 450 then		--Tresh   
+			if getdmg("R", target, PussymyHero, 68) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6898,10 +6865,10 @@ end
 function Sylas:UltTeemo()
 local target = GetTarget(900)     	
 if target == nil then return end
-local level = myHero:GetSpellData(_R).level
+local level = PussymyHero:GetSpellData(_R).level
 local range = ({400, 650, 900})[level]
 	if IsValid(target,900) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "TeemoR") and myHero.pos:DistanceTo(target.pos) <= range then		--Teemo   
+		if (PussymyHero:GetSpellData(_R).name == "TeemoR") and PussymyHero.pos:DistanceTo(target.pos) <= range then		--Teemo   
 			Control.CastSpell(HK_R, target.pos)
 		
 		end
@@ -6911,11 +6878,11 @@ end
 function Sylas:KillUltTristana()
 local target = GetTarget(525)     	
 if target == nil then return end
-	local range = 517 + (8 * myHero.levelData.lvl)
+	local range = 517 + (8 * PussymyHero.levelData.lvl)
 	local hp = target.health
 	if IsValid(target,525) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "TristanaR") and myHero.pos:DistanceTo(target.pos) <= range then		--Tristana  	
-			if getdmg("R", target, myHero, 12) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "TristanaR") and PussymyHero.pos:DistanceTo(target.pos) <= range then		--Tristana  	
+			if getdmg("R", target, PussymyHero, 12) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6926,7 +6893,7 @@ function Sylas:BuffUltTrundle()
 local target = GetTarget(650)     	
 if target == nil then return end
 	if IsValid(target,650) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "TrundlePain") and myHero.pos:DistanceTo(target.pos) <= 650 then		--Trundle     
+		if (PussymyHero:GetSpellData(_R).name == "TrundlePain") and PussymyHero.pos:DistanceTo(target.pos) <= 650 then		--Trundle     
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -6937,7 +6904,7 @@ function Sylas:UltTwitch()
 local target = GetTarget(500)     	
 if target == nil then return end
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "TwitchFullAutomatic") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Twitch    
+		if (PussymyHero:GetSpellData(_R).name == "TwitchFullAutomatic") and PussymyHero.pos:DistanceTo(target.pos) <= 500 then		--Twitch    
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -6948,7 +6915,7 @@ function Sylas:UltUdyr()
 local target = GetTarget(500)     	
 if target == nil then return end
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "UdyrPhoenixStance") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Udyr    
+		if (PussymyHero:GetSpellData(_R).name == "UdyrPhoenixStance") and PussymyHero.pos:DistanceTo(target.pos) <= 500 then		--Udyr    
 			Control.CastSpell(HK_R, target)
 			
 		end
@@ -6960,8 +6927,8 @@ local target = GetTarget(1600)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "UrgotR") and myHero.pos:DistanceTo(target.pos) <= 1600 then		--Urgot      
-			if getdmg("R", target, myHero, 44) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "UrgotR") and PussymyHero.pos:DistanceTo(target.pos) <= 1600 then		--Urgot      
+			if getdmg("R", target, PussymyHero, 44) > hp then
 				Control.CastSpell(HK_R, target)
 			end	
 			if target.health/target.maxHealth < 25/100 then
@@ -6976,8 +6943,8 @@ local target = GetTarget(1075)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1075) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "VarusR") and myHero.pos:DistanceTo(target.pos) <= 1075 then		--Varus     
-			if getdmg("R", target, myHero, 45) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "VarusR") and PussymyHero.pos:DistanceTo(target.pos) <= 1075 then		--Varus     
+			if getdmg("R", target, PussymyHero, 45) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -6988,7 +6955,7 @@ function Sylas:BuffUltVayne()
 local target = GetTarget(500)     	
 if target == nil then return end
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "VayneInquisition") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Vayne     
+		if (PussymyHero:GetSpellData(_R).name == "VayneInquisition") and PussymyHero.pos:DistanceTo(target.pos) <= 500 then		--Vayne     
 			Control.CastSpell(HK_R)
 			
 		end
@@ -7001,8 +6968,8 @@ local target = GetTarget(650)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,650) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "VeigarR") and myHero.pos:DistanceTo(target.pos) <= 650 then		--Vaiger
-			if getdmg("R", target, myHero, 4) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "VeigarR") and PussymyHero.pos:DistanceTo(target.pos) <= 650 then		--Vaiger
+			if getdmg("R", target, PussymyHero, 4) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -7016,8 +6983,8 @@ local target = GetTarget(800)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,800) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ViR") and myHero.pos:DistanceTo(target.pos) <= 800 then		--Vi
-			if getdmg("R", target, myHero, 82) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "ViR") and PussymyHero.pos:DistanceTo(target.pos) <= 800 then		--Vi
+			if getdmg("R", target, PussymyHero, 82) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -7029,8 +6996,8 @@ local target = GetTarget(700)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,700) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ViktorChaosStorm") and myHero.pos:DistanceTo(target.pos) <= 700 then		--Viktor
-			if getdmg("R", target, myHero, 83) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "ViktorChaosStorm") and PussymyHero.pos:DistanceTo(target.pos) <= 700 then		--Viktor
+			if getdmg("R", target, PussymyHero, 83) > hp then
 				Control.CastSpell(HK_R, target.pos)
 				Control.CastSpell(HK_R, target.pos)
 				Control.CastSpell(HK_R, target.pos)
@@ -7045,8 +7012,8 @@ local target = GetTarget(700)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,700) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "VladimirHemoplague") and myHero.pos:DistanceTo(target.pos) <= 700 then		--Vladimir
-			if getdmg("R", target, myHero, 63) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "VladimirHemoplague") and PussymyHero.pos:DistanceTo(target.pos) <= 700 then		--Vladimir
+			if getdmg("R", target, PussymyHero, 63) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -7059,8 +7026,8 @@ local target = GetTarget(500)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "VolibearR") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Volibear
-			if getdmg("R", target, myHero, 69) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "VolibearR") and PussymyHero.pos:DistanceTo(target.pos) <= 500 then		--Volibear
+			if getdmg("R", target, PussymyHero, 69) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -7071,17 +7038,17 @@ end
 function Sylas:KillUltWarwick()
 local target = GetTarget(3000)     	
 if target == nil then return end
-local range = 2.5 * myHero.ms
+local range = 2.5 * PussymyHero.ms
 local hp = target.health
-local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, range, 0.1, 1800, 55, false)
+local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, range, 0.1, 1800, 55, false)
 	if IsValid(target,3000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "WarwickR") and myHero.pos:DistanceTo(aimPosition.pos) <= range then		--Warwick	
-			if getdmg("R", target, myHero, 47) > hp and hitRate and hitRate >= 1 then
+		if (PussymyHero:GetSpellData(_R).name == "WarwickR") and PussymyHero.pos:DistanceTo(aimPosition.pos) <= range then		--Warwick	
+			if getdmg("R", target, PussymyHero, 47) > hp and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
 				elseif not aimPosition:To2D().onScreen then	
-				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+				local castPos = PussymyHero.pos:Extended(aimPosition, 1000)   
 					Control.CastSpell(HK_R, castPos)
 				end
 			end
@@ -7093,7 +7060,7 @@ function Sylas:StunUltWukong()
 local target = GetTarget(500)     	
 if target == nil then return end
 	if IsValid(target,500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "WukongR") and myHero.pos:DistanceTo(target.pos) <= 200 then		--Wukong
+		if (PussymyHero:GetSpellData(_R).name == "WukongR") and PussymyHero.pos:DistanceTo(target.pos) <= 200 then		--Wukong
 			Control.CastSpell(HK_R)
 		
 		end
@@ -7106,8 +7073,8 @@ local target = GetTarget(1100)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1100) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "XayahR") and myHero.pos:DistanceTo(target.pos) <= 1100 then		--Xayah
-			if getdmg("R", target, myHero, 84) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "XayahR") and PussymyHero.pos:DistanceTo(target.pos) <= 1100 then		--Xayah
+			if getdmg("R", target, PussymyHero, 84) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -7119,14 +7086,14 @@ function Sylas:KillUltXerath()
 local target = GetTarget(6500)     	
 if target == nil then return end
 local hp = target.health
-local level = myHero:GetSpellData(_R).level
+local level = PussymyHero:GetSpellData(_R).level
 local range = ({3520, 4840, 6160})[level]
-local count = GetEnemyCount(1000, myHero)
+local count = GetEnemyCount(1000, PussymyHero)
 	if IsValid(target,6500) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "XerathLocusOfPower2") and myHero.pos:DistanceTo(target.pos) <= range and count == 0 then		--Xerath   
-			if getdmg("R", target, myHero, 73) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "XerathLocusOfPower2") and PussymyHero.pos:DistanceTo(target.pos) <= range and count == 0 then		--Xerath   
+			if getdmg("R", target, PussymyHero, 73) > hp then
 				Control.CastSpell(HK_R)
-				Control.SetCursorPos(target.pos)
+				PussyControlSetCursorPos(target.pos)
 				aim = TargetSelector:GetTarget(NEAR_MOUSE)
 				if GetDistance(mousePos, aim) < 200 then						
 					Control.CastSpell(HK_R) 
@@ -7150,9 +7117,9 @@ function Sylas:IsKnockedUp(unit)
 function Sylas:CountKnockedUpEnemies(range)
 		local count = 0
 		local rangeSqr = range * range
-		for i = 1, Game.HeroCount()do
-		local hero = Game.Hero(i)
-			if hero.isEnemy and hero.alive and GetDistanceSqr(myHero.pos, hero.pos) <= rangeSqr then
+		for i = 1, PussyGameHeroCount()do
+		local hero = PussyGameHero(i)
+			if hero.isEnemy and hero.alive and GetDistanceSqr(PussymyHero.pos, hero.pos) <= rangeSqr then
 			if Sylas:IsKnockedUp(hero)then
 			count = count + 1
     end
@@ -7167,8 +7134,8 @@ local target = GetTarget(1400)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,1400) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "YasuoR") and myHero.pos:DistanceTo(target.pos) <= 1400 then		--Yasou
-			if getdmg("R", target, myHero, 85) > hp and self:IsKnockedUp(target) then
+		if (PussymyHero:GetSpellData(_R).name == "YasuoR") and PussymyHero.pos:DistanceTo(target.pos) <= 1400 then		--Yasou
+			if getdmg("R", target, PussymyHero, 85) > hp and self:IsKnockedUp(target) then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -7179,7 +7146,7 @@ function Sylas:PetUltYorick()
 local target = GetTarget(600)     	
 if target == nil then return end
 	if IsValid(target,600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "YorickReviveAlly") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Yorick
+		if (PussymyHero:GetSpellData(_R).name == "YorickReviveAlly") and PussymyHero.pos:DistanceTo(target.pos) <= 600 then		--Yorick
 			Control.CastSpell(HK_R, target)
 		
 		end
@@ -7189,10 +7156,10 @@ end
 function Sylas:StunUltZac()
 local target = GetTarget(1000)     	
 if target == nil then return end
-local level = myHero:GetSpellData(_R).level
+local level = PussymyHero:GetSpellData(_R).level
 local range = ({700, 850, 1000})[level]
 	if IsValid(target,1000) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ZacR") and myHero.pos:DistanceTo(target.pos) <= range then		--Zac  						
+		if (PussymyHero:GetSpellData(_R).name == "ZacR") and PussymyHero.pos:DistanceTo(target.pos) <= range then		--Zac  						
 			Control.CastSpell(HK_R, target.pos) 
 			Control.CastSpell(HK_R, target.pos)
 			Control.CastSpell(HK_R, target.pos)
@@ -7205,7 +7172,7 @@ function Sylas:UltZed()
 local target = GetTarget(700)     	
 if target == nil then return end
 	if IsValid(target,700) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ZedR") and myHero.pos:DistanceTo(target.pos) <= 625 then		--Zed
+		if (PussymyHero:GetSpellData(_R).name == "ZedR") and PussymyHero.pos:DistanceTo(target.pos) <= 625 then		--Zed
 			Control.CastSpell(HK_R, target)
 			Control.CastSpell(HK_R)
 			Control.CastSpell(HK_R)
@@ -7220,8 +7187,8 @@ local target = GetTarget(5300)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,5300) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ZiggsR") and myHero.pos:DistanceTo(target.pos) <= 5300 then		--ziggs
-			if getdmg("R", target, myHero, 9) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "ZiggsR") and PussymyHero.pos:DistanceTo(target.pos) <= 5300 then		--ziggs
+			if getdmg("R", target, PussymyHero, 9) > hp then
 				if target.pos:To2D().onScreen then						
 					Control.CastSpell(HK_R, target.pos) 
 				
@@ -7237,7 +7204,7 @@ function Sylas:ZoeUlt()
 local target = GetTarget(600)     	
 if target == nil then return end
 	if IsValid(target,600) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ZoeR") and myHero.pos:DistanceTo(target.pos) <= 575 then		--Zoe
+		if (PussymyHero:GetSpellData(_R).name == "ZoeR") and PussymyHero.pos:DistanceTo(target.pos) <= 575 then		--Zoe
 			Control.CastSpell(HK_R, target)
 		
 		end
@@ -7249,8 +7216,8 @@ local target = GetTarget(700)
 if target == nil then return end
 	local hp = target.health
 	if IsValid(target,700) and self.Menu.Combo.Set.LastHit:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ZyraR") and myHero.pos:DistanceTo(target.pos) <= 700 then		--Zyra    
-			if getdmg("R", target, myHero, 46) > hp then
+		if (PussymyHero:GetSpellData(_R).name == "ZyraR") and PussymyHero.pos:DistanceTo(target.pos) <= 700 then		--Zyra    
+			if getdmg("R", target, PussymyHero, 46) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -7269,9 +7236,9 @@ end
 function Sylas:UltAmumu()
 local target = GetTarget(550)     	
 if target == nil then return end
-local count = GetEnemyCount(550, myHero)
+local count = GetEnemyCount(550, PussymyHero)
 	if IsValid(target,550) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "CurseoftheSadMummy") then		
+		if (PussymyHero:GetSpellData(_R).name == "CurseoftheSadMummy") then		
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7285,8 +7252,8 @@ local target = GetTarget(3400)
 if target == nil then return end
 local count = GetEnemyCount(350, target)
 	if IsValid(target,3400) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "BardR") then		
-			if myHero.pos:DistanceTo(target.pos) <= 3400 and count >= self.Menu.Combo.Set.Hit:Value() then
+		if (PussymyHero:GetSpellData(_R).name == "BardR") then		
+			if PussymyHero.pos:DistanceTo(target.pos) <= 3400 and count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
 		end
@@ -7297,9 +7264,9 @@ end
 function Sylas:UltBraum()
 local target = GetTarget(1250)     	
 if target == nil then return end
-local count = GetEnemyCount(115, myHero)
+local count = GetEnemyCount(115, PussymyHero)
 	if IsValid(target,1250) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "BraumRWrapper") and myHero.pos:DistanceTo(target.pos) <= 1250 then		
+		if (PussymyHero:GetSpellData(_R).name == "BraumRWrapper") and PussymyHero.pos:DistanceTo(target.pos) <= 1250 then		
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7313,7 +7280,7 @@ local target = GetTarget(750)
 if target == nil then return end
 local count = GetEnemyCount(600, target)
 	if IsValid(target,750) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "BrandR") and myHero.pos:DistanceTo(target.pos) <= 750 then		
+		if (PussymyHero:GetSpellData(_R).name == "BrandR") and PussymyHero.pos:DistanceTo(target.pos) <= 750 then		
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7327,7 +7294,7 @@ local target = GetTarget(825)
 if target == nil then return end
 local count = GetEnemyCount(825, target)
 	if IsValid(target,825) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "CassiopeiaR") and myHero.pos:DistanceTo(target.pos) <= 825 then		
+		if (PussymyHero:GetSpellData(_R).name == "CassiopeiaR") and PussymyHero.pos:DistanceTo(target.pos) <= 825 then		
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7339,9 +7306,9 @@ end
 function Sylas:Fiddelsticks()
 local target = GetTarget(800)     	
 if target == nil then return end
-local count = GetEnemyCount(600, myHero)
+local count = GetEnemyCount(600, PussymyHero)
 	if IsValid(target,800) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "Crowstorm") and myHero.pos:DistanceTo(target.pos) <= 600 then		
+		if (PussymyHero:GetSpellData(_R).name == "Crowstorm") and PussymyHero.pos:DistanceTo(target.pos) <= 600 then		
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7358,7 +7325,7 @@ local target = GetTarget(20000)
 if target == nil then return end
 local count = GetEnemyCount(600, target)
 	if IsValid(target,20000) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "GangplankR") and myHero.pos:DistanceTo(target.pos) <= 20000 then		
+		if (PussymyHero:GetSpellData(_R).name == "GangplankR") and PussymyHero.pos:DistanceTo(target.pos) <= 20000 then		
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				
 				if target.pos:To2D().onScreen then						-----------check ist target in sichtweite
@@ -7378,7 +7345,7 @@ local target = GetTarget(1000)
 if target == nil then return end
 local count = GetEnemyCount(400, target)
 	if IsValid(target,1000) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "GragasR") then		
+		if (PussymyHero:GetSpellData(_R).name == "GragasR") then		
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7391,9 +7358,9 @@ end
 function Sylas:UltIllaoi()
 local target = GetTarget(450)     	
 if target == nil then return end
-local count = GetEnemyCount(450, myHero)
+local count = GetEnemyCount(450, PussymyHero)
 	if IsValid(target,450) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "IllaoiR") then		
+		if (PussymyHero:GetSpellData(_R).name == "IllaoiR") then		
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7405,9 +7372,9 @@ end
 function Sylas:AOEUltJanna()
 local target = GetTarget(725)     	
 if target == nil then return end
-local count = GetEnemyCount(725, myHero)
+local count = GetEnemyCount(725, PussymyHero)
 	if IsValid(target,725) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ReapTheWhirlwind") then		
+		if (PussymyHero:GetSpellData(_R).name == "ReapTheWhirlwind") then		
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7421,7 +7388,7 @@ local target = GetTarget(650)
 if target == nil then return end
 local count = GetEnemyCount(325, target)
 	if IsValid(target,650) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "JarvanIVCataclysm") and myHero.pos:DistanceTo(target.pos) <= 650 then		
+		if (PussymyHero:GetSpellData(_R).name == "JarvanIVCataclysm") and PussymyHero.pos:DistanceTo(target.pos) <= 650 then		
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7434,15 +7401,15 @@ end
 function Sylas:UltKatarina()						
 local target = GetTarget(550)     	
 if target == nil then return end
-local count = GetEnemyCount(250, myHero)
+local count = GetEnemyCount(250, PussymyHero)
 	if IsValid(target,550) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "KatarinaR") then		
+		if (PussymyHero:GetSpellData(_R).name == "KatarinaR") then		
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
-			if myHero.activeSpell.isChanneling == true then	
+			if PussymyHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
 				_G.SDK.Orbwalker:SetAttack(false)
-			elseif myHero.activeSpell.isChanneling == false then	
+			elseif PussymyHero.activeSpell.isChanneling == false then	
 				_G.SDK.Orbwalker:SetMovement(true)
 				_G.SDK.Orbwalker:SetAttack(true)
 			end
@@ -7457,7 +7424,7 @@ local target = GetTarget(1200)
 if target == nil then return end
 local count = GetEnemyCount(250, target)	
 	if IsValid(target,1200) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "LeonaSolarFlare") and myHero.pos:DistanceTo(target.pos) <= 1200 then		 
+		if (PussymyHero:GetSpellData(_R).name == "LeonaSolarFlare") and PussymyHero.pos:DistanceTo(target.pos) <= 1200 then		 
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target,pos)
 			end
@@ -7473,7 +7440,7 @@ local target = GetTarget(3000)
 if target == nil then return end
 local count = GetEnemyCount(900, target)
 	if IsValid(target,3000) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "MaokaiR") and myHero.pos:DistanceTo(target.pos) <= 3000 then
+		if (PussymyHero:GetSpellData(_R).name == "MaokaiR") and PussymyHero.pos:DistanceTo(target.pos) <= 3000 then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7487,12 +7454,12 @@ local target = GetTarget(700)
 if target == nil then return end
 local count = GetEnemyCount(500, target)
 	if IsValid(target,700) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "MalzaharR") and myHero.pos:DistanceTo(target.pos) <= 700 and count >= self.Menu.Combo.Set.Hit:Value() then		
+		if (PussymyHero:GetSpellData(_R).name == "MalzaharR") and PussymyHero.pos:DistanceTo(target.pos) <= 700 and count >= self.Menu.Combo.Set.Hit:Value() then		
 				Control.CastSpell(HK_R, target.pos)
-			if myHero.activeSpell.isChanneling == true then	
+			if PussymyHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
 				_G.SDK.Orbwalker:SetAttack(false)
-			elseif myHero.activeSpell.isChanneling == false then	
+			elseif PussymyHero.activeSpell.isChanneling == false then	
 				_G.SDK.Orbwalker:SetMovement(true)
 				_G.SDK.Orbwalker:SetAttack(true)
 			end
@@ -7506,7 +7473,7 @@ local target = GetTarget(1000)
 if target == nil then return end
 local count = GetEnemyCount(300, target)
 	if IsValid(target,1000) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "UFSlash") and myHero.pos:DistanceTo(target.pos) <= 1000 then
+		if (PussymyHero:GetSpellData(_R).name == "UFSlash") and PussymyHero.pos:DistanceTo(target.pos) <= 1000 then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7518,9 +7485,9 @@ end
 function Sylas:UltMorgana()
 local target = GetTarget(625)     	
 if target == nil then return end
-local count = GetEnemyCount(625, myHero)
+local count = GetEnemyCount(625, PussymyHero)
 	if IsValid(target,625) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "SoulShackles") then
+		if (PussymyHero:GetSpellData(_R).name == "SoulShackles") then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R)
 			end
@@ -7534,7 +7501,7 @@ local target = GetTarget(825)
 if target == nil then return end
 local count = GetEnemyCount(300, target)
 	if IsValid(target,825) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "NautilusR") and myHero.pos:DistanceTo(target.pos) <= 825 then
+		if (PussymyHero:GetSpellData(_R).name == "NautilusR") and PussymyHero.pos:DistanceTo(target.pos) <= 825 then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R)
 			end
@@ -7546,9 +7513,9 @@ end
 function Sylas:UltNeeko()
 local target = GetTarget(600)     	
 if target == nil then return end
-local count = GetEnemyCount(600, myHero)
+local count = GetEnemyCount(600, PussymyHero)
 	if IsValid(target,600) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "NeekoR") then
+		if (PussymyHero:GetSpellData(_R).name == "NeekoR") then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R)
 			end
@@ -7560,16 +7527,16 @@ end
 function Sylas:UltNami()
 local target = GetTarget(2750)     	
 if target == nil then return end
-local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 2750, 0.5, 850, 250, false)
+local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, 2750, 0.5, 850, 250, false)
 local count = GetEnemyCount(250, aimPosition)
 	if IsValid(target,2750) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "NamiR") and myHero.pos:DistanceTo(aimPosition.pos) <= 2750 then
+		if (PussymyHero:GetSpellData(_R).name == "NamiR") and PussymyHero.pos:DistanceTo(aimPosition.pos) <= 2750 then
 			if count >= self.Menu.Combo.Set.Hit:Value() and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
 				elseif not aimPosition:To2D().onScreen then	
-				local castPos = myHero.pos:Extended(aimPosition, 1000)   
+				local castPos = PussymyHero.pos:Extended(aimPosition, 1000)   
 					Control.CastSpell(HK_R, castPos)
 				end
 			end
@@ -7581,9 +7548,9 @@ end
 function Sylas:UltOriana()
 local target = GetTarget(325)     	
 if target == nil then return end
-local count = GetEnemyCount(325, myHero)
+local count = GetEnemyCount(325, PussymyHero)
 	if IsValid(target,325) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "OrianaDetonateCommand-") then
+		if (PussymyHero:GetSpellData(_R).name == "OrianaDetonateCommand-") then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R)
 			end
@@ -7595,9 +7562,9 @@ end
 function Sylas:UltRammus()
 local target = GetTarget(300)     	
 if target == nil then return end
-local count = GetEnemyCount(300, myHero)
+local count = GetEnemyCount(300, PussymyHero)
 	if IsValid(target,300) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "Tremors2") then
+		if (PussymyHero:GetSpellData(_R).name == "Tremors2") then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7611,7 +7578,7 @@ local target = GetTarget(900)
 if target == nil then return end
 local count = GetEnemyCount(140, target)
 	if IsValid(target,900) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "SonaR") and myHero.pos:DistanceTo(target.pos) <= 900 then
+		if (PussymyHero:GetSpellData(_R).name == "SonaR") and PussymyHero.pos:DistanceTo(target.pos) <= 900 then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7623,9 +7590,9 @@ end
 function Sylas:Swain()
 local target = GetTarget(650)     	
 if target == nil then return end
-local count = GetEnemyCount(650, myHero)
+local count = GetEnemyCount(650, PussymyHero)
 	if IsValid(target,650) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "SwainMetamorphism") then
+		if (PussymyHero:GetSpellData(_R).name == "SwainMetamorphism") then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7639,7 +7606,7 @@ local target = GetTarget(1300)
 if target == nil then return end
 local count = GetEnemyCount(120, target)
 	if IsValid(target,1300) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "SejuaniR") and myHero.pos:DistanceTo(target.pos) <= 1300 then
+		if (PussymyHero:GetSpellData(_R).name == "SejuaniR") and PussymyHero.pos:DistanceTo(target.pos) <= 1300 then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7651,9 +7618,9 @@ end
 function Sylas:UltTalon()
 local target = GetTarget(550)     	
 if target == nil then return end
-local count = GetEnemyCount(550, myHero)
+local count = GetEnemyCount(550, PussymyHero)
 	if IsValid(target,550) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "TalonShadowAssault") then
+		if (PussymyHero:GetSpellData(_R).name == "TalonShadowAssault") then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R)
 			end
@@ -7665,11 +7632,11 @@ end
 function Sylas:Thresh()
 local target = GetTarget(450)     	
 if target == nil then return end
-local count = GetEnemyCount(450, myHero)
+local count = GetEnemyCount(450, PussymyHero)
 	if IsValid(target,450) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ThreshRPenta") then
+		if (PussymyHero:GetSpellData(_R).name == "ThreshRPenta") then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
-				Control.CastSpell(HK_R, myHero.pos)
+				Control.CastSpell(HK_R, PussymyHero.pos)
 			end
 		end
 	end
@@ -7682,7 +7649,7 @@ local target = GetTarget(700)
 if target == nil then return end
 local count = GetEnemyCount(325, target)
 	if IsValid(target,700) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "VladimirHemoplague") and myHero.pos:DistanceTo(target.pos) <= 700 then
+		if (PussymyHero:GetSpellData(_R).name == "VladimirHemoplague") and PussymyHero.pos:DistanceTo(target.pos) <= 700 then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7696,7 +7663,7 @@ local target = GetTarget(1075)
 if target == nil then return end
 local count = GetEnemyCount(550, target)
 	if IsValid(target,1075) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "VarusR") and myHero.pos:DistanceTo(target.pos) <= 1075 then
+		if (PussymyHero:GetSpellData(_R).name == "VarusR") and PussymyHero.pos:DistanceTo(target.pos) <= 1075 then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7708,9 +7675,9 @@ end
 function Sylas:Volibear()
 local target = GetTarget(500)     	
 if target == nil then return end
-local count = GetEnemyCount(500, myHero)
+local count = GetEnemyCount(500, PussymyHero)
 	if IsValid(target,500) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "VolibearR") then
+		if (PussymyHero:GetSpellData(_R).name == "VolibearR") then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7725,7 +7692,7 @@ local target = GetTarget(1400)
 if target == nil then return end
 local count = self:CountKnockedUpEnemies(1400)
 	if IsValid(target,1400) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "YasuoR") and myHero.pos:DistanceTo(target.pos) <= 1400 then
+		if (PussymyHero:GetSpellData(_R).name == "YasuoR") and PussymyHero.pos:DistanceTo(target.pos) <= 1400 then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R)
 			end
@@ -7740,7 +7707,7 @@ local target = GetTarget(5300)
 if target == nil then return end
 local count = GetEnemyCount(550, target)
 	if IsValid(target,5300) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ZiggsR") and myHero.pos:DistanceTo(target.pos) <= 5300 then
+		if (PussymyHero:GetSpellData(_R).name == "ZiggsR") and PussymyHero.pos:DistanceTo(target.pos) <= 5300 then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				if target.pos:To2D().onScreen then						
 					Control.CastSpell(HK_R, target.pos) 
@@ -7759,7 +7726,7 @@ local target = GetTarget(700)
 if target == nil then return end
 local count = GetEnemyCount(500, target)
 	if IsValid(target,700) and self.Menu.Combo.Set.AOE:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ZyraR") and myHero.pos:DistanceTo(target.pos) <= 700 then
+		if (PussymyHero:GetSpellData(_R).name == "ZyraR") and PussymyHero.pos:DistanceTo(target.pos) <= 700 then
 			if count >= self.Menu.Combo.Set.Hit:Value() then
 				Control.CastSpell(HK_R, target.pos)
 			end
@@ -7779,9 +7746,9 @@ function Sylas:ShieldUltAlistar()
 local target = GetTarget(1200)     	
 if target == nil then return end	
 	if IsValid(target,1200) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "FerociousHowl") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
-				Control.CastSpell(HK_R, myHero)
+		if (PussymyHero:GetSpellData(_R).name == "FerociousHowl") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R, PussymyHero)
 			end
 		end
 	end
@@ -7792,9 +7759,9 @@ function Sylas:UltDrMundo()
 local target = GetTarget(1200)     	
 if target == nil then return end	
 	if IsValid(target,1200) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "Sadism") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
-				Control.CastSpell(HK_R, myHero)
+		if (PussymyHero:GetSpellData(_R).name == "Sadism") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R, PussymyHero)
 			end
 		end
 	end
@@ -7805,8 +7772,8 @@ function Sylas:UltEkko()
 local target = GetTarget(800)     	
 if target == nil then return end	
 	if IsValid(target,800) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "EkkoR") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "EkkoR") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -7819,8 +7786,8 @@ function Sylas:UltFiora()
 local target = GetTarget(500)     	
 if target == nil then return end	
 	if IsValid(target,500) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "FioraR") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "FioraR") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -7832,8 +7799,8 @@ function Sylas:HealUltJanna()
 local target = GetTarget(725)     	
 if target == nil then return end	
 	if IsValid(target,725) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ReapTheWhirlwind") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "ReapTheWhirlwind") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -7845,8 +7812,8 @@ function Sylas:BuffUltJax()
 local target = GetTarget(1000)     	
 if target == nil then return end	
 	if IsValid(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "JaxRelentlessAssault") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "JaxRelentlessAssault") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -7858,9 +7825,9 @@ function Sylas:BuffUltKaylie()
 local target = GetTarget(1000)     	
 if target == nil then return end	
 	if IsValid(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "JudicatorIntervention") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
-				Control.CastSpell(HK_R, myHero)
+		if (PussymyHero:GetSpellData(_R).name == "JudicatorIntervention") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R, PussymyHero)
 			end
 		end
 	end
@@ -7871,8 +7838,8 @@ function Sylas:KillUltKhazix()
 local target = GetTarget(1000)     	
 if target == nil then return end	
 	if IsValid(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "KhazixR") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "KhazixR") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -7884,8 +7851,8 @@ function Sylas:HealUltKindred()
 local target = GetTarget(1000)     	
 if target == nil then return end	
 	if IsValid(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "KindredR") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "KindredR") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -7897,9 +7864,9 @@ function Sylas:BuffUltLulu()
 local target = GetTarget(300)     	
 if target == nil then return end	
 	if IsValid(target,300) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "LuluR") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
-				Control.CastSpell(HK_R, myHero)
+		if (PussymyHero:GetSpellData(_R).name == "LuluR") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R, PussymyHero)
 			end
 		end
 	end
@@ -7911,8 +7878,8 @@ function Sylas:BuffUltNasus()
 local target = GetTarget(1000)     	
 if target == nil then return end	
 	if IsValid(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "NasusR") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "NasusR") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -7924,8 +7891,8 @@ function Sylas:BuffUltRenekton()
 local target = GetTarget(300)     	
 if target == nil then return end	
 	if IsValid(target,300) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "RenektonReignOfTheTyrant") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "RenektonReignOfTheTyrant") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R, target)
 			end
 		end
@@ -7937,8 +7904,8 @@ function Sylas:BuffUltSinged()
 local target = GetTarget(1000)     	
 if target == nil then return end	
 	if IsValid(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "InsanityPotion") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "InsanityPotion") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -7951,9 +7918,9 @@ function Sylas:SpeedUltSivir()
 local target = GetTarget(1000)     	
 if target == nil then return end	
 	if IsValid(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "SivirR") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
-				Control.CastSpell(HK_R, myHero)
+		if (PussymyHero:GetSpellData(_R).name == "SivirR") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R, PussymyHero)
 			end
 		end
 	end
@@ -7964,8 +7931,8 @@ function Sylas:HealUltSoraka()
 local target = GetTarget(1000)     	
 if target == nil then return end	
 	if IsValid(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "SorakaR") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "SorakaR") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -7977,8 +7944,8 @@ function Sylas:HealSwain()
 local target = GetTarget(650)     	
 if target == nil then return end	
 	if IsValid(target,650) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "SwainMetamorphism") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "SwainMetamorphism") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R, target.pos)
 			end
 		end
@@ -7990,8 +7957,8 @@ function Sylas:BuffUltTaric()
 local target = GetTarget(1000)     	
 if target == nil then return end	
 	if IsValid(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "TaricR") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "TaricR") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -8003,8 +7970,8 @@ function Sylas:BuffUlttryndamere()
 local target = GetTarget(1000)     	
 if target == nil then return end	
 	if IsValid(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "UndyingRage") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "UndyingRage") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -8017,8 +7984,8 @@ function Sylas:HealUltVladimir()
 local target = GetTarget(700)     	
 if target == nil then return end	
 	if IsValid(target,700) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "VladimirHemoplague") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "VladimirHemoplague") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R, target.pos)
 			end
 		end
@@ -8030,8 +7997,8 @@ function Sylas:UltXinZhao()
 local target = GetTarget(700)     	
 if target == nil then return end	
 	if IsValid(target,700) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "XenZhaoParry") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+		if (PussymyHero:GetSpellData(_R).name == "XenZhaoParry") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -8043,9 +8010,9 @@ function Sylas:BuffUltZilean()
 local target = GetTarget(1000)     	
 if target == nil then return end	
 	if IsValid(target,1000) and self.Menu.Combo.Set.Heal:Value() and Ready(_R) then
-		if (myHero:GetSpellData(_R).name == "ZileanR") then		 
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
-				Control.CastSpell(HK_R, myHero)
+		if (PussymyHero:GetSpellData(_R).name == "ZileanR") then		 
+			if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Combo.Set.HP:Value()/100 then
+				Control.CastSpell(HK_R, PussymyHero)
 			end
 		end
 	end
@@ -8069,63 +8036,63 @@ end
 
 
 function Sylas:KillSteal()
-if myHero.dead then return end	
+if PussymyHero.dead then return end	
 	local target = GetTarget(2000)     	
 	if target == nil then return end
 	local hp = target.health
-	local QDmg = getdmg("Q", target, myHero)
-	local WDmg = getdmg("W", target, myHero)
-	local EDmg = getdmg("E", target, myHero)
+	local QDmg = getdmg("Q", target, PussymyHero)
+	local WDmg = getdmg("W", target, PussymyHero)
+	local EDmg = getdmg("E", target, PussymyHero)
 	if IsValid(target,1300) then
-		if EDmg >= hp and self.Menu.ks.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 1200 and myHero.pos:DistanceTo(target.pos) > 400 then			
-			local EPos = target.pos:Shortened((myHero.pos:DistanceTo(target.pos) - 400))
-			Control.SetCursorPos(EPos)
-			Control.KeyDown(HK_E)
-			Control.KeyUp(HK_E)
-			if myHero.pos:DistanceTo(target.pos) <= 800 then	
-				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
+		if EDmg >= hp and self.Menu.ks.UseE:Value() and Ready(_E) and PussymyHero.pos:DistanceTo(target.pos) <= 1200 and PussymyHero.pos:DistanceTo(target.pos) > 400 then			
+			local EPos = target.pos:Shortened((PussymyHero.pos:DistanceTo(target.pos) - 400))
+			PussyControlSetCursorPos(EPos)
+			PussyControlKeyDown(HK_E)
+			PussyControlKeyUp(HK_E)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 800 then	
+				local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
 				if hitRate and hitRate >= 2 then
 					Control.CastSpell(HK_E, aimPosition)
 				end	
 			end
 	
-		elseif EDmg >= hp and self.Menu.ks.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 400 then
+		elseif EDmg >= hp and self.Menu.ks.UseE:Value() and Ready(_E) and PussymyHero.pos:DistanceTo(target.pos) <= 400 then
 			Control.CastSpell(HK_E, target)
-			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
+			local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
 			if hitRate and hitRate >= 2 then
 				Control.CastSpell(HK_E, aimPosition)
 			end	
 		end			
 		
-		if self.Menu.ks.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 775 then
-			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.radius, Q.collision)
+		if self.Menu.ks.UseQ:Value() and Ready(_Q) and PussymyHero.pos:DistanceTo(target.pos) <= 775 then
+			local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, Q.range, Q.delay, Q.speed, Q.radius, Q.collision)
 			if QDmg >= hp and hitRate and hitRate >= 2 then
 				Control.CastSpell(HK_Q, aimPosition)
 			end
-		elseif self.Menu.ks.UseQ:Value() and Ready(_Q) and Ready(_E) and myHero.pos:DistanceTo(target.pos) > 775 and myHero.pos:DistanceTo(target.pos) <= 1175 then
+		elseif self.Menu.ks.UseQ:Value() and Ready(_Q) and Ready(_E) and PussymyHero.pos:DistanceTo(target.pos) > 775 and PussymyHero.pos:DistanceTo(target.pos) <= 1175 then
 			if QDmg >= hp then
-				local EPos = target.pos:Shortened((myHero.pos:DistanceTo(target.pos) - 400))
-				Control.SetCursorPos(EPos)
-				Control.KeyDown(HK_E)
-				Control.KeyUp(HK_E)
-			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.radius, Q.collision)	
-			if myHero.pos:DistanceTo(target.pos) <= 775 and hitRate and hitRate >= 2 then	
+				local EPos = target.pos:Shortened((PussymyHero.pos:DistanceTo(target.pos) - 400))
+				PussyControlSetCursorPos(EPos)
+				PussyControlKeyDown(HK_E)
+				PussyControlKeyUp(HK_E)
+			local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, Q.range, Q.delay, Q.speed, Q.radius, Q.collision)	
+			if PussymyHero.pos:DistanceTo(target.pos) <= 775 and hitRate and hitRate >= 2 then	
 				Control.CastSpell(HK_Q, aimPosition)
 			end
 			end
 		end
 		
-		if self.Menu.ks.UseW:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) <= 400 then
+		if self.Menu.ks.UseW:Value() and Ready(_W) and PussymyHero.pos:DistanceTo(target.pos) <= 400 then
 			if WDmg >= hp then
 				Control.CastSpell(HK_W, target)		
 			end
-		elseif self.Menu.ks.UseW:Value() and Ready(_W) and Ready(_E) and myHero.pos:DistanceTo(target.pos) > 400 and  myHero.pos:DistanceTo(target.pos) <= 800 then
+		elseif self.Menu.ks.UseW:Value() and Ready(_W) and Ready(_E) and PussymyHero.pos:DistanceTo(target.pos) > 400 and  PussymyHero.pos:DistanceTo(target.pos) <= 800 then
 			if WDmg >= hp then
-				local EPos = target.pos:Shortened((myHero.pos:DistanceTo(target.pos) - 400))
-				Control.SetCursorPos(EPos)
-				Control.KeyDown(HK_E)
-				Control.KeyUp(HK_E)
-			if myHero.pos:DistanceTo(target.pos) <= 400 then	
+				local EPos = target.pos:Shortened((PussymyHero.pos:DistanceTo(target.pos) - 400))
+				PussyControlSetCursorPos(EPos)
+				PussyControlKeyDown(HK_E)
+				PussyControlKeyUp(HK_E)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 400 then	
 				Control.CastSpell(HK_W, target)
 			end		
 			end			
@@ -8141,34 +8108,34 @@ function Sylas:Combo()
 	local target = GetTarget(1300)
 	if target == nil then return end
 	if IsValid(target,1300) then
-		if self.Menu.Combo.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 1200 and myHero.pos:DistanceTo(target.pos) > 400 then			
-			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
-			local EPos = myHero.pos:Shortened(target.pos, 400)
+		if self.Menu.Combo.UseE:Value() and Ready(_E) and PussymyHero.pos:DistanceTo(target.pos) <= 1200 and PussymyHero.pos:DistanceTo(target.pos) > 400 then			
+			local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
+			local EPos = PussymyHero.pos:Shortened(target.pos, 400)
 			if hitRate and hitRate >= 2 then
-			Control.SetCursorPos(EPos)
+			PussyControlSetCursorPos(EPos)
 			Control.CastSpell(HK_E, aimPosition)
-			if myHero.pos:DistanceTo(target.pos) <= 800 then	
-				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 800 then	
+				local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
 				if hitRate and hitRate >= 2 then
 					Control.CastSpell(HK_E, aimPosition)
 				end	
 			end
 			end
 	
-		elseif self.Menu.Combo.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 400 then
+		elseif self.Menu.Combo.UseE:Value() and Ready(_E) and PussymyHero.pos:DistanceTo(target.pos) <= 400 then
 			Control.CastSpell(HK_E, target)	
-			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
+			local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
 			if hitRate and hitRate >= 2 then
 				Control.CastSpell(HK_E, aimPosition)
 			end	
 		end	
-		if self.Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 775 then 	
-			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.radius, Q.collision)
+		if self.Menu.Combo.UseQ:Value() and Ready(_Q) and PussymyHero.pos:DistanceTo(target.pos) <= 775 then 	
+			local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, Q.range, Q.delay, Q.speed, Q.radius, Q.collision)
 			if hitRate and hitRate >= 2 then
 				Control.CastSpell(HK_Q, aimPosition)
 			end	
 		end
-		if self.Menu.Combo.UseW:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) <= 400 then
+		if self.Menu.Combo.UseW:Value() and Ready(_W) and PussymyHero.pos:DistanceTo(target.pos) <= 400 then
 			Control.CastSpell(HK_W, target)
 		end
 	end
@@ -8180,33 +8147,33 @@ end
 function Sylas:Harass()	
 	local target = GetTarget(1300)
 	if target == nil then return end
-	if IsValid(target,1300) and(myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) then
-		if self.Menu.Harass.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 1200 and myHero.pos:DistanceTo(target.pos) > 400 then			
-			local EPos = target.pos:Shortened((myHero.pos:DistanceTo(target.pos) - 400))
-			Control.SetCursorPos(EPos)
-			Control.KeyDown(HK_E)
-			Control.KeyUp(HK_E)
-			if myHero.pos:DistanceTo(target.pos) <= 800 then	
-				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
+	if IsValid(target,1300) and(PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) then
+		if self.Menu.Harass.UseE:Value() and Ready(_E) and PussymyHero.pos:DistanceTo(target.pos) <= 1200 and PussymyHero.pos:DistanceTo(target.pos) > 400 then			
+			local EPos = target.pos:Shortened((PussymyHero.pos:DistanceTo(target.pos) - 400))
+			PussyControlSetCursorPos(EPos)
+			PussyControlKeyDown(HK_E)
+			PussyControlKeyUp(HK_E)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 800 then	
+				local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
 				if hitRate and hitRate >= 2 then
 					Control.CastSpell(HK_E, aimPosition)
 				end
 			end
 		
-		elseif self.Menu.Harass.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 400 then
+		elseif self.Menu.Harass.UseE:Value() and Ready(_E) and PussymyHero.pos:DistanceTo(target.pos) <= 400 then
 			Control.CastSpell(HK_E, target)	
-			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
+			local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
 			if hitRate and hitRate >= 2 then
 				Control.CastSpell(HK_E, aimPosition)
 			end
 		end			
-		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 775 then 	
-			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.radius, Q.collision)
+		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and PussymyHero.pos:DistanceTo(target.pos) <= 775 then 	
+			local hitRate, aimPosition = HPred:GetHitchance(PussymyHero.pos, target, Q.range, Q.delay, Q.speed, Q.radius, Q.collision)
 			if hitRate and hitRate >= 2 then
 				Control.CastSpell(HK_Q, aimPosition)
 			end	
 		end
-		if self.Menu.Harass.UseW:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) <= 400 then
+		if self.Menu.Harass.UseW:Value() and Ready(_W) and PussymyHero.pos:DistanceTo(target.pos) <= 400 then
 			Control.CastSpell(HK_W, target)
 		end
 	end
@@ -8215,31 +8182,30 @@ end
 
 
 function Sylas:Clear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
-    local TEAM_ALLY = myHero.team
-	local TEAM_ENEMY = 300 - myHero.team
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)
 
-		if minion.team == TEAM_ENEMY and (myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) then			
+
+		if minion.team == TEAM_ENEMY and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) then			
 			local count = GetMinionCount(225, minion)			
-			if IsValid(minion,1300) and Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 1200 and myHero.pos:DistanceTo(minion.pos) > 400 and self.Menu.Clear.UseE:Value() then
-				local EPos = minion.pos:Shortened((myHero.pos:DistanceTo(minion.pos) - 400))
-				Control.SetCursorPos(EPos)
-				Control.KeyDown(HK_E)
-				Control.KeyUp(HK_E)
-				if myHero.pos:DistanceTo(minion.pos) <= 800 then	
+			if IsValid(minion,1300) and Ready(_E) and PussymyHero.pos:DistanceTo(minion.pos) <= 1200 and PussymyHero.pos:DistanceTo(minion.pos) > 400 and self.Menu.Clear.UseE:Value() then
+				local EPos = minion.pos:Shortened((PussymyHero.pos:DistanceTo(minion.pos) - 400))
+				PussyControlSetCursorPos(EPos)
+				PussyControlKeyDown(HK_E)
+				PussyControlKeyUp(HK_E)
+				if PussymyHero.pos:DistanceTo(minion.pos) <= 800 then	
 					Control.CastSpell(HK_E, minion)
 				end
 					
-			elseif IsValid(minion,400) and Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 400 and self.Menu.Clear.UseE:Value() then
+			elseif IsValid(minion,400) and Ready(_E) and PussymyHero.pos:DistanceTo(minion.pos) <= 400 and self.Menu.Clear.UseE:Value() then
 				Control.CastSpell(HK_E, minion)
 				Control.CastSpell(HK_E, minion)
 			end 			
-			if IsValid(minion,775) and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 755 and self.Menu.Clear.UseQL:Value() and count >= self.Menu.Clear.UseQLM:Value() then
+			if IsValid(minion,775) and Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) <= 755 and self.Menu.Clear.UseQL:Value() and count >= self.Menu.Clear.UseQLM:Value() then
 				Control.CastSpell(HK_Q, minion)
 			end	
 
-			if IsValid(minion,400) and Ready(_W) and myHero.pos:DistanceTo(minion.pos) <= 400 and self.Menu.Clear.UseW:Value() then
+			if IsValid(minion,400) and Ready(_W) and PussymyHero.pos:DistanceTo(minion.pos) <= 400 and self.Menu.Clear.UseW:Value() then
 				Control.CastSpell(HK_W, minion)
 			end  
 		end
@@ -8247,28 +8213,28 @@ function Sylas:Clear()
 end
 
 function Sylas:JungleClear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)	
-	local TEAM_JUNGLE = 300
-		if minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
-			if IsValid(minion,1300) and Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 1200 and myHero.pos:DistanceTo(minion.pos) > 400 and self.Menu.JClear.UseE:Value() then
-				local EPos = minion.pos:Shortened((myHero.pos:DistanceTo(minion.pos) - 400))
-				Control.SetCursorPos(EPos)
-				Control.KeyDown(HK_E)
-				Control.KeyUp(HK_E)
-				if myHero.pos:DistanceTo(minion.pos) <= 800 then				
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)	
+
+		if minion.team == TEAM_JUNGLE and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
+			if IsValid(minion,1300) and Ready(_E) and PussymyHero.pos:DistanceTo(minion.pos) <= 1200 and PussymyHero.pos:DistanceTo(minion.pos) > 400 and self.Menu.JClear.UseE:Value() then
+				local EPos = minion.pos:Shortened((PussymyHero.pos:DistanceTo(minion.pos) - 400))
+				PussyControlSetCursorPos(EPos)
+				PussyControlKeyDown(HK_E)
+				PussyControlKeyUp(HK_E)
+				if PussymyHero.pos:DistanceTo(minion.pos) <= 800 then				
 					Control.CastSpell(HK_E, minion)
 				end
 			
-			elseif IsValid(minion,400) and Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 400 and self.Menu.JClear.UseE:Value() then
+			elseif IsValid(minion,400) and Ready(_E) and PussymyHero.pos:DistanceTo(minion.pos) <= 400 and self.Menu.JClear.UseE:Value() then
 				Control.CastSpell(HK_E, minion)
 				Control.CastSpell(HK_E, minion)
 			end			
-			if IsValid(minion,775) and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 775 and self.Menu.JClear.UseQ:Value() then
+			if IsValid(minion,775) and Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) <= 775 and self.Menu.JClear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion)
 			end
 
-			if IsValid(minion,400) and Ready(_W) and myHero.pos:DistanceTo(minion.pos) <= 400 and self.Menu.JClear.UseW:Value() then
+			if IsValid(minion,400) and Ready(_W) and PussymyHero.pos:DistanceTo(minion.pos) <= 400 and self.Menu.JClear.UseW:Value() then
 				Control.CastSpell(HK_W, minion)
 			end 
 		end
@@ -8293,9 +8259,9 @@ end
 
 function Tristana:CheckSpell(range)
     local target
-	for i = 1,Game.HeroCount() do
-		local hero = Game.Hero(i)
-        if IsValid(hero, range) and hero.team ~= myHero.team then
+	for i = 1,PussyGameHeroCount() do
+		local hero = PussyGameHero(i)
+        if hero.team ~= PussymyHero.team then
 			if hero.activeSpell.name == "RocketGrab" then 
 				casterPos = hero.pos
 				grabTime = hero.activeSpell.startTime * 100
@@ -8318,17 +8284,17 @@ end
 function GetInventorySlotItem(itemID)
 	assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
 	for _, j in pairs({ ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6}) do
-		if myHero:GetItemData(j).itemID == itemID and myHero:GetSpellData(j).currentCd == 0 then return j end
+		if PussymyHero:GetItemData(j).itemID == itemID and PussymyHero:GetSpellData(j).currentCd == 0 then return j end
 	end
 	return nil
 end
 
 function Tristana:IsReady(spell)
-	return Game.CanUseSpell(spell) == 0
+	return PussyGameCanUseSpell(spell) == 0
 end
 
 function Tristana:CheckMana(spellSlot)
-	return myHero:GetSpellData(spellSlot).mana < myHero.mana
+	return PussymyHero:GetSpellData(spellSlot).mana < PussymyHero.mana
 end
 
 function Tristana:CanCast(spellSlot)
@@ -8339,8 +8305,8 @@ function Tristana:__init()
 	
 	self:LoadSpells()
 	self:LoadMenu()
-	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("Draw", function() self:Draw() end)
+	PussyCallbackAdd("Tick", function() self:Tick() end)
+	PussyCallbackAdd("Draw", function() self:Draw() end)
 	if _G.EOWLoaded then
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
@@ -8355,8 +8321,8 @@ local HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/0
 function Tristana:LoadSpells()
 
 	W = {Range = 900, Width = 250, Delay = 0.25, Speed = 1100, Collision = false, aoe = true, Type = "circle"}
-	E = {Range = 517 + (8 * myHero.levelData.lvl), Width = 75, Delay = 0.25, Speed = 2400, Collision = false, aoe = false, Type = "line"}
-	R = {Range = 517 + (8 * myHero.levelData.lvl), Width = 0, Delay = 0.25, Speed = 1000, Collision = false, aoe = false, Type = "line"}
+	E = {Range = 517 + (8 * PussymyHero.levelData.lvl), Width = 75, Delay = 0.25, Speed = 2400, Collision = false, aoe = false, Type = "line"}
+	R = {Range = 517 + (8 * PussymyHero.levelData.lvl), Width = 0, Delay = 0.25, Speed = 1000, Collision = false, aoe = false, Type = "line"}
 
 end
 
@@ -8397,17 +8363,17 @@ function Tristana:LoadMenu()
 	self.Menu.Drawings:MenuElement({id = "W", name = "Draw W range", type = MENU})
     self.Menu.Drawings.W:MenuElement({id = "Enabled", name = "Enabled", value = true})       
     self.Menu.Drawings.W:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
-    self.Menu.Drawings.W:MenuElement({id = "Color", name = "Color", color = Draw.Color(200, 255, 255, 255)})
+    self.Menu.Drawings.W:MenuElement({id = "Color", name = "Color", color = PussyDrawColor(200, 255, 255, 255)})
 	--E
 	self.Menu.Drawings:MenuElement({id = "E", name = "Draw E range", type = MENU})
     self.Menu.Drawings.E:MenuElement({id = "Enabled", name = "Enabled", value = false})       
     self.Menu.Drawings.E:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
-    self.Menu.Drawings.E:MenuElement({id = "Color", name = "Color", color = Draw.Color(200, 255, 255, 255)})	
+    self.Menu.Drawings.E:MenuElement({id = "Color", name = "Color", color = PussyDrawColor(200, 255, 255, 255)})	
 	--R
 	self.Menu.Drawings:MenuElement({id = "R", name = "Draw R range", type = MENU})
     self.Menu.Drawings.R:MenuElement({id = "Enabled", name = "Enabled", value = true})
     self.Menu.Drawings.R:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
-    self.Menu.Drawings.R:MenuElement({id = "Color", name = "Color", color = Draw.Color(200, 255, 255, 255)})
+    self.Menu.Drawings.R:MenuElement({id = "Color", name = "Color", color = PussyDrawColor(200, 255, 255, 255)})
 	
 
 	self.Menu.Drawings:MenuElement({id = "DrawR", name = "Draw Kill Ulti Gapclose ", value = true})
@@ -8421,7 +8387,7 @@ function Tristana:LoadMenu()
 end
 
 function Tristana:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if PussymyHero.dead == false and PussyGameIsChatOpen() == false then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		if self.Menu.Combo.comboActive:Value() then
@@ -8456,51 +8422,51 @@ end
 end
 
 function Tristana:Draw()
-	if self:CanCast(_W) and self.Menu.Drawings.W.Enabled:Value() then Draw.Circle(myHero, 900, self.Menu.Drawings.W.Width:Value(), self.Menu.Drawings.W.Color:Value()) end
-	if self:CanCast(_E) and self.Menu.Drawings.E.Enabled:Value() then Draw.Circle(myHero, GetERange(), self.Menu.Drawings.E.Width:Value(), self.Menu.Drawings.E.Color:Value()) end
-	if self:CanCast(_R) and self.Menu.Drawings.R.Enabled:Value() then Draw.Circle(myHero, GetRRange(), self.Menu.Drawings.R.Width:Value(), self.Menu.Drawings.R.Color:Value()) end
+	if self:CanCast(_W) and self.Menu.Drawings.W.Enabled:Value() then PussyDrawCircle(PussymyHero, 900, self.Menu.Drawings.W.Width:Value(), self.Menu.Drawings.W.Color:Value()) end
+	if self:CanCast(_E) and self.Menu.Drawings.E.Enabled:Value() then PussyDrawCircle(PussymyHero, GetERange(), self.Menu.Drawings.E.Width:Value(), self.Menu.Drawings.E.Color:Value()) end
+	if self:CanCast(_R) and self.Menu.Drawings.R.Enabled:Value() then PussyDrawCircle(PussymyHero, GetRRange(), self.Menu.Drawings.R.Width:Value(), self.Menu.Drawings.R.Color:Value()) end
 	local hero = GetTarget(GetRWRange())
 	if hero == nil then return end
-	local textPos = myHero.pos:To2D()	
+	local textPos = PussymyHero.pos:To2D()	
 	if self.Menu.Drawings.DrawR:Value() and IsValid(hero, 1500) then 
-		if myHero.pos:DistanceTo(hero.pos) > R.Range and EnemyInRange(GetRWRange()) then
+		if PussymyHero.pos:DistanceTo(hero.pos) > R.Range and EnemyInRange(GetRWRange()) then
 		local Rdamage = self:RDMG(hero)		
 		local totalDMG = CalculateMagicalDamage(hero, Rdamage)
 			if totalDMG > self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead and self:IsReady(_R) and self:IsReady(_W) then
-			Draw.Text("GapcloseKill PressKey", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
+			PussyDrawText("GapcloseKill PressKey", 25, textPos.x - 33, textPos.y + 60, PussyDrawColor(255, 255, 0, 0))
 			end
 		end
 	end
 end	
-local timer = {state = false, tick = GetTickCount(), mouse = mousePos, done = false, delayer = GetTickCount()}
+local timer = {state = false, tick = PussyGetTickCount, mouse = mousePos, done = false, delayer = PussyGetTickCount}
 function Tristana:AntiBlitz()	
-	if GetTickCount() - timer.tick > 300 and GetTickCount() - timer.tick < 700 then 
+	if PussyGetTickCount - timer.tick > 300 and PussyGetTickCount - timer.tick < 700 then 
 		timer.state = false
 		_G.SDK.Orbwalker:SetMovement(true)
 		_G.SDK.Orbwalker:SetAttack(true)
 	end
 
-	local ctc = Game.Timer() * 100
+	local ctc = PussyGameTimer * 100
 	
 	local target = _G.SDK.TargetSelector:GetTarget(900, _G.SDK.DAMAGE_TYPE_PHYSICAL)
 	if self.Menu.Blitz.UseW:Value() and self:CheckSpell(900) and grabTime ~= nil and self:CanCast(_W) then 
-		if myHero.pos:DistanceTo(target.pos) > 350 then
+		if PussymyHero.pos:DistanceTo(target.pos) > 350 then
 			if ctc - grabTime >= 28 then
-				local jump = myHero.pos:Shortened(target.pos, 700)
+				local jump = PussymyHero.pos:Shortened(target.pos, 700)
 				_G.SDK.Orbwalker:SetMovement(false)
 				_G.SDK.Orbwalker:SetAttack(false)
-				Control.SetCursorPos(jump)
-				Control.KeyDown(HK_W)
-				Control.KeyUp(HK_W)
+				PussyControlSetCursorPos(jump)
+				PussyControlKeyDown(HK_W)
+				PussyControlKeyUp(HK_W)
 			end
 		else
 			if ctc - grabTime >= 12 then
-				local jump = myHero.pos:Shortened(target.pos, 700)
+				local jump = PussymyHero.pos:Shortened(target.pos, 700)
 				_G.SDK.Orbwalker:SetMovement(false)
 				_G.SDK.Orbwalker:SetAttack(false)
-				Control.SetCursorPos(jump)
-				Control.KeyDown(HK_W)
-				Control.KeyUp(HK_W)
+				PussyControlSetCursorPos(jump)
+				PussyControlKeyDown(HK_W)
+				PussyControlKeyUp(HK_W)
 			end
 		end
 	end
@@ -8522,8 +8488,8 @@ end
 function Tristana:UseMS()
 	if self.Menu.MS.UseMS:Value() then
 	local MS = GetInventorySlotItem(3139)	
-		if MS and GotBuff(myHero, "veigareventhorizonstun") > 0 or GotBuff(myHero, "stun") > 0 or GotBuff(myHero, "taunt") > 0 or GotBuff(myHero, "slow") > 0 or GotBuff(myHero, "snare") > 0 or GotBuff(myHero, "charm") > 0 or GotBuff(myHero, "suppression") > 0 or GotBuff(myHero, "flee") > 0 or GotBuff(myHero, "knockup") > 0 then
-			Control.CastSpell(HKITEM[MS], myHero)
+		if MS and GotBuff(PussymyHero, "veigareventhorizonstun") > 0 or GotBuff(PussymyHero, "stun") > 0 or GotBuff(PussymyHero, "taunt") > 0 or GotBuff(PussymyHero, "slow") > 0 or GotBuff(PussymyHero, "snare") > 0 or GotBuff(PussymyHero, "charm") > 0 or GotBuff(PussymyHero, "suppression") > 0 or GotBuff(PussymyHero, "flee") > 0 or GotBuff(PussymyHero, "knockup") > 0 then
+			Control.CastSpell(HKITEM[MS], PussymyHero)
 		
 		end
 	end
@@ -8597,7 +8563,7 @@ function Tristana:GapcloseR()
 	local Rdamage = self:RDMG(hero)		
 	local totalDMG = CalculateMagicalDamage(hero, Rdamage)	
 	if EnemyInRange(GetRWRange()) and self.Menu.gap.UseR:Value() and self:CanCast(_R) and self:CanCast(_W) then
-		if myHero.pos:DistanceTo(hero.pos) > R.Range then
+		if PussymyHero.pos:DistanceTo(hero.pos) > R.Range then
 			if totalDMG >= self:HpPred(hero,1) + hero.hpRegen * 1 then
 				Control.CastSpell(HK_W, hero.pos) 
 				self:AutoR()
@@ -8656,8 +8622,8 @@ function Tristana:HarassE()
 -- DMG
 ---------------------
 function Tristana:HasEbuff(unit)
-	for i = 1, Game.HeroCount() do
-	local hero = Game.Hero(i)
+	for i = 1, PussyGameHeroCount() do
+	local hero = PussyGameHero(i)
 	for i = 1, hero.buffCount do
 		local buff = hero:GetBuff(i)
 		if HasBuff(hero, "tristanaechargesound") then
@@ -8688,9 +8654,9 @@ end
 
 function Tristana:RDMG(unit)
     total = 0
-	local rLvl = myHero:GetSpellData(_R).level
+	local rLvl = PussymyHero:GetSpellData(_R).level
     if rLvl > 0 then
-	local rdamage = (({300,400,500})[rLvl] + myHero.ap) 
+	local rdamage = (({300,400,500})[rLvl] + PussymyHero.ap) 
 	total = rdamage 
 	end
 	return total
@@ -8698,7 +8664,7 @@ end
 
 function Tristana:AADMG(unit)
     total = 0
-	local AALvl = myHero.levelData.lvl
+	local AALvl = PussymyHero.levelData.lvl
 
 	local AAdamage = 58 + ( 2 * AALvl)
 	total = AAdamage 
@@ -8708,11 +8674,11 @@ end
 function Tristana:GetStackDmg(unit)
 
 	local total = 0
-	local eLvl = myHero:GetSpellData(_E).level
+	local eLvl = PussymyHero:GetSpellData(_E).level
 	if eLvl > 0 then
 		local raw = ({ 21, 24, 27, 30, 33 })[eLvl]
 		local m = ({ 0.15, 0.21, 0.27, 0.33, 0.39 })[eLvl]
-		local bonusDmg = (m * myHero.bonusDamage) + (0.15 * myHero.ap)
+		local bonusDmg = (m * PussymyHero.bonusDamage) + (0.15 * PussymyHero.ap)
 		total = (raw + bonusDmg) * self:GetEstacks(unit)
 	end
 	return total
@@ -8720,11 +8686,11 @@ end
 
 function Tristana:EDMG(unit)
 	local total = 0
-	local eLvl = myHero:GetSpellData(_E).level
+	local eLvl = PussymyHero:GetSpellData(_E).level
 	if eLvl > 0 then
 		local raw = ({ 70, 80, 90, 100, 110 })[eLvl]
 		local m = ({ 0.5, 0.7, 0.9, 1.1, 1.3 })[eLvl]
-		local bonusDmg = (m * myHero.bonusDamage) + (0.5 * myHero.ap)
+		local bonusDmg = (m * PussymyHero.bonusDamage) + (0.5 * PussymyHero.ap)
 		total = raw + bonusDmg
 		total = total + self:GetStackDmg(unit)  
 	end
@@ -8736,7 +8702,7 @@ end
 
 
 function GetRRange()
-	local level = myHero.levelData.lvl
+	local level = PussymyHero.levelData.lvl
 	local range = 517 + ( 8 * level)
 	return range
 end
@@ -8751,13 +8717,13 @@ end
 
 
 function GetERange()
-	local level = myHero.levelData.lvl
+	local level = PussymyHero.levelData.lvl
 	local range = 517 + ( 8 * level)
 	return range
 end
 
 function GetAARange()
-	local level = myHero.levelData.lvl
+	local level = PussymyHero.levelData.lvl
 	local range = 517 + ( 8 * level)
 	return range
 end
@@ -8788,7 +8754,7 @@ keybindings = { [ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3
 function GetInventorySlotItem(itemID)
 		assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
 		for _, j in pairs({ ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6}) do
-			if myHero:GetItemData(j).itemID == itemID and myHero:GetSpellData(j).currentCd == 0 then return j end
+			if PussymyHero:GetItemData(j).itemID == itemID and PussymyHero:GetSpellData(j).currentCd == 0 then return j end
 		end
 		return nil
 	    end
@@ -8802,11 +8768,11 @@ function GetPercentMP(unit)
 end
 
 function Veigar:IsReady(spell)
-	return Game.CanUseSpell(spell) == 0
+	return PussyGameCanUseSpell(spell) == 0
 end
 
 function Veigar:CheckMana(spellSlot)
-	return myHero:GetSpellData(spellSlot).mana < myHero.mana
+	return PussymyHero:GetSpellData(spellSlot).mana < PussymyHero.mana
 end
 
 function Veigar:CanCast(spellSlot)
@@ -8825,7 +8791,7 @@ end
 function Veigar:__init()
 	self:LoadSpells()
 	self:LoadMenu()
-	Callback.Add("Tick", function() self:Tick() end)
+	PussyCallbackAdd("Tick", function() self:Tick() end)
 	if _G.EOWLoaded then
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
@@ -8838,27 +8804,27 @@ end
 function Veigar:LoadSpells()
 
 	Q = {Range = 950, Width = 70, Delay = 0.25, Speed = 2000, Collision = true, aoe = false, Type = "line"}
-	W = {Range = 900, Width = 112, Delay = 1.25, Speed = math.huge, Collision = false, aoe = true, Type = "circular"}
-	E = {Range = 700, Width = 375, Delay = 0.5, Speed = math.huge, Collision = false, aoe = true, Type = "circular"}
+	W = {Range = 900, Width = 112, Delay = 1.25, Speed = PussyMathHuge, Collision = false, aoe = true, Type = "circular"}
+	E = {Range = 700, Width = 375, Delay = 0.5, Speed = PussyMathHuge, Collision = false, aoe = true, Type = "circular"}
 	R = {Range = 650, Width = 0, Delay = 0.25, Speed = 1400, Collision = false, aoe = false, Type = "line"}
 
 end
 
 function Veigar:QDMG()
-    local level = myHero:GetSpellData(_Q).level
-    local qdamage = (({70,110,150,190,230})[level] + 0.60 * myHero.ap)
+    local level = PussymyHero:GetSpellData(_Q).level
+    local qdamage = (({70,110,150,190,230})[level] + 0.60 * PussymyHero.ap)
 	return qdamage
 end
 
 function Veigar:WDMG()
-    local level = myHero:GetSpellData(_W).level
-    local wdamage = (({100,150,200,250,300})[level] + myHero.ap)
+    local level = PussymyHero:GetSpellData(_W).level
+    local wdamage = (({100,150,200,250,300})[level] + PussymyHero.ap)
 	return wdamage
 end
 
 function Veigar:RDMG()
-    local level = myHero:GetSpellData(_R).level
-    local rdamage = GetPercentHP(target) > 33.3 and ({175, 250, 325})[level] + 0.75 * myHero.ap or ({350, 500, 650})[level] + 1.5 * myHero.ap; return rdamage +((0.015 * rdamage) * (100 - ((target.health / target.maxHealth) * 100)))
+    local level = PussymyHero:GetSpellData(_R).level
+    local rdamage = GetPercentHP(target) > 33.3 and ({175, 250, 325})[level] + 0.75 * PussymyHero.ap or ({350, 500, 650})[level] + 1.5 * PussymyHero.ap; return rdamage +((0.015 * rdamage) * (100 - ((target.health / target.maxHealth) * 100)))
 
 end
 
@@ -8920,7 +8886,7 @@ function Veigar:LoadMenu()
 end
 
 function Veigar:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if PussymyHero.dead == false and PussyGameIsChatOpen() == false then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		if self.Menu.Combo.comboActive:Value() then
@@ -8960,15 +8926,15 @@ end
 function Veigar:UseIG()
     local target = GetTarget(600)
 	if self.Menu.Killsteal.UseIG:Value() and target then 
-		local IGdamage = 80 + 25 * myHero.levelData.lvl
-   		if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
-       		if IsValid(target, 600, true, myHero) and self:CanCast(SUMMONER_1) then
+		local IGdamage = 80 + 25 * PussymyHero.levelData.lvl
+   		if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
+       		if IsValid(target, 600) and self:CanCast(SUMMONER_1) then
 				if IGdamage >= Veigar:HpPred(target, 1) + target.hpRegen * 3 then
 					Control.CastSpell(HK_SUMMONER_1, target)
 				end
        		end
-		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-        	if IsValid(target, 600, true, myHero) and self:CanCast(SUMMONER_2) then
+		elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
+        	if IsValid(target, 600) and self:CanCast(SUMMONER_2) then
 				if IGdamage >= Veigar:HpPred(target, 1) + target.hpRegen * 3 then
 					Control.CastSpell(HK_SUMMONER_2, target)
 				end
@@ -8982,8 +8948,8 @@ function Veigar:Clear()
 	local qMinions = {}
 	local mobs = {}
 	
-	for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
+	for i = 1, PussyGameMinionCount() do
+		local minion = PussyGameMinion(i)
 		if IsValid(minion,900)  then
 			if minion.team == 300 then
 				mobs[#mobs+1] = minion
@@ -8992,7 +8958,7 @@ function Veigar:Clear()
 			end	
 	end	
 		local BestPos, BestHit = GetBestCircularFarmPosition(50,112 + 80, qMinions)
-		if BestHit >= self.Menu.Clear.WHit:Value() and self:CanCast(_W) and (myHero.mana/myHero.maxMana >= self.Menu.Mana.WMana:Value() / 100 ) then
+		if BestHit >= self.Menu.Clear.WHit:Value() and self:CanCast(_W) and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Mana.WMana:Value() / 100 ) then
 			Control.CastSpell(HK_W,BestPos)
 		end
 	end
@@ -9002,9 +8968,9 @@ end
 function Veigar:Combo()
     local target = GetTarget(Q.Range)
     if target == nil then return end
-    if self.Menu.Combo.UseQ:Value() and target and self:CanCast(_Q) and (myHero.mana/myHero.maxMana >= self.Menu.Mana.QMana:Value() / 100 ) then
+    if self.Menu.Combo.UseQ:Value() and target and self:CanCast(_Q) and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Mana.QMana:Value() / 100 ) then
 	    if EnemyInRange(Q.Range) then
-		    local castpos,HitChance, pos = TPred:GetBestCastPosition(target, Q.Delay , Q.Width, Q.Range,Q.Speed, myHero.pos, not Q.ignorecol, Q.Type )
+		    local castpos,HitChance, pos = TPred:GetBestCastPosition(target, Q.Delay , Q.Width, Q.Range,Q.Speed, PussymyHero.pos, not Q.ignorecol, Q.Type )
 		    if (HitChance > 0 ) then
 				Control.CastSpell(HK_Q, castpos)
 		    end
@@ -9016,7 +8982,7 @@ function Veigar:Combo()
 	if self.Menu.Combo.UseE:Value() and target and self:CanCast(_E) then
 		if EnemyInRange(E.Range) then
 			if self.Menu.Combo.EMode:Value() == 1 then
-				Control.CastSpell(HK_E, Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(myHero.pos)):Normalized()*375) 
+				Control.CastSpell(HK_E, PussyVector(target:GetPrediction(E.Speed,E.Delay))-PussyVector(PussyVector(target:GetPrediction(E.Speed,E.Delay))-PussyVector(PussymyHero.pos)):Normalized()*375) 
 			elseif self.Menu.Combo.EMode:Value() == 2 then
 				Control.CastSpell(HK_E,target)
 			end
@@ -9025,9 +8991,9 @@ function Veigar:Combo()
 	
 	local target = GetTarget(W.Range)
     if target == nil then return end
-    if self.Menu.Combo.UseW:Value() and target and self:CanCast(_W) and (myHero.mana/myHero.maxMana >= self.Menu.Mana.WMana:Value() / 100 ) then
+    if self.Menu.Combo.UseW:Value() and target and self:CanCast(_W) and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Mana.WMana:Value() / 100 ) then
 	    if EnemyInRange(W.Range) then
-		    local castpos,HitChance, pos = TPred:GetBestCastPosition(target, W.Delay , W.Width, W.Range,W.Speed, myHero.pos, W.ignorecol, W.Type )
+		    local castpos,HitChance, pos = TPred:GetBestCastPosition(target, W.Delay , W.Width, W.Range,W.Speed, PussymyHero.pos, W.ignorecol, W.Type )
 		    local ImmobileEnemy = IsImmobileTarget(target)
 			if (HitChance > 0 ) then
 				if self.Menu.Combo.WWait:Value() and ImmobileEnemy then 
@@ -9043,9 +9009,9 @@ end
 function Veigar:Harass()
     local target = GetTarget(Q.Range)
     if target == nil then return end
-    if self.Menu.Harass.UseQ:Value() and target and self:CanCast(_Q) and (myHero.mana/myHero.maxMana >= self.Menu.Mana.QMana:Value() / 100 ) then
+    if self.Menu.Harass.UseQ:Value() and target and self:CanCast(_Q) and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Mana.QMana:Value() / 100 ) then
 	    if EnemyInRange(Q.Range) then
-		    local castpos,HitChance, pos = TPred:GetBestCastPosition(target, Q.Delay , Q.Width, Q.Range,Q.Speed, myHero.pos, not Q.ignorecol, Q.Type )
+		    local castpos,HitChance, pos = TPred:GetBestCastPosition(target, Q.Delay , Q.Width, Q.Range,Q.Speed, PussymyHero.pos, not Q.ignorecol, Q.Type )
 		    if (HitChance > 0 ) then
 				Control.CastSpell(HK_Q, castpos)
 		    end
@@ -9054,9 +9020,9 @@ function Veigar:Harass()
  
 	local target = GetTarget(W.Range)
     if target == nil then return end
-    if self.Menu.Harass.UseW:Value() and target and self:CanCast(_W) and (myHero.mana/myHero.maxMana >= self.Menu.Mana.WMana:Value() / 100 ) then
+    if self.Menu.Harass.UseW:Value() and target and self:CanCast(_W) and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Mana.WMana:Value() / 100 ) then
 	    if EnemyInRange(W.Range) then
-		    local castpos,HitChance, pos = TPred:GetBestCastPosition(target, W.Delay , W.Width, W.Range,W.Speed, myHero.pos, W.ignorecol, W.Type )
+		    local castpos,HitChance, pos = TPred:GetBestCastPosition(target, W.Delay , W.Width, W.Range,W.Speed, PussymyHero.pos, W.ignorecol, W.Type )
 		    if (HitChance > 0 ) then
 				Control.CastSpell(HK_W, castpos)
 		    end
@@ -9067,10 +9033,10 @@ end
 function Veigar:AutoQ()
 	local target = GetTarget(Q.Range)
 	if target == nil then return end
-	if self.Menu.Harass.AutoQ:Value() and target and self:CanCast(_Q) and (myHero.mana/myHero.maxMana >= self.Menu.Mana.QMana:Value() / 100 ) then
+	if self.Menu.Harass.AutoQ:Value() and target and self:CanCast(_Q) and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Mana.QMana:Value() / 100 ) then
 		if EnemyInRange(Q.Range) then 
-			local level = myHero:GetSpellData(_Q).level	
-			local castpos,HitChance, pos = TPred:GetBestCastPosition(target, Q.Delay , Q.Width, Q.Range,Q.Speed, myHero.pos, not Q.ignorecol, Q.Type )
+			local level = PussymyHero:GetSpellData(_Q).level	
+			local castpos,HitChance, pos = TPred:GetBestCastPosition(target, Q.Delay , Q.Width, Q.Range,Q.Speed, PussymyHero.pos, not Q.ignorecol, Q.Type )
 			if (HitChance > 0 ) and self:CanCast(_Q) then
 				Control.CastSpell(HK_Q, castpos)
 				end
@@ -9079,13 +9045,13 @@ function Veigar:AutoQ()
 	end
 	
 function Veigar:AutoQFarm()
-	if self:CanCast(_Q) and self.Menu.Lasthit.AutoQFarm:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Mana.QMana:Value() / 100 ) then
-		local level = myHero:GetSpellData(_Q).level	
-  		for i = 1, Game.MinionCount() do
-			local minion = Game.Minion(i)
+	if self:CanCast(_Q) and self.Menu.Lasthit.AutoQFarm:Value() and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Mana.QMana:Value() / 100 ) then
+		local level = PussymyHero:GetSpellData(_Q).level	
+  		for i = 1, PussyGameMinionCount() do
+			local minion = PussyGameMinion(i)
 			local Qdamage = self:QDMG()
-			if myHero.pos:DistanceTo(minion.pos) < Q.Range and minion.isEnemy and not minion.dead then
-				local castpos,HitChance, pos = TPred:GetBestCastPosition(minion, Q.Delay , Q.Width, Q.Range,Q.Speed, myHero.pos, not Q.ignorecol, Q.Type )
+			if PussymyHero.pos:DistanceTo(minion.pos) < Q.Range and minion.team == TEAM_ENEMY and not minion.dead then
+				local castpos,HitChance, pos = TPred:GetBestCastPosition(minion, Q.Delay , Q.Width, Q.Range,Q.Speed, PussymyHero.pos, not Q.ignorecol, Q.Type )
 				if Qdamage >= self:HpPred(minion,1) and (HitChance > 0 ) then
 				Control.CastSpell(HK_Q,minion.pos)
 				end
@@ -9096,12 +9062,12 @@ end
 
 function Veigar:Lasthit()
 	if self:CanCast(_Q) then
-		local level = myHero:GetSpellData(_Q).level	
-  		for i = 1, Game.MinionCount() do
-			local minion = Game.Minion(i)
+		local level = PussymyHero:GetSpellData(_Q).level	
+  		for i = 1, PussyGameMinionCount() do
+			local minion = PussyGameMinion(i)
 			local Qdamage = self:QDMG()
-			if myHero.pos:DistanceTo(minion.pos) < Q.Range and self.Menu.Lasthit.UseQ:Value() and minion.isEnemy and not minion.dead then
-				local castpos,HitChance, pos = TPred:GetBestCastPosition(minion, Q.Delay , Q.Width, Q.Range,Q.Speed, myHero.pos, not Q.ignorecol, Q.Type )
+			if PussymyHero.pos:DistanceTo(minion.pos) < Q.Range and self.Menu.Lasthit.UseQ:Value() and minion.team == TEAM_ENEMY and not minion.dead then
+				local castpos,HitChance, pos = TPred:GetBestCastPosition(minion, Q.Delay , Q.Width, Q.Range,Q.Speed, PussymyHero.pos, not Q.ignorecol, Q.Type )
 				if Qdamage >= self:HpPred(minion,1) and (HitChance > 0 ) then
 				Control.CastSpell(HK_Q,minion.pos)
 				end
@@ -9114,8 +9080,8 @@ function Veigar:KillstealR()
     local target = GetTarget(R.Range)
 	if target == nil then return end
 	if self.Menu.Killsteal.RR["UseR"..target.charName]:Value() and self:CanCast(_R) and EnemyInRange(R.Range) then   
-		local level = myHero:GetSpellData(_R).level	
-		local dmg = GetPercentHP(target) > 33.3 and ({175, 250, 325})[level] + 0.75 * myHero.ap or ({350, 500, 650})[level] + 1.50 * myHero.ap
+		local level = PussymyHero:GetSpellData(_R).level	
+		local dmg = GetPercentHP(target) > 33.3 and ({175, 250, 325})[level] + 0.75 * PussymyHero.ap or ({350, 500, 650})[level] + 1.50 * PussymyHero.ap
 		local Rdamage = dmg +((0.015 * dmg) * (100 - ((target.health / target.maxHealth) * 100)))
 
 		if Rdamage >= self:HpPred(target,1) * 1.2 + target.hpRegen * 2 then
@@ -9129,8 +9095,8 @@ function Veigar:KillstealQ()
 	if target == nil then return end
 	if self.Menu.Killsteal.UseQ:Value() and target and self:CanCast(_Q) then
 		if EnemyInRange(Q.Range) then 
-			local level = myHero:GetSpellData(_Q).level	
-			local castpos,HitChance, pos = TPred:GetBestCastPosition(target, Q.Delay , Q.Width, Q.Range, Q.Speed, myHero.pos, not Q.ignorecol, Q.Type )
+			local level = PussymyHero:GetSpellData(_Q).level	
+			local castpos,HitChance, pos = TPred:GetBestCastPosition(target, Q.Delay , Q.Width, Q.Range, Q.Speed, PussymyHero.pos, not Q.ignorecol, Q.Type )
 		   	local Qdamage = Veigar:QDMG()
 			if Qdamage >= self:HpPred(target,1) + target.hpRegen * 1 and not target.dead then
 			if (HitChance > 0 ) then
@@ -9146,8 +9112,8 @@ function Veigar:KillstealW()
 	if target == nil then return end
 	if self.Menu.Killsteal.UseW:Value() and target and self:CanCast(_W) then
 		if EnemyInRange(W.Range) then 
-			local level = myHero:GetSpellData(_Q).level	
-			local castpos,HitChance, pos = TPred:GetBestCastPosition(target, W.Delay , W.Width, W.Range, W.Speed, myHero.pos, W.ignorecol, W.Type )
+			local level = PussymyHero:GetSpellData(_Q).level	
+			local castpos,HitChance, pos = TPred:GetBestCastPosition(target, W.Delay , W.Width, W.Range, W.Speed, PussymyHero.pos, W.ignorecol, W.Type )
 		   	local Wdamage = self:WDMG()
 			if Wdamage >= self:HpPred(target,1) + target.hpRegen * 1 and not target.dead then
 			if (HitChance > 0 ) then
@@ -9165,8 +9131,8 @@ function Veigar:SpellonCCQ()
 	if self.Menu.isCC.UseQ:Value() and target and self:CanCast(_Q) then
 		if EnemyInRange(Q.Range) then 
 			local ImmobileEnemy = IsImmobileTarget(target)
-			local level = myHero:GetSpellData(_Q).level	
-			local castpos,HitChance, pos = TPred:GetBestCastPosition(target, Q.Delay , Q.Width, Q.Range,Q.Speed, myHero.pos, not Q.ignorecol, Q.Type )
+			local level = PussymyHero:GetSpellData(_Q).level	
+			local castpos,HitChance, pos = TPred:GetBestCastPosition(target, Q.Delay , Q.Width, Q.Range,Q.Speed, PussymyHero.pos, not Q.ignorecol, Q.Type )
 			if ImmobileEnemy then
 			if (HitChance > 0 ) and not target.dead then
 				Control.CastSpell(HK_Q, castpos)
@@ -9183,7 +9149,7 @@ function Veigar:SpellonCCE()
 		local ImmobileEnemy = IsImmobileTarget(target)
 	    if EnemyInRange(E.Range) and ImmobileEnemy then
 		if self.Menu.isCC.EMode:Value() == 1 then
-			Control.CastSpell(HK_E, Vector(target:GetPrediction(E.speed,E.delay))-Vector(Vector(target:GetPrediction(E.speed,E.delay))-Vector(myHero.pos)):Normalized()*375)
+			Control.CastSpell(HK_E, PussyVector(target:GetPrediction(E.speed,E.delay))-PussyVector(PussyVector(target:GetPrediction(E.speed,E.delay))-PussyVector(PussymyHero.pos)):Normalized()*375)
 		elseif self.Menu.isCC.EMode:Value() == 2 then
 			Control.CastSpell(HK_E,target)
 		end
@@ -9197,8 +9163,8 @@ function Veigar:SpellonCCW()
 	if self.Menu.isCC.UseW:Value() and target and self:CanCast(_W) then
 		if EnemyInRange(W.Range) then 
 			local ImmobileEnemy = IsImmobileTarget(target)
-			local level = myHero:GetSpellData(_W).level	
-			local castpos,HitChance, pos = TPred:GetBestCastPosition(target, W.Delay , W.Width, W.Range, W.Speed, myHero.pos, W.ignorecol, W.Type )
+			local level = PussymyHero:GetSpellData(_W).level	
+			local castpos,HitChance, pos = TPred:GetBestCastPosition(target, W.Delay , W.Width, W.Range, W.Speed, PussymyHero.pos, W.ignorecol, W.Type )
 			if (HitChance > 0 ) and ImmobileEnemy then
 				Control.CastSpell(HK_W, castpos)
 				end
@@ -9230,17 +9196,17 @@ keybindings = { [ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3
 function GetInventorySlotItem(itemID)
 		assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
 		for _, j in pairs({ ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6}) do
-			if myHero:GetItemData(j).itemID == itemID and myHero:GetSpellData(j).currentCd == 0 then return j end
+			if PussymyHero:GetItemData(j).itemID == itemID and PussymyHero:GetSpellData(j).currentCd == 0 then return j end
 		end
 		return nil
 	    end
 		
 function Warwick:IsReady(spell)
-	return Game.CanUseSpell(spell) == 0
+	return PussyGameCanUseSpell(spell) == 0
 end
 
 function Warwick:CheckMana(spellSlot)
-	return myHero:GetSpellData(spellSlot).mana < myHero.mana
+	return PussymyHero:GetSpellData(spellSlot).mana < PussymyHero.mana
 end
 
 function Warwick:CanCast(spellSlot)
@@ -9249,9 +9215,9 @@ end
 
 function Warwick:QDmg()
 	total = 0
-	local qLvl = myHero:GetSpellData(_Q).level
+	local qLvl = PussymyHero:GetSpellData(_Q).level
     if qLvl > 0 then
-	local qdamage = 1.2 * myHero.totalDamage + 0.9 * myHero.ap + (({6, 6.5, 7, 7.5, 8})[qLvl] / 100  * target.maxHealth)
+	local qdamage = 1.2 * PussymyHero.totalDamage + 0.9 * PussymyHero.ap + (({6, 6.5, 7, 7.5, 8})[qLvl] / 100  * target.maxHealth)
 	total = qdamage
 	end
 	return total
@@ -9260,9 +9226,9 @@ end
 
 function Warwick:RDmg()
 	total = 0
-	local rLvl = myHero:GetSpellData(_R).level
+	local rLvl = PussymyHero:GetSpellData(_R).level
     if rLvl > 0 then
-	local rdamage = (({175,350,525})[rLvl] + 1.67 * myHero.totalDamage)
+	local rdamage = (({175,350,525})[rLvl] + 1.67 * PussymyHero.totalDamage)
 	total = rdamage
 	end
 	return total
@@ -9282,8 +9248,8 @@ function Warwick:__init()
 	
 	self:LoadSpells()
 	self:LoadMenu()
-	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("Draw", function() self:Draw() end)
+	PussyCallbackAdd("Tick", function() self:Tick() end)
+	PussyCallbackAdd("Draw", function() self:Draw() end)
 	if _G.EOWLoaded then
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
@@ -9294,10 +9260,10 @@ function Warwick:__init()
 end
 
 function Warwick:LoadSpells()
-	Q = { range = myHero:GetSpellData(_Q).range, delay = myHero:GetSpellData(_Q).delay, speed = myHero:GetSpellData(_Q).speed, width = myHero:GetSpellData(_Q).width }
-	W = { range = myHero:GetSpellData(_W).range, delay = myHero:GetSpellData(_W).delay, speed = myHero:GetSpellData(_W).speed, width = myHero:GetSpellData(_W).width }
-	E = { range = myHero:GetSpellData(_E).range, delay = myHero:GetSpellData(_E).delay, speed = myHero:GetSpellData(_E).speed, width = myHero:GetSpellData(_E).width }
-	R = { range = myHero:GetSpellData(_R).range, delay = myHero:GetSpellData(_R).delay, speed = myHero:GetSpellData(_R).speed, width = myHero:GetSpellData(_R).width }
+	Q = { range = PussymyHero:GetSpellData(_Q).range, delay = PussymyHero:GetSpellData(_Q).delay, speed = PussymyHero:GetSpellData(_Q).speed, width = PussymyHero:GetSpellData(_Q).width }
+	W = { range = PussymyHero:GetSpellData(_W).range, delay = PussymyHero:GetSpellData(_W).delay, speed = PussymyHero:GetSpellData(_W).speed, width = PussymyHero:GetSpellData(_W).width }
+	E = { range = PussymyHero:GetSpellData(_E).range, delay = PussymyHero:GetSpellData(_E).delay, speed = PussymyHero:GetSpellData(_E).speed, width = PussymyHero:GetSpellData(_E).width }
+	R = { range = PussymyHero:GetSpellData(_R).range, delay = PussymyHero:GetSpellData(_R).delay, speed = PussymyHero:GetSpellData(_R).speed, width = PussymyHero:GetSpellData(_R).width }
 
 end
 
@@ -9333,7 +9299,7 @@ function Warwick:LoadMenu()
 end
 
 function Warwick:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if PussymyHero.dead == false and PussyGameIsChatOpen() == false then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			if self.Menu.ComboMode.comboActive:Value() then
@@ -9359,8 +9325,8 @@ end
 end	
 
 function Warwick:Draw()
-    local textPos = myHero.pos:To2D()
-    if self.Menu.ComboMode.DrawRange:Value() and self:CanCast(_R) then Draw.Circle(myHero.pos, (2.5 * myHero.ms), Draw.Color(255, 000, 222, 255)) end
+    local textPos = PussymyHero.pos:To2D()
+    if self.Menu.ComboMode.DrawRange:Value() and self:CanCast(_R) then PussyDrawCircle(PussymyHero.pos, (2.5 * PussymyHero.ms), PussyDrawColor(255, 000, 222, 255)) end
 	if self.Menu.ComboMode.DrawDamage:Value() then
 		for i, hero in pairs(GetEnemyHeroes()) do
 			local barPos = hero.hpBar
@@ -9369,21 +9335,21 @@ function Warwick:Draw()
 				local RDamage = (self:CanCast(_R) and self:RDmg() or 0)
 				local damage = QDamage + RDamage
 				if damage > self:HpPred(hero,1) + hero.hpRegen * 1 then
-					Draw.Text("killable", 24, hero.pos2D.x, hero.pos2D.y,Draw.Color(0xFF00FF00))
+					PussyDrawText("killable", 24, hero.pos2D.x, hero.pos2D.y,PussyDrawColor(0xFF00FF00))
 					
 				else
-					local percentHealthAfterDamage = math.max(0, hero.health - damage) / hero.maxHealth
+					local percentHealthAfterDamage = PussyMathMax(0, hero.health - damage) / hero.maxHealth
 					local xPosEnd = barPos.x + barXOffset + barWidth * hero.health/hero.maxHealth
 					local xPosStart = barPos.x + barXOffset + percentHealthAfterDamage * 100
-					Draw.Line(xPosStart, barPos.y + barYOffset, xPosEnd, barPos.y + barYOffset, 10, Draw.Color(0xFF00FF00))
+					PussyDrawLine(xPosStart, barPos.y + barYOffset, xPosEnd, barPos.y + barYOffset, 10, PussyDrawColor(0xFF00FF00))
 				end
 			end
 		end	
 	end
 	if self.Menu.ComboMode.Key:Value() then
-		Draw.Text("Insta E: On", 20, textPos.x - 33, textPos.y + 50, Draw.Color(255, 000, 255, 000)) 
+		PussyDrawText("Insta E: On", 20, textPos.x - 33, textPos.y + 50, PussyDrawColor(255, 000, 255, 000)) 
 	else
-		Draw.Text("Insta E: Off", 20, textPos.x - 33, textPos.y + 50, Draw.Color(255, 225, 000, 000)) 
+		PussyDrawText("Insta E: Off", 20, textPos.x - 33, textPos.y + 50, PussyDrawColor(255, 225, 000, 000)) 
 	end
 end
 
@@ -9391,7 +9357,7 @@ function UseHydra()
 	local HTarget = GetTarget(300)
 	if HTarget then 
 		local hydraitem = GetInventorySlotItem(3748) or GetInventorySlotItem(3077) or GetInventorySlotItem(3074)
-		if hydraitem and myHero.attackData.state == STATE_WINDDOWN then
+		if hydraitem and PussymyHero.attackData.state == STATE_WINDDOWN then
 			Control.CastSpell(keybindings[hydraitem],HTarget.pos)
             Control.Attack(HTarget)
 		end
@@ -9399,11 +9365,11 @@ function UseHydra()
 end
    
 function UseHydraminion()
-    for i = 1, Game.MinionCount() do
-	local minion = Game.Minion(i)
-        if minion and minion.team == 300 or minion.team ~= myHero.team then 
+    for i = 1, PussyGameMinionCount() do
+	local minion = PussyGameMinion(i)
+        if minion and minion.team == 300 or minion.team ~= PussymyHero.team then 
 			local hydraitem = GetInventorySlotItem(3748) or GetInventorySlotItem(3077) or GetInventorySlotItem(3074)
-			if hydraitem and myHero.attackData.state == STATE_WINDDOWN then
+			if hydraitem and PussymyHero.attackData.state == STATE_WINDDOWN then
 				Control.CastSpell(keybindings[hydraitem])
                 Control.Attack(minion)
 			end
@@ -9412,21 +9378,21 @@ function UseHydraminion()
 end
 
 function Warwick:Combo()
-    if self.Menu.ComboMode.UseHYDRA:Value() and HasBuff(myHero, "Blood Hunt") and EnemyInRange(300) then
-        if myHero.attackData.state == STATE_WINDDOWN then
+    if self.Menu.ComboMode.UseHYDRA:Value() and HasBuff(PussymyHero, "Blood Hunt") and EnemyInRange(300) then
+        if PussymyHero.attackData.state == STATE_WINDDOWN then
             UseHydra()
         end
     end
 
     if self:CanCast(_E) then 
 		local ETarget = GetTarget(375)
-		if self.Menu.ComboMode.UseE:Value() and self.Menu.ComboMode.Key:Value() == false and ETarget and HasBuff(myHero, "Primal Howl") then
-			if EnemyInRange(375) and myHero.pos:DistanceTo(ETarget.pos) < 375 then
+		if self.Menu.ComboMode.UseE:Value() and self.Menu.ComboMode.Key:Value() == false and ETarget and HasBuff(PussymyHero, "Primal Howl") then
+			if EnemyInRange(375) and PussymyHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
 		end
-        if self.Menu.ComboMode.UseE:Value() and self.Menu.ComboMode.Key:Value() == true and ETarget and not HasBuff(myHero, "Primal Howl") then
-			if EnemyInRange(375) and self:CanCast(_E) and myHero.pos:DistanceTo(ETarget.pos) < 375 then
+        if self.Menu.ComboMode.UseE:Value() and self.Menu.ComboMode.Key:Value() == true and ETarget and not HasBuff(PussymyHero, "Primal Howl") then
+			if EnemyInRange(375) and self:CanCast(_E) and PussymyHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
 		end
@@ -9435,17 +9401,17 @@ function Warwick:Combo()
 	if self:CanCast(_Q) and EnemyInRange(350) then 
 		local QTarget = GetTarget(350)
 		if self.Menu.ComboMode.UseQ:Value() and QTarget then
-            if EnemyInRange(350) and myHero.pos:DistanceTo(QTarget.pos) < 350 and myHero.pos:DistanceTo(QTarget.pos) > 125 then
+            if EnemyInRange(350) and PussymyHero.pos:DistanceTo(QTarget.pos) < 350 and PussymyHero.pos:DistanceTo(QTarget.pos) > 125 then
 				Control.CastSpell(HK_Q, QTarget)
             end
 		end
 	end
 
     if self:CanCast(_R) then 
-        local rRange = 2.5 * myHero.ms
+        local rRange = 2.5 * PussymyHero.ms
 		local RTarget = GetTarget(rRange)
         if self.Menu.ComboMode.UseR:Value() and RTarget then
-			if EnemyInRange(rRange) and myHero.pos:DistanceTo(RTarget.pos) < rRange then
+			if EnemyInRange(rRange) and PussymyHero.pos:DistanceTo(RTarget.pos) < rRange then
 				Control.CastSpell(HK_R, RTarget)
 			end	
         end
@@ -9455,7 +9421,7 @@ function Warwick:Combo()
     if EnemyInRange(600) and not self:CanCast(_Q) then 
         local BTarget = GetTarget(600)
         if BTarget then
-            if myHero.pos:DistanceTo(BTarget.pos) < 600 then
+            if PussymyHero.pos:DistanceTo(BTarget.pos) < 600 then
 			    UseHydra()
             end
         end
@@ -9463,20 +9429,20 @@ function Warwick:Combo()
 end
 
 function Warwick:Harass()
-    if self.Menu.ComboMode.UseHYDRA:Value() and HasBuff(myHero, "Blood Hunt") and EnemyInRange(300) then
-        if myHero.attackData.state == STATE_WINDDOWN then
+    if self.Menu.ComboMode.UseHYDRA:Value() and HasBuff(PussymyHero, "Blood Hunt") and EnemyInRange(300) then
+        if PussymyHero.attackData.state == STATE_WINDDOWN then
             UseHydra()
         end
     end
     if self:CanCast(_E) then 
 		local ETarget = GetTarget(375)
-		if self.Menu.HarassMode.UseE:Value() and self.Menu.ComboMode.Key:Value() == false and ETarget and HasBuff(myHero, "Primal Howl") then
-			if EnemyInRange(375) and myHero.pos:DistanceTo(ETarget.pos) < 375 then
+		if self.Menu.HarassMode.UseE:Value() and self.Menu.ComboMode.Key:Value() == false and ETarget and HasBuff(PussymyHero, "Primal Howl") then
+			if EnemyInRange(375) and PussymyHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
 		end
-        if self.Menu.HarassMode.UseE:Value() and self.Menu.ComboMode.Key:Value() == true and ETarget and not HasBuff(myHero, "Primal Howl") then
-			if EnemyInRange(375) and self:CanCast(_E) and myHero.pos:DistanceTo(ETarget.pos) < 375 then
+        if self.Menu.HarassMode.UseE:Value() and self.Menu.ComboMode.Key:Value() == true and ETarget and not HasBuff(PussymyHero, "Primal Howl") then
+			if EnemyInRange(375) and self:CanCast(_E) and PussymyHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
 		end
@@ -9485,7 +9451,7 @@ function Warwick:Harass()
 	if self:CanCast(_Q) then 
 		local QTarget = GetTarget(350)
 		if self.Menu.HarassMode.UseQ:Value() and QTarget then
-            if EnemyInRange(350) and myHero.pos:DistanceTo(QTarget.pos) < 350 and myHero.pos:DistanceTo(QTarget.pos) > 125 then
+            if EnemyInRange(350) and PussymyHero.pos:DistanceTo(QTarget.pos) < 350 and PussymyHero.pos:DistanceTo(QTarget.pos) > 125 then
 				Control.CastSpell(HK_Q, QTarget)
             end
 		end
@@ -9494,7 +9460,7 @@ function Warwick:Harass()
 	if self:CanCast(_W) then 
 		local WTarget = GetTarget(125)
 		if self.Menu.HarassMode.UseW:Value() and WTarget then
-			if EnemyInRange(125) and myHero.attackData.state == STATE_WINDDOWN then
+			if EnemyInRange(125) and PussymyHero.attackData.state == STATE_WINDDOWN then
 				Control.CastSpell(HK_W)
                 Control.Attack(WTarget)
 			end
@@ -9503,30 +9469,30 @@ function Warwick:Harass()
 end
 
 function Warwick:Jungle()
-	for i = 1, Game.MinionCount() do
-	local minion = Game.Minion(i)
-    if minion and minion.team == 300 or minion.team ~= myHero.team then
+	for i = 1, PussyGameMinionCount() do
+	local minion = PussyGameMinion(i)
+    if minion.team == TEAM_ENEMY or minion.team == TEAM_JUNGLE then
     if self:CanCast(_E) and minion then 
-		if self.Menu.ClearMode.UseE:Value() and self.Menu.ComboMode.Key:Value()  == false and HasBuff(myHero, "Primal Howl") then
-			if myHero.pos:DistanceTo(minion.pos) < 375 then
+		if self.Menu.ClearMode.UseE:Value() and self.Menu.ComboMode.Key:Value()  == false and HasBuff(PussymyHero, "Primal Howl") then
+			if PussymyHero.pos:DistanceTo(minion.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
 		end
-        if self.Menu.ClearMode.UseE:Value() and self.Menu.ComboMode.Key:Value()  == true and not HasBuff(myHero, "Primal Howl") then
-			if myHero.pos:DistanceTo(minion.pos) < 375 and self:CanCast(_E) then
+        if self.Menu.ClearMode.UseE:Value() and self.Menu.ComboMode.Key:Value()  == true and not HasBuff(PussymyHero, "Primal Howl") then
+			if PussymyHero.pos:DistanceTo(minion.pos) < 375 and self:CanCast(_E) then
 				Control.CastSpell(HK_E)
 			end
 		end
 	end	
 
-    if self.Menu.ComboMode.UseHYDRA:Value() and not HasBuff(myHero, "Blood Hunt") and minion then
-        if myHero.attackData.state == STATE_WINDDOWN and not self:CanCast(_W) and myHero.pos:DistanceTo(minion.pos) < 300 then
+    if self.Menu.ComboMode.UseHYDRA:Value() and not HasBuff(PussymyHero, "Blood Hunt") and minion then
+        if PussymyHero.attackData.state == STATE_WINDDOWN and not self:CanCast(_W) and PussymyHero.pos:DistanceTo(minion.pos) < 300 then
             UseHydraminion()
         end
     end
 	if self:CanCast(_Q) and minion then 
 		if self.Menu.ClearMode.UseQ:Value() and IsValid(minion, 350) then
-            if myHero.pos:DistanceTo(minion.pos) < 350 and myHero.pos:DistanceTo(minion.pos) > 125 then
+            if PussymyHero.pos:DistanceTo(minion.pos) < 350 and PussymyHero.pos:DistanceTo(minion.pos) > 125 then
 				Control.CastSpell(HK_Q, minion)
             end
 		end
@@ -9534,7 +9500,7 @@ function Warwick:Jungle()
 
 	if self:CanCast(_W) and minion then 
 		if self.Menu.ClearMode.UseW:Value() and IsValid(minion, 175) then
-			if myHero.pos:DistanceTo(minion.pos) < 175 and myHero.attackData.state == STATE_WINDDOWN then
+			if PussymyHero.pos:DistanceTo(minion.pos) < 175 and PussymyHero.attackData.state == STATE_WINDDOWN then
 				Control.CastSpell(HK_W)
                 Control.Attack(minion)
 			end
@@ -9560,15 +9526,15 @@ require 'Collision'
 function GetInventorySlotItem(itemID)
 		assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
 		for _, j in pairs({ ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6}) do
-			if myHero:GetItemData(j).itemID == itemID and myHero:GetSpellData(j).currentCd == 0 then return j end
+			if PussymyHero:GetItemData(j).itemID == itemID and PussymyHero:GetSpellData(j).currentCd == 0 then return j end
 		end
 		return nil
 end
 
 function XinZhao:GetValidEnemy(range)
-    for i = 1,Game.HeroCount() do
-        local enemy = Game.Hero(i)
-        if  enemy.team ~= myHero.team and enemy.valid and enemy.pos:DistanceTo(myHero.pos) < E.range then
+    for i = 1,PussyGameHeroCount() do
+        local enemy = PussyGameHero(i)
+        if  enemy.team ~= PussymyHero.team and enemy.valid and enemy.pos:DistanceTo(PussymyHero.pos) < E.range then
             return true
         end
     end
@@ -9576,9 +9542,9 @@ function XinZhao:GetValidEnemy(range)
 end
 
 function XinZhao:GetValidMinion(range)
-    for i = 1,Game.MinionCount() do
-        local minion = Game.Minion(i)
-        if  minion.team ~= myHero.team and minion.valid and minion.pos:DistanceTo(myHero.pos) < E.range then
+    for i = 1,PussyGameMinionCount() do
+        local minion = PussyGameMinion(i)
+        if  minion.team ~= PussymyHero.team and minion.valid and minion.pos:DistanceTo(PussymyHero.pos) < E.range then
             return true
         end
     end
@@ -9586,14 +9552,14 @@ function XinZhao:GetValidMinion(range)
 end
 
 function XinZhao:isReady(spell)
-return Game.CanUseSpell(spell) == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spellSlot).mana < myHero.mana
+return PussyGameCanUseSpell(spell) == 0 and PussymyHero:GetSpellData(spell).level > 0 and PussymyHero:GetSpellData(spellSlot).mana < PussymyHero.mana
 end
 
 function XinZhao:EDMG(unit)
 	total = 0
-	local eLvl = myHero:GetSpellData(_E).level
+	local eLvl = PussymyHero:GetSpellData(_E).level
     if eLvl > 0 then
-	local edamage = (({50,75,100,125,150})[eLvl] + 0.6 * myHero.ap)
+	local edamage = (({50,75,100,125,150})[eLvl] + 0.6 * PussymyHero.ap)
 	total = edamage
 	end
 	return total
@@ -9611,8 +9577,8 @@ end
 function XinZhao:__init()
 	self:LoadSpells()
 	self:LoadMenu()
-	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("Draw", function() self:Draw() end)
+	PussyCallbackAdd("Tick", function() self:Tick() end)
+	PussyCallbackAdd("Draw", function() self:Draw() end)
 	if _G.EOWLoaded then
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
@@ -9682,11 +9648,11 @@ function XinZhao:LoadMenu()
 	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Spell Range"})
 	self.Menu.Drawing:MenuElement({id = "E", name = "Draw E Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
-	self.Menu.Drawing:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 255, 255, 255)})
+	self.Menu.Drawing:MenuElement({id = "Color", name = "Color", color = PussyDrawColor(255, 255, 255, 255)})
 end
 
 function XinZhao:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if PussymyHero.dead == false and PussyGameIsChatOpen() == false then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
@@ -9706,7 +9672,7 @@ function XinZhao:KS()
 	local target =  (_G.SDK and _G.SDK.TargetSelector:GetTarget(800, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(800,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
 	local edamage = self:EDMG(target)
 		if edamage > self:HpPred(target,1) + target.hpRegen * 1 then
-			if IsValid(target,650) and myHero.pos:DistanceTo(target.pos) <= 650 and self.Menu.Mode.KS.E:Value() and self:isReady(_E) and not myHero.isChanneling  then
+			if IsValid(target,650) and PussymyHero.pos:DistanceTo(target.pos) <= 650 and self.Menu.Mode.KS.E:Value() and self:isReady(_E) and not PussymyHero.isChanneling  then
 				Control.CastSpell(HK_E,target)
 		end
 	end			
@@ -9720,52 +9686,52 @@ function XinZhao:Combo()
 	
 	local target =  (_G.SDK and _G.SDK.TargetSelector:GetTarget(800, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(800,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
 		
-			if IsValid(target,650) and myHero.pos:DistanceTo(target.pos) <= 650 and self.Menu.Mode.Combo.E:Value() and self:isReady(_E) and not myHero.isChanneling  then
+			if IsValid(target,650) and PussymyHero.pos:DistanceTo(target.pos) <= 650 and self.Menu.Mode.Combo.E:Value() and self:isReady(_E) and not PussymyHero.isChanneling  then
 			Control.CastSpell(HK_E,target)
-	    	if IsValid(target,900) and myHero.pos:DistanceTo(target.pos) > 400 and self.Menu.Mode.Combo.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
+	    	if IsValid(target,900) and PussymyHero.pos:DistanceTo(target.pos) > 400 and self.Menu.Mode.Combo.W:Value() and self:isReady(_W) and not PussymyHero.isChanneling  then
 			Control.CastSpell(HK_W,target)
 	    	end
-	    	if IsValid(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
+	    	if IsValid(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and PussymyHero.attackData.state == STATE_WINDUP  then
 			Control.CastSpell(HK_Q)
 	    	end 
-	    	if IsValid(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
+	    	if IsValid(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not PussymyHero.isChanneling  then
 			Control.CastSpell(HK_R)
 	    	end
 	    end		
-		if IsValid(target,900) and myHero.pos:DistanceTo(target.pos) > 400 and self.Menu.Mode.Combo.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
+		if IsValid(target,900) and PussymyHero.pos:DistanceTo(target.pos) > 400 and self.Menu.Mode.Combo.W:Value() and self:isReady(_W) and not PussymyHero.isChanneling  then
 		Control.CastSpell(HK_W,target)
-	    	if IsValid(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
+	    	if IsValid(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and PussymyHero.attackData.state == STATE_WINDUP  then
 		Control.CastSpell(HK_Q)
 	    	end
-	    	if IsValid(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
+	    	if IsValid(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not PussymyHero.isChanneling  then
 		Control.CastSpell(HK_R)
 	    	end
 	    end	
-	    if IsValid(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
+	    if IsValid(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and PussymyHero.attackData.state == STATE_WINDUP  then
 		Control.CastSpell(HK_Q)
-	    	if IsValid(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
+	    	if IsValid(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not PussymyHero.isChanneling  then
 		Control.CastSpell(HK_R)
 	    	end
 	    end   
-		if IsValid(target,R.range) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
+		if IsValid(target,R.range) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not PussymyHero.isChanneling  then
 		Control.CastSpell(HK_R)
 	    end
-		if IsValid(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and not myHero.isChanneling and
-		myHero.health/myHero.maxHealth <= self.Menu.Mode.Combo.myRHP:Value()/100 then
+		if IsValid(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and not PussymyHero.isChanneling and
+		PussymyHero.health/PussymyHero.maxHealth <= self.Menu.Mode.Combo.myRHP:Value()/100 then
 		Control.CastSpell(HK_R)
 		end
 		
 
 	local TIA = GetInventorySlotItem(3077),(3748),(3074)
-	if TIA and self.Menu.Mode.Combo.Spell.Hydra:Value() and myHero.pos:DistanceTo(target.pos) < 300 then
+	if TIA and self.Menu.Mode.Combo.Spell.Hydra:Value() and PussymyHero.pos:DistanceTo(target.pos) < 300 then
 	Control.CastSpell(HKITEM[TIA], target)
 	end
 	local KING = GetInventorySlotItem(3153) 
-	if KING and self.Menu.Mode.Combo.Spell.King:Value() and myHero.pos:DistanceTo(target.pos) < 600  then
+	if KING and self.Menu.Mode.Combo.Spell.King:Value() and PussymyHero.pos:DistanceTo(target.pos) < 600  then
 	Control.CastSpell(HKITEM[KING], target)
 	end
 	local CUT = GetInventorySlotItem(3144)
-	if CUT and self.Menu.Mode.Combo.Spell.Cutless:Value() and myHero.pos:DistanceTo(target.pos) < 600  then
+	if CUT and self.Menu.Mode.Combo.Spell.Cutless:Value() and PussymyHero.pos:DistanceTo(target.pos) < 600  then
 	Control.CastSpell(HKITEM[CUT], target)
 	end
 	
@@ -9776,60 +9742,60 @@ function XinZhao:Combo()
 		
 		
 	if self.Menu.Mode.Combo.Spell.I:Value() then 
-   		if self.Menu.Mode.Combo.Spell.IMode:Value() == 2 and myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and self:isReady(SUMMONER_1) then
-       		if IsValid(target, 600, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.IHP:Value()/100 then
+   		if self.Menu.Mode.Combo.Spell.IMode:Value() == 2 and PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and self:isReady(SUMMONER_1) then
+       		if IsValid(target, 600, true, PussymyHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.IHP:Value()/100 then
             	Control.CastSpell(HK_SUMMONER_1, target)
        		end
-		elseif  self.Menu.Mode.Combo.Spell.IMode:Value() == 2 and myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and self:isReady(SUMMONER_2) then
-        	if IsValid(target, 600, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.IHP:Value()/100 then
+		elseif  self.Menu.Mode.Combo.Spell.IMode:Value() == 2 and PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and self:isReady(SUMMONER_2) then
+        	if IsValid(target, 600, true, PussymyHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.IHP:Value()/100 then
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end
-		elseif  self.Menu.Mode.Combo.Spell.IMode:Value() == 1 and myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and self:isReady(SUMMONER_1) then
-       	 	if IsValid(target, 600, true, myHero) and 50+20*myHero.levelData.lvl -(target.hpRegen*3) > target.health*1.1 then
+		elseif  self.Menu.Mode.Combo.Spell.IMode:Value() == 1 and PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and self:isReady(SUMMONER_1) then
+       	 	if IsValid(target, 600, true, PussymyHero) and 50+20*PussymyHero.levelData.lvl -(target.hpRegen*3) > target.health*1.1 then
            		Control.CastSpell(HK_SUMMONER_1, target)
        	 	end
-		elseif self.Menu.Mode.Combo.Spell.IMode:Value() == 1  and myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and self:isReady(SUMMONER_2) then
-       		 if IsValid(target, 600, true, myHero) and 50+20*myHero.levelData.lvl - (target.hpRegen*3) > target.health*1.1 then
+		elseif self.Menu.Mode.Combo.Spell.IMode:Value() == 1  and PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and self:isReady(SUMMONER_2) then
+       		 if IsValid(target, 600, true, PussymyHero) and 50+20*PussymyHero.levelData.lvl - (target.hpRegen*3) > target.health*1.1 then
            		Control.CastSpell(HK_SUMMONER_2, target)
         	end
     	end 
     end
     if self.Menu.Mode.Combo.Spell.S:Value() then 
-   		if self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmiteDuel"  and self:isReady(SUMMONER_1) then
-       		if IsValid(target, 500, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.SHP:Value()/100 then
+   		if self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and PussymyHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmiteDuel"  and self:isReady(SUMMONER_1) then
+       		if IsValid(target, 500, true, PussymyHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.SHP:Value()/100 then
             	Control.CastSpell(HK_SUMMONER_1, target)
        		end
-		elseif  self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmiteDuel" and self:isReady(SUMMONER_2) then
-        	if IsValid(target, 500, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.SHP:Value()/100 then
+		elseif  self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and PussymyHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmiteDuel" and self:isReady(SUMMONER_2) then
+        	if IsValid(target, 500, true, PussymyHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.SHP:Value()/100 then
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end	
     end
     if self.Menu.Mode.Combo.Spell.S:Value() then 
-   		if self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmitePlayerGanker"  and self:isReady(SUMMONER_1) then
-       		if IsValid(target, 500, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.SHP:Value()/100 then
+   		if self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and PussymyHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmitePlayerGanker"  and self:isReady(SUMMONER_1) then
+       		if IsValid(target, 500, true, PussymyHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.SHP:Value()/100 then
             	Control.CastSpell(HK_SUMMONER_1, target)
        		end
-		elseif  self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmitePlayerGanker" and self:isReady(SUMMONER_2) then
-        	if IsValid(target, 500, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.SHP:Value()/100 then
+		elseif  self.Menu.Mode.Combo.Spell.SMode:Value() == 2 and PussymyHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmitePlayerGanker" and self:isReady(SUMMONER_2) then
+        	if IsValid(target, 500, true, PussymyHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.SHP:Value()/100 then
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end
-       	elseif  self.Menu.Mode.Combo.Spell.SMode:Value() == 1 and myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmitePlayerGanker" and self:isReady(SUMMONER_1) then
-       	 	if IsValid(target, 500, true, myHero) and 20+8*myHero.levelData.lvl > target.health*1 then
+       	elseif  self.Menu.Mode.Combo.Spell.SMode:Value() == 1 and PussymyHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmitePlayerGanker" and self:isReady(SUMMONER_1) then
+       	 	if IsValid(target, 500, true, PussymyHero) and 20+8*PussymyHero.levelData.lvl > target.health*1 then
            		Control.CastSpell(HK_SUMMONER_1, target)
        	 	end
-		elseif self.Menu.Mode.Combo.Spell.SMode:Value() == 1  and myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmitePlayerGanker" and self:isReady(SUMMONER_2) then
-       		 if IsValid(target, 500, true, myHero) and 20+8*myHero.levelData.lvl > target.health*1 then
+		elseif self.Menu.Mode.Combo.Spell.SMode:Value() == 1  and PussymyHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmitePlayerGanker" and self:isReady(SUMMONER_2) then
+       		 if IsValid(target, 500, true, PussymyHero) and 20+8*PussymyHero.levelData.lvl > target.health*1 then
            		Control.CastSpell(HK_SUMMONER_2, target)
         	end
     	end 
     end
     if self.Menu.Mode.Combo.Spell.EX:Value() then 
-   		if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust"  and self:isReady(SUMMONER_1) then
-       		if IsValid(target, 500, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.EXHP:Value()/100 then
+   		if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust"  and self:isReady(SUMMONER_1) then
+       		if IsValid(target, 500, true, PussymyHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.EXHP:Value()/100 then
             	Control.CastSpell(HK_SUMMONER_1, target)
        		end
-		elseif  myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and self:isReady(SUMMONER_2) then
-        	if IsValid(target, 500, true, myHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.EXHP:Value()/100 then
+		elseif  PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and self:isReady(SUMMONER_2) then
+        	if IsValid(target, 500, true, PussymyHero) and target.health/target.maxHealth <= self.Menu.Mode.Combo.Spell.EXHP:Value()/100 then
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end
        	end		
@@ -9846,7 +9812,7 @@ function XinZhao:Harass()
 	
 	local target =  (_G.SDK and _G.SDK.TargetSelector:GetTarget(800, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(800,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
 		
-	    if target.pos:DistanceTo(myHero.pos) <= W.range and (myHero.mana/myHero.maxMana >= self.Menu.Mode.Harass.MM.WMana:Value() / 100) and self.Menu.Mode.Harass.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
+	    if target.pos:DistanceTo(PussymyHero.pos) <= W.range and (PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Mode.Harass.MM.WMana:Value() / 100) and self.Menu.Mode.Harass.W:Value() and self:isReady(_W) and not PussymyHero.isChanneling  then
 		Control.CastSpell(HK_W,target)
 	end
 end
@@ -9856,10 +9822,10 @@ end
 function XinZhao:Clear()
 
 	if self:GetValidMinion(600) == false then return end
-	for i = 1, Game.MinionCount() do
-	local minion = Game.Minion(i)
-			if minion.team == 300 - myHero.team then
-				if minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.LaneClear.E:Value() and self:isReady(_E) then
+	for i = 1, PussyGameMinionCount() do
+	local minion = PussyGameMinion(i)
+			if minion.team == TEAM_ENEMY or minion.team == TEAM_JUNGLE then
+				if minion.pos:DistanceTo(PussymyHero.pos) <= E.range and self.Menu.Mode.LaneClear.E:Value() and self:isReady(_E) then
 					Control.CastSpell(HK_E,minion)
 					break
 				end	
@@ -9875,7 +9841,7 @@ function XinZhao:Clear()
 				end
 
 			elseif minion.team == 300 then
-				if  minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.JungleClear.E:Value() and self:isReady(_E) then
+				if  minion.pos:DistanceTo(PussymyHero.pos) <= E.range and self.Menu.Mode.JungleClear.E:Value() and self:isReady(_E) then
 					Control.CastSpell(HK_E,minion)
 					break
 				end
@@ -9892,9 +9858,9 @@ function XinZhao:Clear()
 	end
 	
 function XinZhao:Draw()
-if myHero.dead then return end
+if PussymyHero.dead then return end
 	if self.Menu.Drawing.E:Value() then 
-		Draw.Circle(myHero.pos, 650, self.Menu.Drawing.Width:Value(), self.Menu.Drawing.Color:Value())	
+		PussyDrawCircle(PussymyHero.pos, 650, self.Menu.Drawing.Width:Value(), self.Menu.Drawing.Color:Value())	
 	end	
 end	
 
@@ -9925,20 +9891,20 @@ Collision = false, MaxCollision = 0, CollisionTypes = { _G.COLLISION_YASUOWALL }
 
 local QData =
 {
-Type = _G.SPELLTYPE_CIRCLE, Delay = 0.85, Radius = 140, Range = 800, Speed = math.huge, Collision = false
+Type = _G.SPELLTYPE_CIRCLE, Delay = 0.85, Radius = 140, Range = 800, Speed = PussyMathHuge, Collision = false
 }
 
 local RData =
 {
-Type = _G.SPELLTYPE_CIRCLE, Delay = 2.0, Radius = 500, Range = 700, Speed = math.huge, Collision = false
+Type = _G.SPELLTYPE_CIRCLE, Delay = 2.0, Radius = 500, Range = 700, Speed = PussyMathHuge, Collision = false
 }
 
 function Zyra:__init()
 if menu ~= 1 then return end
 	menu = 2   	
 	self:LoadMenu()                                            
-	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("Draw", function() self:Draw() end) 
+	PussyCallbackAdd("Tick", function() self:Tick() end)
+	PussyCallbackAdd("Draw", function() self:Draw() end) 
 	if _G.EOWLoaded then
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
@@ -10014,7 +9980,7 @@ function Zyra:LoadMenu()
 end
 
 function Zyra:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if PussymyHero.dead == false and PussyGameIsChatOpen() == false then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
@@ -10039,7 +10005,7 @@ function Zyra:UseW()
 local target = GetTarget(1200)     	
 if target == nil then return end		
 	if IsValid(target,1200) and Ready(_W) then
-		if myHero.pos:DistanceTo(target.pos) <= 850 then
+		if PussymyHero.pos:DistanceTo(target.pos) <= 850 then
 			if IsImmobileTarget(target) then   
 				DelayAction(function() 
 				Control.CastSpell(HK_W, target.pos) 
@@ -10054,9 +10020,9 @@ end
 function Zyra:AutoE()
 local target = GetTarget(1200)     	
 if target == nil then return end	
-local pred = GetGamsteronPrediction(target, EData, myHero)	
+local pred = GetGamsteronPrediction(target, EData, PussymyHero)	
 	if IsValid(target,1200) and self.Menu.AutoE.UseE:Value() and Ready(_E) then
-		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+		if IsImmobileTarget(target) and PussymyHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 			self:UseW()
 			Control.CastSpell(HK_E, pred.CastPosition)
 		end	
@@ -10067,13 +10033,13 @@ function Zyra:AutoR()
 local target = GetTarget(1200)     	
 if target == nil then return end
 local hp = target.health
-local RDmg = getdmg("R", target, myHero)
-local QDmg = getdmg("Q", target, myHero)
-local EDmg = getdmg("E", target, myHero)
+local RDmg = getdmg("R", target, PussymyHero)
+local QDmg = getdmg("Q", target, PussymyHero)
+local EDmg = getdmg("E", target, PussymyHero)
 local damage = RDmg + QDmg + EDmg + 300
-local pred = GetGamsteronPrediction(target, RData, myHero)	
+local pred = GetGamsteronPrediction(target, RData, PussymyHero)	
 	if IsValid(target,1200) and self.Menu.Combo.Ult.killR:Value() and Ready(_R) then
-		if myHero.pos:DistanceTo(target.pos) <= 700 and damage >= hp and pred.Hitchance >= _G.HITCHANCE_NORMAL then
+		if PussymyHero.pos:DistanceTo(target.pos) <= 700 and damage >= hp and pred.Hitchance >= _G.HITCHANCE_NORMAL then
 			Control.CastSpell(HK_R, pred.CastPosition)
 		end	
 	end
@@ -10083,9 +10049,9 @@ function Zyra:ImmoR()
 local target = GetTarget(1200)     	
 if target == nil then return end
 local count = GetImmobileCount(500, target)
-local pred = GetGamsteronPrediction(target, RData, myHero)	
+local pred = GetGamsteronPrediction(target, RData, PussymyHero)	
 	if IsValid(target,1200) and self.Menu.Combo.Ult.Immo:Value() and Ready(_R) then
-		if myHero.pos:DistanceTo(target.pos) <= 700 and count >= 2 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
+		if PussymyHero.pos:DistanceTo(target.pos) <= 700 and count >= 2 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
 			Control.CastSpell(HK_R, pred.CastPosition)
 		end	
 	end
@@ -10094,20 +10060,20 @@ end
 function Zyra:Activator()
 
 			--Zhonyas
-	if EnemiesAround(myHero.pos,2000) then	
+	if EnemiesAround(PussymyHero.pos,2000) then	
 		if self.Menu.a.ON:Value() then
-		local Zhonyas = GetItemSlot(myHero, 3157)
+		local Zhonyas = GetItemSlot(PussymyHero, 3157)
 			if Zhonyas > 0 and Ready(Zhonyas) then 
-				if myHero.health/myHero.maxHealth <= self.Menu.a.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.a.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Zhonyas])
 				end
 			end
 		end
 			--Stopwatch
 		if self.Menu.a.ON:Value() then
-		local Stop = GetItemSlot(myHero, 2420)
+		local Stop = GetItemSlot(PussymyHero, 2420)
 			if Stop > 0 and Ready(Stop) then 
-				if myHero.health/myHero.maxHealth <= self.Menu.a.HP:Value()/100 then
+				if PussymyHero.health/PussymyHero.maxHealth <= self.Menu.a.HP:Value()/100 then
 					Control.CastSpell(ItemHotKey[Stop])
 				end
 			end
@@ -10116,18 +10082,18 @@ function Zyra:Activator()
 end	
 			
 function Zyra:Draw()
-  if myHero.dead then return end
+  if PussymyHero.dead then return end
 	if self.Menu.Drawing.DrawR:Value() and Ready(_R) then
-    Draw.Circle(myHero, 700, 1, Draw.Color(255, 225, 255, 10))
+    PussyDrawCircle(PussymyHero, 700, 1, PussyDrawColor(255, 225, 255, 10))
 	end                                                 
 	if self.Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-    Draw.Circle(myHero, 800, 1, Draw.Color(225, 225, 0, 10))
+    PussyDrawCircle(PussymyHero, 800, 1, PussyDrawColor(225, 225, 0, 10))
 	end
 	if self.Menu.Drawing.DrawE:Value() and Ready(_E) then
-    Draw.Circle(myHero, 1100, 1, Draw.Color(225, 225, 125, 10))
+    PussyDrawCircle(PussymyHero, 1100, 1, PussyDrawColor(225, 225, 125, 10))
 	end
 	if self.Menu.Drawing.DrawW:Value() and Ready(_W) then
-    Draw.Circle(myHero, 850, 1, Draw.Color(225, 225, 125, 10))
+    PussyDrawCircle(PussymyHero, 850, 1, PussyDrawColor(225, 225, 125, 10))
 	end
 end
        
@@ -10135,30 +10101,30 @@ function Zyra:KillSteal()
 	local target = GetTarget(1200)     	
 	if target == nil then return end
 	local hp = target.health
-	local QDmg = getdmg("Q", target, myHero)
-	local EDmg = getdmg("E", target, myHero)
+	local QDmg = getdmg("Q", target, PussymyHero)
+	local EDmg = getdmg("E", target, PussymyHero)
 	local EQDmg = QDmg + EDmg
 	if IsValid(target,1200) then	
 		
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if QDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				self:UseW()
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if self.Menu.ks.UseE:Value() and Ready(_E) then
-			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
+			local pred = GetGamsteronPrediction(target, EData, PussymyHero)
+			if EDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
 				self:UseW()
 				Control.CastSpell(HK_E, pred.CastPosition)
 	
 			end
 		end
 		if self.Menu.ks.UseEQ:Value() and Ready(_E) and Ready(_Q) then
-			local Epred = GetGamsteronPrediction(target, EData, myHero)
-			local Qpred = GetGamsteronPrediction(target, QData, myHero)
-			if EQDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 800 then
+			local Epred = GetGamsteronPrediction(target, EData, PussymyHero)
+			local Qpred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if EQDmg >= hp and PussymyHero.pos:DistanceTo(target.pos) <= 800 then
 				self:UseW()
 				if Epred.Hitchance >= _G.HITCHANCE_HIGH then
 					Control.CastSpell(HK_E, Epred.CastPosition)
@@ -10169,14 +10135,14 @@ function Zyra:KillSteal()
 			end
 		end
 		if self.Menu.ks.UseIgn:Value() then 
-			local IGdamage = 80 + 25 * myHero.levelData.lvl
-			if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and myHero.pos:DistanceTo(target.pos) <= 600 then
+			local IGdamage = 80 + 25 * PussymyHero.levelData.lvl
+			if PussymyHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and PussymyHero.pos:DistanceTo(target.pos) <= 600 then
 				if Ready(SUMMONER_1) then
 					if IGdamage >= hp + target.hpRegen * 3 then
 						Control.CastSpell(HK_SUMMONER_1, target)
 					end
 				end
-			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and myHero.pos:DistanceTo(target.pos) <= 600  then
+			elseif PussymyHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and PussymyHero.pos:DistanceTo(target.pos) <= 600  then
 				if Ready(SUMMONER_2) then
 					if IGdamage >= hp + target.hpRegen * 3 then
 						Control.CastSpell(HK_SUMMONER_2, target)
@@ -10193,7 +10159,7 @@ if target == nil then return end
 	if IsValid(target,1200) then
 
 		if self.Menu.Combo.UseW:Value() and Ready(_W) then
-			if myHero.pos:DistanceTo(target.pos) <= 850 then
+			if PussymyHero.pos:DistanceTo(target.pos) <= 850 then
 				DelayAction(function() 
 				Control.CastSpell(HK_W, target.pos) 
 				Control.CastSpell(HK_W, target.pos)
@@ -10203,24 +10169,24 @@ if target == nil then return end
 		end			
 		
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
 		end
 		
 		if self.Menu.Combo.UseE:Value() and Ready(_E) then
-			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
+			local pred = GetGamsteronPrediction(target, EData, PussymyHero)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
 				Control.CastSpell(HK_E, pred.CastPosition)
 	
 			end
 		end
 		
 		if Ready(_R) and self.Menu.Combo.Ult.UseR:Value() then
-			local pred = GetGamsteronPrediction(target, RData, myHero)
+			local pred = GetGamsteronPrediction(target, RData, PussymyHero)
 			local count = GetEnemyCount(500, target)
-			if myHero.pos:DistanceTo(target.pos) <= 700 and count >= self.Menu.Combo.Ult.UseRE:Value() and pred.Hitchance >= _G.HITCHANCE_NORMAL then
+			if PussymyHero.pos:DistanceTo(target.pos) <= 700 and count >= self.Menu.Combo.Ult.UseRE:Value() and pred.Hitchance >= _G.HITCHANCE_NORMAL then
 				Control.CastSpell(HK_R, pred.CastPosition)
 			end
 		end
@@ -10230,18 +10196,18 @@ end
 function Zyra:Harass()
 local target = GetTarget(1200)
 if target == nil then return end
-	if IsValid(target,1200) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
+	if IsValid(target,1200) and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
 		
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			local pred = GetGamsteronPrediction(target, QData, PussymyHero)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= _G.HITCHANCE_HIGH then
 				self:UseW()
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if self.Menu.Harass.UseE:Value() and Ready(_E) then
-			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
+			local pred = GetGamsteronPrediction(target, EData, PussymyHero)
+			if PussymyHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= _G.HITCHANCE_HIGH then			
 				self:UseW()
 				Control.CastSpell(HK_E, pred.CastPosition)
 	
@@ -10251,17 +10217,16 @@ if target == nil then return end
 end	
 
 function Zyra:Clear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
-    local TEAM_ALLY = myHero.team
-	local TEAM_ENEMY = 300 - myHero.team
-		if IsValid(minion, 1200) and minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)
+
+		if IsValid(minion, 1200) and minion.team == TEAM_ENEMY and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
 			
-			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Clear.UseQ:Value() then
+			if Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Clear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
 			end	
 
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 1100 and self.Menu.Clear.UseE:Value() then
+			if Ready(_E) and PussymyHero.pos:DistanceTo(minion.pos) <= 1100 and self.Menu.Clear.UseE:Value() then
 				Control.CastSpell(HK_E, minion.pos)
 			end  
 		end
@@ -10269,15 +10234,15 @@ function Zyra:Clear()
 end
 
 function Zyra:JungleClear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)	
-	local TEAM_JUNGLE = 300
-		if IsValid(minion, 1200) and minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
-			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.JClear.UseQ:Value() then
+	for i = 1, PussyGameMinionCount() do
+    local minion = PussyGameMinion(i)	
+
+		if IsValid(minion, 1200) and minion.team == TEAM_JUNGLE and PussymyHero.mana/PussymyHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
+			if Ready(_Q) and PussymyHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.JClear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
 			end
 
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 1100 and self.Menu.JClear.UseE:Value() then
+			if Ready(_E) and PussymyHero.pos:DistanceTo(minion.pos) <= 1100 and self.Menu.JClear.UseE:Value() then
 				Control.CastSpell(HK_E, minion.pos)
 			end  
 		end
@@ -10640,7 +10605,7 @@ function getdmg(spell,target,source,stage,level)
     if DamageLibTable[source.charName] then
       for i, spells in pairs(DamageLibTable[source.charName]) do
         if spells.Slot == spell then
-          table.insert(swagtable, spells)
+          PussyTableInsert(swagtable, spells)
         end
       end
       if stage > #swagtable then stage = #swagtable end
@@ -10796,9 +10761,9 @@ local _windwallWidth
 local _OnVision = {}
 function HPred:OnVision(unit)
 	if unit == nil or type(unit) ~= "userdata" then return end
-	if _OnVision[unit.networkID] == nil then _OnVision[unit.networkID] = {visible = unit.visible , tick = GetTickCount(), pos = unit.pos } end
-	if _OnVision[unit.networkID].visible == true and not unit.visible then _OnVision[unit.networkID].visible = false _OnVision[unit.networkID].tick = GetTickCount() end
-	if _OnVision[unit.networkID].visible == false and unit.visible then _OnVision[unit.networkID].visible = true _OnVision[unit.networkID].tick = GetTickCount() _OnVision[unit.networkID].pos = unit.pos end
+	if _OnVision[unit.networkID] == nil then _OnVision[unit.networkID] = {visible = unit.visible , tick = PussyGetTickCount, pos = unit.pos } end
+	if _OnVision[unit.networkID].visible == true and not unit.visible then _OnVision[unit.networkID].visible = false _OnVision[unit.networkID].tick = PussyGetTickCount end
+	if _OnVision[unit.networkID].visible == false and unit.visible then _OnVision[unit.networkID].visible = true _OnVision[unit.networkID].tick = PussyGetTickCount _OnVision[unit.networkID].pos = unit.pos end
 	return _OnVision[unit.networkID]
 end
 
@@ -11063,12 +11028,12 @@ function HPred:GetHitchance(source, target, range, delay, speed, radius, checkCo
 	
 	local visionData = HPred:OnVision(target)
 	if visionData and visionData.visible == false then
-		local hiddenTime = visionData.tick -GetTickCount()
+		local hiddenTime = visionData.tick -PussyGetTickCount
 		if hiddenTime < -1000 then
 			hitChance = -1
 		else
 			local targetSpeed = self:GetTargetMS(target)
-			local unitPos = target.pos + Vector(target.pos,target.posTo):Normalized() * ((GetTickCount() - visionData.tick)/1000 * targetSpeed)
+			local unitPos = target.pos + Vector(target.pos,target.posTo):Normalized() * ((PussyGetTickCount - visionData.tick)/1000 * targetSpeed)
 			local aimPosition = unitPos + Vector(target.pos,target.posTo):Normalized() * (targetSpeed * (delay + (self:GetDistance(myHero.pos,unitPos)/speed)))
 			if self:GetDistance(target.pos,aimPosition) > self:GetDistance(target.pos,target.posTo) then aimPosition = target.posTo end
 			hitChance = _min(hitChance, 2)
@@ -11852,41 +11817,7 @@ function HPred:GetDistance(p1, p2)
 	return _sqrt(self:GetDistanceSqr(p1, p2))
 end
 
-function OnLoad()
-    LoadUnits()
-	
-	if myHero.charName == 'XinZhao' then
-        XinZhao()
-    elseif myHero.charName == 'Kassadin' then
-        Kassadin()
-    elseif myHero.charName == 'Veigar' then
-        Veigar()
-    elseif myHero.charName == 'Tristana' then
-        Tristana()
-    elseif myHero.charName == 'Warwick' then
-        Warwick()	
-    elseif myHero.charName == 'Neeko' then
-        Neeko()
-    elseif myHero.charName == 'Cassiopeia' then
-        Cassiopeia()
-    elseif myHero.charName == 'Malzahar' then
-        Malzahar()
-    elseif myHero.charName == 'Zyra' then
-        Zyra()
-    elseif myHero.charName == 'Sylas' then
-        Sylas()
-    elseif myHero.charName == 'Kayle' then
-        Kayle()
-    elseif myHero.charName == "Morgana" then
-        Morgana()
-    elseif myHero.charName == 'Ekko' then
-        Ekko()
-	end
-	--[[if _G[myHero.charName] and myHero.charName == "XinZhao" or "Kassadin" or "Veigar" or "Tristana" or "Warwick" or "Neeko" or "Cassiopeia" or "Malzahar" or "Zyra" or "Sylas" or "Kayle" or "Morgana" or "Ekko" then 
- 		_G[myHero.charName]()
-	end	]]
-		
-end
+
 
 
 	
