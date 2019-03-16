@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.06
+    local Version = 0.07
     
     local Files = {
         Lua = {
@@ -2841,6 +2841,8 @@ function Kassadin:KillSteal()
 	end
 end	
 
+
+
 function Kassadin:AutoW()  
 	local target = GetTarget(300)
 	if target == nil then return end
@@ -3720,7 +3722,7 @@ function Morgana:LoadMenu()
 	self.Menu:MenuElement({type = MENU, id = "ks", name = "ks"})
 	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q] Dark Binding", value = true})	
 	self.Menu.ks:MenuElement({id = "UseW", name = "[W] Tormented Soil", value = true})	
-
+	self.Menu.ks:MenuElement({id = "UseIG", name = "Use Ignite", value = true})
 
 	
 	--Activator
@@ -3765,6 +3767,7 @@ function Morgana:Tick()
 		end	
 		self:Activator()
 		self:KillSteal()
+		self:UseIG()
 		self:AutoW()
 		self:AutoE()
 		self:Auto1()
@@ -4018,6 +4021,26 @@ if PussymyHero.dead then return end
 				Control.CastSpell(HK_W, pred.CastPosition)
 	
 			end
+		end
+	end
+end
+
+function Morgana:UseIG()
+    local target = GetTarget(600)
+	if self.Menu.ks.UseIG:Value() and IsValid(target) then 
+		local IGdamage = 80 + 25 * myHero.levelData.lvl
+   		if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
+       		if Ready(SUMMONER_1) then
+				if IGdamage >= target.health then
+					Control.CastSpell(HK_SUMMONER_1, target)
+				end
+       		end
+		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
+        	if Ready(SUMMONER_2) then
+				if IGdamage >= target.health then
+					Control.CastSpell(HK_SUMMONER_2, target)
+				end
+       		end
 		end
 	end
 end	
