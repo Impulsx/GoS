@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.05
+    local Version = 0.06
     
     local Files = {
         Lua = {
@@ -57,12 +57,12 @@ function OnLoad()
 end
 
 	
----------Für meinen Lehrer!! :) --------------
-local PussyGetTickCount = GetTickCount()
+
+local PussyGetTickCount = GetTickCount
 local PussymyHero = myHero
 local PussyVector = Vector
 local PussyCallbackAdd = Callback.Add
-local PussyDrawLine = Draw.Linek
+local PussyDrawLine = Draw.Line
 local PussyDrawColor = Draw.Color
 local PussyDrawCircle = Draw.Circle
 local PussyDrawText = Draw.Text
@@ -71,10 +71,8 @@ local PussyControlSetCursorPos = Control.SetCursorPos
 local PussyControlKeyUp = Control.KeyUp
 local PussyControlKeyDown = Control.KeyDown
 local PussyGameCanUseSpell = Game.CanUseSpell
-local PussyGameLatency = Game.Latency()
-local PussyGameTimer = Game.Timer()
-local PussyGameParticleCount = Game.ParticleCount
-local PussyGameParticle = Game.Particle
+local PussyGameLatency = Game.Latency
+local PussyGameTimer = Game.Timer
 local PussyGameHeroCount = Game.HeroCount
 local PussyGameHero = Game.Hero
 local PussyGameMinionCount = Game.MinionCount
@@ -92,38 +90,26 @@ local PussyGameIsChatOpen = Game.IsChatOpen
 local PussyMathAbs = math.abs
 local PussyMathAcos = math.acos
 local PussyMathAtan = math.atan
-local PussyMathAtan2 = math.atan2
-local PussyMathCeil = math.ceil
-local PussyMathCos = math.cos
-local PussyMathDeg = math.deg
-local PussyMathFloor = math.floor
 local PussyMathHuge = math.huge
 local PussyMathMax = math.max
-local PussyMathMin = math.min
-local PussyMathPi = math.pi
-local PussyMathRad = math.rad
-local PussyMathRandom = math.random
-local PussyMathSin = math.sin
 local PussyMathSqrt = math.sqrt
 local PussyTableInsert = table.insert
 local PussyTableRemove = table.remove
-local PussyTableSort = table.sort
-
+local PussyMathDeg = math.deg
 
 
 local menu = 1
 local _OnWaypoint = {}
 local _OnVision = {}
-local GameLatency = Game.Latency
-local GameTimer = Game.Timer
 local TEAM_ALLY = myHero.team
 local TEAM_ENEMY = 300 - myHero.team
 local TEAM_JUNGLE = 300
 local Allies = {}; local Enemies = {}; local Turrets = {}; local Units = {}; local AllyHeroes = {}
 local intToMode = {[0] = "", [1] = "Combo", [2] = "Harass", [3] = "LastHit", [4] = "Clear"}
-local castSpell = {state = 0, tick = PussyGetTickCount, casting = PussyGetTickCount - 1000, mouse = mousePos}
+local castSpell = {state = 0, tick = PussyGetTickCount(), casting = PussyGetTickCount() - 1000, mouse = mousePos}
 local spellcast = {state = 1, mouse = mousePos}
 local ItemHotKey = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2,[ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6,}
+local Orb
 
 local cancelSpells = {
   ["Caitlyn"] = {
@@ -390,33 +376,7 @@ local CCSpells = {
 	["TristanaR"] = {charName = "Tristana", slot = _R, type = "targeted", displayName = "Buster Shot", range = 669},
 }
 
-local ChanellingSpells = {
-	["CaitlynAceintheHole"] = {charName = "Caitlyn", slot = _R, type = "targeted", displayName = "Ace in the Hole", danger = 3},
-	["Drain"] = {charName = "Fiddlesticks", slot = _W, type = "targeted", displayName = "Drain", danger = 2},
-	["Crowstorm"] = {charName = "Fiddlesticks", slot = _R, type = "skillshot", displayName = "Crowstorm", danger = 3},
-	["GalioW"] = {charName = "Galio", slot = _W, type = "skillshot", displayName = "Shield of Durand", danger = 2},
-	["GalioR"] = {charName = "Galio", slot = _R, type = "skillshot", displayName = "Hero's Entrance", danger = 3},
-	["GragasW"] = {charName = "Gragas", slot = _W, type = "skillshot", displayName = "Drunken Rage", danger = 1},
-	["ReapTheWhirlwind"] = {charName = "Janna", slot = _R, type = "skillshot", displayName = "Monsoon", danger = 2},
-	["KarthusFallenOne"] = {charName = "Karthus", slot = _R, type = "skillshot", displayName = "Requiem", danger = 3},
-	["KatarinaR"] = {charName = "Katarina", slot = _R, type = "skillshot", displayName = "Death Lotus", danger = 3},
-	["LucianR"] = {charName = "Lucian", slot = _R, type = "skillshot", displayName = "The Culling", danger = 2},
-	["AlZaharNetherGrasp"] = {charName = "Malzahar", slot = _R, type = "targeted", displayName = "Nether Grasp", danger = 3},
-	["Meditate"] = {charName = "MasterYi", slot = _Q, type = "skillshot", displayName = "Meditate", danger = 1},
-	["MissFortuneBulletTime"] = {charName = "MissFortune", slot = _R, type = "skillshot", displayName = "Bullet Time", danger = 3},
-	["AbsoluteZero"] = {charName = "Nunu", slot = _R, type = "skillshot", displayName = "Absolute Zero", danger = 3},
-	["PantheonRFall"] = {charName = "Pantheon", slot = _R, type = "skillshot", displayName = "Grand Skyfall [Fall]", danger = 3},
-	["PantheonRJump"] = {charName = "Pantheon", slot = _R, type = "skillshot", displayName = "Grand Skyfall [Jump]", danger = 3},
-	["PykeQ"] = {charName = "Pyke", slot = _Q, type = "skillshot", displayName = "Bone Skewer", danger = 1},
-	["ShenR"] = {charName = "Shen", slot = _R, type = "skillshot", displayName = "Stand United", danger = 2},
-	["SionQ"] = {charName = "Sion", slot = _Q, type = "skillshot", displayName = "Decimating Smash", danger = 2},
-	["Destiny"] = {charName = "TwistedFate", slot = _R, type = "skillshot", displayName = "Destiny", danger = 2},
-	["VarusQ"] = {charName = "Varus", slot = _Q, type = "skillshot", displayName = "Piercing Arrow", danger = 1},
-	["VelKozR"] = {charName = "VelKoz", slot = _R, type = "skillshot", displayName = "Life Form Disintegration Ray", danger = 3},
-	["ViQ"] = {charName = "Vi", slot = _Q, type = "skillshot", displayName = "Vault Breaker", danger = 2},
-	["XerathLocusOfPower2"] = {charName = "Xerath", slot = _R, type = "skillshot", displayName = "Rite of the Arcane", danger = 3},
-	["ZacR"] = {charName = "Zac", slot = _R, type = "skillshot", displayName = "Let's Bounce!", danger = 3},
-}
+
 
 
 local function IsValid(unit, range)
@@ -680,7 +640,7 @@ end
 local function HasPoison(unit)
 	for i = 0, unit.buffCount do 
 	local buff = unit:GetBuff(i)
-		if buff.type == 23 and PussyGameTimer < buff.expireTime - 0.141  then
+		if buff.type == 23 and PussyGameTimer() < buff.expireTime - 0.141  then
 			return true
 		end
 	end
@@ -810,15 +770,15 @@ local function Block(boolean)
 end
  
 local function OnVision(unit)
-	if _OnVision[unit.networkID] == nil then _OnVision[unit.networkID] = {state = unit.visible , tick = PussyGetTickCount, pos = unit.pos} end
-	if _OnVision[unit.networkID].state == true and not unit.visible then _OnVision[unit.networkID].state = false _OnVision[unit.networkID].tick = PussyGetTickCount end
-	if _OnVision[unit.networkID].state == false and unit.visible then _OnVision[unit.networkID].state = true _OnVision[unit.networkID].tick = PussyGetTickCount end
+	if _OnVision[unit.networkID] == nil then _OnVision[unit.networkID] = {state = unit.visible , tick = PussyGetTickCount(), pos = unit.pos} end
+	if _OnVision[unit.networkID].state == true and not unit.visible then _OnVision[unit.networkID].state = false _OnVision[unit.networkID].tick = PussyGetTickCount() end
+	if _OnVision[unit.networkID].state == false and unit.visible then _OnVision[unit.networkID].state = true _OnVision[unit.networkID].tick = PussyGetTickCount() end
 	return _OnVision[unit.networkID]
 end
 
 PussyCallbackAdd("Tick", function() OnVisionF() end)
 function OnVisionF()
-	if PussyGetTickCount - PussyGetTickCount > 100 then
+	if PussyGetTickCount() - PussyGetTickCount() > 100 then
 		for i,v in pairs(GetEnemyHeroes()) do
 			OnVision(v)
 		end
@@ -830,10 +790,10 @@ local function OnWaypoint(unit)
 	if _OnWaypoint[unit.networkID].pos ~= unit.posTo then 
 		_OnWaypoint[unit.networkID] = {startPos = unit.pos, pos = unit.posTo , speed = unit.ms, time = Game.Timer()}
 			DelayAction(function()
-				local time = (PussyGameTimer - _OnWaypoint[unit.networkID].time)
-				local speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(PussyGameTimer - _OnWaypoint[unit.networkID].time)
+				local time = (PussyGameTimer() - _OnWaypoint[unit.networkID].time)
+				local speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(PussyGameTimer() - _OnWaypoint[unit.networkID].time)
 				if speed > 1250 and time > 0 and unit.posTo == _OnWaypoint[unit.networkID].pos and GetDistance(unit.pos,_OnWaypoint[unit.networkID].pos) > 200 then
-					_OnWaypoint[unit.networkID].speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(PussyGameTimer - _OnWaypoint[unit.networkID].time)
+					_OnWaypoint[unit.networkID].speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(PussyGameTimer() - _OnWaypoint[unit.networkID].time)
 
 				end
 			end,0.05)
@@ -847,7 +807,7 @@ local function GetPred(unit,speed,delay)
 	local unitSpeed = unit.ms
 	if OnWaypoint(unit).speed > unitSpeed then unitSpeed = OnWaypoint(unit).speed end
 	if OnVision(unit).state == false then
-		local unitPos = unit.pos + PussyVector(unit.pos,unit.posTo):Normalized() * ((PussyGetTickCount - OnVision(unit).tick)/1000 * unitSpeed)
+		local unitPos = unit.pos + PussyVector(unit.pos,unit.posTo):Normalized() * ((PussyGetTickCount() - OnVision(unit).tick)/1000 * unitSpeed)
 		local predPos = unitPos + PussyVector(unit.pos,unit.posTo):Normalized() * (unitSpeed * (delay + (GetDistance(PussymyHero.pos,unitPos)/speed)))
 		if GetDistance(unit.pos,predPos) > GetDistance(unit.pos,unit.posTo) then predPos = unit.posTo end
 		return predPos
@@ -1128,52 +1088,52 @@ Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = Puss
 		end
 	end
 
-	function Cassiopeia:Qdmg(unit)
+	function Cassiopeia:Qdmg(target)
 		local level = PussymyHero:GetSpellData(_Q).level
-		local base = (({75, 110, 145, 180, 215})[level] + 0.90 * PussymyHero.ap)
-		return CalcMagicalDamage(PussymyHero,unit, base)
+		local base = ({75, 110, 145, 180, 215})[level] + 0.90 * PussymyHero.ap
+		return CalcMagicalDamage(PussymyHero,target, base)
 	end
 	
-	function Cassiopeia:Wdmg(unit)
-		local level = PussymyHero:GetSpellData(_W).level
-		local base = ({100, 125, 150, 175, 200})[level] + 0.75 * PussymyHero.ap
-		return CalcMagicalDamage(PussymyHero,unit, base)
+	function Cassiopeia:Wdmg(target)
+		local level = myHero:GetSpellData(_W).level
+		local base = ({100, 125, 150, 175, 200})[level] + 0.75 * myHero.ap
+		return CalcMagicalDamage(myHero,target,base)
 	end
 
-	function Cassiopeia:Edmg(unit)
+	function Cassiopeia:Edmg(target)
 		local level = PussymyHero.levelData.lvl
 		local base = (48 + 4 * level) + (0.1 * PussymyHero.ap)
-		return CalcMagicalDamage(PussymyHero,unit, base)
+		return CalcMagicalDamage(PussymyHero,target, base)
 	end
 	
-	function Cassiopeia:PEdmg(unit)
+	function Cassiopeia:PEdmg(target)
 		local level = PussymyHero:GetSpellData(_E).level
 		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * PussymyHero.ap)
-		local PEdamage = self:Edmg(unit) + bonus
-		return CalcMagicalDamage(PussymyHero,unit, PEdamage)
+		local PEdamage = self:Edmg(target) + bonus
+		return CalcMagicalDamage(PussymyHero,target, PEdamage)
 	end
 	
-	function Cassiopeia:EdmgCreep(unit)
+	function Cassiopeia:EdmgCreep(target)
 		local level = PussymyHero.levelData.lvl
 		local base = (48 + 4 * level) + (0.1 * PussymyHero.ap)
 		return base
 	end	
 
-	function Cassiopeia:PEdmgCreep(unit)
+	function Cassiopeia:PEdmgCreep(target)
 		local level = PussymyHero:GetSpellData(_E).level
 		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * PussymyHero.ap)
-		local PEdamage = self:EdmgCreep(unit) + bonus
+		local PEdamage = self:EdmgCreep(target) + bonus
 		return PEdamage
 	end	
 	
-	function Cassiopeia:Rdmg(unit)
+	function Cassiopeia:Rdmg(target)
 		local level = PussymyHero:GetSpellData(_R).level
 		local base = ({150, 250, 350})[level] + 0.5 * PussymyHero.ap
-		return CalcMagicalDamage(PussymyHero,unit, base)
+		return CalcMagicalDamage(PussymyHero,target, base)
 		
 	end				
 	
-	function Cassiopeia:Ignitedmg(unit)
+	function Cassiopeia:Ignitedmg(target)
 		local level = PussymyHero.levelData.lvl
 		local base = 50 + (20 * level)
 		return base
@@ -1439,7 +1399,7 @@ function Cassiopeia:Combo()
 				Control.CastSpell(HK_SUMMONER_2)
 			end
 		end
-		if Cass.c.R:Value() and Ready(_R) and (HasPoison(target) or Panic) and ((WCheck == false or (WCheck and (PussyGameTimer + WData.cd) - WData.castTime > 2)) or WValue == false) then
+		if Cass.c.R:Value() and Ready(_R) and (HasPoison(target) or Panic) and ((WCheck == false or (WCheck and (PussyGameTimer() + WData.cd) - WData.castTime > 2)) or WValue == false) then
 			if Panic then
 				if RTarget and Dist < RRange and self:PEdmg(target) < target.health then
 				
@@ -3641,7 +3601,7 @@ end
 
 function Morgana:CalculateCollisionTime(startPos, endPos, unitPos, startTime, speed, delay, origin)
 	local delay = origin == "spell" and delay or 0
-	local pos = startPos:Extended(endPos, speed * (GameTimer() - delay - startTime))
+	local pos = startPos:Extended(endPos, speed * (PussyGameTimer() - delay - startTime))
 	return GetDistance(unitPos, pos) / speed
 end
 
@@ -3844,7 +3804,7 @@ function Morgana:UseE(i, s)
 		local EndPosition = endPos+PussyVector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
 		startPos = StartPosition; endPos = EndPosition
 	end
-	if s.startTime + travelTime > GameTimer() then
+	if s.startTime + travelTime > PussyGameTimer() then
 		local Col = Morgana:VectorPointProjectionOnLineSegment(startPos, endPos, PussymyHero.pos)
 		if s.type == "circular" and GetDistanceSqr(PussymyHero.pos, endPos) < (s.radius + PussymyHero.boundingRadius) ^ 2 or GetDistanceSqr(PussymyHero.pos, Col) < (s.radius + PussymyHero.boundingRadius * 1.25) ^ 2 then
 			local t = s.speed ~= PussyMathHuge and Morgana:CalculateCollisionTime(startPos, endPos, PussymyHero.pos, s.startTime, s.speed, s.delay, s.origin) or 0.29
@@ -3866,7 +3826,7 @@ function Morgana:OnProcessSpell()
 				local startPos = PussyVector(spell.startPos); local placementPos = PussyVector(spell.placementPos); local unitPos = unit.pos
 				local radius = Detected.radius; local range = Detected.range; local col = Detected.collision; local type = Detected.type
 				local endPos, range2 = Morgana:CalculateEndPos(startPos, placementPos, unitPos, range, radius, col, type)
-				PussyTableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = GameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "spell"})
+				PussyTableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = PussyGameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "spell"})
 			end
 		end
 	end
@@ -3874,9 +3834,9 @@ end
 
 
 function Morgana:OnMissileCreate()
-	if GameTimer() > self.Timer + 0.15 then
-		for i, mis in pairs(self.DetectedMissiles) do if GameTimer() > mis.timer + 2 then PussyTableRemove(self.DetectedMissiles, i) end end
-		self.Timer = GameTimer()
+	if PussyGameTimer() > self.Timer + 0.15 then
+		for i, mis in pairs(self.DetectedMissiles) do if PussyGameTimer() > mis.timer + 2 then PussyTableRemove(self.DetectedMissiles, i) end end
+		self.Timer = PussyGameTimer()
 	end
 	for i = 1, PussyGameMissileCount() do
 		local missile = PussyGameMissile(i)
@@ -3887,11 +3847,11 @@ function Morgana:OnMissileCreate()
 				local Detected = CCSpells[missile.missileData.name]
 				if Detected.origin ~= "spell" then
 					for i, mis in pairs(self.DetectedMissiles) do if mis.name == missile.missileData.name then return end end
-					PussyTableInsert(self.DetectedMissiles, {name = missile.missileData.name, timer = GameTimer()})
+					PussyTableInsert(self.DetectedMissiles, {name = missile.missileData.name, timer = PussyGameTimer()})
 					local startPos = PussyVector(missile.missileData.startPos); local placementPos = PussyVector(missile.missileData.placementPos); local unitPos = unit.pos
 					local radius = Detected.radius; local range = Detected.range; local col = Detected.collision; local type = Detected.type
 					local endPos, range2 = Morgana:CalculateEndPos(startPos, placementPos, unitPos, range, radius, col, type)
-					PussyTableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = GameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "missile"})
+					PussyTableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = PussyGameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "missile"})
 				end
 			end
 		end
@@ -3909,7 +3869,7 @@ for i, Hero in pairs(GetAllyHeroes()) do
 		local EndPosition = endPos+PussyVector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
 		startPos = StartPosition; endPos = EndPosition
 	end
-	if s.startTime + travelTime > GameTimer() then
+	if s.startTime + travelTime > PussyGameTimer() then
 		local Col = Morgana:VectorPointProjectionOnLineSegment(startPos, endPos, Hero.pos)
 		if s.type == "circular" and GetDistanceSqr(Hero.pos, endPos) < (s.radius + Hero.boundingRadius) ^ 2 or GetDistanceSqr(Hero.pos, Col) < (s.radius + Hero.boundingRadius * 1.25) ^ 2 then
 			local t = s.speed ~= PussyMathHuge and Morgana:CalculateCollisionTime(startPos, endPos, Hero.pos, s.startTime, s.speed, s.delay, s.origin) or 0.29
@@ -3934,7 +3894,7 @@ for i, Hero in pairs(GetAllyHeroes()) do
 				local startPos = PussyVector(spell.startPos); local placementPos = PussyVector(spell.placementPos); local unitPos = unit.pos
 				local radius = Detected.radius; local range = Detected.range; local col = Detected.collision; local type = Detected.type
 				local endPos, range2 = Morgana:CalculateEndPos(startPos, placementPos, unitPos, range, radius, col, type)
-				PussyTableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = GameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "spell"})
+				PussyTableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = PussyGameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "spell"})
 			end
 		end
 	end
@@ -3944,9 +3904,9 @@ end
 
 function Morgana:OnMissileCreate1()
 for i, Hero in pairs(GetAllyHeroes()) do
-	if GameTimer() > self.Timer + 0.15 then
-		for i, mis in pairs(self.DetectedMissiles) do if GameTimer() > mis.timer + 2 then PussyTableRemove(self.DetectedMissiles, i) end end
-		self.Timer = GameTimer()
+	if PussyGameTimer() > self.Timer + 0.15 then
+		for i, mis in pairs(self.DetectedMissiles) do if PussyGameTimer() > mis.timer + 2 then PussyTableRemove(self.DetectedMissiles, i) end end
+		self.Timer = PussyGameTimer()
 	end
 	for i = 1, PussyGameMissileCount() do
 		local missile = PussyGameMissile(i)
@@ -3957,11 +3917,11 @@ for i, Hero in pairs(GetAllyHeroes()) do
 				local Detected = CCSpells[missile.missileData.name]
 				if Detected.origin ~= "spell" then
 					for i, mis in pairs(self.DetectedMissiles) do if mis.name == missile.missileData.name then return end end
-					PussyTableInsert(self.DetectedMissiles, {name = missile.missileData.name, timer = GameTimer()})
+					PussyTableInsert(self.DetectedMissiles, {name = missile.missileData.name, timer = PussyGameTimer()})
 					local startPos = PussyVector(missile.missileData.startPos); local placementPos = PussyVector(missile.missileData.placementPos); local unitPos = unit.pos
 					local radius = Detected.radius; local range = Detected.range; local col = Detected.collision; local type = Detected.type
 					local endPos, range2 = Morgana:CalculateEndPos(startPos, placementPos, unitPos, range, radius, col, type)
-					PussyTableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = GameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "missile"})
+					PussyTableInsert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = PussyGameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "missile"})
 				end
 			end
 		end
