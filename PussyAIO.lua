@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.08
+    local Version = 0.09
     
     local Files = {
         Lua = {
@@ -494,7 +494,7 @@ end
 local function CastSpellMM(spell,pos,range,delay)
 	local range = range or math.huge
 	local delay = delay or 250
-	local ticker = GetTickCount
+	local ticker = GetTickCount()
 	if castSpell.state == 0 and HPred:GetDistance(myHero.pos,pos) < range and ticker - castSpell.casting > delay + Game.Latency then
 		castSpell.state = 1
 		castSpell.mouse = mousePos
@@ -1170,7 +1170,7 @@ end
 
 -- Potions ---------------------
 
-function OnTick()
+function Activator:OnTick()
 if myHero.alive == false then return end 
 
 hotkeyTable[ITEM_1] = HK_ITEM_1;
@@ -1180,7 +1180,7 @@ hotkeyTable[ITEM_4] = HK_ITEM_4;
 hotkeyTable[ITEM_5] = HK_ITEM_5;
 hotkeyTable[ITEM_6] = HK_ITEM_6;
 
-if (myPotTicks + 1000 < GetTickCount()) and Activator.Menu.Healing.Enabled:Value() then
+if (myPotTicks + 1000 < GetTickCount()) and self.Menu.Healing.Enabled:Value() then
 	myPotTicks = GetTickCount();
 	currentlyDrinkingPotion = false;
 	for j = ITEM_1, ITEM_6 do
@@ -1958,7 +1958,7 @@ end
 end	
 
 function Cassiopeia:KsIG()
-if Activator.Menu.summ.ign.ST:Value() == 2 then return end 
+
 local target = GetTarget(650)
 if target == nil then return end
 	if IsValid(target) then		
@@ -2406,7 +2406,7 @@ function Ekko:KillSteal()
 				Control.CastSpell(HK_R)
 				self:AutoWE()
 				Control.CastSpell(HK_Q, target.pos)
-			elseif IsReady(_R) and hp <= RDmg then
+			elseif Ready(_R) and hp <= RDmg then
 				Control.CastSpell(HK_R)
 				self:AutoWE()
 			end
@@ -2414,7 +2414,7 @@ function Ekko:KillSteal()
 		end
 		
 		if self.Menu.ks.UseIgn:Value() then 
-			if Activator.Menu.summ.ign.ST:Value() == 2 then return end 
+ 
 			if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and myHero.pos:DistanceTo(target.pos) <= 600 then
 				if Ready(SUMMONER_1) then
 					if IGdamage >= hp + target.hpRegen * 3 then
@@ -2722,7 +2722,6 @@ function Kayle:KillSteal()
 		end
 
 		if self.Menu.ks.UseIgn:Value() then 
-			if Activator.Menu.summ.ign.ST:Value() == 2 then return end 
 			if myHero.pos:DistanceTo(target.pos) <= 600 then
 				if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
 					if IGdamage >= hp + target.hpRegen * 3 then
@@ -3826,7 +3825,7 @@ function Malzahar:KillSteal()
 			end
 		end
 		if self.Menu.ks.UseIgn:Value() then 
-			if Activator.Menu.summ.ign.ST:Value() == 2 then return end 
+
 			if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and myHero.pos:DistanceTo(target.pos) <= 600 then
 				if Ready(SUMMONER_1) then
 					if IGdamage >= hp + target.hpRegen * 3 then
@@ -5513,11 +5512,11 @@ function Sona:Tick()
 		elseif Mode == "Flee" then
 		
 		end
-		if isReady(_R) then
+		if Ready(_R) then
 			self:AutoR()
 			self:AutoR2()
 		end
-		if isReady(_W) then
+		if Ready(_W) then
 			self:AutoW()
 			self:AutoW2()
 		end
@@ -5552,7 +5551,7 @@ function Sona:Combo()
 	if target == nil then return end
 if IsValid(target) then	
 
-	if myHero.pos:DistanceTo(target.pos) <= 825 and isReady(_Q) and self.Menu.Qset.Combo:Value() then
+	if myHero.pos:DistanceTo(target.pos) <= 825 and Ready(_Q) and self.Menu.Qset.Combo:Value() then
 		self:CastQ(target)
 	end
 end
@@ -5563,14 +5562,14 @@ function Sona:Harass()
 	if target == nil then return end
 if IsValid(target) then	
 	
-	if myHero.pos:DistanceTo(target.pos) <= 825 and isReady(_Q) and self.Menu.Qset.Harass:Value() then
+	if myHero.pos:DistanceTo(target.pos) <= 825 and Ready(_Q) and self.Menu.Qset.Harass:Value() then
 		self:CastQ(target)
 	end
 end
 end
 
 function Sona:AutoW()
-	if (not isReady(_W) or not self.Menu.Wset.AutoW:Value())then return end
+	if (not Ready(_W) or not self.Menu.Wset.AutoW:Value())then return end
 	for i, ally in pairs(self.Allies) do
 		if isValidTarget(ally,W.range) then
 			if not ally.isMe then
@@ -5584,7 +5583,7 @@ function Sona:AutoW()
 end
 
 function Sona:AutoW2()
-	if (not isReady(_W) or not self.Menu.Wset.AutoW:Value())then return end
+	if (not Ready(_W) or not self.Menu.Wset.AutoW:Value())then return end
 
 	if (myHero.health/myHero.maxHealth  < self.Menu.Wset.MyHp:Value()/100) then
 		Control.CastSpell(HK_W,myHero.pos)
@@ -5593,7 +5592,7 @@ function Sona:AutoW2()
 end
 
 function Sona:AutoR()
-if (not isReady(_R) or not self.Menu.Rset.AutoR:Value())then return end
+if (not Ready(_R) or not self.Menu.Rset.AutoR:Value())then return end
 local target = GetTarget(1000)     	
 if target == nil then return end
 	if IsValid(target) then		
@@ -5607,7 +5606,7 @@ if target == nil then return end
 end	
 
 function Sona:AutoR2()
-	if (not isReady(_R) or not self.Menu.Rset.AutoR:Value())then return end
+	if (not Ready(_R) or not self.Menu.Rset.AutoR:Value())then return end
 	local target = GetTarget(1000)     	
 	if target == nil then return end
 	if IsValid(target) then	
@@ -5623,15 +5622,15 @@ function Sona:Draw()
 	if myHero.dead then return end
 
 	if self.Menu.Draw.Q:Value() then
-		local qcolor = isReady(_Q) and  Draw.Color(189, 183, 107, 255) or Draw.Color(240,255,0,0)
+		local qcolor = Ready(_Q) and  Draw.Color(189, 183, 107, 255) or Draw.Color(240,255,0,0)
 		Draw.Circle(Vector(myHero.pos),Q.range,1,qcolor)
 	end
 	if self.Menu.Draw.W:Value() then
-		local wcolor = isReady(_W) and  Draw.Color(240,30,144,255) or Draw.Color(240,255,0,0)
+		local wcolor = Ready(_W) and  Draw.Color(240,30,144,255) or Draw.Color(240,255,0,0)
 		Draw.Circle(Vector(myHero.pos),W.range,1,wcolor)
 	end
 	if self.Menu.Draw.E:Value() then
-		local ecolor = isReady(_E) and  Draw.Color(233, 150, 122, 255) or Draw.Color(240,255,0,0)
+		local ecolor = Ready(_E) and  Draw.Color(233, 150, 122, 255) or Draw.Color(240,255,0,0)
 		Draw.Circle(Vector(myHero.pos),E.range,1,ecolor)
 	end
 	--R
@@ -9003,9 +9002,9 @@ function Tristana:Draw()
 		end
 	end
 end	
-local timer = {state = false, tick = GetTickCount, mouse = mousePos, done = false, delayer = GetTickCount}
+local timer = {state = false, tick = GetTickCount(), mouse = mousePos, done = false, delayer = GetTickCount()}
 function Tristana:AntiBlitz()	
-	if GetTickCount - timer.tick > 300 and GetTickCount - timer.tick < 700 then 
+	if GetTickCount() - timer.tick > 300 and GetTickCount() - timer.tick < 700 then 
 		timer.state = false
 		_G.SDK.Orbwalker:SetMovement(true)
 		_G.SDK.Orbwalker:SetAttack(true)
@@ -10112,6 +10111,7 @@ function Xerath:__init()
 	self.lastTarget = nil
 	self.lastTarget_tick = GetTickCount()
 	self:Menu()
+	
 	function OnTick() self:Tick() end
  	function OnDraw() self:Draw() end
 end
@@ -10125,18 +10125,7 @@ end
 local icons = {	["Xerath"] = "http://vignette2.wikia.nocookie.net/leagueoflegends/images/7/7a/XerathSquare.png",
 }
 
-local 	Menu = MenuElement({id = "Xerath", name = "PussyXerath ", type = MENU ,leftIcon = icons[myHero.charName] })
-		Menu:MenuElement({id = "Combo", name = "Combo", type = MENU})
-		Menu:MenuElement({id = "Harass", name = "Harass", type = MENU})
-		Menu:MenuElement({id = "Killsteal", name = "Killsteal", type = MENU})
-		Menu:MenuElement({id = "Items", name = "Items", type = MENU})
-		Menu:MenuElement({id = "Misc", name = "Misc", type = MENU})
-		Menu:MenuElement({id = "Key", name = "Key Settings", type = MENU})
-		Menu.Key:MenuElement({id = "Combo", name = "Combo", key = string.byte(" ")})
-		Menu.Key:MenuElement({id = "Harass", name = "Harass | Mixed", key = string.byte("C")})
-		Menu.Key:MenuElement({id = "Clear", name = "LaneClear | JungleClear", key = string.byte("V")})
-		Menu.Key:MenuElement({id = "LastHit", name = "LastHit", key = string.byte("X")})
-		Menu:MenuElement({id = "fastOrb", name = "Make Orbwalker fast again", value = true})
+
 
 		
 		
@@ -10654,6 +10643,19 @@ end
 
 
 function Xerath:Menu()
+	Menu = MenuElement({id = "Xerath", name = "PussyXerath ", type = MENU ,leftIcon = icons[myHero.charName] })
+	Menu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	Menu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	Menu:MenuElement({id = "Killsteal", name = "Killsteal", type = MENU})
+	Menu:MenuElement({id = "Items", name = "Items", type = MENU})
+	Menu:MenuElement({id = "Misc", name = "Misc", type = MENU})
+	Menu:MenuElement({id = "Key", name = "Key Settings", type = MENU})
+	Menu.Key:MenuElement({id = "Combo", name = "Combo", key = string.byte(" ")})
+	Menu.Key:MenuElement({id = "Harass", name = "Harass | Mixed", key = string.byte("C")})
+	Menu.Key:MenuElement({id = "Clear", name = "LaneClear | JungleClear", key = string.byte("V")})
+	Menu.Key:MenuElement({id = "LastHit", name = "LastHit", key = string.byte("X")})
+	Menu:MenuElement({id = "fastOrb", name = "Make Orbwalker fast again", value = true})	
+	
 	Menu.Combo:MenuElement({id = "useQ", name = "Use Q", value = true, leftIcon = self.spellIcons.Q})
 	Menu.Combo:MenuElement({id = "legitQ", name = "Legit Q slider", value = 0.075, min = 0, max = 0.15, step = 0.01})
 	Menu.Combo:MenuElement({id = "useW", name = "Use W", value = true, leftIcon = self.spellIcons.W})
@@ -10981,7 +10983,7 @@ end
 
 function Xerath:startQ(target)
 	local start = true
-	if Menu.Combo.useE:Value() and Game.CanUseSpell(_E) == 0 and GetDistance(target.pos,myHero.pos) < 650 and target:GetCollision(EData.Radius, EData.Speed, EData.Delay) == 0 then start = false end
+	if Menu.Combo.useE:Value() and Game.CanUseSpell(_E) == 0 and GetDistance(target.pos,myHero.pos) < 650 and target:GetCollision(self.E.width,self.E.speed,self.E.delay) == 0 then start = false end
 	if Game.CanUseSpell(_Q) == 0 and self.chargeQ == false  and start == true then
 		Control.KeyDown(HK_Q)
 	end
@@ -11026,7 +11028,7 @@ end
 function Xerath:useWhighHit(target,wPred)
 	local afterE = false
 	if Menu.Combo.useE:Value() and Game.CanUseSpell(_E) == 0 and myHero:GetSpellData(_W).mana + myHero:GetSpellData(_E).mana <= myHero.mana and GetDistance(myHero.pos,target.pos) <= 750 then
-		if target:GetCollision(EData.Radius, EData.Speed, EData.Delay) == 0 then
+		if target:GetCollision(self.E.width,self.E.speed,self.E.delay) == 0 then
 			afterE = true
 		end
 	end
@@ -11060,7 +11062,7 @@ function Xerath:useECC()
 	local target = self:GetTarget(self.E.range,"AP")
 	if target then
 		if GetDistance(myHero.pos,target.pos) < self.E.range - 20 then
-			if self:IsImmobileTarget(target) == true and target:GetCollision(EData.Radius, EData.Speed,0.25) == 0 then
+			if self:IsImmobileTarget(target) == true and target:GetCollision(self.E.width,self.E.speed,0.25) == 0 then
 				CastSpell(HK_E,target.pos,5000)
 				self.lastTarget = target
 				self.lastTarget_tick = GetTickCount() + 200
@@ -12460,9 +12462,9 @@ local _windwallWidth
 local _OnVision = {}
 function HPred:OnVision(unit)
 	if unit == nil or type(unit) ~= "userdata" then return end
-	if _OnVision[unit.networkID] == nil then _OnVision[unit.networkID] = {visible = unit.visible , tick = GetTickCount, pos = unit.pos } end
-	if _OnVision[unit.networkID].visible == true and not unit.visible then _OnVision[unit.networkID].visible = false _OnVision[unit.networkID].tick = GetTickCount end
-	if _OnVision[unit.networkID].visible == false and unit.visible then _OnVision[unit.networkID].visible = true _OnVision[unit.networkID].tick = GetTickCount _OnVision[unit.networkID].pos = unit.pos end
+	if _OnVision[unit.networkID] == nil then _OnVision[unit.networkID] = {visible = unit.visible , tick = GetTickCount(), pos = unit.pos } end
+	if _OnVision[unit.networkID].visible == true and not unit.visible then _OnVision[unit.networkID].visible = false _OnVision[unit.networkID].tick = GetTickCount() end
+	if _OnVision[unit.networkID].visible == false and unit.visible then _OnVision[unit.networkID].visible = true _OnVision[unit.networkID].tick = GetTickCount() _OnVision[unit.networkID].pos = unit.pos end
 	return _OnVision[unit.networkID]
 end
 
@@ -12727,12 +12729,12 @@ function HPred:GetHitchance(source, target, range, delay, speed, radius, checkCo
 	
 	local visionData = HPred:OnVision(target)
 	if visionData and visionData.visible == false then
-		local hiddenTime = visionData.tick -GetTickCount
+		local hiddenTime = visionData.tick -GetTickCount()
 		if hiddenTime < -1000 then
 			hitChance = -1
 		else
 			local targetSpeed = self:GetTargetMS(target)
-			local unitPos = target.pos + Vector(target.pos,target.posTo):Normalized() * ((GetTickCount - visionData.tick)/1000 * targetSpeed)
+			local unitPos = target.pos + Vector(target.pos,target.posTo):Normalized() * ((GetTickCount() - visionData.tick)/1000 * targetSpeed)
 			local aimPosition = unitPos + Vector(target.pos,target.posTo):Normalized() * (targetSpeed * (delay + (self:GetDistance(myHero.pos,unitPos)/speed)))
 			if self:GetDistance(target.pos,aimPosition) > self:GetDistance(target.pos,target.posTo) then aimPosition = target.posTo end
 			hitChance = math.min(hitChance, 2)
