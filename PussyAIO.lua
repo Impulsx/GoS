@@ -10534,7 +10534,7 @@ function Xerath:LoadMenu()
 	self.Menu.Killsteal:MenuElement({id = "useQ", name = "Use Q to killsteal", value = true, leftIcon = spellIcons.Q})
 	self.Menu.Killsteal:MenuElement({id = "useW", name = "Use W to killsteal", value = true, leftIcon = spellIcons.W})
 	
-	self.Menu.Misc:MenuElement({id = "Pred", name = "Prediction Settings", drop = {"LazyXerath Prediction", "Gamsteron Prediction", "HPred"}, value = 2})	
+	self.Menu.Misc:MenuElement({id = "Pred", name = "Prediction Settings", drop = {"LazyXerath Prediction", "Gamsteron Prediction", "HPred"}, value = 1})	
 	self.Menu.Misc:MenuElement({id = "gapE", name = "Use E on gapcloser", value = true, leftIcon = spellIcons.E})
 	self.Menu.Misc:MenuElement({id = "drawRrange", name = "Draw R range on MiniMap", value = true, leftIcon = spellIcons.R})
 	
