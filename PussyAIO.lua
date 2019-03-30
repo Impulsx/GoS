@@ -1,11 +1,11 @@
-local Heroes = {"XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona"}
+local Heroes = {"XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
 if not table.contains(Heroes, myHero.charName) then return end
 
 
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.11
+    local Version = 0.12
     
     local Files = {
         Lua = {
@@ -1184,16 +1184,6 @@ for i = ITEM_1, ITEM_6 do
 return retval
 end
 
---[[local function AutoPotionUse(type,invSlot)
-	if not self.Menu.Healing[type] then
-		return
-	end
-	if self.Menu.Healing[type]:Value() then
-		if myHero.health/myHero.maxHealth <= self.Menu.Healing.UsePotsPercent:Value()/100 then
-			Control.CastSpell(hotkeyTable[invSlot]);
-		end
-	end
-end]]
 
 -- Zhonyas + StopWatch ---------------
 
@@ -1363,7 +1353,582 @@ function Activator:Ignite()
         end		
 		end
 	end
+-------------------------------------------------------------------------------------------------------------------------------------------------------------	
+class "Ahri"
+
+if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+	print("GsoPred. installed Press 2x F6")
+	DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-External/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
+	while not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") do end
+end
+
+require('GamsteronPrediction')
+
+local QData =
+{
+Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 880, Speed = 1700, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
+}
+
+local WData =
+{
+Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 80, Range = 700, Speed = 900, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
+}
+
+local EData =
+{
+Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 975, Speed = 1600, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
+}
+
+local RData =
+{
+Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 600, Range = 450, Speed = 2200, Collision = false
+}
+
+function Ahri:__init()
+	self.DetectedMissiles = {}; self.DetectedSpells = {}; self.Target = nil; self.Timer = 0
+	if menu ~= 1 then return end
+	menu = 2
+	self:LoadMenu()
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)
+	if _G.EOWLoaded then
+		Orb = 1
+	elseif _G.SDK and _G.SDK.Orbwalker then
+		Orb = 2
+	elseif _G.gsoSDK then
+		Orb = 4
+	end
+end
+
+function Ahri:VectorPointProjectionOnLineSegment(v1, v2, v)
+	local cx, cy, ax, ay, bx, by = v.x, v.z, v1.x, v1.z, v2.x, v2.z
+	local rL = ((cx - ax) * (bx - ax) + (cy - ay) * (by - ay)) / ((bx - ax) ^ 2 + (by - ay) ^ 2)
+	local pointLine = { x = ax + rL * (bx - ax), y = ay + rL * (by - ay) }
+	local rS = rL < 0 and 0 or (rL > 1 and 1 or rL)
+	local isOnSegment = rS == rL
+	local pointSegment = isOnSegment and pointLine or { x = ax + rS * (bx - ax), y = ay + rS * (by - ay) }
+	return pointSegment, pointLine, isOnSegment
+end
+
+function Ahri:CalculateCollisionTime(startPos, endPos, unitPos, startTime, speed, delay, origin)
+	local delay = origin == "spell" and delay or 0
+	local pos = startPos:Extended(endPos, speed * (Game.Timer() - delay - startTime))
+	return GetDistance(unitPos, pos) / speed
+end
+
+function Ahri:CalculateEndPos(startPos, placementPos, unitPos, range, radius, collision, type)
+	local range = range or 3000; local endPos = startPos:Extended(placementPos, range)
+	if type == "circular" or type == "rectangular" then
+		if range > 0 then if GetDistance(unitPos, placementPos) < range then endPos = placementPos end
+		else endPos = unitPos end
+	elseif collision then
+		for i = 1, Game.MinionCount() do
+			local minion = Game.Minion(i)
+			if minion and minion.team == myHero.team and not minion.dead and GetDistance(minion.pos, startPos) < range then
+				local col = self:VectorPointProjectionOnLineSegment(startPos, placementPos, minion.pos)
+				if col and GetDistance(col, minion.pos) < (radius + minion.boundingRadius / 2) then
+					range = GetDistance(startPos, col); endPos = startPos:Extended(placementPos, range); break
+				end
+			end
+		end
+	end
+	return endPos, range
+end
+
+local HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/aa/Star_Guardian_Ahri_profileicon.png"
+local QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/1/19/Orb_of_Deception.png"
+local WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/a8/Fox-Fire.png"
+local EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/04/Charm.png"
+local RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/8/86/Spirit_Rush.png"
+
+function Ahri:LoadMenu()
+	--MainMenu
+	self.Menu = MenuElement({type = MENU, id = "Ahri", name = "PussyAhri", leftIcon = HeroIcon})
+	--ComboMenu
+	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true, leftIcon = QIcon})
+	self.Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true, leftIcon = WIcon})
+	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true, leftIcon = EIcon})
+	self.Menu.Combo:MenuElement({id = "Type", name = "Combo Logic", value = 2,drop = {"QWE", "EQW", "EWQ"}})	
+	self.Menu.Combo:MenuElement({type = MENU, id = "UseR", name = "Ult Settings", leftIcon = RIcon})
+	self.Menu.Combo.UseR:MenuElement({id = "Type", name = "Ult Logic", value = 1,drop = {"Use for Kill", "Use in Combo"}})	
+	self.Menu.Combo.UseR:MenuElement({id = "CC", name = "AutoUlt incomming CCSpells", value = true})
+	self.Menu.Combo.UseR:MenuElement({id = "BlockList", name = "CCSpell List", type = MENU})	
 	
+	--HarassMenu
+	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
+	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true, leftIcon = QIcon})
+	self.Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = true, leftIcon = WIcon})
+	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
+	
+	--LaneClear Menu
+	self.Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear"})
+	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true, leftIcon = QIcon})
+	self.Menu.Clear:MenuElement({id = "Qmin", name = "Use Q If Hit X Minion ", value = 2, min = 1, max = 5, step = 1, leftIcon = QIcon})	
+	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
+	
+	--JungleClear
+	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JungleClear"})
+	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true, leftIcon = QIcon})
+	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})
+	
+	--KillSteal
+	self.Menu:MenuElement({type = MENU, id = "KillSteal", name = "KillSteal"})
+	self.Menu.KillSteal:MenuElement({id = "UseQ", name = "[Q]", value = true, leftIcon = QIcon})
+	self.Menu.KillSteal:MenuElement({id = "UseW", name = "[W]", value = true, leftIcon = WIcon})
+	self.Menu.KillSteal:MenuElement({id = "UseE", name = "[E]", value = true, leftIcon = EIcon})
+	
+	--AutoSpell on CC
+	self.Menu:MenuElement({id = "CC", name = "AutoUse on CC Target", type = MENU})
+	self.Menu.CC:MenuElement({id = "UseQ", name = "Q", value = true, leftIcon = QIcon})
+	self.Menu.CC:MenuElement({id = "UseE", name = "E", value = true, leftIcon = EIcon})
+
+	--Activator
+	self.Menu:MenuElement({type = MENU, id = "Activator", name = "Activator"})
+	self.Menu.Activator:MenuElement({id = "GLP", name = "Use Hextech GLP-800 in Combo", value = true})
+	
+	--Drawing
+	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw[Q]", value = true, leftIcon = QIcon})
+	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw[W]", value = true, leftIcon = WIcon})
+	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw[E]", value = true, leftIcon = EIcon})	
+	self.Menu.Drawing:MenuElement({id = "DrawDamage", name = "Draw damage on HPbar", value = true})
+    self.Menu.Drawing:MenuElement({id = "HPColor", name = "HP Color", color = Draw.Color(200, 255, 255, 255)})
+	self.Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
+	DelayAction(function()
+		for i, spell in pairs(CCSpells) do
+			if not CCSpells[i] then return end
+			for j, k in pairs(GetEnemyHeroes()) do
+				if spell.charName == k.charName and not self.Menu.Combo.UseR.BlockList[i] then
+					if not self.Menu.Combo.UseR.BlockList[i] then self.Menu.Combo.UseR.BlockList:MenuElement({id = "Dodge"..i, name = ""..spell.charName.." "..self.Slot[spell.slot].." | "..spell.displayName, value = true}) end
+				end
+			end    
+		end
+	end, 0.01)
+end
+
+
+function Ahri:Tick()
+	if myHero.dead == false and Game.IsChatOpen() == false then
+	self:KS()
+	self:CC()
+	self:AutoR()
+	self:KillR()
+	local Mode = GetMode()
+		if Mode == "Combo" then
+			self:Combo()
+			self:ComboR()
+			self:GLP()
+		elseif Mode == "Harass" then
+			self:Harass()
+		elseif Mode == "Clear" then
+			self:Clear()
+			self:JungleClear()
+		elseif Mode == "Flee" then
+		end
+	end
+end
+
+function Ahri:GLP()
+if myHero.dead then return end
+local target = GetTarget(1000)
+if target == nil then return end	
+    if IsValid(target) then
+        local item = GetInventorySlotItem(3030)
+        if item and self.Menu.Activator.GLP:Value() and myHero.pos:DistanceTo(target.pos) <= 800 then
+            Control.CastSpell(ItemHotKey[item], target.pos)
+        end
+    end
+end
+
+function Ahri:AutoR()
+	if self.Menu.Combo.UseR.CC:Value() and Ready(_R) then
+		self:OnMissileCreate() 
+		self:OnProcessSpell() 
+	end
+	for i, spell in pairs(self.DetectedSpells) do self:UseR(i, spell) end
+end
+
+function Ahri:KillR()
+local target = GetTarget(1000)
+if target == nil then return end
+	if self.Menu.Combo.UseR.Type:Value() == 1 then
+		local Rdmg = getdmg("R", target, myHero)*3
+		if IsValid(target) then    
+			if target and Ready(_R) then
+				if Rdmg >= target.health then
+					if myHero.pos:DistanceTo(target.pos) <= 1200 then
+						Control.CastSpell(HK_R,target.pos)
+					end
+				end
+			end
+		end
+	end
+end	
+
+function Ahri:ComboR()
+local target = GetTarget(1000)
+if target == nil then return end
+	if self.Menu.Combo.UseR.Type:Value() == 2 then
+		if IsValid(target) then    
+			if target and Ready(_R) then
+				if myHero.pos:DistanceTo(target.pos) <= 600 then
+					Control.CastSpell(HK_R,target.pos)
+					
+				end
+			end
+		end
+	end
+end	
+
+local barHeight = 8
+local barWidth = 103
+local barXOffset = 24
+local barYOffset = -8
+
+function Ahri:Draw()
+  if myHero.dead then return end
+	if self.Menu.Drawing.DrawQ:Value() and Ready(_Q) then
+    Draw.Circle(myHero, 880, 1, Draw.Color(225, 225, 0, 10))
+	end
+	if self.Menu.Drawing.DrawW:Value() and Ready(_W) then
+    Draw.Circle(myHero, 700, 1, Draw.Color(225, 225, 0, 10))
+	end
+	if self.Menu.Drawing.DrawE:Value() and Ready(_E) then
+    Draw.Circle(myHero, 975, 1, Draw.Color(225, 225, 0, 10))
+	end
+	if self.Menu.Drawing.DrawDamage:Value() then
+		for i, hero in pairs(GetEnemyHeroes()) do
+			local barPos = hero.hpBar
+			if not hero.dead and hero.pos2D.onScreen and barPos.onScreen and hero.visible then
+				local QDamage = (Ready(_Q) and getdmg("Q",hero,myHero) or 0)
+				local WDamage = (Ready(_W) and getdmg("W",hero,myHero) or 0)
+				local EDamage = (Ready(_E) and getdmg("E",hero,myHero) or 0)
+				local RDamage = (Ready(_R) and getdmg("R",hero,myHero) or 0)
+				local damage = QDamage + WDamage + EDamage + RDamage
+				if damage > hero.health then
+					Draw.Text("killable", 24, hero.pos2D.x, hero.pos2D.y,Draw.Color(0xFF00FF00))
+					
+				else
+					local percentHealthAfterDamage = math.max(0, hero.health - damage) / hero.maxHealth
+					local xPosEnd = barPos.x + barXOffset + barWidth * hero.health/hero.maxHealth
+					local xPosStart = barPos.x + barXOffset + percentHealthAfterDamage * 100
+					Draw.Line(xPosStart, barPos.y + barYOffset, xPosEnd, barPos.y + barYOffset, 10, self.Menu.Drawing.HPColor:Value())
+				end
+			end
+		end	
+	end
+end
+
+function Ahri:GetHeroByHandle(handle)
+	for i = 1, Game.HeroCount() do
+		local unit = Game.Hero(i)
+		if unit.handle == handle then return unit end
+	end
+end
+
+function Ahri:UseR(i, s)
+	local startPos = s.startPos; local endPos = s.endPos; local travelTime = 0
+	if s.speed == math.huge then travelTime = s.delay else travelTime = s.range / s.speed + s.delay end
+	if s.type == "rectangular" then
+		local StartPosition = endPos-Vector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
+		local EndPosition = endPos+Vector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
+		startPos = StartPosition; endPos = EndPosition
+	end
+	if s.startTime + travelTime > Game.Timer() then
+		local Col = Ahri:VectorPointProjectionOnLineSegment(startPos, endPos, myHero.pos)
+		if s.type == "circular" and GetDistanceSqr(myHero.pos, endPos) < (s.radius + myHero.boundingRadius) ^ 2 or GetDistanceSqr(myHero.pos, Col) < (s.radius + myHero.boundingRadius * 1.25) ^ 2 then
+			local t = s.speed ~= math.huge and Ahri:CalculateCollisionTime(startPos, endPos, myHero.pos, s.startTime, s.speed, s.delay, s.origin) or 0.29
+			local MPos = myHero.pos:Extended(mousePos, 450)
+			if t < 0.3 then Control.CastSpell(HK_R, MPos) end
+		end
+	else table.remove(self.DetectedSpells, i) end
+end
+
+function Ahri:OnProcessSpell()
+	local unit, spell = OnProcessSpell()
+	if unit and spell and CCSpells[spell.name] then
+		if GetDistance(unit.pos, myHero.pos) > 3000 or not self.Menu.Combo.UseR.BlockList["Dodge"..spell.name]:Value() then return end
+		local Detected = CCSpells[spell.name]
+		if Detected.origin ~= "missile" then
+			local type = Detected.type
+			if type == "targeted" then
+				local MPos = myHero.pos:Extended(mousePos, 450)
+				if spell.target == myHero.handle then Control.CastSpell(HK_R, MPos) end
+			else
+				local startPos = Vector(spell.startPos); local placementPos = Vector(spell.placementPos); local unitPos = unit.pos
+				local radius = Detected.radius; local range = Detected.range; local col = Detected.collision; local type = Detected.type
+				local endPos, range2 = Ahri:CalculateEndPos(startPos, placementPos, unitPos, range, radius, col, type)
+				table.insert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = Game.Timer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "spell"})
+			end
+		end
+	end
+end
+
+
+function Ahri:OnMissileCreate()
+	if Game.Timer() > self.Timer + 0.15 then
+		for i, mis in pairs(self.DetectedMissiles) do if Game.Timer() > mis.timer + 2 then table.remove(self.DetectedMissiles, i) end end
+		self.Timer = Game.Timer()
+	end
+	for i = 1, Game.MissileCount() do
+		local missile = Game.Missile(i)
+		if CCSpells[missile.missileData.name] then
+			local unit = self:GetHeroByHandle(missile.missileData.owner)
+			if (not unit.visible and CCSpells[missile.missileData.name].origin ~= "spell") or CCExceptions[missile.missileData.name] then
+				if GetDistance(unit.pos, myHero.pos) > 3000 or not self.Menu.Combo.UseR.BlockList["Dodge"..missile.missileData.name]:Value() then return end
+				local Detected = CCSpells[missile.missileData.name]
+				if Detected.origin ~= "spell" then
+					for i, mis in pairs(self.DetectedMissiles) do if mis.name == missile.missileData.name then return end end
+					table.insert(self.DetectedMissiles, {name = missile.missileData.name, timer = Game.Timer()})
+					local startPos = Vector(missile.missileData.startPos); local placementPos = Vector(missile.missileData.placementPos); local unitPos = unit.pos
+					local radius = Detected.radius; local range = Detected.range; local col = Detected.collision; local type = Detected.type
+					local endPos, range2 = Ahri:CalculateEndPos(startPos, placementPos, unitPos, range, radius, col, type)
+					table.insert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = Game.Timer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col, origin = "missile"})
+				end
+			end
+		end
+	end
+end
+
+function Ahri:Combo()
+
+	if self.Menu.Combo.Type:Value() == 1 then
+		self:Combo1()
+	elseif self.Menu.Combo.Type:Value() == 2 then
+		self:Combo2()
+	elseif self.Menu.Combo.Type:Value() == 3 then
+		self:Combo3()
+	end
+end
+
+function Ahri:Combo1()
+local target = GetTarget(1000)
+if target == nil then return end
+if IsValid(target) then    
+	if self.Menu.Combo.UseQ:Value() and target and Ready(_Q) then
+	    if myHero.pos:DistanceTo(target.pos) <= 880 then
+		    local pred = GetGamsteronPrediction(target, QData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_Q,pred.CastPosition)
+		    end
+	    end
+    end
+
+	if self.Menu.Combo.UseW:Value() and target and Ready(_W) then
+		if myHero.pos:DistanceTo(target.pos) <= 700 then 
+			local pred = GetGamsteronPrediction(target, WData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_W,pred.CastPosition)
+            end
+		end
+	end
+ 
+    if self.Menu.Combo.UseE:Value() and target and Ready(_E) then
+	    if myHero.pos:DistanceTo(target.pos) <= 975 then
+		    local pred = GetGamsteronPrediction(target, EData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_E,pred.CastPosition)
+		    end
+	    end
+    end
+end
+end
+
+
+function Ahri:Combo2()
+local target = GetTarget(1000)
+if target == nil then return end
+if IsValid(target) then    
+	if self.Menu.Combo.UseE:Value() and target and Ready(_E) then
+	    if myHero.pos:DistanceTo(target.pos) <= 975 then
+		    local pred = GetGamsteronPrediction(target, EData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_E,pred.CastPosition)
+		    end
+	    end
+    end
+	
+    if self.Menu.Combo.UseQ:Value() and target and Ready(_Q) then
+	    if myHero.pos:DistanceTo(target.pos) <= 880 then
+		    local pred = GetGamsteronPrediction(target, QData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_Q,pred.CastPosition)
+		    end
+	    end
+    end
+
+	if self.Menu.Combo.UseW:Value() and target and Ready(_W) then
+		if myHero.pos:DistanceTo(target.pos) <= 700 then 
+			local pred = GetGamsteronPrediction(target, WData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_W,pred.CastPosition)
+            end
+		end
+	end
+end
+end
+
+
+function Ahri:Combo3()
+local target = GetTarget(1000)
+if target == nil then return end
+if IsValid(target) then    
+	if self.Menu.Combo.UseE:Value() and target and Ready(_E) then
+	    if myHero.pos:DistanceTo(target.pos) <= 975 then
+		    local pred = GetGamsteronPrediction(target, EData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_E,pred.CastPosition)
+		    end
+	    end
+    end
+	
+	if self.Menu.Combo.UseW:Value() and target and Ready(_W) then
+		if myHero.pos:DistanceTo(target.pos) <= 700 then 
+			local pred = GetGamsteronPrediction(target, WData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_W,pred.CastPosition)
+            end
+		end
+	end
+	
+    if self.Menu.Combo.UseQ:Value() and target and Ready(_Q) then
+	    if myHero.pos:DistanceTo(target.pos) <= 880 then
+		    local pred = GetGamsteronPrediction(target, QData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_Q,pred.CastPosition)
+		    end
+	    end
+    end
+end
+end
+
+function Ahri:Harass()
+local target = GetTarget(1000)
+if target == nil then return end
+if IsValid(target) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value()/100 then
+	if self.Menu.Harass.UseQ:Value() and target and Ready(_Q) then
+	    if myHero.pos:DistanceTo(target.pos) <= 880 then
+		    local pred = GetGamsteronPrediction(target, QData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_Q,pred.CastPosition)
+		    end
+	    end
+    end
+
+	if self.Menu.Harass.UseW:Value() and target and Ready(_W) then
+		if myHero.pos:DistanceTo(target.pos) <= 700 then 
+			local pred = GetGamsteronPrediction(target, WData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_W,pred.CastPosition)
+            end
+		end
+	end
+end
+end	
+
+function Ahri:Clear()
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+		if minion and minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then
+			local count = GetMinionCount(150, minion)
+			if self.Menu.Clear.UseQ:Value() and Ready(_Q) then
+				if myHero.pos:DistanceTo(minion.pos) <= 880 and count >= self.Menu.Clear.Qmin:Value() then
+					Control.CastSpell(HK_Q,minion)
+				end
+			end
+		end
+	end
+end
+
+function Ahri:JungleClear()
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+		if minion and minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then
+			if self.Menu.JClear.UseQ:Value() and Ready(_Q) then
+				if myHero.pos:DistanceTo(minion.pos) <= 880 then
+					Control.CastSpell(HK_Q,minion)
+				end
+			end
+		end
+	end
+end
+
+function Ahri:KS()
+local target = GetTarget(1000)
+if target == nil then return end
+local Qdmg = getdmg("Q", target, myHero)
+local Wdmg = getdmg("W", target, myHero)
+local Edmg = getdmg("E", target, myHero)
+if IsValid(target) then    
+	if self.Menu.KillSteal.UseQ:Value() and target and Ready(_Q) then
+	    if myHero.pos:DistanceTo(target.pos) <= 880 and Qdmg >= target.health then
+		    local pred = GetGamsteronPrediction(target, QData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_Q,pred.CastPosition)
+		    end
+	    end
+    end
+
+	if self.Menu.KillSteal.UseW:Value() and target and Ready(_W) then
+		if myHero.pos:DistanceTo(target.pos) <= 700 and Wdmg >= target.health then 
+			local pred = GetGamsteronPrediction(target, WData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_W,pred.CastPosition)
+            end
+		end
+	end
+ 
+    if self.Menu.KillSteal.UseE:Value() and target and Ready(_E) then
+	    if myHero.pos:DistanceTo(target.pos) <= 975 and Edmg >= target.health then
+		    local pred = GetGamsteronPrediction(target, EData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_E,pred.CastPosition)
+		    end
+	    end
+    end
+end
+end
+
+
+function Ahri:CC()
+local target = GetTarget(1000)
+if target == nil then return end
+if IsValid(target) then	
+local Immobile = IsImmobileTarget(target)	
+	if self.Menu.CC.UseE:Value() and target and Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) <= 975 then 
+		local pred = GetGamsteronPrediction(target, EData, myHero)
+			if pred.Hitchance >= _G.HITCHANCE_HIGH and Immobile then
+				Control.CastSpell(HK_E,pred.CastPosition)
+			end
+		end
+	end
+	
+	if self.Menu.CC.UseQ:Value() and target and Ready(_Q) then
+		if myHero.pos:DistanceTo(target.pos) <= 880 then 
+		local pred = GetGamsteronPrediction(target, QData, myHero)
+			if pred.Hitchance >= _G.HITCHANCE_HIGH and Immobile then
+				Control.CastSpell(HK_Q,pred.CastPosition)
+			end
+		end
+	end	
+end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -10534,7 +11099,7 @@ function Xerath:LoadMenu()
 	self.Menu.Killsteal:MenuElement({id = "useQ", name = "Use Q to killsteal", value = true, leftIcon = spellIcons.Q})
 	self.Menu.Killsteal:MenuElement({id = "useW", name = "Use W to killsteal", value = true, leftIcon = spellIcons.W})
 	
-	self.Menu.Misc:MenuElement({id = "Pred", name = "Prediction Settings", drop = {"LazyXerath Prediction", "Gamsteron Prediction", "HPred"}, value = 1})	
+	self.Menu.Misc:MenuElement({id = "Pred", name = "Prediction Settings", drop = {"LazyXerath Prediction", "Gamsteron Prediction", "HPred"}, value = 2})	
 	self.Menu.Misc:MenuElement({id = "gapE", name = "Use E on gapcloser", value = true, leftIcon = spellIcons.E})
 	self.Menu.Misc:MenuElement({id = "drawRrange", name = "Draw R range on MiniMap", value = true, leftIcon = spellIcons.R})
 	
@@ -12382,6 +12947,15 @@ local QLvL = WLvLDMG()
 
 local DamageLibTable = {
 
+	["Ahri"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 65, 90, 115, 140})[level] + 0.35 * source.ap end},
+    {Slot = "Q", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({40, 65, 90, 115, 140})[level] + 0.35 * source.ap end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 65, 90, 115, 140})[level] + 0.3 * source.ap end},
+    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({12, 19.5, 27, 34.5, 42})[level] + 0.09 * source.ap end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 90, 120, 150, 180})[level] + 0.40 * source.ap end},
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 90, 120})[level] + 0.35 * source.ap end},
+  },
+
 	["Ekko"] = {  
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({100, 140, 180, 220, 260})[level] + 0.9 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 300, 450})[level] + 1.5 * source.ap end}
@@ -12599,10 +13173,10 @@ class "HPred"
 
 
 
-local LocalDrawLine					= Draw.Line;
-local LocalDrawColor				= Draw.Color;
-local LocalDrawCircle				= Draw.Circle;
-local LocalDrawText					= Draw.Text;
+
+
+
+
 local LocalControlIsKeyDown			= Control.IsKeyDown;
 local LocalControlMouseEvent		= Control.mouse_event;
 local LocalControlSetCursorPos		= Control.SetCursorPos;
