@@ -1,11 +1,11 @@
-local Heroes = {"XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
+local Heroes = {"Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
 if not table.contains(Heroes, myHero.charName) then return end
 
 
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.12
+    local Version = 0.13
     
     local Files = {
         Lua = {
@@ -338,7 +338,27 @@ local CCSpells = {
 }
 
 
+function GotBuff(unit, buffname)
+  for i = 0, unit.buffCount do
+    local buff = unit:GetBuff(i)
+    if buff.name == buffname and buff.count > 0 then 
+      return buff.count
+    end
+  end
+  return 0
+end
 
+
+
+function GetBuffData(unit, buffname)
+  for i = 0, unit.buffCount do
+    local buff = unit:GetBuff(i)
+    if buff.name == buffname and buff.count > 0 then 
+      return buff
+    end
+  end
+  return {type = 0, name = "", startTime = 0, expireTime = 0, duration = 0, stacks = 0, count = 0}
+end
 
 local function IsValid(unit, range)
     if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) and GetDistanceSqr(myHero.pos, unit.pos) <= (range + myHero.boundingRadius + unit.boundingRadius) then
@@ -775,6 +795,7 @@ local function HasBuff(unit, buffname)
 	end
 	return false
 end
+
 
 local function Block(boolean) 
 	if boolean == true then 
@@ -1451,7 +1472,7 @@ function Ahri:LoadMenu()
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true, leftIcon = EIcon})
 	self.Menu.Combo:MenuElement({id = "Type", name = "Combo Logic", value = 2,drop = {"QWE", "EQW", "EWQ"}})	
 	self.Menu.Combo:MenuElement({type = MENU, id = "UseR", name = "Ult Settings", leftIcon = RIcon})
-	self.Menu.Combo.UseR:MenuElement({id = "Type", name = "Ult Logic", value = 1,drop = {"Use for Kill", "Use in Combo"}})	
+	self.Menu.Combo.UseR:MenuElement({id = "Type", name = "Ult Logic", value = 1,drop = {"Use for Kill", "Use Full in Combo", "Use after manually activate"}})	
 	self.Menu.Combo.UseR:MenuElement({id = "CC", name = "AutoUlt incomming CCSpells", value = true})
 	self.Menu.Combo.UseR:MenuElement({id = "BlockList", name = "CCSpell List", type = MENU})	
 	
@@ -1492,8 +1513,7 @@ function Ahri:LoadMenu()
 	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw[Q]", value = true, leftIcon = QIcon})
 	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw[W]", value = true, leftIcon = WIcon})
 	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw[E]", value = true, leftIcon = EIcon})	
-	self.Menu.Drawing:MenuElement({id = "DrawDamage", name = "Draw damage on HPbar", value = true})
-    self.Menu.Drawing:MenuElement({id = "HPColor", name = "HP Color", color = Draw.Color(200, 255, 255, 255)})
+	self.Menu.Drawing:MenuElement({id = "DrawDamage", name = "DmgHPbar+KillableText[if all Spells learned]", value = true})
 	self.Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
 	DelayAction(function()
 		for i, spell in pairs(CCSpells) do
@@ -1566,18 +1586,27 @@ if target == nil then return end
 	end
 end	
 
+function Ahri:ActiveSpell()
+	return myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "AhriTumble"
+end
+
 function Ahri:ComboR()
-local target = GetTarget(1000)
+local target = GetTarget(1500)
 if target == nil then return end
-	if self.Menu.Combo.UseR.Type:Value() == 2 then
-		if IsValid(target) then    
-			if target and Ready(_R) then
-				if myHero.pos:DistanceTo(target.pos) <= 600 then
-					Control.CastSpell(HK_R,target.pos)
-					
-				end
+	if IsValid(target) and target and Ready(_R) then	
+		if self.Menu.Combo.UseR.Type:Value() == 2 then
+			if myHero.pos:DistanceTo(target.pos) <= 600 then
+				Control.CastSpell(HK_R,target.pos)
 			end
-		end
+		
+		elseif self.Menu.Combo.UseR.Type:Value() == 3 then
+			if GotBuff(myHero, AhriTumble) and myHero.pos:DistanceTo(target.pos) <= 1200 then
+				Control.CastSpell(HK_R,target.pos)
+			if GotBuff(myHero, AhriTumble) then
+				Control.CastSpell(HK_R,target.pos)
+			end	
+			end
+		end		
 	end
 end	
 
@@ -1598,26 +1627,28 @@ function Ahri:Draw()
     Draw.Circle(myHero, 975, 1, Draw.Color(225, 225, 0, 10))
 	end
 	if self.Menu.Drawing.DrawDamage:Value() then
-		for i, hero in pairs(GetEnemyHeroes()) do
+		local hero = GetTarget(1500)
+		if hero == nil then return end
+		if IsValid(hero) then
 			local barPos = hero.hpBar
 			if not hero.dead and hero.pos2D.onScreen and barPos.onScreen and hero.visible then
-				local QDamage = (Ready(_Q) and getdmg("Q",hero,myHero) or 0)
-				local WDamage = (Ready(_W) and getdmg("W",hero,myHero) or 0)
-				local EDamage = (Ready(_E) and getdmg("E",hero,myHero) or 0)
-				local RDamage = (Ready(_R) and getdmg("R",hero,myHero) or 0)
+				local QDamage = getdmg("Q",hero,myHero)
+				local WDamage = getdmg("W",hero,myHero)
+				local EDamage = getdmg("E",hero,myHero)
+				local RDamage = getdmg("R",hero,myHero)
 				local damage = QDamage + WDamage + EDamage + RDamage
-				if damage > hero.health then
+				if damage > hero.health and Ready(_Q) and Ready(_W) and Ready(_E) and Ready(_R) then
 					Draw.Text("killable", 24, hero.pos2D.x, hero.pos2D.y,Draw.Color(0xFF00FF00))
 					
 				else
 					local percentHealthAfterDamage = math.max(0, hero.health - damage) / hero.maxHealth
 					local xPosEnd = barPos.x + barXOffset + barWidth * hero.health/hero.maxHealth
 					local xPosStart = barPos.x + barXOffset + percentHealthAfterDamage * 100
-					Draw.Line(xPosStart, barPos.y + barYOffset, xPosEnd, barPos.y + barYOffset, 10, self.Menu.Drawing.HPColor:Value())
+					Draw.Line(xPosStart, barPos.y + barYOffset, xPosEnd, barPos.y + barYOffset, 10, Draw.Color(200, 255, 255, 255))
 				end
 			end
 		end	
-	end
+	end				
 end
 
 function Ahri:GetHeroByHandle(handle)
@@ -1692,7 +1723,7 @@ function Ahri:OnMissileCreate()
 end
 
 function Ahri:Combo()
-
+if self:ActiveSpell() then return end
 	if self.Menu.Combo.Type:Value() == 1 then
 		self:Combo1()
 	elseif self.Menu.Combo.Type:Value() == 2 then
@@ -5847,6 +5878,314 @@ function Neeko:JungleClear()
 	end
 end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
+class "Ryze"
+
+if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+	print("GsoPred. installed Press 2x F6")
+	DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-External/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
+	while not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") do end
+end
+    
+require('GamsteronPrediction')
+
+local QData =
+{
+Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 50, Range = 1000, Speed = 1700, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
+}
+
+function Ryze:__init()
+
+	if menu ~= 1 then return end
+	menu = 2
+	self:LoadMenu()
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)
+	if _G.EOWLoaded then
+		Orb = 1
+	elseif _G.SDK and _G.SDK.Orbwalker then
+		Orb = 2
+	elseif _G.gsoSDK then
+		Orb = 4
+	end
+end
+
+function Ryze:LoadMenu()
+	--MainMenu
+	self.Menu = MenuElement({type = MENU, id = "Ryze", name = "PussyRyze"})
+	--ComboMenu
+	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	self.Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
+	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
+	self.Menu.Combo:MenuElement({id = "Type", name = "Combo Logic", value = 2,drop = {"Mark E then Q,W", "Mark E then W,Q"}})	
+
+	
+	--HarassMenu
+	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
+	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
+	
+	--LaneClear Menu
+	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})
+	self.Menu.Clear:MenuElement({id = "UseQ", name = "[E]+[Q] kill Minion", value = true})
+	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
+	
+	--JungleClear
+	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JungleClear"})
+	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})
+	
+	--KillSteal
+	self.Menu:MenuElement({type = MENU, id = "KillSteal", name = "KillSteal"})
+	self.Menu.KillSteal:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	self.Menu.KillSteal:MenuElement({id = "UseW", name = "[W]", value = true})
+	self.Menu.KillSteal:MenuElement({id = "UseE", name = "[E]", value = true})
+	
+	--AutoSpell on CC
+	self.Menu:MenuElement({id = "CC", name = "AutoUse on CC", type = MENU})
+	self.Menu.CC:MenuElement({id = "UseEW", name = "E+W", value = true})
+
+
+	--Activator
+	self.Menu:MenuElement({type = MENU, id = "Activator", name = "Activator"})
+	self.Menu.Activator:MenuElement({id = "Seraphs", name = "Seraph's Embrace", value = true})
+	self.Menu.Activator:MenuElement({id = "HP", name = "HP to use Seraph's", value = 20, min = 0, max = 100, step = 1, identifier = "%"})	
+	
+	--Drawing
+	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw[Q]", value = true})
+	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw[W]", value = true})
+	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw[E]", value = true})	
+	
+end
+
+function Ryze:Tick()
+	if myHero.dead == false and Game.IsChatOpen() == false then
+	self:KS()
+	self:CC()
+	self:Sera()
+	local Mode = GetMode()
+		if Mode == "Combo" then
+			self:Combo()
+		elseif Mode == "Harass" then
+			self:Harass()
+		elseif Mode == "Clear" then
+			self:Clear()
+			self:JungleClear()
+		elseif Mode == "Flee" then
+		end
+		end
+	end
+
+
+	
+function Ryze:Sera()
+    if myHero.dead then return end
+    if EnemiesAround(myHero.pos, 1000) then
+        local S = GetInventorySlotItem(3040)
+        if S and self.Menu.Activator.Seraphs:Value() and myHero.health/myHero.maxHealth < self.Menu.Activator.HP:Value()/100 then
+            Control.CastSpell(ItemHotKey[S])
+        end
+    end
+end		
+
+function Ryze:Draw()
+  if myHero.dead then return end
+	if self.Menu.Drawing.DrawQ:Value() and Ready(_Q) then
+    Draw.Circle(myHero, 1000, 1, Draw.Color(225, 225, 0, 10))
+	end
+	if self.Menu.Drawing.DrawW:Value() and Ready(_W) then
+    Draw.Circle(myHero, 615, 1, Draw.Color(225, 225, 0, 10))
+	end
+	if self.Menu.Drawing.DrawE:Value() and Ready(_E) then
+    Draw.Circle(myHero, 615, 1, Draw.Color(225, 225, 0, 10))
+	end
+end	
+
+function Ryze:Combo()
+	if self.Menu.Combo.Type:Value() == 1 then
+		self:Combo1()
+	elseif self.Menu.Combo.Type:Value() == 2 then
+		self:Combo2()
+	end	
+end
+
+function Ryze:Combo1()
+local target = GetTarget(1200)
+if target == nil then return end
+if IsValid(target) then    
+local pred = GetGamsteronPrediction(target, QData, myHero)	
+	
+	if self.Menu.Combo.UseE:Value() and target and Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) <= 615 then
+			Control.CastSpell(HK_E,target)
+		    
+	    end
+    end
+	
+	if self.Menu.Combo.UseQ:Value() and target and Ready(_Q) then
+		if myHero.pos:DistanceTo(target.pos) <= 1000 then
+			if GotBuff(target, "RyzeE") and pred.Hitchance >= _G.HITCHANCE_HIGH then
+				Control.CastSpell(HK_Q,pred.CastPosition)
+			elseif GotBuff(target, "RyzeE") == 0 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+				Control.CastSpell(HK_Q,pred.CastPosition)
+			end
+		end
+	end
+
+	if self.Menu.Combo.UseW:Value() and target and Ready(_W) then
+		if myHero.pos:DistanceTo(target.pos) <= 615 then 
+			Control.CastSpell(HK_W,target)
+            
+		end
+	end
+end
+end
+
+
+function Ryze:Combo2()
+local target = GetTarget(1000)
+if target == nil then return end
+if IsValid(target) then    
+	if self.Menu.Combo.UseE:Value() and target and Ready(_E) then
+	    if myHero.pos:DistanceTo(target.pos) <= 615 then
+			Control.CastSpell(HK_E,target)
+		    
+	    end
+    end
+	
+    if self.Menu.Combo.UseW:Value() and target and Ready(_W) then
+		if myHero.pos:DistanceTo(target.pos) <= 615 then 
+			if GotBuff(target, "RyzeE") then
+				Control.CastSpell(HK_W,target)
+			elseif GotBuff(target, "RyzeE") == 0 then
+				Control.CastSpell(HK_W,target)
+			end	
+		end
+	end
+	
+	if self.Menu.Combo.UseQ:Value() and target and Ready(_Q) then
+	    if myHero.pos:DistanceTo(target.pos) <= 1000 then
+		    local pred = GetGamsteronPrediction(target, QData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_Q,pred.CastPosition)
+		    end
+	    end
+    end
+end
+end
+
+function Ryze:Harass()
+local target = GetTarget(1200)
+if target == nil then return end
+if IsValid(target) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value()/100 then
+	if self.Menu.Harass.UseQ:Value() and target and Ready(_Q) then
+	    if myHero.pos:DistanceTo(target.pos) <= 1000 then
+		    local pred = GetGamsteronPrediction(target, QData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_Q,pred.CastPosition)
+		    end
+	    end
+    end
+end
+end
+
+function Ryze:Clear()
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+	local Qdmg = getdmg("Q", minion, myHero)
+		if minion and minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then
+			if self.Menu.Clear.UseQ:Value() and Ready(_E) then
+				if myHero.pos:DistanceTo(minion.pos) <= 615 then
+					Control.CastSpell(HK_E,minion)
+				end
+			end			
+			
+			if self.Menu.Clear.UseQ:Value() and Ready(_Q) then
+				if myHero.pos:DistanceTo(minion.pos) <= 1000 and Qdmg >= minion.health then
+					Control.CastSpell(HK_Q,minion)
+				end
+			end
+		end
+	end
+end
+
+function Ryze:JungleClear()
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+		if minion and minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then
+			if self.Menu.JClear.UseQ:Value() and Ready(_Q) then
+				if myHero.pos:DistanceTo(minion.pos) <= 1000 then
+					Control.CastSpell(HK_Q,minion)
+				end
+			end
+		end
+	end
+end	
+
+function Ryze:KS()
+local target = GetTarget(1200)
+if target == nil then return end
+local Qdmg = getdmg("Q", target, myHero)
+local Wdmg = getdmg("W", target, myHero)
+local Edmg = getdmg("E", target, myHero)
+if IsValid(target) then    
+	if self.Menu.KillSteal.UseQ:Value() and target and Ready(_Q) then
+	    if myHero.pos:DistanceTo(target.pos) <= 1000 and Qdmg >= target.health then
+		    local pred = GetGamsteronPrediction(target, QData, myHero)
+		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+			    Control.CastSpell(HK_Q,pred.CastPosition)
+		    end
+	    end
+    end
+
+	if self.Menu.KillSteal.UseW:Value() and target and Ready(_W) then
+		if myHero.pos:DistanceTo(target.pos) <= 615 then 
+		    if Wdmg >= target.health then
+			    Control.CastSpell(HK_W,target)
+            end
+		end
+	end
+ 
+    if self.Menu.KillSteal.UseE:Value() and target and Ready(_E) then
+	    if myHero.pos:DistanceTo(target.pos) <= 615 then
+		    if Edmg >= target.health then
+			    Control.CastSpell(HK_E,target)
+		    end
+	    end
+    end
+end
+end
+
+function Ryze:CC()
+local target = GetTarget(1000)
+if target == nil then return end
+if IsValid(target) then	
+local Immobile = IsImmobileTarget(target)	
+	if self.Menu.CC.UseEW:Value() and target and Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) <= 615 then 
+			if Immobile then
+				Control.CastSpell(HK_E,target)
+			end
+		end
+	end
+	
+	if self.Menu.CC.UseEW:Value() and target and Ready(_W) then
+		if myHero.pos:DistanceTo(target.pos) <= 615 then 
+			if Immobile then
+				Control.CastSpell(HK_W,target)
+			end
+		end
+	end	
+end
+end
+
+
+
+
+
+
+
 
 
 class "Sona"
@@ -10680,25 +11019,7 @@ local DamageReductionTable = {
   ["Malzahar"] = {buff = "malzaharpassiveshield", amount = function(target) return 0.1 end}
 }
 
-function GotBuff(unit, buffname)
-  for i = 0, unit.buffCount do
-    local buff = unit:GetBuff(i)
-    if buff.name == buffname and buff.count > 0 then 
-      return buff.count
-    end
-  end
-  return 0
-end
 
-function GetBuffData(unit, buffname)
-  for i = 0, unit.buffCount do
-    local buff = unit:GetBuff(i)
-    if buff.name == buffname and buff.count > 0 then 
-      return buff
-    end
-  end
-  return {type = 0, name = "", startTime = 0, expireTime = 0, duration = 0, stacks = 0, count = 0}
-end
 
 function CalcPhysicalDamage(source, target, amount)
   local ArmorPenPercent = source.armorPenPercent
@@ -12791,15 +13112,7 @@ function GetItemSlot(unit, id)
   return 0
 end
 
-function GotBuff(unit, buffname)
-  for i = 0, unit.buffCount do
-    local buff = unit:GetBuff(i)
-    if buff.name == buffname and buff.count > 0 then 
-      return buff.count
-    end
-  end
-  return 0
-end
+
 
 function GetBuffData(unit, buffname)
   for i = 0, unit.buffCount do
@@ -12996,6 +13309,12 @@ local DamageLibTable = {
 	{Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 115, 150, 185, 220})[level] + 0.4 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({200, 425, 650})[level] + 1.3 * source.ap end},
   }, 
+  
+	["Ryze"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({60, 85, 110, 135, 160, 185})[level] + 0.45 * source.ap + 0.03 * source.maxMana) * (1 + (GotBuff(target, "RyzeE") > 0 and ({40, 55, 70, 85, 100, 100})[level] / 100 or 0)) end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.6 * source.ap + 0.01 * source.maxMana end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 90, 110, 130, 150})[level] + 0.3 * source.ap + 0.02 * source.maxMana end},
+  },  
 
 	["Sylas"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({45, 70, 95, 120, 145})[level] + 0.6 * source.ap end},
@@ -13164,43 +13483,6 @@ end
 class "HPred"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-local LocalControlIsKeyDown			= Control.IsKeyDown;
-local LocalControlMouseEvent		= Control.mouse_event;
-local LocalControlSetCursorPos		= Control.SetCursorPos;
-local LocalControlKeyUp				= Control.KeyUp;
-local LocalControlKeyDown			= Control.KeyDown;
-local LocalGameCanUseSpell			= Game.CanUseSpell;
-local LocalGameLatency				= Game.Latency;
-local LocalGameTimer				= Game.Timer;
-local LocalGameHeroCount 			= Game.HeroCount;
-local LocalGameHero 				= Game.Hero;
-local LocalGameMinionCount 			= Game.MinionCount;
-local LocalGameMinion 				= Game.Minion;
-local LocalGameTurretCount 			= Game.TurretCount;
-local LocalGameTurret 				= Game.Turret;
-local LocalGameWardCount 			= Game.WardCount;
-local LocalGameWard 				= Game.Ward;
-local LocalGameObjectCount 			= Game.ObjectCount;
-local LocalGameObject				= Game.Object;
-local LocalGameMissileCount 		= Game.MissileCount;
-local LocalGameMissile				= Game.Missile;
-local LocalGameParticleCount 		= Game.ParticleCount;
-local LocalGameParticle				= Game.Particle;
-local LocalGameIsChatOpen			= Game.IsChatOpen;
-local LocalGameIsOnTop				= Game.IsOnTop;
 	
 local _tickFrequency = .2
 local _nextTick = Game.Timer()
@@ -13283,8 +13565,8 @@ function HPred:Tick()
 	_nextTick = Game.Timer() + _tickFrequency
 	
 	--Update hero movement history	
-	for i = 1, LocalGameHeroCount() do
-		local t = LocalGameHero(i)
+	for i = 1, Game.HeroCount() do
+		local t = Game.Hero(i)
 		if t then
 			if t.isEnemy then
 				HPred:OnVision(t)
@@ -13324,8 +13606,8 @@ function HPred:Tick()
 		end
 	end
 	
-	for i = 1, LocalGameParticleCount() do 
-		local particle = LocalGameParticle(i)
+	for i = 1, Game.ParticleCount() do 
+		local particle = Game.Particle(i)
 		--Record revives
 		if particle and not _cachedRevives[particle.networkID] and  _reviveLookupTable[particle.name] then
 			_cachedRevives[particle.networkID] = {}
@@ -13443,8 +13725,8 @@ end
 --Will return how many allies or enemies will be hit by a linear spell based on current waypoint data.
 function HPred:GetLineTargetCount(source, aimPos, delay, speed, width, targetAllies)
 	local targetCount = 0
-	for i = 1, LocalGameHeroCount() do
-		local t = LocalGameHero(i)
+	for i = 1, Game.HeroCount() do
+		local t = Game.Hero(i)
 		if t and self:CanTargetALL(t) and ( targetAllies or t.isEnemy) then
 			
 			local predictedPos = self:PredictUnitPosition(t, delay+ self:GetDistance(source, t.pos) / speed)
@@ -13460,8 +13742,8 @@ end
 --Will return the valid target who has the highest hit chance and meets all conditions (minHitChance, whitelist check, etc)
 function HPred:GetUnreliableTarget(source, range, delay, speed, radius, checkCollision, minimumHitChance, whitelist, isLine)
 	local _validTargets = {}
-	for i = 1, LocalGameHeroCount() do
-		local t = LocalGameHero(i)		
+	for i = 1, Game.HeroCount() do
+		local t = Game.Hero(i)		
 		if t and self:CanTarget(t, true) and (not whitelist or whitelist[t.charName]) then
 			local hitChance, aimPosition = self:GetHitchance(source, t, range, delay, speed, radius, checkCollision, isLine)		
 			if hitChance >= minimumHitChance then
@@ -13577,8 +13859,8 @@ function HPred:GetDashingTarget(source, range, delay, speed, dashThreshold, chec
 
 	local target
 	local aimPosition
-	for i = 1, LocalGameHeroCount() do
-		local t = LocalGameHero(i)
+	for i = 1, Game.HeroCount() do
+		local t = Game.Hero(i)
 		if t and t.isEnemy and t.pathing.hasMovePath and t.pathing.isDashing and t.pathing.dashSpeed>500  then
 			local dashEndPosition = t:GetPath(1)
 			if self:IsInRange(source, dashEndPosition, range) then				
@@ -13599,8 +13881,8 @@ end
 function HPred:GetHourglassTarget(source, range, delay, speed, timingAccuracy, checkCollision, radius)
 	local target
 	local aimPosition
-	for i = 1, LocalGameHeroCount() do
-		local t = LocalGameHero(i)
+	for i = 1, Game.HeroCount() do
+		local t = Game.Hero(i)
 		if t and t.isEnemy then		
 			local success, timeRemaining = self:HasBuff(t, "zhonyasringshield")
 			if success then
@@ -13634,8 +13916,8 @@ end
 function HPred:GetInstantDashTarget(source, range, delay, speed, timingAccuracy, checkCollision, radius)
 	local target
 	local aimPosition
-	for i = 1, LocalGameHeroCount() do
-		local t = LocalGameHero(i)
+	for i = 1, Game.HeroCount() do
+		local t = Game.Hero(i)
 		if t and t.isEnemy and t.activeSpell and t.activeSpell.valid and _blinkSpellLookupTable[t.activeSpell.name] then
 			local windupRemaining = t.activeSpell.startTime + t.activeSpell.windup - Game.Timer()
 			if windupRemaining > 0 then
@@ -13711,8 +13993,8 @@ end
 function HPred:GetChannelingTarget(source, range, delay, speed, timingAccuracy, checkCollision, radius)
 	local target
 	local aimPosition
-	for i = 1, LocalGameHeroCount() do
-		local t = LocalGameHero(i)
+	for i = 1, Game.HeroCount() do
+		local t = Game.Hero(i)
 		if t then
 			local interceptTime = self:GetSpellInterceptTime(source, t.pos, delay, speed)
 			if self:CanTarget(t) and self:IsInRange(source, t.pos, range) and self:IsChannelling(t, interceptTime) and (not checkCollision or not self:CheckMinionCollision(source, t.pos, delay, speed, radius)) then
@@ -13727,8 +14009,8 @@ end
 function HPred:GetImmobileTarget(source, range, delay, speed, timingAccuracy, checkCollision, radius)
 	local target
 	local aimPosition
-	for i = 1, LocalGameHeroCount() do
-		local t = LocalGameHero(i)
+	for i = 1, Game.HeroCount() do
+		local t = Game.Hero(i)
 		if t and self:CanTarget(t) and self:IsInRange(source, t.pos, range) then
 			local immobileTime = self:GetImmobileTime(t)
 			
@@ -13744,8 +14026,8 @@ end
 
 function HPred:CacheTeleports()
 	--Get enemies who are teleporting to towers
-	for i = 1, LocalGameTurretCount() do
-		local turret = LocalGameTurret(i);
+	for i = 1, Game.TurretCount() do
+		local turret = Game.Turret(i)
 		if turret and turret.isEnemy and not _cachedTeleports[turret.networkID] then
 			local hasBuff, expiresAt = self:HasBuff(turret, "teleport_target")
 			if hasBuff then
@@ -13755,8 +14037,8 @@ function HPred:CacheTeleports()
 	end	
 	
 	--Get enemies who are teleporting to wards	
-	for i = 1, LocalGameWardCount() do
-		local ward = LocalGameWard(i);
+	for i = 1, Game.WardCount() do
+		local ward = Game.Ward(i)
 		if ward and ward.isEnemy and not _cachedTeleports[ward.networkID] then
 			local hasBuff, expiresAt = self:HasBuff(ward, "teleport_target")
 			if hasBuff then
@@ -13766,8 +14048,8 @@ function HPred:CacheTeleports()
 	end
 	
 	--Get enemies who are teleporting to minions
-	for i = 1, LocalGameMinionCount() do
-		local minion = LocalGameMinion(i);
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
 		if minion and minion.isEnemy and not _cachedTeleports[minion.networkID] then
 			local hasBuff, expiresAt = self:HasBuff(minion, "teleport_target")
 			if hasBuff then
@@ -13821,8 +14103,8 @@ function HPred:CacheParticles()
 		_windwall = nil
 	end
 	
-	for i = 1, LocalGameParticleCount() do
-		local particle = LocalGameParticle(i)		
+	for i = 1, Game.ParticleCount() do
+		local particle = Game.Particle(i)		
 		if particle and self:IsInRange(particle.pos, myHero.pos, _maxCacheRange) then			
 			if string.find(particle.name, "W_windwall%d") and not _windwall then
 				--We don't care about ally windwalls for now
@@ -13846,8 +14128,8 @@ end
 
 function HPred:CacheMissiles()
 	local currentTime = Game.Timer()
-	for i = 1, LocalGameMissileCount() do
-		local missile = LocalGameMissile(i)
+	for i = 1, Game.MissileCount() do
+		local missile = Game.Missile(i)
 		if missile and not _cachedMissiles[missile.networkID] and missile.missileData then
 			--Handle targeted missiles
 			if missile.missileData.target and missile.missileData.owner then
@@ -14010,7 +14292,7 @@ end
 function HPred:GetImmobileTime(unit)
 	local duration = 0
 	for i = 0, unit.buffCount do
-		local buff = unit:GetBuff(i);
+		local buff = unit:GetBuff(i)
 		if buff.count > 0 and buff.duration> duration and (buff.type == 5 or buff.type == 8 or buff.type == 21 or buff.type == 22 or buff.type == 24 or buff.type == 11 or buff.type == 29 or buff.type == 30 or buff.type == 39 ) then
 			duration = buff.duration
 		end
@@ -14022,7 +14304,7 @@ end
 function HPred:GetSlowedTime(unit)
 	local duration = 0
 	for i = 0, unit.buffCount do
-		local buff = unit:GetBuff(i);
+		local buff = unit:GetBuff(i)
 		if buff.count > 0 and buff.duration > duration and buff.type == 10 then
 			duration = buff.duration			
 			return duration
@@ -14047,40 +14329,40 @@ end
 --Finds any game object with the correct handle to match (hero, minion, wards on either team)
 function HPred:GetObjectByHandle(handle)
 	local target
-	for i = 1, LocalGameHeroCount() do
-		local enemy = LocalGameHero(i)
+	for i = 1, Game.HeroCount() do
+		local enemy = Game.Hero(i)
 		if enemy and enemy.handle == handle then
 			target = enemy
 			return target
 		end
 	end
 	
-	for i = 1, LocalGameMinionCount() do
-		local minion = LocalGameMinion(i)
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
 		if minion and minion.handle == handle then
 			target = minion
 			return target
 		end
 	end
 	
-	for i = 1, LocalGameWardCount() do
-		local ward = LocalGameWard(i);
+	for i = 1, Game.WardCount() do
+		local ward = Game.Ward(i)
 		if ward and ward.handle == handle then
 			target = ward
 			return target
 		end
 	end
 	
-	for i = 1, LocalGameTurretCount() do 
-		local turret = LocalGameTurret(i)
+	for i = 1, Game.TurretCount() do 
+		local turret = Game.Turret(i)
 		if turret and turret.handle == handle then
 			target = turret
 			return target
 		end
 	end
 	
-	for i = 1, LocalGameParticleCount() do 
-		local particle = LocalGameParticle(i)
+	for i = 1, Game.ParticleCount() do 
+		local particle = Game.Particle(i)
 		if particle and particle.handle == handle then
 			target = particle
 			return target
@@ -14090,8 +14372,8 @@ end
 
 function HPred:GetHeroByPosition(position)
 	local target
-	for i = 1, LocalGameHeroCount() do
-		local enemy = LocalGameHero(i)
+	for i = 1, Game.HeroCount() do
+		local enemy = Game.Hero(i)
 		if enemy and enemy.pos.x == position.x and enemy.pos.y == position.y and enemy.pos.z == position.z then
 			target = enemy
 			return target
@@ -14101,32 +14383,32 @@ end
 
 function HPred:GetObjectByPosition(position)
 	local target
-	for i = 1, LocalGameHeroCount() do
-		local enemy = LocalGameHero(i)
+	for i = 1, Game.HeroCount() do
+		local enemy = Game.Hero(i)
 		if enemy and enemy.pos.x == position.x and enemy.pos.y == position.y and enemy.pos.z == position.z then
 			target = enemy
 			return target
 		end
 	end
 	
-	for i = 1, LocalGameMinionCount() do
-		local enemy = LocalGameMinion(i)
+	for i = 1, Game.MinionCount() do
+		local enemy = Game.Minion(i)
 		if enemy and enemy.pos.x == position.x and enemy.pos.y == position.y and enemy.pos.z == position.z then
 			target = enemy
 			return target
 		end
 	end
 	
-	for i = 1, LocalGameWardCount() do
-		local enemy = LocalGameWard(i);
+	for i = 1, Game.WardCount() do
+		local enemy = Game.Ward(i)
 		if enemy and enemy.pos.x == position.x and enemy.pos.y == position.y and enemy.pos.z == position.z then
 			target = enemy
 			return target
 		end
 	end
 	
-	for i = 1, LocalGameParticleCount() do 
-		local enemy = LocalGameParticle(i)
+	for i = 1, Game.ParticleCount() do 
+		local enemy = Game.Particle(i)
 		if enemy and enemy.pos.x == position.x and enemy.pos.y == position.y and enemy.pos.z == position.z then
 			target = enemy
 			return target
@@ -14136,8 +14418,8 @@ end
 
 function HPred:GetEnemyHeroByHandle(handle)	
 	local target
-	for i = 1, LocalGameHeroCount() do
-		local enemy = LocalGameHero(i)
+	for i = 1, Game.HeroCount() do
+		local enemy = Game.Hero(i)
 		if enemy and enemy.handle == handle then
 			target = enemy
 			return target
@@ -14149,8 +14431,8 @@ end
 function HPred:GetNearestParticleByNames(origin, names)
 	local target
 	local distance = 999999
-	for i = 1, LocalGameParticleCount() do 
-		local particle = LocalGameParticle(i)
+	for i = 1, Game.ParticleCount() do 
+		local particle = Game.Particle(i)
 		if particle then 
 			local d = self:GetDistance(origin, particle.pos)
 			if d < distance then
@@ -14195,8 +14477,8 @@ function HPred:IsMinionIntersection(location, radius, delay, maxDistance)
 	if not maxDistance then
 		maxDistance = 500
 	end
-	for i = 1, LocalGameMinionCount() do
-		local minion = LocalGameMinion(i)
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
 		if minion and self:CanTarget(minion) and self:IsInRange(minion.pos, location, maxDistance) then
 			local predictedPosition = self:PredictUnitPosition(minion, delay)
 			if self:IsInRange(location, predictedPosition, radius + minion.boundingRadius) then
@@ -14277,8 +14559,8 @@ end
 
 function HPred:GetEnemyByName(name)
 	local target
-	for i = 1, LocalGameHeroCount() do
-		local enemy = LocalGameHero(i)
+	for i = 1, Game.HeroCount() do
+		local enemy = Game.Hero(i)
 		if enemy and enemy.isEnemy and enemy.charName == name then
 			target = enemy
 			return target
