@@ -1,6 +1,4 @@
-local Heroes = {"Draven", "Nami", "Brand", "Zilean", "Soraka", "Lux", "Blitzcrank","Lulu", "MissFortune","Karthus", "Illaoi", "Taliyah", "Kalista", "Cassiopeia", "Azir", "Thresh", "AurelionSol", "Xerath",
-"Ryze","XinZhao","Kassadin","Veigar","Warwick","Neeko","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Sona","Ahri"}
-if not table.contains(Heroes, myHero.charName) then print("Hero not supported: " .. myHero.charName) return end
+
 
 
 do
