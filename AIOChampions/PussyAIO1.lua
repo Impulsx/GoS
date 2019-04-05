@@ -11,12 +11,12 @@ do
         Lua = {
             Path = SCRIPT_PATH,
             Name = "PussyAIO1.lua",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIO.lua"
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyAIO1.lua"
         },
         Version = {
             Path = SCRIPT_PATH,
             Name = "PussyAIO1.version",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIO.version"
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyAIO1.version"
         }
     }
     
@@ -48,7 +48,7 @@ do
     
     AutoUpdate()
 
-end 
+end
 
 function OnLoad()
 	if table.contains(Heroes, myHero.charName) then _G[myHero.charName]() end
