@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then print("Hero not supported: "
 
 do
     
-    local Version = 0.14
+    local Version = 0.15
     
     local Files = {
         Lua = {
@@ -74,11 +74,9 @@ if table.contains(HeroesAIO2, myHero.charName) then
 	print("Champion installed Press 2x F6")
 	DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyAIO2.lua", COMMON_PATH .. "PussyAIO2.lua", function() end)
 	while not FileExist(COMMON_PATH .. "PussyAIO2.lua") do end
+	end
 end
-
 require('PussyAIO2')
-end
-
 
 
 
