@@ -3,37 +3,6 @@ local Heroes = {"Draven", "Nami", "Brand", "Zilean", "Soraka", "Lux", "Blitzcran
 if not table.contains(Heroes, myHero.charName) then print("Hero not supported: " .. myHero.charName) return end
 
 
-
-
-local HeroesAIO1 = {"Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"} --17
-if table.contains(HeroesAIO1, myHero.charName) then 
-
-
-	if not FileExist(COMMON_PATH .. "PussyAIO1.lua") then
-		print("Champion installed Press 2x F6")
-		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyAIO1.lua", COMMON_PATH .. "PussyAIO1.lua", function() end)
-		while not FileExist(COMMON_PATH .. "PussyAIO1.lua") do end
-	end
-
-
-end
-require('PussyAIO1')
-
-
-local HeroesAIO2 = {"Nami","Brand", "Zilean", "Soraka", "Lux", "Blitzcrank","Lulu", "MissFortune","Karthus", "Illaoi", "Taliyah", "Kalista", "Azir", "Thresh", "AurelionSol"}  --15
-if table.contains(HeroesAIO2, myHero.charName) then 
-
-	if not FileExist(COMMON_PATH .. "PussyAIO2.lua") then
-	print("Champion installed Press 2x F6")
-	DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyAIO2.lua", COMMON_PATH .. "PussyAIO2.lua", function() end)
-	while not FileExist(COMMON_PATH .. "PussyAIO2.lua") do end
-end
-
-require('PussyAIO2')
-end
-
-
-
 do
     
     local Version = 0.14
@@ -80,3 +49,35 @@ do
     AutoUpdate()
 
 end 
+
+
+local HeroesAIO1 = {"Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"} --17
+if table.contains(HeroesAIO1, myHero.charName) then 
+
+
+	if not FileExist(COMMON_PATH .. "PussyAIO1.lua") then
+		print("Champion installed Press 2x F6")
+		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyAIO1.lua", COMMON_PATH .. "PussyAIO1.lua", function() end)
+		while not FileExist(COMMON_PATH .. "PussyAIO1.lua") do end
+	end
+
+
+end
+require('PussyAIO1')
+
+
+local HeroesAIO2 = {"Nami","Brand", "Zilean", "Soraka", "Lux", "Blitzcrank","Lulu", "MissFortune","Karthus", "Illaoi", "Taliyah", "Kalista", "Azir", "Thresh", "AurelionSol"}  --15
+if table.contains(HeroesAIO2, myHero.charName) then 
+
+	if not FileExist(COMMON_PATH .. "PussyAIO2.lua") then
+	print("Champion installed Press 2x F6")
+	DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyAIO2.lua", COMMON_PATH .. "PussyAIO2.lua", function() end)
+	while not FileExist(COMMON_PATH .. "PussyAIO2.lua") do end
+end
+
+require('PussyAIO2')
+end
+
+
+
+
