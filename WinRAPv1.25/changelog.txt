@@ -1,0 +1,18 @@
+changelog
+----------
+WinRAP v1.25 (released 2010-02-23)
+-Added confirmation message boxes for the buttons on the configurations window
+-Fixed the bug (closing WinRAP doesn't unhide the hidden taskbar and start button)
+-Removed the "Unhide all when closing" option from the configurations and it is replaced by "Hotkeys for 3 Primary Buttons"
+-Fixed the "change password" button so that it doesn't close the configurations window automatically
+
+WinRAP v1.2 (released 2010-02-26)
+-Fixed the bug when "Hide All" is trying to hide a program that is no longer running (still exists on the list)
+-Added "Hide Start Button" feature (as a supplement to "Hide Taskbar")
+-Added the buttons to save the configurations, exit without saving and reset the configurations
+-Pressing the "Enter" key on your keyboard after typing the unlock verification password will invoke the "OK" button
+-Added hotkeys for "Refresh", "Hide" and "Unhide" buttons
+
+WinRAP v1.1 (released 2010-01-26)
+-Fixed the bug when the user is trying to hide a program that is no longer running(still exists on the list) with the "Hide" button
+-Replaced "Hide Desktop Icons" with "Hide Taskbar" since the former doesn't work with Windows 7 RTM
