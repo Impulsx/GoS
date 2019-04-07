@@ -1,10 +1,10 @@
-local Heroes = {"Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
+local Heroes = {"Nidalee","Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
 if not table.contains(Heroes, myHero.charName) then return end
 
 
 do
     
-    local Version = 0.16
+    local Version = 0.17
     
     local Files = {
         Lua = {
@@ -70,6 +70,12 @@ local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 
 local spellcast = {state = 1, mouse = mousePos}
 local ItemHotKey = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2,[ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6,}
 local Orb
+local barHeight = 8
+local barWidth = 103
+local barXOffset = 0
+local barYOffset = 0
+
+
 
 local cancelSpells = {
   ["Caitlyn"] = {
@@ -1609,10 +1615,7 @@ if target == nil then return end
 	end
 end	
 
-local barHeight = 8
-local barWidth = 103
-local barXOffset = 24
-local barYOffset = -8
+
 
 function Ahri:Draw()
   if myHero.dead then return end
@@ -5877,6 +5880,411 @@ function Neeko:JungleClear()
 	end
 end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+class "Nidalee"
+
+if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+	print("GsoPred. installed Press 2x F6")
+	DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-External/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
+	while not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") do end
+end
+
+require('GamsteronPrediction')
+
+
+
+function Nidalee:__init()
+	if menu ~= 1 then return end
+	menu = 2
+	
+	self:LoadSpells()
+	self:LoadMenu()
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)
+	if _G.EOWLoaded then
+		Orb = 1
+	elseif _G.SDK and _G.SDK.Orbwalker then
+		Orb = 2
+	elseif _G.gsoSDK then
+		Orb = 4
+	end
+
+end
+
+function Nidalee:LoadSpells()
+	Q = {Range = 1500, width = 40, Delay = 0.25, Radius = 40, Speed = 1300, Collision = true, aoe = false, type = "linear"}
+	W = {Range = 900, width = 50, Delay = 1.0, Radius = 100, Speed = 1000, Collision = false, aoe = true}
+	E = {Range = 600, Delay = 0.25}
+    QC = {Range = 200, Delay = 0.25}
+	WC = {Range = 700, Delay = 0.25}
+	EC = {Range = 300, Delay = 0.25}
+
+end
+
+local QData =
+{
+Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 40, Range = 1500, Speed = 1300, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
+}
+
+local W1Data =
+{
+Type = _G.SPELLTYPE_CIRCLE, Delay = 1.0, Radius = 100, Range = 900, Speed = 1000, Collision = false
+}
+
+local W2Data =
+{
+Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 75, Range = 375, Speed = 1000, Collision = false
+}
+
+
+function Nidalee:LoadMenu()
+	self.Menu = MenuElement({type = MENU, id = "Nidalee", name = "PussyNidalee"})
+	
+	--Combo
+	self.Menu:MenuElement({id = "ComboMode", name = "Combo", type = MENU})
+	self.Menu.ComboMode:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
+	self.Menu.ComboMode:MenuElement({id = "UseW", name = "W: Bushwhack", value = true})
+	self.Menu.ComboMode:MenuElement({id = "UseE", name = "E: Primal Surge", value = true})
+	self.Menu.ComboMode:MenuElement({id = "UseQQ", name = "Q: Takedown", value = true})
+	self.Menu.ComboMode:MenuElement({id = "UseWW", name = "W: Pounce", value = true})
+	self.Menu.ComboMode:MenuElement({id = "UseEE", name = "E: Swipe", value = true})
+	self.Menu.ComboMode:MenuElement({id = "UseR", name = "R: Aspect of the Cougar", value = true})
+	self.Menu.ComboMode:MenuElement({id = "DrawDamage", name = "Draw damage on HPbar", value = true})
+		
+	--Harass
+	self.Menu:MenuElement({id = "HarassMode", name = "Harass", type = MENU})
+	self.Menu.HarassMode:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
+
+	--Lane/JungleClear
+	self.Menu:MenuElement({id = "ClearMode", name = "Clear", type = MENU})
+	self.Menu.ClearMode:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
+	self.Menu.ClearMode:MenuElement({id = "UseW", name = "W: Bushwhack", value = true})
+	self.Menu.ClearMode:MenuElement({id = "UseE", name = "E: Primal Surge", value = true})
+	self.Menu.ClearMode:MenuElement({id = "UseQQ", name = "Q: Takedown", value = true})
+	self.Menu.ClearMode:MenuElement({id = "UseWW", name = "W: Pounce", value = true})
+    self.Menu.ClearMode:MenuElement({id = "UseEE", name = "E: Swipe", value = true})
+	self.Menu.ClearMode:MenuElement({id = "UseR", name = "R: Aspect of the Cougar", value = true})
+	
+	--KillSteal
+	self.Menu:MenuElement({id = "KS", name = "KillSteal", type = MENU})
+	self.Menu.KS:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
+
+	--Flee
+	self.Menu:MenuElement({id = "Fl", name = "Flee", type = MENU})
+	self.Menu.Fl:MenuElement({id = "UseW", name = "W: Pounce", value = true, key = string.byte("A")})	
+	
+	self.Menu:MenuElement({id = "DrawQ", name = "Drawings", type = MENU})
+	self.Menu.DrawQ:MenuElement({id = "Q", name = "Draw Q", value = true})	
+
+end
+
+function Nidalee:Tick()
+    if myHero.dead or Game.IsChatOpen() == true or IsRecalling() == true then return end
+	self:KillSteal()
+	local Mode = GetMode()
+	if Mode == "Combo" then
+		self:Combo()
+	elseif Mode == "Harass" then
+		self:Harass()
+	elseif Mode == "Clear" then
+		self:Jungle()
+	elseif Mode == "Flee" then
+		self:Flee()
+	end	
+end
+
+function Nidalee:Qdmg(target)
+    local qLvl = myHero:GetSpellData(_Q).level
+	local result = 55 + 15 * qLvl + myHero.ap * 0.4
+    
+    local dist = target.distance
+    if dist > 525 then
+        if dist > 1300 then
+            result = result + 2 * result
+        else
+            local num = (dist - 525) * 0.25 / 96.875
+            result = result + num * result
+        end
+    end
+    
+    return CalculateMagicalDamage(target, result)
+end
+
+function Nidalee:Wdmg(target)
+	local level = myHero:GetSpellData(_R).level
+	local base = ({60, 110, 160, 210})[level] + 0.3 * myHero.ap
+	return CalculateMagicalDamage(target, base)
+end
+
+function Nidalee:Edmg(target)
+	local level = myHero:GetSpellData(_R).level
+	local base = ({70, 130, 190, 250})[level] + 0.45 * myHero.ap
+	return CalculateMagicalDamage(target, base)
+end
+
+function Nidalee:Draw()
+    if Ready(_Q) and self.Menu.DrawQ.Q:Value() then Draw.Circle(myHero.pos, 1500, 1,  Draw.Color(255, 000, 222, 255)) end
+	if self.Menu.ComboMode.DrawDamage:Value() then
+		for i, target in pairs(GetEnemyHeroes()) do
+			local barPos = target.hpBar
+			if not target.dead and target.pos2D.onScreen and barPos.onScreen and target.visible then
+				local QDamage = (Ready(_Q) and self:Qdmg(target) or 0)
+				local WDamage = (Ready(_W) and self:Wdmg(target) or 0)
+				local EDamage = (Ready(_E) and self:Edmg(target) or 0)
+				local damage = QDamage + WDamage + EDamage
+				if damage > target.health then
+					Draw.Text("killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
+					
+				else
+					local percentHealthAfterDamage = math.max(0, target.health - damage) / target.maxHealth
+					local xPosEnd = barPos.x + barXOffset + barWidth * target.health/target.maxHealth
+					local xPosStart = barPos.x + barXOffset + percentHealthAfterDamage * 100
+					Draw.Line(xPosStart, barPos.y + barYOffset, xPosEnd, barPos.y + barYOffset, 10, Draw.Color(0xFF00FF00))
+				end
+			end
+		end	
+	end
+end
+
+function ForceCat()
+    local RRTarget = GetTarget(1000)
+	local count = 0
+	for i = 0, Game.HeroCount() do
+		local hero = Game.Hero(i)
+		if myHero.pos:DistanceTo(RRTarget.pos) < 700 then
+			if hero == nil then return end
+			local t = {}
+ 			for i = 0, hero.buffCount do
+    			local buff = hero:GetBuff(i)
+    			if buff.count > 0 then
+    				table.insert(t, buff)
+    			end
+  			end
+  			if t ~= nil then
+  				for i, buff in pairs(t) do
+					if buff.name == "NidaleePassiveHunting" and buff.expireTime >= 2 then
+						count = count +1
+							return true
+					end
+				end
+			end
+		end
+	end
+	return false
+end
+
+function Nidalee:Flee()
+    if self.Menu.Fl.UseW:Value() then 
+		if myHero:GetSpellData(_W).name == "Pounce" and Ready(_W) then
+			Control.CastSpell(HK_W, mousePos)
+		
+		elseif myHero:GetSpellData(_W).name == "Bushwhack" and Ready(_R) then
+			Control.CastSpell(HK_R)
+		end
+	end
+end	
+
+function Nidalee:Combo()
+local target = GetTarget(1600)
+if target == nil then return end
+if IsValid(target) then	
+	if Ready(_Q) then 
+		local pred = GetGamsteronPrediction(target, QData, myHero)
+		if self.Menu.ComboMode.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 1500 then
+            if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= _G.HITCHANCE_HIGH then
+				CastSpell(HK_Q, pred.CastPosition)
+            end
+		end
+	end
+	
+    if Ready(_R) then
+        if self.Menu.ComboMode.UseR:Value() and myHero:GetSpellData(_Q).name == "JavelinToss" then
+            if myHero.pos:DistanceTo(target.pos) < 800 and ForceCat() then
+			    Control.CastSpell(HK_R)
+            end
+        end
+    end
+
+	if Ready(_W) then 
+		local pred = GetGamsteronPrediction(target, W1Data, myHero)
+		if self.Menu.ComboMode.UseW:Value() and myHero:GetSpellData(_W).name == "Bushwhack" then
+			if myHero.pos:DistanceTo(target.pos) < 800 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
+				CastSpell(HK_W, pred.CastPosition)
+			end
+		end
+	end
+
+    if Ready(_E) then 
+		if self.Menu.ComboMode.UseE:Value() and myHero.health/myHero.maxHealth < .70 and myHero:GetSpellData(_E).name == "PrimalSurge" then
+			Control.CastSpell(HK_E, myHero)
+		end
+	end
+
+    if Ready(_W) then 
+		local pred = GetGamsteronPrediction(target, W2Data, myHero)
+		if self.Menu.ComboMode.UseWW:Value() and myHero:GetSpellData(_W).name == "Pounce" then
+			if myHero.pos:DistanceTo(target.pos) < 700 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
+				CastSpell(HK_W, pred.CastPosition)
+			end
+		end
+	end
+
+    if Ready(_Q) then 
+		if self.Menu.ComboMode.UseQQ:Value() and myHero.pos:DistanceTo(target.pos) < 275 then
+            if myHero:GetSpellData(_Q).name == "Takedown" then
+				Control.CastSpell(HK_Q)
+                Control.Attack(target)
+            end
+		end
+	end
+
+    if Ready(_E) then 
+		if self.Menu.ComboMode.UseEE:Value() and myHero:GetSpellData(_E).name == "Swipe" then
+			if myHero.pos:DistanceTo(target.pos) < 350 then
+				Control.CastSpell(HK_E, target)
+			end
+		end
+	end
+
+    if Ready(_R) and myHero.pos:DistanceTo(target.pos) < 140 then 
+        if self.Menu.ComboMode.UseR:Value() and myHero:GetSpellData(_E).name == "Swipe" then
+            if not Ready(_Q) and not Ready(_E) and not Ready(_W) then
+				if Game.Timer() - LastR > 8 then
+			    	Control.CastSpell(HK_R)
+				end
+            end
+        end
+    end
+
+    if Ready(_R) then 
+        if self.Menu.ComboMode.UseR:Value() and myHero:GetSpellData(_E).name == "Swipe" then
+            if myHero.health/myHero.maxHealth < .50 and myHero.pos:DistanceTo(target.pos) > 700 then
+			    Control.CastSpell(HK_R)
+            end
+        end
+    end
+end
+end
+
+function Nidalee:Harass()
+local target = GetTarget(1600)
+if target == nil then return end
+if IsValid(target) then   
+	if Ready(_Q) then 
+		local pred = GetGamsteronPrediction(target, QData, myHero)
+		if self.Menu.HarassMode.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 1500 then
+            if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= _G.HITCHANCE_HIGH then
+				CastSpell(HK_Q, pred.CastPosition)
+			elseif myHero:GetSpellData(_Q).name == "Takedown" and Ready(_R) then
+				Control.CastSpell(HK_R)	
+            end
+		end
+	end
+end
+end
+
+LastR = Game.Timer()
+function Nidalee:Jungle()
+for i = 1, Game.MinionCount() do
+local minion = Game.Minion(i)
+    if minion and minion.team == TEAM_JUNGLE or minion.team == TEAM_ENEMY then
+		if Ready(_Q) then 
+			if self.Menu.ClearMode.UseQ:Value() then
+            	if myHero:GetSpellData(_Q).name == "JavelinToss" and myHero.pos:DistanceTo(minion.pos) < 1500 then
+					local newpos = myHero.pos:Extended(minion.pos,math.random(100,300))
+					Control.CastSpell(HK_Q, newpos)
+            	end
+			end
+		end
+		if Ready(_W) then 
+			if self.Menu.ClearMode.UseW:Value() and myHero:GetSpellData(_W).name == "Bushwhack" then
+				if myHero.pos:DistanceTo(minion.pos) < 800 then
+					Control.CastSpell(HK_W, minion)
+				end
+			end
+		end
+		if Ready(_R) then
+        	if self.Menu.ClearMode.UseR:Value() and myHero:GetSpellData(_Q).name == "JavelinToss" then
+            	if myHero.pos:DistanceTo(minion.pos) < 800 and not Ready(_Q) and not Ready(_W) then
+					if Game.Timer() - LastR > 4 then
+						Control.CastSpell(HK_R)
+					end
+            	end
+        	end
+    	end
+		if Ready(_E) then 
+			if self.Menu.ClearMode.UseE:Value() and myHero.health/myHero.maxHealth < .70 and myHero:GetSpellData(_E).name == "PrimalSurge" then
+				Control.CastSpell(HK_E, myHero)
+			end
+		end
+
+    	if Ready(_W) then
+			if self.Menu.ClearMode.UseWW:Value() and myHero:GetSpellData(_W).name == "Pounce" then
+				if myHero.pos:DistanceTo(minion.pos) < 700 then
+					Control.CastSpell(HK_W, minion)
+				end
+			end
+		end
+
+    	if Ready(_Q) then 
+			if self.Menu.ClearMode.UseQQ:Value() and myHero.pos:DistanceTo(minion.pos) < 275 then
+            	if myHero:GetSpellData(_Q).name == "Takedown" then
+					Control.CastSpell(HK_Q)
+                	Control.Attack(minion)
+            	end
+			end
+		end
+
+    	if Ready(_E) then 
+			if self.Menu.ClearMode.UseEE:Value() and myHero:GetSpellData(_E).name == "Swipe" then
+				if myHero.pos:DistanceTo(minion.pos) < 350 then
+					Control.CastSpell(HK_E, minion)
+				end
+			end
+		end
+
+    	if Ready(_R) then 
+        	if self.Menu.ClearMode.UseR:Value() and myHero:GetSpellData(_E).name == "Swipe" then
+            	if not Ready(_Q) and not Ready(_E) and not Ready(_W) then
+					if Game.Timer() - LastR > 8 then
+			    		Control.CastSpell(HK_R)
+					end
+            	end
+        	end
+    	end
+
+    	if Ready(_R) then 
+        	if self.Menu.ClearMode.UseR:Value() and myHero:GetSpellData(_E).name == "Swipe" then
+            	if myHero.health/myHero.maxHealth < .30 and myHero.pos:DistanceTo(minion.pos) > 700 then
+			    	Control.CastSpell(HK_R)
+            	end
+        	end
+    	end
+
+	end
+end
+end
+
+function Nidalee:KillSteal()
+local target = GetTarget(1600)
+if target == nil then return end
+	if IsValid(target) and Ready(_Q) then 
+		local pred = GetGamsteronPrediction(target, QData, myHero)
+		if self.Menu.KS.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 1500 and self:Qdmg(target) >= target.health then
+            if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= _G.HITCHANCE_HIGH then
+				CastSpell(HK_Q, pred.CastPosition)
+            elseif myHero:GetSpellData(_Q).name == "Takedown" and Ready(_R) then
+				Control.CastSpell(HK_R)
+			end
+		end
+	end	
+end
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+
 class "Ryze"
 
 if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
@@ -5973,8 +6381,8 @@ function Ryze:Tick()
 			self:JungleClear()
 		elseif Mode == "Flee" then
 		end
-		end
 	end
+end
 
 
 	
