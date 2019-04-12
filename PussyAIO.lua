@@ -4,7 +4,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 0.17
+    local Version = 0.18
     
     local Files = {
         Lua = {
@@ -1367,7 +1367,7 @@ function Activator:Ignite()
                     Control.CastSpell(HK_SUMMONER_2, target)
                 end
             end
-        if self.Menu.summ.ign.ST:Value() == 2 then       
+        elseif self.Menu.summ.ign.ST:Value() == 2 then       
 			local IGdamage = 50 + 20 * myHero.levelData.lvl
 			if myHero.pos:DistanceTo(target.pos) <= 600 and target.health  <= IGdamage then
                 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
@@ -1377,8 +1377,8 @@ function Activator:Ignite()
                 end
             end
         end		
-		end
 	end
+	
 -------------------------------------------------------------------------------------------------------------------------------------------------------------	
 class "Ahri"
 
@@ -1477,6 +1477,7 @@ function Ahri:LoadMenu()
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true, leftIcon = EIcon})
 	self.Menu.Combo:MenuElement({id = "Type", name = "Combo Logic", value = 2,drop = {"QWE", "EQW", "EWQ"}})	
 	self.Menu.Combo:MenuElement({type = MENU, id = "UseR", name = "Ult Settings", leftIcon = RIcon})
+	self.Menu.Combo.UseR:MenuElement({id = "RR", name = "On/Off Ult Logic", value = true})	
 	self.Menu.Combo.UseR:MenuElement({id = "Type", name = "Ult Logic", value = 1,drop = {"Use for Kill", "Use Full in Combo", "Use after manually activate"}})	
 	self.Menu.Combo.UseR:MenuElement({id = "CC", name = "AutoUlt incomming CCSpells", value = true})
 	self.Menu.Combo.UseR:MenuElement({id = "BlockList", name = "CCSpell List", type = MENU})	
@@ -1537,13 +1538,17 @@ function Ahri:Tick()
 	if myHero.dead == false and Game.IsChatOpen() == false then
 	self:KS()
 	self:CC()
-	self:AutoR()
+	self:AutoR()	
+	if self.Menu.Combo.UseR.RR:Value() then
 	self:KillR()
+	end
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
-			self:ComboR()
 			self:GLP()
+			if self.Menu.Combo.UseR.RR:Value() then
+			self:ComboR()
+			end
 		elseif Mode == "Harass" then
 			self:Harass()
 		elseif Mode == "Clear" then
@@ -1570,8 +1575,8 @@ function Ahri:AutoR()
 	if self.Menu.Combo.UseR.CC:Value() and Ready(_R) then
 		self:OnMissileCreate() 
 		self:OnProcessSpell() 
+		for i, spell in pairs(self.DetectedSpells) do self:UseR(i, spell) end
 	end
-	for i, spell in pairs(self.DetectedSpells) do self:UseR(i, spell) end
 end
 
 function Ahri:KillR()
@@ -6423,24 +6428,24 @@ if target == nil then return end
 if IsValid(target) then    
 local pred = GetGamsteronPrediction(target, QData, myHero)	
 	
-	if self.Menu.Combo.UseE:Value() and target and Ready(_E) then
+	if self.Menu.Combo.UseE:Value() and Ready(_E) then
 		if myHero.pos:DistanceTo(target.pos) <= 615 then
 			Control.CastSpell(HK_E,target)
 		    
 	    end
     end
 	
-	if self.Menu.Combo.UseQ:Value() and target and Ready(_Q) then
+	if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
 		if myHero.pos:DistanceTo(target.pos) <= 1000 then
-			if GotBuff(target, "RyzeE") and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			if GotBuff(target, "RyzeE") and pred.Hitchance >= _G.HITCHANCE_NORMAL then
 				Control.CastSpell(HK_Q,pred.CastPosition)
-			elseif GotBuff(target, "RyzeE") == 0 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			elseif pred.Hitchance >= _G.HITCHANCE_NORMAL then
 				Control.CastSpell(HK_Q,pred.CastPosition)
 			end
 		end
 	end
 
-	if self.Menu.Combo.UseW:Value() and target and Ready(_W) then
+	if self.Menu.Combo.UseW:Value() and Ready(_W) then
 		if myHero.pos:DistanceTo(target.pos) <= 615 then 
 			Control.CastSpell(HK_W,target)
             
@@ -6454,27 +6459,27 @@ function Ryze:Combo2()
 local target = GetTarget(1000)
 if target == nil then return end
 if IsValid(target) then    
-	if self.Menu.Combo.UseE:Value() and target and Ready(_E) then
+	if self.Menu.Combo.UseE:Value() and Ready(_E) then
 	    if myHero.pos:DistanceTo(target.pos) <= 615 then
 			Control.CastSpell(HK_E,target)
 		    
 	    end
     end
 	
-    if self.Menu.Combo.UseW:Value() and target and Ready(_W) then
+    if self.Menu.Combo.UseW:Value() and Ready(_W) then
 		if myHero.pos:DistanceTo(target.pos) <= 615 then 
 			if GotBuff(target, "RyzeE") then
 				Control.CastSpell(HK_W,target)
-			elseif GotBuff(target, "RyzeE") == 0 then
+			elseif not GotBuff(target, "RyzeE") then
 				Control.CastSpell(HK_W,target)
 			end	
 		end
 	end
 	
-	if self.Menu.Combo.UseQ:Value() and target and Ready(_Q) then
+	if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
 	    if myHero.pos:DistanceTo(target.pos) <= 1000 then
 		    local pred = GetGamsteronPrediction(target, QData, myHero)
-		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+		    if pred.Hitchance >= _G.HITCHANCE_NORMAL then
 			    Control.CastSpell(HK_Q,pred.CastPosition)
 		    end
 	    end
@@ -6486,10 +6491,10 @@ function Ryze:Harass()
 local target = GetTarget(1200)
 if target == nil then return end
 if IsValid(target) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value()/100 then
-	if self.Menu.Harass.UseQ:Value() and target and Ready(_Q) then
+	if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
 	    if myHero.pos:DistanceTo(target.pos) <= 1000 then
 		    local pred = GetGamsteronPrediction(target, QData, myHero)
-		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+		    if pred.Hitchance >= _G.HITCHANCE_NORMAL then
 			    Control.CastSpell(HK_Q,pred.CastPosition)
 		    end
 	    end
@@ -6537,16 +6542,16 @@ local Qdmg = getdmg("Q", target, myHero)
 local Wdmg = getdmg("W", target, myHero)
 local Edmg = getdmg("E", target, myHero)
 if IsValid(target) then    
-	if self.Menu.KillSteal.UseQ:Value() and target and Ready(_Q) then
+	if self.Menu.KillSteal.UseQ:Value() and Ready(_Q) then
 	    if myHero.pos:DistanceTo(target.pos) <= 1000 and Qdmg >= target.health then
 		    local pred = GetGamsteronPrediction(target, QData, myHero)
-		    if pred.Hitchance >= _G.HITCHANCE_HIGH then
+		    if pred.Hitchance >= _G.HITCHANCE_NORMAL then
 			    Control.CastSpell(HK_Q,pred.CastPosition)
 		    end
 	    end
     end
 
-	if self.Menu.KillSteal.UseW:Value() and target and Ready(_W) then
+	if self.Menu.KillSteal.UseW:Value() and Ready(_W) then
 		if myHero.pos:DistanceTo(target.pos) <= 615 then 
 		    if Wdmg >= target.health then
 			    Control.CastSpell(HK_W,target)
@@ -6554,7 +6559,7 @@ if IsValid(target) then
 		end
 	end
  
-    if self.Menu.KillSteal.UseE:Value() and target and Ready(_E) then
+    if self.Menu.KillSteal.UseE:Value() and Ready(_E) then
 	    if myHero.pos:DistanceTo(target.pos) <= 615 then
 		    if Edmg >= target.health then
 			    Control.CastSpell(HK_E,target)
@@ -6569,7 +6574,7 @@ local target = GetTarget(1000)
 if target == nil then return end
 if IsValid(target) then	
 local Immobile = IsImmobileTarget(target)	
-	if self.Menu.CC.UseEW:Value() and target and Ready(_E) then
+	if self.Menu.CC.UseEW:Value() and Ready(_E) then
 		if myHero.pos:DistanceTo(target.pos) <= 615 then 
 			if Immobile then
 				Control.CastSpell(HK_E,target)
@@ -6577,7 +6582,7 @@ local Immobile = IsImmobileTarget(target)
 		end
 	end
 	
-	if self.Menu.CC.UseEW:Value() and target and Ready(_W) then
+	if self.Menu.CC.UseEW:Value() and Ready(_W) then
 		if myHero.pos:DistanceTo(target.pos) <= 615 then 
 			if Immobile then
 				Control.CastSpell(HK_W,target)
