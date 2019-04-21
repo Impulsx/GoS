@@ -4,7 +4,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 0.19
+    local Version = 0.20
     
     local Files = {
         Lua = {
@@ -1007,27 +1007,79 @@ function Activator:__init()
 end
 
 
-local ZhonyaIcon = "https://de.share-your-photo.com/img/76fbcec284.jpg"
-local StopWatchIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e6/Stopwatch_item.png"
 
 function Activator:LoadMenu()
     
     self.Menu = MenuElement({type = MENU, id = "Activator", name = "Activator"})
-    --Zhonyas,Stopwatch
-    self.Menu:MenuElement({id = "ZS", name = "Zhonya's + StopWatch", type = MENU})
-    self.Menu.ZS:MenuElement({id = "Zhonya", name = "Zhonya's Hourglass", type = MENU, leftIcon = ZhonyaIcon})
-    self.Menu.ZS.Zhonya:MenuElement({id = "UseZ", name = "Use Zhonya's Hourglass", value = true})
-    self.Menu.ZS:MenuElement({id = "Stopwatch", name = "Stopwatch", type = MENU, leftIcon = StopWatchIcon})
-    self.Menu.ZS.Stopwatch:MenuElement({id = "UseS", name = "Use Stopwatch", value = true})
-    self.Menu.ZS:MenuElement({id = "HP", name = "myHP", type = MENU})
-    self.Menu.ZS.HP:MenuElement({id = "myHP", name = "Use if health is below:", value = 20, min = 0, max = 100, step = 1, identifier = "%"})
     
-    self.Menu.ZS:MenuElement({id = "QSS", name = "QSS Setings", type = MENU})
-    self.Menu.ZS.QSS:MenuElement({id = "UseSZ", name = "AutoUse Stopwatch or Zhonya on ZedUlt", value = true})
+	
+	--Shield/Heal MyHero
+    self.Menu:MenuElement({id = "ZS", name = "MyHero Shield+Heal Items", type = MENU})
+    self.Menu.ZS:MenuElement({id = "self", name = "MyHero Shield+Heal Items", type = MENU})	
+
+    self.Menu.ZS.self:MenuElement({id = "UseZ", name = "Zhonya's", value = true, leftIcon = "https://de.share-your-photo.com/img/76fbcec284.jpg"})
+	self.Menu.ZS.self:MenuElement({id = "myHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
+
+    self.Menu.ZS.self:MenuElement({id = "UseS", name = "Stopwatch", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e6/Stopwatch_item.png"})
+ 	self.Menu.ZS.self:MenuElement({id = "myHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})   
+
+	self.Menu.ZS.self:MenuElement({id = "Sera", name = "Seraphs Embrace", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3040.png"})	
+	self.Menu.ZS.self:MenuElement({id = "SeraHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
+
+    self.Menu.ZS.self:MenuElement({id = "Edge", name = "Edge of Night", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/6/69/Edge_of_Night_item.png"})	
+	self.Menu.ZS.self:MenuElement({id = "EdgeHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
+
+    self.Menu.ZS.self:MenuElement({id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3190.png"})	
+	self.Menu.ZS.self:MenuElement({id = "IronHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
+	
+    self.Menu.ZS.self:MenuElement({id = "Red", name = "Redemption", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/94/Redemption_item.png"})
+	self.Menu.ZS.self:MenuElement({id = "RedHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})	
+
+	self.Menu.ZS.self:MenuElement({id = "Mira", name = "Mercurial Scimittar[AntiCC]", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3139.png"})    
+    self.Menu.ZS.self:MenuElement({id = "Quick", name = "Quicksilver Sash[AntiCC]", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3140.png"})    
+    self.Menu.ZS.self:MenuElement({id = "Mika", name = "Mikael's Crucible[AntiCC]", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3222.png"})    
+    self.Menu.ZS.self:MenuElement({id = "QSS", name = "AntiZed Ult", type = MENU})
+    self.Menu.ZS.self.QSS:MenuElement({id = "UseSZ", name = "AutoUse Stopwatch or Zhonya on ZedUlt", value = true})	
+------------------------------------------------------------------------------------------------------------------------------------------------------	
+	--Shield/Heal Ally    
+	
+	self.Menu.ZS:MenuElement({id = "ally", name = "Ally Shield+Heal Items", type = MENU})
+ 
+    self.Menu.ZS.ally:MenuElement({id = "Red", name = "Redemption", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/94/Redemption_item.png"})
+	self.Menu.ZS.ally:MenuElement({id = "allyHP", name = "[AllyHP]", value = 30, min = 0, max = 100, step = 1, identifier = "%"}) 
+ 
+	self.Menu.ZS.ally:MenuElement({id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3190.png"})	
+	self.Menu.ZS.ally:MenuElement({id = "IronHP", name = "[AllyHP]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})	
     
+    self.Menu.ZS.ally:MenuElement({id = "Mika", name = "Mikael's Crucible[AntiCC]", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3222.png"})    
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+	--Target Items
+
+    self.Menu:MenuElement({id = "Dmg", name = "TargetItems[ComboMode]", type = MENU})
+	
+ 	self.Menu.Dmg:MenuElement({id = "Spell", name = "Spellbinder", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/0f/Spellbinder_item.png"})    
+	self.Menu.Dmg:MenuElement({id = "Tia", name = "Tiamat", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3077.png"})    
+    self.Menu.Dmg:MenuElement({id = "Rave", name = "Ravenous Hydra", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e8/Ravenous_Hydra_item.png"})    
+    self.Menu.Dmg:MenuElement({id = "Tita", name = "Titanic Hydra", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/2/22/Titanic_Hydra_item.png"})    
+	self.Menu.Dmg:MenuElement({id = "Blade", name = "Blade of the Ruined King", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3153.png"})
+ 	self.Menu.Dmg:MenuElement({id = "Bilg", name = "Bilgewater Cutlass", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3144.png"})
+ 	self.Menu.Dmg:MenuElement({id = "Glp", name = "Hextech GLP-800", value = true, leftIcon = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/c/c9/Hextech_GLP-800_item.png"})
+ 	self.Menu.Dmg:MenuElement({id = "Gun", name = "Hextech Gunblade", value = true, leftIcon = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/6/64/Hextech_Gunblade_item.png"})
+ 	self.Menu.Dmg:MenuElement({id = "Proto", name = "Hextech Protobelt-01", value = true, leftIcon = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/8/8d/Hextech_Protobelt-01_item.png"})
+ 	self.Menu.Dmg:MenuElement({id = "Omen", name = "Randuin's Omen", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/08/Randuin%27s_Omen_item.png"})	
+ 	self.Menu.Dmg:MenuElement({id = "Ocount", name = "Auto Randuin's Omen[Targets]", value = 3, min = 1, max = 5, step = 1})	
+	self.Menu.Dmg:MenuElement({id = "Glory", name = "Righteous Glory", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3800.png"})
+ 	self.Menu.Dmg:MenuElement({id = "Gcount", name = "Auto Righteous Glory[Targets]", value = 3, min = 1, max = 5, step = 1})	
+ 	self.Menu.Dmg:MenuElement({id = "Twin", name = "Twin Shadows", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/4/4b/Twin_Shadows_item.png"})
+	self.Menu.Dmg:MenuElement({id = "minRange", name = "Twin Shadows[MinCastDistance]", value = 500, min = 100, max = 2000, step = 50})	
+	self.Menu.Dmg:MenuElement({id = "maxRange", name = "Twin Shadows[MaxCastDistance]", value = 2500, min = 500, max = 4000, step = 50})
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
     --Potions
     self.Menu:MenuElement({id = "Healing", name = "Potions", type = MENU})
-    self.Menu.Healing:MenuElement({id = "Enabled", name = "Potions Enabled", value = true})
+    
+	self.Menu.Healing:MenuElement({id = "Enabled", name = "Potions Enabled", value = true})
     self.Menu.Healing:MenuElement({id = "UsePots", name = "Health Potions", value = true, leftIcon = "http://puu.sh/rUYAW/7fe329aa43.png"})
     self.Menu.Healing:MenuElement({id = "UseCookies", name = "Biscuit", value = true, leftIcon = "http://puu.sh/rUZL0/201b970f16.png"})
     self.Menu.Healing:MenuElement({id = "UseRefill", name = "Refillable Potion", value = true, leftIcon = "http://puu.sh/rUZPt/da7fadf9d1.png"})
@@ -1084,12 +1136,16 @@ local HuntersPotionSlot = 0;
 
 
 function Activator:Tick()
-    self:UseZhonya()
-    self:UseStopwatch()
-    self:QSS()
+    self:Auto()
+	self:MyHero()
+    self:Ally()
     self:Summoner()
 	self:Ignite()
 	self:Pots()
+	local Mode = GetMode()
+	if Mode == "Combo" then
+	self:Target()
+	end
 end
 
 --Utility------------------------
@@ -1170,6 +1226,14 @@ function Activator:ValidTarget(unit, range)
     return unit ~= nil and unit.valid and unit.visible and not unit.dead and unit.isTargetable and not unit.isImmortal
 end
 
+function GetDistanceSqr(p1, p2)
+    if not p1 then return math.huge end
+    p2 = p2 or myHero
+    local dx = p1.x - p2.x
+    local dz = (p1.z or p1.y) - (p2.z or p2.y)
+    return dx * dx + dz * dz
+end
+
 function Activator:EnemiesAround(pos, range)
     local pos = pos.pos
     local N = 0
@@ -1182,13 +1246,6 @@ function Activator:EnemiesAround(pos, range)
     return N
 end
 
-function GetDistanceSqr(p1, p2)
-    if not p1 then return math.huge end
-    p2 = p2 or myHero
-    local dx = p1.x - p2.x
-    local dz = (p1.z or p1.y) - (p2.z or p2.y)
-    return dx * dx + dz * dz
-end
 
 local function myGetSlot(itemID)
 local retval = 0;
@@ -1210,37 +1267,179 @@ for i = ITEM_1, ITEM_6 do
 return retval
 end
 
+function Activator:Auto()
+if myHero.dead then return end
+local target = GetTarget(600)
+if target == nil then return end	
+local Omen, Glory = GetInventorySlotItem(3143), GetInventorySlotItem(3800)   	
+	if IsValid(target) then		
+		if Omen and self.Menu.Dmg.Omen:Value() and self:EnemiesAround(myHero, 500) >= self.Menu.Dmg.Ocount:Value() then
+            Control.CastSpell(ItemHotKey[Omen])
+        end	
 
--- Zhonyas + StopWatch ---------------
-
-function Activator:UseZhonya()
-    if myHero.dead then return end
-    if self:EnemiesAround(myHero.pos, 1000) then
-        local Z = GetInventorySlotItem(3157)
-        if Z and self.Menu.ZS.Zhonya.UseZ:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.HP.myHP:Value()/100 then
-            Control.CastSpell(ItemHotKey[Z])
+		if Glory and self.Menu.Dmg.Glory:Value() and myHero.pos:DistanceTo(target.pos) <= 250 and self:EnemiesAround(myHero, 450) >= self.Menu.Dmg.Gcount:Value() then
+            Control.CastSpell(ItemHotKey[Glory])
         end
-    end
-end
+	end
+end	
 
-function Activator:UseStopwatch()
-    if myHero.dead then return end
-    if self:EnemiesAround(myHero.pos, 1000) then
-        local S = GetInventorySlotItem(2420)
-        if S and self.Menu.ZS.Stopwatch.UseS:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.HP.myHP:Value()/100 then
-            Control.CastSpell(ItemHotKey[S])
+
+-- MyHero Items ---------------
+
+function Activator:MyHero()
+if myHero.dead then return end
+local Zo, St, Se, Ed, Mi, Qu, Mik, Iro, Re = GetInventorySlotItem(3157), GetInventorySlotItem(2420), GetInventorySlotItem(3040), GetInventorySlotItem(3814), GetInventorySlotItem(3139), GetInventorySlotItem(3140), GetInventorySlotItem(3222), GetInventorySlotItem(3190), GetInventorySlotItem(3107)   
+	if self:EnemiesAround(myHero.pos, 1000) then
+        
+		if Zo and self.Menu.ZS.self.UseZ:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHP:Value()/100 then
+            Control.CastSpell(ItemHotKey[Zo])
         end
+    
+		if St and self.Menu.ZS.self.UseS:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHP:Value()/100 then
+            Control.CastSpell(ItemHotKey[St])
+        end
+		
+		if Se and self.Menu.ZS.self.Sera:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.SeraHP:Value()/100 then
+            Control.CastSpell(ItemHotKey[Se])
+        end	
+
+		if Ed and self.Menu.ZS.self.Edge:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.EdgeHP:Value()/100 then
+            Control.CastSpell(ItemHotKey[Ed])
+        end
+
+		if Iro and self.Menu.ZS.self.Iron:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.IronHP:Value()/100 then
+            Control.CastSpell(ItemHotKey[Iro])
+        end	
+
+		if Re and self.Menu.ZS.self.Red:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.RedHP:Value()/100 then
+            Control.CastSpell(ItemHotKey[Re], myHero.pos)
+        end			
     end
+	
+	local Immobile = Cleans(myHero)
+
+	if Immobile then
+		
+		if Mi and self.Menu.ZS.self.Mira:Value() then
+            Control.CastSpell(ItemHotKey[Mi])
+        end
+		
+		if Qu and self.Menu.ZS.self.Quick:Value() then
+            Control.CastSpell(ItemHotKey[Qu])
+        end
+
+		if Mik and self.Menu.ZS.self.Mika:Value() then
+            Control.CastSpell(ItemHotKey[Mik], myHero)
+        end		
+	end
 end
 
 function Activator:QSS()
     if myHero.dead then return end
     local hasBuff = HasBuff(myHero, "zedrdeathmark")
-    local SZ = GetInventorySlotItem(2420), GetInventorySlotItem(3157)
-    if SZ and self.Menu.ZS.QSS.UseSZ:Value() and hasBuff then
-        Control.CastSpell(ItemHotKey[SZ])
+    local S, Z = GetInventorySlotItem(2420), GetInventorySlotItem(3157)
+    if self.Menu.ZS.self.QSS.UseSZ:Value() and hasBuff then
+        if S then
+			Control.CastSpell(ItemHotKey[S])
+		end	
+		if Z then
+			Control.CastSpell(ItemHotKey[Z])
+		end	
     end
 end
+
+-- Ally Items ---------------
+
+function Activator:Ally()
+if myHero.dead then return end
+local Mik, Iro, Re = GetInventorySlotItem(3222), GetInventorySlotItem(3190), GetInventorySlotItem(3107)   
+	
+	for i, ally in pairs(GetAllyHeroes()) do
+	local Immobile = Cleans(ally)
+		if Iro and self.Menu.ZS.ally.Iron:Value() and ally.health/ally.maxHealth < self.Menu.ZS.ally.IronHP:Value()/100 and myHero.pos:DistanceTo(ally.pos) <= 600 and not ally.dead then
+            Control.CastSpell(ItemHotKey[Iro])
+        end	
+
+		if Re and self.Menu.ZS.ally.Red:Value() and ally.health/ally.maxHealth < self.Menu.ZS.ally.allyHP:Value()/100 then
+            
+			if ally.pos:To2D().onScreen then						
+				Control.CastSpell(ItemHotKey[Re], ally.pos) 
+				
+			elseif not ally.pos:To2D().onScreen then			
+				CastSpellMM(ItemHotKey[Re], ally.pos, 5500, 300)
+			end
+        end			
+
+		if myHero.pos:DistanceTo(ally.pos) <= 600 and not ally.dead and Immobile then
+			if Mik and self.Menu.ZS.ally.Mika:Value() then
+				Control.CastSpell(ItemHotKey[Mik], ally)
+			end	
+        end		
+	end
+end
+
+-- Target Items -----------------------------
+
+function Activator:Target()
+if myHero.dead then return end
+local target = GetTarget(1000)
+if target == nil then return end	
+ local Tia, Rave, Tita, Blade, Bilg, Glp, Gun, Proto, Omen, Glory, Twin, Spell = GetInventorySlotItem(3077), GetInventorySlotItem(3074), GetInventorySlotItem(3748), GetInventorySlotItem(3153), GetInventorySlotItem(3144), GetInventorySlotItem(3030), GetInventorySlotItem(3146), GetInventorySlotItem(3152), GetInventorySlotItem(3143), GetInventorySlotItem(3800), GetInventorySlotItem(3905), GetInventorySlotItem(3907)   
+	if IsValid(target) then
+        
+		if Tia and self.Menu.Dmg.Tia:Value() and myHero.pos:DistanceTo(target.pos) <= 400 then
+            Control.CastSpell(ItemHotKey[Tia])
+        end
+		
+		if Rave and self.Menu.Dmg.Rave:Value() and myHero.pos:DistanceTo(target.pos) <= 400 then
+            Control.CastSpell(ItemHotKey[Rave])
+        end
+		
+		if Tita and self.Menu.Dmg.Tita:Value() and myHero.pos:DistanceTo(target.pos) <= 400 then
+            Control.CastSpell(ItemHotKey[Tita])
+        end
+		
+		if Blade and self.Menu.Dmg.Blade:Value() and myHero.pos:DistanceTo(target.pos) <= 550 then
+            Control.CastSpell(ItemHotKey[Blade])
+        end
+		
+		if Bilg and self.Menu.Dmg.Bilg:Value() and myHero.pos:DistanceTo(target.pos) <= 550 then
+            Control.CastSpell(ItemHotKey[Bilg])
+        end	
+
+		if Glp and self.Menu.Dmg.Glp:Value() and myHero.pos:DistanceTo(target.pos) <= 800 then
+            Control.CastSpell(ItemHotKey[Glp], target.pos)
+        end	
+
+		if Gun and self.Menu.Dmg.Gun:Value() and myHero.pos:DistanceTo(target.pos) <= 700 then
+            Control.CastSpell(ItemHotKey[Gun], target.pos)
+        end
+
+		if Proto and self.Menu.Dmg.Proto:Value() and myHero.pos:DistanceTo(target.pos) <= 800 then
+            Control.CastSpell(ItemHotKey[Proto], target.pos)
+        end	
+
+		if Omen and self.Menu.Dmg.Omen:Value() and myHero.pos:DistanceTo(target.pos) <= 500 then
+            Control.CastSpell(ItemHotKey[Omen])
+        end	
+
+		if Glory and self.Menu.Dmg.Glory:Value() and myHero.pos:DistanceTo(target.pos) <= 450 then
+            Control.CastSpell(ItemHotKey[Glory])
+        end	
+
+		if Twin and self.Menu.Dmg.Twin:Value() and myHero.pos:DistanceTo(target.pos) <= self.Menu.Dmg.maxRange:Value() and myHero.pos:DistanceTo(target.pos) >= self.Menu.Dmg.minRange:Value() then
+            Control.CastSpell(ItemHotKey[Twin])
+        end	
+
+		if Spell and self.Menu.Dmg.Spell:Value() and myHero.pos:DistanceTo(target.pos) <= 600 then
+            Control.CastSpell(ItemHotKey[Spell])
+        end		
+    end
+end
+
+
+
+
 
 -- Potions ---------------------
 
@@ -2885,7 +3084,7 @@ function Ekko:Tick()
 		self:Auto()
 		self:Auto2()	
 		self:SafeLife()
-		TwinPos()
+		self:TwinPos()
 		self:AutoWE()
 	end
 end
@@ -2931,11 +3130,10 @@ end
 function Ekko:SafeLife()
 	local target = GetTarget(1200)     	
 	if target == nil then return end
-	local hp = myHero.health
 	for i, twin in pairs(Twin) do
 		local enemys = EnemiesAround(twin.pos, 600)
 		if self.Menu.Life.UseR:Value() and Ready(_R) and IsValid(target) then
-			if myHero.pos:DistanceTo(target.pos) <= 1200 and hp <= self.Menu.Life.life:Value() and enemys == 0 then
+			if myHero.pos:DistanceTo(target.pos) <= 1200 and myHero.health/myHero.maxHealth <= self.Menu.Life.life:Value()/100 and enemys == 0 then
 				Control.CastSpell(HK_R)
 			end
 		end
@@ -2949,7 +3147,7 @@ function Ekko:Auto()
 	local Immo = GetImmobileCount(400, target)
 	if IsValid(target) then
 		if self.Menu.Auto.UseW:Value() and Ready(_W) then
-			if myHero.pos:DistanceTo(target.pos) <= 1600 and Immo >= self.Menu.Auto.Targets:Value() and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			if myHero.pos:DistanceTo(target.pos) <= 1600 and Immo >= self.Menu.Auto.Targets:Value() and pred.Hitchance >= _G.HITCHANCE_NORMAL then
 				Control.CastSpell(HK_W, pred.CastPosition)
 			end
 		end	
@@ -2961,7 +3159,7 @@ function Ekko:Auto2()
 	if target == nil then return end		
 	local pred = GetGamsteronPrediction(target, WData, myHero)
 	if Ready(_W) and self.Menu.Auto2.UseWE:Value() and IsValid(target) then
-		if EnemiesAround(target.pos, 375) >= self.Menu.Auto2.Targets:Value() and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+		if EnemiesAround(target.pos, 375) >= self.Menu.Auto2.Targets:Value() and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
 			Control.CastSpell(HK_W, pred.CastPosition)
 		if myHero.pos:DistanceTo(target.pos) <= 405 and Ready(_E) then
 			Control.CastSpell(HK_E, target.pos)
@@ -2975,7 +3173,7 @@ function Ekko:AutoWE()
 	if target == nil then return end		
 	local pred = GetGamsteronPrediction(target, WData, myHero)
 	if Ready(_W) and Ready(_E) and IsValid(target) then
-		if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+		if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
 			Control.CastSpell(HK_W, pred.CastPosition)
 			Control.CastSpell(HK_E, target.pos)
 		end	
@@ -2995,7 +3193,7 @@ function Ekko:KillSteal()
 		
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
@@ -3052,14 +3250,19 @@ if target == nil then return end
 				
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_HIGH then
+			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
 		end
-		
-		if self.Menu.Combo.UseWE:Value() and myHero.pos:DistanceTo(target.pos) <= 600 then
+		local pred = GetGamsteronPrediction(target, WData, myHero)
+		if Ready(_W) and self.Menu.Combo.UseWE:Value() and IsValid(target) then
+		if  myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
+			Control.CastSpell(HK_W, pred.CastPosition)
+		if myHero.pos:DistanceTo(target.pos) <= 405 and Ready(_E) then
 			Control.CastSpell(HK_E, target.pos)
-		end		
+		end
+		end	
+		end
 	end
 end	
 
@@ -9645,7 +9848,7 @@ function Tristana:AntiBlitz()
 
 	local ctc = Game.Timer() * 100
 	
-	local target = _G.SDK.TargetSelector:GetTarget(900, _G.SDK.DAMAGE_TYPE_PHYSICAL)
+	local target = GetTarget(900)
 	if self.Menu.Blitz.UseW:Value() and self:CheckSpell(900) and grabTime ~= nil and self:CanCast(_W) then 
 		if myHero.pos:DistanceTo(target.pos) > 350 then
 			if ctc - grabTime >= 28 then
