@@ -4,7 +4,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 0.20
+    local Version = 0.21
     
     local Files = {
         Lua = {
@@ -802,12 +802,14 @@ local function HasBuff(unit, buffname)
 end
 
 
-local function Block(boolean) 
+function Block(boolean) 
 	if boolean == true then 
 		if Orb == 1 then
 			EOW:SetAttacks(false)
 		elseif Orb == 2 then
 			_G.SDK.Orbwalker:SetAttack(false)
+		elseif Orb == 4 then
+			_G.gsoSDK.Orbwalker:SetAttack(false)			
 		else
 			--GOS:BlockAttack(true)
 		end
@@ -816,6 +818,8 @@ local function Block(boolean)
 			EOW:SetAttacks(true)
 		elseif Orb == 2 then
 			_G.SDK.Orbwalker:SetAttack(true)
+		elseif Orb == 4 then
+			_G.gsoSDK.Orbwalker:SetAttack(true)			
 		else
 			--GOS:BlockAttack()
 		end
@@ -2495,6 +2499,7 @@ Type = _G.SPELLTYPE_CONE, Delay = 0.5, Radius = 80, Range = 825, Speed = 3200, C
 			end
 		end
 	end
+	
 
 	function Cassiopeia:UnBlockAA(Mode)
 		if Mode ~= "Combo" and AA == false then 
@@ -2578,10 +2583,7 @@ function Cassiopeia:Activator()
 end	
 
 function Cassiopeia:Combo()
-	local activeSpell = myHero.activeSpell
-   	if activeSpell.valid and activeSpell.spellWasCast == false then
-   		return
-   	end
+
 	local target = GetTarget(950)
 	if target == nil then return end
 	local RValue = Cass.c.R:Value()
@@ -2590,27 +2592,26 @@ function Cassiopeia:Combo()
 	local RTarget, ShouldCast = self:RLogic()
 	if IsValid(target, 950) then	
 		
-		if Cass.c.W:Value() and Ready(_W)  then 
-			if Dist < MaxWRange and Dist > MinWRange then
-			local Pos = GetPred(target, 1500, 0.25 + Game.Latency()/1000)
-				if GetDistanceSqr(Pos, myHero.pos) < MaxWRange then 
-					self:CastW(HK_W, Pos)
-				end
-			end
-		end
-		if Cass.c.Q:Value() and Ready(_Q) then 
-			if Dist < QRange then 
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-				if pred.Hitchance >= _G.HITCHANCE_NORMAL then
-					Control.CastSpell(HK_Q, pred.CastPosition)
-				end
-			end
-		end
-		if Cass.c.E:Value() and Ready(_E) then 
-			if Dist < ERange then
-				Control.CastSpell(HK_E, target)
-			end
-		end	
+        local result = false
+        if not result and Cass.c.E:Value() and Ready(_E) and Dist < ERange then
+            result = Control.CastSpell(HK_E, target)
+        end
+        if not result and Cass.c.Q:Value() and Ready(_Q) then 
+            if Dist < QRange then 
+            local pred = GetGamsteronPrediction(target, QData, myHero)
+                if pred.Hitchance >= _G.HITCHANCE_NORMAL then
+                    result = Control.CastSpell(HK_Q, pred.CastPosition)
+                end
+            end
+        end
+        if not result and Cass.c.W:Value() and Ready(_W) then 
+            if Dist < MaxWRange and Dist > MinWRange then
+            local Pos = GetPred(target, 1500, 0.25 + Game.Latency()/1000)
+                if GetDistanceSqr(Pos, myHero.pos) < MaxWRange then 
+                    self:CastW(HK_W, Pos)
+                end
+            end
+        end
 		local pred = GetGamsteronPrediction(RTarget, RData, myHero)
 		local WData = myHero:GetSpellData(_W) 
 		local WCheck = Ready(_W)
@@ -2628,7 +2629,7 @@ function Cassiopeia:Combo()
 					if RTarget and pred.Hitchance >= _G.HITCHANCE_NORMAL then 
 						Control.CastSpell(HK_R, pred.CastPosition)
 					else
-						Control.CastSpell(HK_R, target)
+						Control.CastSpell(HK_R, target.pos)
 					end
 				end
 			end
@@ -2654,7 +2655,7 @@ function Cassiopeia:SemiR()
 		if RTarget and ShouldCast and Dist < RRange and pred.Hitchance >= _G.HITCHANCE_NORMAL then
 			Control.CastSpell(HK_R, pred.CastPosition)
 		else
-			Control.CastSpell(HK_R, target)			
+			Control.CastSpell(HK_R, target.pos)			
 		end
 	end 
 end
@@ -2662,29 +2663,24 @@ end
 		
 
 function Cassiopeia:Harass()
-	local activeSpell = myHero.activeSpell
-   	if activeSpell.valid and activeSpell.spellWasCast == false then
-	return end
+
 	local target = GetTarget(950)
 	if target == nil then return end
-	local QValue = Cass.h.Q:Value()
 	local EDmg = CalcMagicalDamage(myHero, target, self:Edmg()) * 2 
 	local Dist = GetDistanceSqr(myHero.pos, target.pos)
-	if IsValid(target, 950) then	
-		if QValue and Ready(_Q) and myHero.mana/myHero.maxMana > Cass.m.Q:Value()/100 then 
-			if Dist < QRange then 
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-				if GetDistanceSqr(target.pos, myHero.pos) < QRange and pred.Hitchance >= _G.HITCHANCE_NORMAL then
-					Control.CastSpell(HK_Q, pred.CastPosition)
-				end
-			end
-		end
-
-		if Cass.h.E:Value() and Ready(_E) and (HasPoison(target) or EDmg  > target.health) and myHero.mana/myHero.maxMana > Cass.m.E:Value()/100 then 
-			if Dist < ERange then
-				Control.CastSpell(HK_E, target)
-			end
-		end
+	local result = false
+	if IsValid(target, 950) then
+	   if not result and Cass.h.E:Value() and Ready(_E) and Dist < ERange and (HasPoison(target) or EDmg >= target.health) then
+            result = Control.CastSpell(HK_E, target)
+        end
+        if not result and Cass.h.Q:Value() and Ready(_Q) and myHero.mana/myHero.maxMana > Cass.m.Q:Value()/100 then 
+            if Dist < QRange then 
+            local pred = GetGamsteronPrediction(target, QData, myHero)
+                if pred.Hitchance >= _G.HITCHANCE_NORMAL then
+                    result = Control.CastSpell(HK_Q, pred.CastPosition)
+                end
+            end
+        end
 	end
 end	
 	
@@ -2881,17 +2877,22 @@ end
 function Cassiopeia:AutoE()
 	if Ready(_E) and IsRecalling() == false and myHero.mana/myHero.maxMana > Cass.m.EW:Value()/100 and Cass.w.E:Value() then
 		for i = 1, Game.MinionCount() do 
-		local Minion = Game.Minion(i) 
+		local Minion = Game.Minion(i)
+		local PDmg = self:PEdmgCreep()
+		local EDmg = self:EdmgCreep()
 			if Minion.team == TEAM_ENEMY then	
 				if IsValid(Minion, 690) and GetDistanceSqr(Minion.pos, myHero.pos) < ERange then 
-					if HasPoison(Minion) and self:PEdmgCreep() > Minion.health then 
+					if HasPoison(Minion) and PDmg + 20 >= Minion.health then 
 						Block(true)
-						Control.CastSpell(HK_E, Minion)
-						break
-					elseif self:EdmgCreep() > Minion.health then 
+						if self:PEdmgCreep() >= Minion.health then
+							Control.CastSpell(HK_E, Minion)
+						end
+					end
+					if EDmg + 20 >= Minion.health then 
 						Block(true)
-						Control.CastSpell(HK_E, Minion)
-						break
+						if self:EdmgCreep() >= Minion.health then
+							Control.CastSpell(HK_E, Minion)
+						end
 					end
 				end
 			end
