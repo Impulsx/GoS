@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.11
+    local Version = 0.12
     
     local Files =
     {
@@ -696,6 +696,7 @@ end
 function Activator:Ignite()		
 if myHero.dead then return end
 for i, target in pairs(GetEnemyHeroes()) do	
+	if IsValid(target) then	
 		local TargetHp = target.health/target.maxHealth
         if self.Menu.summ.ign.ST:Value() == 1 then
 			if TargetHp <= self.Menu.summ.ign.hp:Value()/100 and myHero.pos:DistanceTo(target.pos) <= 600 then
@@ -717,6 +718,7 @@ for i, target in pairs(GetEnemyHeroes()) do
         end		
 	end
 end	
+end
 	
 function OnLoad()
 	Activator()
