@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 0.2
+    local Version = 0.3
     
     local Files = {
         Lua = {
@@ -52,6 +52,9 @@ do
 end 
 
 function OnLoad()
+LoadUnits()
+Activator()
+
 if table.contains(Heroes, myHero.charName) then
 	_G[myHero.charName]()
 end
@@ -86,13 +89,13 @@ if myHero.charName == "Veigar" then
 require('TPred')
 end	
 	
-LoadUnits()
-Activator()
+
 end
 
 function OnDraw()
 local textPos = myHero.pos:To2D()	
-	if table.contains(Heroes, myHero.charName) and Game.Timer() < 20 then
+
+	if table.contains(Heroes, myHero.charName) and Game.Timer() < 20000 then
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Rakan        Nidalee", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
@@ -1710,9 +1713,9 @@ function Ahri:LoadMenu()
 	
 	--Prediction
 	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
-	self.Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
-	self.Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 	
 	--Drawing
 	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
@@ -1935,7 +1938,7 @@ if IsValid(target) then
 	if self.Menu.Combo.UseQ:Value() and target and Ready(_Q) then
 	    if myHero.pos:DistanceTo(target.pos) <= 880 then
 		    local pred = GetGamsteronPrediction(target, QData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 			    Control.CastSpell(HK_Q,pred.CastPosition)
 		    end
 	    end
@@ -1944,7 +1947,7 @@ if IsValid(target) then
 	if self.Menu.Combo.UseW:Value() and target and Ready(_W) then
 		if myHero.pos:DistanceTo(target.pos) <= 700 then 
 			local pred = GetGamsteronPrediction(target, WData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredW:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
 			    Control.CastSpell(HK_W,pred.CastPosition)
             end
 		end
@@ -1953,7 +1956,7 @@ if IsValid(target) then
     if self.Menu.Combo.UseE:Value() and target and Ready(_E) then
 	    if myHero.pos:DistanceTo(target.pos) <= 975 then
 		    local pred = GetGamsteronPrediction(target, EData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredE:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then
 			    Control.CastSpell(HK_E,pred.CastPosition)
 		    end
 	    end
@@ -1969,7 +1972,7 @@ if IsValid(target) then
 	if self.Menu.Combo.UseE:Value() and target and Ready(_E) then
 	    if myHero.pos:DistanceTo(target.pos) <= 975 then
 		    local pred = GetGamsteronPrediction(target, EData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredE:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then
 			    Control.CastSpell(HK_E,pred.CastPosition)
 		    end
 	    end
@@ -1978,7 +1981,7 @@ if IsValid(target) then
     if self.Menu.Combo.UseQ:Value() and target and Ready(_Q) then
 	    if myHero.pos:DistanceTo(target.pos) <= 880 then
 		    local pred = GetGamsteronPrediction(target, QData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 			    Control.CastSpell(HK_Q,pred.CastPosition)
 		    end
 	    end
@@ -1987,7 +1990,7 @@ if IsValid(target) then
 	if self.Menu.Combo.UseW:Value() and target and Ready(_W) then
 		if myHero.pos:DistanceTo(target.pos) <= 700 then 
 			local pred = GetGamsteronPrediction(target, WData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredW:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
 			    Control.CastSpell(HK_W,pred.CastPosition)
             end
 		end
@@ -2003,7 +2006,7 @@ if IsValid(target) then
 	if self.Menu.Combo.UseE:Value() and target and Ready(_E) then
 	    if myHero.pos:DistanceTo(target.pos) <= 975 then
 		    local pred = GetGamsteronPrediction(target, EData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredE:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then
 			    Control.CastSpell(HK_E,pred.CastPosition)
 		    end
 	    end
@@ -2012,7 +2015,7 @@ if IsValid(target) then
 	if self.Menu.Combo.UseW:Value() and target and Ready(_W) then
 		if myHero.pos:DistanceTo(target.pos) <= 700 then 
 			local pred = GetGamsteronPrediction(target, WData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredW:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
 			    Control.CastSpell(HK_W,pred.CastPosition)
             end
 		end
@@ -2021,7 +2024,7 @@ if IsValid(target) then
     if self.Menu.Combo.UseQ:Value() and target and Ready(_Q) then
 	    if myHero.pos:DistanceTo(target.pos) <= 880 then
 		    local pred = GetGamsteronPrediction(target, QData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 			    Control.CastSpell(HK_Q,pred.CastPosition)
 		    end
 	    end
@@ -2036,7 +2039,7 @@ if IsValid(target) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value
 	if self.Menu.Harass.UseQ:Value() and target and Ready(_Q) then
 	    if myHero.pos:DistanceTo(target.pos) <= 880 then
 		    local pred = GetGamsteronPrediction(target, QData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 			    Control.CastSpell(HK_Q,pred.CastPosition)
 		    end
 	    end
@@ -2045,7 +2048,7 @@ if IsValid(target) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value
 	if self.Menu.Harass.UseW:Value() and target and Ready(_W) then
 		if myHero.pos:DistanceTo(target.pos) <= 700 then 
 			local pred = GetGamsteronPrediction(target, WData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredW:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
 			    Control.CastSpell(HK_W,pred.CastPosition)
             end
 		end
@@ -2090,7 +2093,7 @@ if IsValid(target) then
 	if self.Menu.KillSteal.UseQ:Value() and target and Ready(_Q) then
 	    if myHero.pos:DistanceTo(target.pos) <= 880 and Qdmg >= target.health then
 		    local pred = GetGamsteronPrediction(target, QData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 			    Control.CastSpell(HK_Q,pred.CastPosition)
 		    end
 	    end
@@ -2099,7 +2102,7 @@ if IsValid(target) then
 	if self.Menu.KillSteal.UseW:Value() and target and Ready(_W) then
 		if myHero.pos:DistanceTo(target.pos) <= 700 and Wdmg >= target.health then 
 			local pred = GetGamsteronPrediction(target, WData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredW:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
 			    Control.CastSpell(HK_W,pred.CastPosition)
             end
 		end
@@ -2108,7 +2111,7 @@ if IsValid(target) then
     if self.Menu.KillSteal.UseE:Value() and target and Ready(_E) then
 	    if myHero.pos:DistanceTo(target.pos) <= 975 and Edmg >= target.health then
 		    local pred = GetGamsteronPrediction(target, EData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredE:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then
 			    Control.CastSpell(HK_E,pred.CastPosition)
 		    end
 	    end
@@ -2125,7 +2128,7 @@ local Immobile = IsImmobileTarget(target)
 	if self.Menu.CC.UseE:Value() and target and Ready(_E) then
 		if myHero.pos:DistanceTo(target.pos) <= 975 then 
 		local pred = GetGamsteronPrediction(target, EData, myHero)
-			if pred.Hitchance >= self.Menu.Pred.PredE:Value() and Immobile then
+			if pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 and Immobile then
 				Control.CastSpell(HK_E,pred.CastPosition)
 			end
 		end
@@ -2134,7 +2137,7 @@ local Immobile = IsImmobileTarget(target)
 	if self.Menu.CC.UseQ:Value() and target and Ready(_Q) then
 		if myHero.pos:DistanceTo(target.pos) <= 880 then 
 		local pred = GetGamsteronPrediction(target, QData, myHero)
-			if pred.Hitchance >= self.Menu.Pred.PredQ:Value() and Immobile then
+			if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 and Immobile then
 				Control.CastSpell(HK_Q,pred.CastPosition)
 			end
 		end
@@ -2204,8 +2207,8 @@ Type = _G.SPELLTYPE_CONE, Delay = 0.5, Radius = 80, Range = 825, Speed = 3200, C
 		
 		--Prediction
 		Cass:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-		Cass.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
-		Cass.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})		
+		Cass.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+		Cass.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})		
 		
 		--Combo   
 		Cass:MenuElement({type = MENU, id = "c", name = "Combo"})
@@ -2969,8 +2972,8 @@ function Ekko:LoadMenu()
 	
 	--Prediction
 	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
-	self.Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 
 	--Drawing 
 	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
@@ -3037,7 +3040,7 @@ function Ekko:Auto()
 	local Immo = GetImmobileCount(400, target)
 	if IsValid(target) then
 		if self.Menu.Auto.UseW:Value() and Ready(_W) then
-			if myHero.pos:DistanceTo(target.pos) <= 1600 and Immo >= self.Menu.Auto.Targets:Value() and pred.Hitchance >= self.Menu.Pred.PredW:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 1600 and Immo >= self.Menu.Auto.Targets:Value() and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
 				Control.CastSpell(HK_W, pred.CastPosition)
 			end
 		end	
@@ -3049,7 +3052,7 @@ function Ekko:Auto2()
 	if target == nil then return end		
 	local pred = GetGamsteronPrediction(target, WData, myHero)
 	if Ready(_W) and self.Menu.Auto2.UseWE:Value() and IsValid(target) then
-		if EnemiesAround(target.pos, 375) >= self.Menu.Auto2.Targets:Value() and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredW:Value() then
+		if EnemiesAround(target.pos, 375) >= self.Menu.Auto2.Targets:Value() and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
 			Control.CastSpell(HK_W, pred.CastPosition)
 		end
 		if myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "EkkoE" then	
@@ -3075,7 +3078,7 @@ function Ekko:KillSteal()
 		
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
@@ -3114,13 +3117,13 @@ if target == nil then return end
 				
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
 		end
 		local pred = GetGamsteronPrediction(target, WData, myHero)
 		if Ready(_W) and self.Menu.Combo.UseWE:Value() then
-			if  myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredW:Value() then
+			if  myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
 				Control.CastSpell(HK_W, pred.CastPosition)
 			end
 		end	
@@ -3137,7 +3140,7 @@ if target == nil then return end
 		
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 			Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
@@ -3264,7 +3267,7 @@ function Kayle:LoadMenu()
 
 	--Prediction
 	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})
 
 	--Drawing 
 	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
@@ -3370,7 +3373,7 @@ function Kayle:KillSteal()
 		
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 850 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 850 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
@@ -3378,7 +3381,7 @@ function Kayle:KillSteal()
 		local Gun = GetItemSlot(myHero, 3146)
 		if self.Menu.ks.gun:Value() and Ready(_Q) and Gun > 0 and Ready(Gun) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if (QDmg + GunDmg) >= hp and myHero.pos:DistanceTo(target.pos) <= 700 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if (QDmg + GunDmg) >= hp and myHero.pos:DistanceTo(target.pos) <= 700 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(ItemHotKey[Gun], target.pos)
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
@@ -3394,7 +3397,7 @@ if target == nil then return end
 		
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 850 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 850 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
 		end
@@ -3432,7 +3435,7 @@ if target == nil then return end
 		
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 850 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 850 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
@@ -3469,7 +3472,7 @@ function Kayle:Clear()
 				end
 			end
 			local pred = GetGamsteronPrediction(minion, QData, myHero)
-			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 850 and self.Menu.Clear.UseQ:Value() and QDmg > HP and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 850 and self.Menu.Clear.UseQ:Value() and QDmg > HP and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	 
 		end
@@ -4264,7 +4267,7 @@ function Malzahar:LoadMenu()
 
 	--Prediction
 	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 
  
 	--Drawing 
@@ -4305,7 +4308,7 @@ local target = GetTarget(1000)
 if target == nil then return end	
 local pred = GetGamsteronPrediction(target, QData, myHero)	
 	if IsValid(target,1000) and self.Menu.AutoQ.UseQ:Value() and Ready(_Q) then
-		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 			Control.CastSpell(HK_Q, pred.CastPosition)
 		end	
 	end
@@ -4342,7 +4345,7 @@ function Malzahar:KillSteal()
 		
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
@@ -4366,14 +4369,14 @@ function Malzahar:KillSteal()
 		end
 		if self.Menu.ks.full:Value() and ready then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if (fullDmg + IGdamage) >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if (fullDmg + IGdamage) >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				DelayAction(function()
 				Control.CastSpell(HK_E, target)				
 				Control.CastSpell(HK_Q, pred.CastPosition)
 				Control.CastSpell(HK_W, target.pos)
 				Control.CastSpell(HK_R, target)
 				end, 0.05)
-			elseif fullDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			elseif fullDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				DelayAction(function()
 				Control.CastSpell(HK_E, target)				
 				Control.CastSpell(HK_Q, pred.CastPosition)
@@ -4399,7 +4402,7 @@ if target == nil then return end
 		
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
 		end
@@ -4426,7 +4429,7 @@ if target == nil then return end
 		
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
@@ -4627,8 +4630,8 @@ function Morgana:LoadMenu()
 
 	--Prediction
 	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
-	self.Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
  
 	--Drawing 
 	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
@@ -4886,13 +4889,13 @@ if myHero.dead then return end
 	if IsValid(target) then	
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1175 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1175 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if self.Menu.ks.UseW:Value() and Ready(_W) then
 			local pred = GetGamsteronPrediction(target, WData, myHero)
-			if WDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredW:Value() then			
+			if WDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then			
 				Control.CastSpell(HK_W, pred.CastPosition)
 	
 			end
@@ -4924,14 +4927,14 @@ function Morgana:Combo()
 	if IsValid(target) then
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 1175 then 	
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
 		end
 		
 		if self.Menu.Combo.UseW:Value() and Ready(_W) and not Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, WData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredW:Value() then			
+			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then			
 				Control.CastSpell(HK_W, pred.CastPosition)
 	
 			end
@@ -4950,13 +4953,13 @@ if target == nil then return end
 	if IsValid(target) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 1175 then 
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if self.Menu.Harass.UseW:Value() and Ready(_W) and not Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, WData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredW:Value() then			
+			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then			
 				Control.CastSpell(HK_W, pred.CastPosition)
 	
 			end
@@ -5956,9 +5959,9 @@ function Nidalee:LoadMenu()
 
 	--Prediction
 	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q Human]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
-	self.Menu.Pred:MenuElement({id = "PredW1", name = "Hitchance[W Human]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
-	self.Menu.Pred:MenuElement({id = "PredW2", name = "Hitchance[W Cougar]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q Human]", value = 2,, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredW1", name = "Hitchance[W Human]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredW2", name = "Hitchance[W Cougar]", value = 2, drop = {"Normal", "High", "Immobile"}})
 end
 
 function Nidalee:Tick()
@@ -6074,7 +6077,7 @@ if IsValid(target) then
 	if Ready(_Q) then 
 		local pred = GetGamsteronPrediction(target, QData, myHero)
 		if self.Menu.ComboMode.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 1500 then
-            if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+            if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				CastSpell(HK_Q, pred.CastPosition)
             end
 		end
@@ -6156,7 +6159,7 @@ if IsValid(target) then
 	if Ready(_Q) then 
 		local pred = GetGamsteronPrediction(target, QData, myHero)
 		if self.Menu.HarassMode.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 1500 then
-            if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+            if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				CastSpell(HK_Q, pred.CastPosition)
 			elseif myHero:GetSpellData(_Q).name == "Takedown" and Ready(_R) then
 				Control.CastSpell(HK_R)	
@@ -6254,7 +6257,7 @@ if target == nil then return end
 	if IsValid(target) and Ready(_Q) then 
 		local pred = GetGamsteronPrediction(target, QData, myHero)
 		if self.Menu.KS.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 1500 and self:Qdmg(target) >= target.health then
-            if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+            if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				CastSpell(HK_Q, pred.CastPosition)
             elseif myHero:GetSpellData(_Q).name == "Takedown" and Ready(_R) then
 				Control.CastSpell(HK_R)
@@ -6343,8 +6346,8 @@ function Rakan:LoadMenu()
 	
 	--Prediction
 	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
-	self.Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 
  
 	--Drawing 
@@ -6432,14 +6435,14 @@ function Rakan:KillSteal()
 		
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 
 		if self.Menu.ks.UseW:Value() and Ready(_W) then
 			local pred = GetGamsteronPrediction(target, WData, myHero)
-			if WDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 600 and pred.Hitchance >= self.Menu.Pred.PredW:Value() then
+			if WDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 600 and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
 				Control.CastSpell(HK_W, pred.CastPosition)
 	
 			end
@@ -6471,7 +6474,7 @@ local count = GetEnemyCount(400, myHero)
 		
 			if self.Menu.Combo.UseW:Value() and Ready(_W) then
 			local pred = GetGamsteronPrediction(target, WData, myHero)
-				if myHero.pos:DistanceTo(target.pos) <= 600 and pred.Hitchance >= self.Menu.Pred.PredW:Value() then 
+				if myHero.pos:DistanceTo(target.pos) <= 600 and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then 
 					Control.CastSpell(HK_W, pred.CastPosition) 
 				end
 			end			
@@ -6485,7 +6488,7 @@ local count = GetEnemyCount(400, myHero)
 		
 			if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
-				if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+				if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 					Control.CastSpell(HK_Q, pred.CastPosition)
 				end	
 			end
@@ -6508,7 +6511,7 @@ if target == nil then return end
 		
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
@@ -6592,7 +6595,7 @@ function Ryze:LoadMenu()
 	
 	--Prediction
 	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 
 	--Drawing
 	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
@@ -6685,7 +6688,7 @@ if target == nil then return end
 if IsValid(target, 1200) then    
 local pred = GetGamsteronPrediction(target, QData, myHero)	
 	if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
-		if myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+		if myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 			if GotBuff(target, "RyzeE") then
 				Control.CastSpell(HK_Q,pred.CastPosition)
 			end	
@@ -6718,7 +6721,7 @@ if IsValid(target) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value
 	if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
 	    if myHero.pos:DistanceTo(target.pos) <= 1000 then
 		    local pred = GetGamsteronPrediction(target, QData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 			    Control.CastSpell(HK_Q,pred.CastPosition)
 		    end
 	    end
@@ -6769,7 +6772,7 @@ if IsValid(target) then
 	if self.Menu.KillSteal.UseQ:Value() and Ready(_Q) then
 	    if myHero.pos:DistanceTo(target.pos) <= 1000 and Qdmg >= target.health then
 		    local pred = GetGamsteronPrediction(target, QData, myHero)
-		    if pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+		    if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 			    Control.CastSpell(HK_Q,pred.CastPosition)
 		    end
 	    end
@@ -6889,7 +6892,7 @@ function Sona:LoadMenu()
 	self.Menu.Rset:MenuElement({id = "AllyHp", name = "Use Ult if AllyHP Percent below ",value = 30, min = 1, max = 100,step = 1})	
 	
 	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 
 	self.Menu:MenuElement({type = MENU, id = "Draw",name = "> Draw Settings"})
 	self.Menu.Draw:MenuElement({id = "Q", name = "Draw Q Range", value = true})
@@ -7006,7 +7009,7 @@ end
 function Sona:CastQ(unit)
 	if not unit then return end
 	local pred = GetGamsteronPrediction(unit, QData, myHero)
-	if pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+	if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 		CastSpell(HK_Q,pred.CastPosition)
 	end
 end
@@ -12373,9 +12376,9 @@ function Zyra:LoadMenu()
 
 	--Prediction
 	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
-	self.Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})	
-	self.Menu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, min = 2, max = 4, drop = {"Normal", "High", "Immobile"}})
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})
 
 	--Drawing 
 	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
@@ -12430,7 +12433,7 @@ local target = GetTarget(1200)
 if target == nil then return end	
 local pred = GetGamsteronPrediction(target, EData, myHero)	
 	if IsValid(target,1200) and self.Menu.AutoE.UseE:Value() and Ready(_E) then
-		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= self.Menu.Pred.PredE:Value() then
+		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then
 			self:UseW()
 			Control.CastSpell(HK_E, pred.CastPosition)
 		end	
@@ -12447,7 +12450,7 @@ local EDmg = getdmg("E", target, myHero)
 local damage = RDmg + QDmg + EDmg + 300
 local pred = GetGamsteronPrediction(target, RData, myHero)	
 	if IsValid(target,1200) and self.Menu.Combo.Ult.killR:Value() and Ready(_R) then
-		if myHero.pos:DistanceTo(target.pos) <= 700 and damage >= hp and pred.Hitchance >= self.Menu.Pred.PredR:Value() then
+		if myHero.pos:DistanceTo(target.pos) <= 700 and damage >= hp and pred.Hitchance >= self.Menu.Pred.PredR:Value() + 1 then
 			Control.CastSpell(HK_R, pred.CastPosition)
 		end	
 	end
@@ -12459,7 +12462,7 @@ if target == nil then return end
 local count = GetImmobileCount(500, target)
 local pred = GetGamsteronPrediction(target, RData, myHero)	
 	if IsValid(target,1200) and self.Menu.Combo.Ult.Immo:Value() and Ready(_R) then
-		if myHero.pos:DistanceTo(target.pos) <= 700 and count >= 2 and pred.Hitchance >= self.Menu.Pred.PredR:Value() then
+		if myHero.pos:DistanceTo(target.pos) <= 700 and count >= 2 and pred.Hitchance >= self.Menu.Pred.PredR:Value() + 1 then
 			Control.CastSpell(HK_R, pred.CastPosition)
 		end	
 	end
@@ -12493,14 +12496,14 @@ function Zyra:KillSteal()
 		
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				self:UseW()
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if self.Menu.ks.UseE:Value() and Ready(_E) then
 			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= self.Menu.Pred.PredE:Value() then			
+			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then			
 				self:UseW()
 				Control.CastSpell(HK_E, pred.CastPosition)
 	
@@ -12511,9 +12514,9 @@ function Zyra:KillSteal()
 			local Qpred = GetGamsteronPrediction(target, QData, myHero)
 			if EQDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 800 then
 				self:UseW()
-				if Epred.Hitchance >= self.Menu.Pred.PredE:Value() then
+				if Epred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then
 					Control.CastSpell(HK_E, Epred.CastPosition)
-				if Qpred.Hitchance >= self.Menu.Pred.PredQ:Value() then	
+				if Qpred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then	
 					Control.CastSpell(HK_Q, Qpred.CastPosition)
 				end
 				end
@@ -12538,14 +12541,14 @@ if target == nil then return end
 		
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
 		end
 		
 		if self.Menu.Combo.UseE:Value() and Ready(_E) then
 			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= self.Menu.Pred.PredE:Value() then			
+			if myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then			
 				Control.CastSpell(HK_E, pred.CastPosition)
 	
 			end
@@ -12554,7 +12557,7 @@ if target == nil then return end
 		if Ready(_R) and self.Menu.Combo.Ult.UseR:Value() then
 			local pred = GetGamsteronPrediction(target, RData, myHero)
 			local count = GetEnemyCount(500, target)
-			if myHero.pos:DistanceTo(target.pos) <= 700 and count >= self.Menu.Combo.Ult.UseRE:Value() and pred.Hitchance >= self.Menu.Pred.PredR:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 700 and count >= self.Menu.Combo.Ult.UseRE:Value() and pred.Hitchance >= self.Menu.Pred.PredR:Value() + 1 then
 				Control.CastSpell(HK_R, pred.CastPosition)
 			end
 		end
@@ -12568,14 +12571,14 @@ if target == nil then return end
 		
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				self:UseW()
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if self.Menu.Harass.UseE:Value() and Ready(_E) then
 			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= self.Menu.Pred.PredE:Value() then			
+			if myHero.pos:DistanceTo(target.pos) <= 1000 and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then			
 				self:UseW()
 				Control.CastSpell(HK_E, pred.CastPosition)
 	
