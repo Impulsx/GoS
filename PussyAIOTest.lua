@@ -3,21 +3,21 @@ local GsoPred = {"Rakan","Nidalee","Ryze","Cassiopeia","Malzahar","Zyra","Kayle"
 local HPred = {"Neeko","Sylas","Xerath","Warwick"}
 if not table.contains(Heroes, myHero.charName) then return end
 
---[[
+
 do
     
-    local Version = 0.21
+    local Version = 0.1
     
     local Files = {
         Lua = {
             Path = SCRIPT_PATH,
-            Name = "PussyAIO.lua",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIO.lua"
+            Name = "PussyAIOTest.lua",
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIOTest.lua"
         },
         Version = {
             Path = SCRIPT_PATH,
-            Name = "PussyAIO.version",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIO.version"
+            Name = "PussyAIOTest.version",
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIOTest.version"
         }
     }
     
@@ -51,12 +51,7 @@ do
 
 end 
 
-function OnLoad()
-	if table.contains(Heroes, myHero.charName) then _G[myHero.charName]() end
-	LoadUnits()
-	Activator()
-end
-]]
+
 
 function OnLoad()
 if table.contains(Heroes, myHero.charName) then
