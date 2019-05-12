@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 0.5
+    local Version = 0.6
     
     local Files = {
         Lua = {
@@ -451,58 +451,7 @@ local function Ready(spell)
     return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
 end 
 
-local function CalcPhysicalDamage(source, target, amount)
-  local ArmorPenPercent = source.armorPenPercent
-  local ArmorPenFlat = (0.4 + target.levelData.lvl / 30) * source.armorPen
-  local BonusArmorPen = source.bonusArmorPenPercent
 
-  if source.type == Obj_AImath.minion then
-    ArmorPenPercent = 1
-    ArmorPenFlat = 0
-    BonusArmorPen = 1
-  elseif source.type == Obj_AI_Turret then
-    ArmorPenFlat = 0
-    BonusArmorPen = 1
-    if source.charName:find("3") or source.charName:find("4") then
-      ArmorPenPercent = 0.25
-    else
-      ArmorPenPercent = 0.7
-    end
-  end
-
-  if source.type == Obj_AI_Turret then
-    if target.type == Obj_AImath.minion then
-      amount = amount * 1.25
-      if string.ends(target.charName, "MinionSiege") then
-        amount = amount * 0.7
-      end
-      return amount
-    end
-  end
-
-  local armor = target.armor
-  local bonusArmor = target.bonusArmor
-  local value = 100 / (100 + (armor * ArmorPenPercent) - (bonusArmor * (1 - BonusArmorPen)) - ArmorPenFlat)
-
-  if armor < 0 then
-    value = 2 - 100 / (100 - armor)
-  elseif (armor * ArmorPenPercent) - (bonusArmor * (1 - BonusArmorPen)) - ArmorPenFlat < 0 then
-    value = 1
-  end
-  return math.max(0, math.floor(DamageReductionMod(source, target, PassivePercentMod(source, target, value) * amount, 1)))
-end
-
-local function CalcMagicalDamage(source, target, amount)
-  local mr = target.magicResist
-  local value = 100 / (100 + (mr * source.magicPenPercent) - source.magicPen)
-
-  if mr < 0 then
-    value = 2 - 100 / (100 - mr)
-  elseif (mr * source.magicPenPercent) - source.magicPen < 0 then
-    value = 1
-  end
-  return math.max(0, math.floor(DamageReductionMod(source, target, PassivePercentMod(source, target, value) * amount, 2)))
-end
 
 keybindings = { [ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6}
 local function GetInventorySlotItem(itemID)
@@ -604,6 +553,29 @@ local function EnableOrb()
 		_G.SDK.Orbwalker:SetMovement(true)
 		_G.SDK.Orbwalker:SetAttack(true)	
 		end
+end
+
+
+
+function CalcPhysicalDamage(target, damage)
+	local targetArmor = target.armor * myHero.armorPenPercent - myHero.armorPen
+	local damageReduction = 100 / ( 100 + targetArmor)
+	if targetArmor < 0 then
+		damageReduction = 2 - (100 / (100 - targetArmor))
+	end		
+	damage = damage * damageReduction	
+	return damage
+end
+
+function CalcMagicalDamage(target, damage)
+	local targetMR = target.magicResist * myHero.magicPenPercent - myHero.magicPen
+	local damageReduction = 100 / ( 100 + targetMR)
+	if targetMR < 0 then
+		damageReduction = 2 - (100 / (100 - targetMR))
+	end		
+	damage = damage * damageReduction
+	
+	return damage
 end
 
 local function GetPercentHP(unit)
@@ -9393,9 +9365,7 @@ class "Tristana"
 if FileExist(COMMON_PATH .. "Collision.lua") then
 	require 'Collision'
 end
-if FileExist(COMMON_PATH .. "DamageLib.lua") then
-	require 'DamageLib'
-end
+
 
 function Tristana:CheckSpell(range)
     local target
@@ -9824,7 +9794,7 @@ class "Veigar"
 
 
 
-require "DamageLib"
+
 require "Collision"
 
 
@@ -10228,7 +10198,7 @@ class "Warwick"
 
 
 
-require "DamageLib"
+
 
 local barHeight = 8
 local barWidth = 103
@@ -12924,9 +12894,9 @@ function getdmg(spell,target,source,stage,level)
         local spells = swagtable[v]
         if spells.Stage == stage then
           if spells.DamageType == 1 then
-            return CalcPhysicalDamage(source, target, spells.Damage(source, target, level))
+            return CalPhysicalDamage(source, target, spells.Damage(source, target, level))
           elseif spells.DamageType == 2 then
-            return CalcMagicalDamage(source, target, spells.Damage(source, target, level))
+            return CalMagicalDamage(source, target, spells.Damage(source, target, level))
           elseif spells.DamageType == 3 then
             return spells.Damage(source, target, level)
           end
@@ -12935,7 +12905,7 @@ function getdmg(spell,target,source,stage,level)
     end
   end
   if spell == "AA" then
-    return CalcPhysicalDamage(source, target, source.totalDamage)
+    return CalPhysicalDamage(source, target, source.totalDamage)
   end
   if spell == "IGNITE" then
     return 50+20*source.levelData.lvl - (target.hpRegen*3)
@@ -12954,13 +12924,67 @@ function getdmg(spell,target,source,stage,level)
     end
   end
   if spell == "BILGEWATER" then
-    return CalcMagicalDamage(source, target, 100)
+    return CalMagicalDamage(source, target, 100)
   end
   if spell == "BOTRK" then
-    return CalcPhysicalDamage(source, target, target.maxHealth*0.1)
+    return CalPhysicalDamage(source, target, target.maxHealth*0.1)
   end
   if spell == "HEXTECH" then
-    return CalcMagicalDamage(source, target, 150+0.4*source.ap)
+    return CalMagicalDamage(source, target, 150+0.4*source.ap)
   end
   return 0
 end
+
+function CalPhysicalDamage(source, target, amount)
+  local ArmorPenPercent = source.armorPenPercent
+  local ArmorPenFlat = (0.4 + target.levelData.lvl / 30) * source.armorPen
+  local BonusArmorPen = source.bonusArmorPenPercent
+
+  if source.type == Obj_AImath.minion then
+    ArmorPenPercent = 1
+    ArmorPenFlat = 0
+    BonusArmorPen = 1
+  elseif source.type == Obj_AI_Turret then
+    ArmorPenFlat = 0
+    BonusArmorPen = 1
+    if source.charName:find("3") or source.charName:find("4") then
+      ArmorPenPercent = 0.25
+    else
+      ArmorPenPercent = 0.7
+    end
+  end
+
+  if source.type == Obj_AI_Turret then
+    if target.type == Obj_AImath.minion then
+      amount = amount * 1.25
+      if string.ends(target.charName, "MinionSiege") then
+        amount = amount * 0.7
+      end
+      return amount
+    end
+  end
+
+  local armor = target.armor
+  local bonusArmor = target.bonusArmor
+  local value = 100 / (100 + (armor * ArmorPenPercent) - (bonusArmor * (1 - BonusArmorPen)) - ArmorPenFlat)
+
+  if armor < 0 then
+    value = 2 - 100 / (100 - armor)
+  elseif (armor * ArmorPenPercent) - (bonusArmor * (1 - BonusArmorPen)) - ArmorPenFlat < 0 then
+    value = 1
+  end
+  return math.max(0, math.floor(DamageReductionMod(source, target, PassivePercentMod(source, target, value) * amount, 1)))
+end
+
+function CalMagicalDamage(source, target, amount)
+  local mr = target.magicResist
+  local value = 100 / (100 + (mr * source.magicPenPercent) - source.magicPen)
+
+  if mr < 0 then
+    value = 2 - 100 / (100 - mr)
+  elseif (mr * source.magicPenPercent) - source.magicPen < 0 then
+    value = 1
+  end
+  return math.max(0, math.floor(DamageReductionMod(source, target, PassivePercentMod(source, target, value) * amount, 2)))
+end
+
