@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 0.4
+    local Version = 0.5
     
     local Files = {
         Lua = {
@@ -1087,8 +1087,8 @@ function Activator:LoadMenu()
     self.Menu.ZS.self:MenuElement({id = "Edge", name = "Edge of Night", value = true, leftIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/6/69/Edge_of_Night_item.png"})	
 	self.Menu.ZS.self:MenuElement({id = "EdgeHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 
-    self.Menu.ZS.self:MenuElement({id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "
-	://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3190.png"})	
+    self.Menu.ZS.self:MenuElement({id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3190.png"})
+	
 	self.Menu.ZS.self:MenuElement({id = "IronHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 	
     self.Menu.ZS.self:MenuElement({id = "Red", name = "Redemption", value = true, leftIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/9/94/Redemption_item.png"})
@@ -5960,7 +5960,7 @@ function Nidalee:LoadMenu()
 
 	--Prediction
 	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q Human]", value = 2,, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q Human]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 	self.Menu.Pred:MenuElement({id = "PredW1", name = "Hitchance[W Human]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 	self.Menu.Pred:MenuElement({id = "PredW2", name = "Hitchance[W Cougar]", value = 2, drop = {"Normal", "High", "Immobile"}})
 end
