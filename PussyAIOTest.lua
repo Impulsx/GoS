@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 0.3
+    local Version = 0.4
     
     local Files = {
         Lua = {
@@ -1075,22 +1075,23 @@ function Activator:LoadMenu()
     self.Menu:MenuElement({id = "ZS", name = "MyHero Shield+Heal Items", type = MENU})
     self.Menu.ZS:MenuElement({id = "self", name = "MyHero Shield+Heal Items", type = MENU})	
 
-    self.Menu.ZS.self:MenuElement({id = "UseZ", name = "Zhonya's", value = true, leftIcon = "https://de.share-your-photo.com/img/76fbcec284.jpg"})
+    self.Menu.ZS.self:MenuElement({id = "UseZ", name = "Zhonya's", value = true, leftIcon = "http://de.share-your-photo.com/img/76fbcec284.jpg"})
 	self.Menu.ZS.self:MenuElement({id = "myHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 
-    self.Menu.ZS.self:MenuElement({id = "UseS", name = "Stopwatch", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e6/Stopwatch_item.png"})
+    self.Menu.ZS.self:MenuElement({id = "UseS", name = "Stopwatch", value = true, leftIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/e/e6/Stopwatch_item.png"})
  	self.Menu.ZS.self:MenuElement({id = "myHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})   
 
 	self.Menu.ZS.self:MenuElement({id = "Sera", name = "Seraphs Embrace", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3040.png"})	
 	self.Menu.ZS.self:MenuElement({id = "SeraHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 
-    self.Menu.ZS.self:MenuElement({id = "Edge", name = "Edge of Night", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/6/69/Edge_of_Night_item.png"})	
+    self.Menu.ZS.self:MenuElement({id = "Edge", name = "Edge of Night", value = true, leftIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/6/69/Edge_of_Night_item.png"})	
 	self.Menu.ZS.self:MenuElement({id = "EdgeHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 
-    self.Menu.ZS.self:MenuElement({id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3190.png"})	
+    self.Menu.ZS.self:MenuElement({id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "
+	://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3190.png"})	
 	self.Menu.ZS.self:MenuElement({id = "IronHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 	
-    self.Menu.ZS.self:MenuElement({id = "Red", name = "Redemption", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/94/Redemption_item.png"})
+    self.Menu.ZS.self:MenuElement({id = "Red", name = "Redemption", value = true, leftIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/9/94/Redemption_item.png"})
 	self.Menu.ZS.self:MenuElement({id = "RedHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})	
 
 	self.Menu.ZS.self:MenuElement({id = "Mira", name = "Mercurial Scimittar[AntiCC]", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3139.png"})    
@@ -1103,7 +1104,7 @@ function Activator:LoadMenu()
 	
 	self.Menu.ZS:MenuElement({id = "ally", name = "Ally Shield+Heal Items", type = MENU})
  
-    self.Menu.ZS.ally:MenuElement({id = "Red", name = "Redemption", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/94/Redemption_item.png"})
+    self.Menu.ZS.ally:MenuElement({id = "Red", name = "Redemption", value = true, leftIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/9/94/Redemption_item.png"})
 	self.Menu.ZS.ally:MenuElement({id = "allyHP", name = "[AllyHP]", value = 30, min = 0, max = 100, step = 1, identifier = "%"}) 
  
 	self.Menu.ZS.ally:MenuElement({id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3190.png"})	
@@ -1115,20 +1116,20 @@ function Activator:LoadMenu()
 
     self.Menu:MenuElement({id = "Dmg", name = "TargetItems[ComboMode]", type = MENU})
 	
- 	self.Menu.Dmg:MenuElement({id = "Spell", name = "Spellbinder", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/0f/Spellbinder_item.png"})    
+ 	self.Menu.Dmg:MenuElement({id = "Spell", name = "Spellbinder", value = true, leftIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/0/0f/Spellbinder_item.png"})    
 	self.Menu.Dmg:MenuElement({id = "Tia", name = "Tiamat", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3077.png"})    
-    self.Menu.Dmg:MenuElement({id = "Rave", name = "Ravenous Hydra", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e8/Ravenous_Hydra_item.png"})    
-    self.Menu.Dmg:MenuElement({id = "Tita", name = "Titanic Hydra", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/2/22/Titanic_Hydra_item.png"})    
+    self.Menu.Dmg:MenuElement({id = "Rave", name = "Ravenous Hydra", value = true, leftIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/e/e8/Ravenous_Hydra_item.png"})    
+    self.Menu.Dmg:MenuElement({id = "Tita", name = "Titanic Hydra", value = true, leftIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/2/22/Titanic_Hydra_item.png"})    
 	self.Menu.Dmg:MenuElement({id = "Blade", name = "Blade of the Ruined King", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3153.png"})
  	self.Menu.Dmg:MenuElement({id = "Bilg", name = "Bilgewater Cutlass", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3144.png"})
- 	self.Menu.Dmg:MenuElement({id = "Glp", name = "Hextech GLP-800", value = true, leftIcon = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/c/c9/Hextech_GLP-800_item.png"})
- 	self.Menu.Dmg:MenuElement({id = "Gun", name = "Hextech Gunblade", value = true, leftIcon = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/6/64/Hextech_Gunblade_item.png"})
- 	self.Menu.Dmg:MenuElement({id = "Proto", name = "Hextech Protobelt-01", value = true, leftIcon = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/8/8d/Hextech_Protobelt-01_item.png"})
- 	self.Menu.Dmg:MenuElement({id = "Omen", name = "Randuin's Omen", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/08/Randuin%27s_Omen_item.png"})	
+ 	self.Menu.Dmg:MenuElement({id = "Glp", name = "Hextech GLP-800", value = true, leftIcon = "http://vignette4.wikia.nocookie.net/leagueoflegends/images/c/c9/Hextech_GLP-800_item.png"})
+ 	self.Menu.Dmg:MenuElement({id = "Gun", name = "Hextech Gunblade", value = true, leftIcon = "http://vignette4.wikia.nocookie.net/leagueoflegends/images/6/64/Hextech_Gunblade_item.png"})
+ 	self.Menu.Dmg:MenuElement({id = "Proto", name = "Hextech Protobelt-01", value = true, leftIcon = "http://vignette2.wikia.nocookie.net/leagueoflegends/images/8/8d/Hextech_Protobelt-01_item.png"})
+ 	self.Menu.Dmg:MenuElement({id = "Omen", name = "Randuin's Omen", value = true, leftIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/0/08/Randuin%27s_Omen_item.png"})	
  	self.Menu.Dmg:MenuElement({id = "Ocount", name = "Auto Randuin's Omen[Targets]", value = 3, min = 1, max = 5, step = 1})	
 	self.Menu.Dmg:MenuElement({id = "Glory", name = "Righteous Glory", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3800.png"})
  	self.Menu.Dmg:MenuElement({id = "Gcount", name = "Auto Righteous Glory[Targets]", value = 3, min = 1, max = 5, step = 1})	
- 	self.Menu.Dmg:MenuElement({id = "Twin", name = "Twin Shadows", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/4/4b/Twin_Shadows_item.png"})
+ 	self.Menu.Dmg:MenuElement({id = "Twin", name = "Twin Shadows", value = true, leftIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/4/4b/Twin_Shadows_item.png"})
 	self.Menu.Dmg:MenuElement({id = "minRange", name = "Twin Shadows[MinCastDistance]", value = 500, min = 100, max = 2000, step = 50})	
 	self.Menu.Dmg:MenuElement({id = "maxRange", name = "Twin Shadows[MaxCastDistance]", value = 2500, min = 500, max = 4000, step = 50})
 
@@ -1662,11 +1663,11 @@ function Ahri:CalculateEndPos(startPos, placementPos, unitPos, range, radius, co
 	return endPos, range
 end
 
-local HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/aa/Star_Guardian_Ahri_profileicon.png"
-local QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/1/19/Orb_of_Deception.png"
-local WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/a8/Fox-Fire.png"
-local EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/04/Charm.png"
-local RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/8/86/Spirit_Rush.png"
+local HeroIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/a/aa/Star_Guardian_Ahri_profileicon.png"
+local QIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/1/19/Orb_of_Deception.png"
+local WIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/a/a8/Fox-Fire.png"
+local EIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/0/04/Charm.png"
+local RIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/8/86/Spirit_Rush.png"
 
 function Ahri:LoadMenu()
 	--MainMenu
@@ -3538,17 +3539,17 @@ function Kassadin:LoadSpells()
 end
 
 local Icons = {
-["Kassadin"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/PussyKassadinScriptLogo.png",
-["Combo"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ComboScriptLogo.png",
-["BlockSpells"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/BlockSpellsScriptLogo.png",
-["Escape"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/EscapeScriptLogo.png",
-["Harass"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/HarassScriptLogo.png",
-["Clear"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/Clear%2BLasthitScriptLogo.png",
-["JClear"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/JungleClearScriptLogo.png",
-["Activator"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png",
-["Drawings"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/DrawingsScriptLogo.png",
-["ks"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/KillStealScriptLogo.png",
-["Pred"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/PredScriptLogo.png"
+["Kassadin"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/PussyKassadinScriptLogo.png",
+["Combo"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ComboScriptLogo.png",
+["BlockSpells"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/BlockSpellsScriptLogo.png",
+["Escape"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/EscapeScriptLogo.png",
+["Harass"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/HarassScriptLogo.png",
+["Clear"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/Clear%2BLasthitScriptLogo.png",
+["JClear"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/JungleClearScriptLogo.png",
+["Activator"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png",
+["Drawings"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/DrawingsScriptLogo.png",
+["ks"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/KillStealScriptLogo.png",
+["Pred"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/PredScriptLogo.png"
 }
 
 
@@ -5049,14 +5050,14 @@ end
 
 local Icons = {
 
-["Combo"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ComboScriptLogo.png",
-["Escape"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/EscapeScriptLogo.png",
-["Harass"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/HarassScriptLogo.png",
-["Clear"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/Clear%2BLasthitScriptLogo.png",
-["JClear"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/JungleClearScriptLogo.png",
-["Activator"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png",
-["Drawings"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/DrawingsScriptLogo.png",
-["ks"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/KillStealScriptLogo.png"
+["Combo"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ComboScriptLogo.png",
+["Escape"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/EscapeScriptLogo.png",
+["Harass"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/HarassScriptLogo.png",
+["Clear"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/Clear%2BLasthitScriptLogo.png",
+["JClear"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/JungleClearScriptLogo.png",
+["Activator"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png",
+["Drawings"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/DrawingsScriptLogo.png",
+["ks"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/KillStealScriptLogo.png"
 }
 
 
@@ -9447,7 +9448,7 @@ function Tristana:__init()
 	end
 end
 
-local HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/06/TristanaSquare.png"
+local HeroIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/0/06/TristanaSquare.png"
 
 function Tristana:LoadSpells()
 
