@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 0.6
+    local Version = 0.7
     
     local Files = {
         Lua = {
@@ -4342,20 +4342,20 @@ function Malzahar:KillSteal()
 		end
 		if self.Menu.ks.full:Value() and ready then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if (fullDmg + IGdamage) >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
-				DelayAction(function()
+			if fullDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+
 				Control.CastSpell(HK_E, target)				
 				Control.CastSpell(HK_Q, pred.CastPosition)
 				Control.CastSpell(HK_W, target.pos)
 				Control.CastSpell(HK_R, target)
-				end, 0.05)
+
 			elseif fullDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
-				DelayAction(function()
+
 				Control.CastSpell(HK_E, target)				
 				Control.CastSpell(HK_Q, pred.CastPosition)
 				Control.CastSpell(HK_W, target.pos)
 				Control.CastSpell(HK_R, target)
-				end, 0.05)	
+
 			end
 		end
 	end
