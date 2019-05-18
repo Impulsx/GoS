@@ -1,10 +1,10 @@
-local Heroes = {"Rakan","Nidalee","Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
+local Heroes = {"Yuumi","Rakan","Nidalee","Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
 if not table.contains(Heroes, myHero.charName) then return end
 
 
 do
     
-    local Version = 0.21
+    local Version = 0.22
     
     local Files = {
         Lua = {
@@ -48,6 +48,7 @@ do
     AutoUpdate()
 
 end 
+
 
 function OnLoad()
 	if table.contains(Heroes, myHero.charName) then _G[myHero.charName]() end
@@ -12807,6 +12808,347 @@ if myHero.dead then return end
 end	
 
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+class "Yuumi"
+
+
+
+if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+	print("GsoPred. installed Press 2x F6")
+	DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-External/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
+	while not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") do end
+end
+    
+require('GamsteronPrediction')
+
+
+
+local QData =
+{
+Type = _G.SPELLTYPE_LINE, Delay = 0.5, Radius = 65, Range = 1150, Speed = 100, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
+}
+
+
+function Yuumi:__init()
+	self.DetectedMissiles = {}; self.DetectedSpells = {}; self.Target = nil; self.Timer = 0
+	if menu ~= 1 then return end
+	menu = 2   	
+	self:LoadMenu()                                            
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end) 
+	if _G.EOWLoaded then
+		Orb = 1
+	elseif _G.SDK and _G.SDK.Orbwalker then
+		Orb = 2
+	elseif _G.gsoSDK then
+		Orb = 4			
+	end
+end
+
+
+function Yuumi:LoadMenu()                     
+	--MainMenu
+	self.Menu = MenuElement({type = MENU, id = "Yuumi", name = "PussyYuumi"})
+
+	--AutoW
+	self.Menu:MenuElement({type = MENU, id = "AutoW", name = "Auto[W]"})
+	self.Menu.AutoW:MenuElement({id = "UseW", name = "[W]Safe self[Auto search Tankist Ally]", value = true})
+	self.Menu.AutoW:MenuElement({id = "myHP", name = "MinHP self for search Ally", value = 30, min = 0, max = 100, identifier = "%"})
+	self.Menu.AutoW:MenuElement({id = "SwitchW", name = "[W]Auto Switch Ally", value = true})
+	self.Menu.AutoW:MenuElement({id = "AllyHP", name = "MinHP BoundedAlly to switch", value = 10, min = 0, max = 100, identifier = "%"})
+
+
+
+	--AutoE
+	self.Menu:MenuElement({type = MENU, id = "AutoE", name = "Auto[E]"})
+	self.Menu.AutoE:MenuElement({id = "UseEself", name = "[E]Auto Heal self", value = true})
+	self.Menu.AutoE:MenuElement({id = "myHP", name = "MinHP Self to Heal", value = 30, min = 0, max = 100, identifier = "%"})
+	self.Menu.AutoE:MenuElement({id = "UseEally", name = "[W]+[E]Auto Heal Ally", value = true})
+	self.Menu.AutoE:MenuElement({id = "AllyHP", name = "MinHP Ally to Heal", value = 70, min = 0, max = 100, identifier = "%"})	
+	
+	--AutoR on Immobile
+	self.Menu:MenuElement({type = MENU, id = "AutoR", name = "AutoR on Immobile"})
+	self.Menu.AutoR:MenuElement({id = "UseR", name = "[R]", value = true})
+	self.Menu.AutoR:MenuElement({id = "UseRE", name = "Use[R]min Immobile Targets", value = 2, min = 1, max = 5})	
+	
+	
+	--ComboMenu  
+	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})	
+	self.Menu.Combo:MenuElement({id = "UseQAlly", name = "[Q]if Bounded Ally[in work]", value = false})	
+	self.Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})
+	self.Menu.Combo:MenuElement({id = "UseRE", name = "Use [R] min Targets", value = 3, min = 1, max = 5})	
+	
+
+	--HarassMenu
+	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
+	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})
+	self.Menu.Harass:MenuElement({id = "UseQAlly", name = "[Q]if Bounded Ally[in work]", value = false})	
+	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
+  
+	--LaneClear Menu
+	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})	
+	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})		  	
+	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
+  
+	--JungleClear
+	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JClear"})
+	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})         	
+	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
+ 
+	--KillSteal
+	self.Menu:MenuElement({type = MENU, id = "ks", name = "ks"})
+	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})	
+	self.Menu.ks:MenuElement({id = "UseQAlly", name = "[Q]if Bounded Ally[in work]", value = true})	
+	self.Menu.ks:MenuElement({id = "UseR", name = "[R]if not Bounded Ally", value = true})	
+	self.Menu.ks:MenuElement({id = "UseRAlly", name = "[R]if Bounded Ally", value = true})
+	self.Menu.ks:MenuElement({id = "UseWR", name = "[W]+[R]if Killable Enemy in Ally range", value = true})	
+
+	--Drawing 
+	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
+	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
+	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
+	
+	
+end
+
+function Yuumi:Tick()
+if myHero.dead == false and Game.IsChatOpen() == false then
+local Mode = GetMode()
+	if Mode == "Combo" then
+		self:Combo()
+	elseif Mode == "Harass" then
+		self:Harass()
+	elseif Mode == "Clear" then
+		self:Clear()
+		self:JungleClear()
+	elseif Mode == "Flee" then
+		
+	end	
+	self:KillSteal()
+	self:AutoE()
+	self:AutoW()
+	self:AutoR()
+	
+
+end
+end 
+
+
+
+function Yuumi:GetTankAlly(pos, range)
+local Allys = GetAllyHeroes()
+local bestAlly, highest = nil, 0
+local pos = pos.pos
+local Range = range * range
+
+for i = 1, #Allys do
+    local ally = Allys[i]
+    local amount = ally.armor + ally.magicResist + ally.health
+	if GetDistanceSqr(pos, ally.pos) < Range then
+		if amount > highest then
+			highest = amount
+			bestAlly = ally
+		end	
+    end
+end
+
+return bestAlly
+end
+
+function Yuumi:AutoR()
+	if self.Menu.AutoR.UseR:Value() and Ready(_R) then 
+		if myHero.pos:DistanceTo(target.pos) <= 1100 and GetImmobileCount(300, target) >= self.Menu.AutoR.UseRE:Value() then
+			if GotBuff(Ally, "YuumiWAlly") == 0 then   
+				Control.CastSpell(HK_R, target.pos)
+			end
+			if GotBuff(Ally, "YuumiWAlly") > 0 then   
+				Control.CastSpell(HK_R, target.pos)
+			end
+		end
+	end
+end	
+
+function Yuumi:AutoE()
+	for i, Ally in pairs(GetAllyHeroes()) do	
+		if self.Menu.AutoE.UseEself:Value() and Ready(_E) and GotBuff(Ally, "YuumiWAlly") == 0 then
+			if myHero.health/myHero.maxHealth <= self.Menu.AutoE.myHP:Value() / 100 then
+				Control.CastSpell(HK_E)
+			end
+		end
+		if IsValid(Ally,1000) then	
+			if self.Menu.AutoE.UseEally:Value() and Ready(_E) then
+				if myHero.pos:DistanceTo(Ally.pos) <= 700 and Ally.health/Ally.maxHealth <= self.Menu.AutoE.AllyHP:Value() / 100 then
+					if Ready(_W) and GotBuff(Ally, "YuumiWAlly") == 0 then   
+						Control.CastSpell(HK_W, Ally)	
+					end
+				end
+				if GotBuff(Ally, "YuumiWAlly") > 0 and Ally.health/Ally.maxHealth <= self.Menu.AutoE.AllyHP:Value() / 100 then 	
+					Control.CastSpell(HK_E)
+				end
+			end
+		end
+	end
+end
+
+
+
+function Yuumi:AutoW()
+	for i, Ally in pairs(GetAllyHeroes()) do
+	local BoundAlly = GotBuff(Ally, "YuumiWAlly")	
+	local bestAlly = self:GetTankAlly(myHero, 700)	
+		if IsValid(Ally,1000) then	
+			
+			if self.Menu.AutoW.UseW:Value() and Ready(_W) and GotBuff(Ally, "YuumiWAlly") == 0 then
+				if myHero.health/myHero.maxHealth <= self.Menu.AutoW.myHP:Value() / 100 then
+					if bestAlly then 
+						Control.CastSpell(HK_W, bestAlly)
+					end
+				end
+			end	
+			if self.Menu.AutoW.SwitchW:Value() and Ready(_W) and GotBuff(Ally, "YuumiWAlly") > 0 then  
+				if BoundAlly and Ally.health/Ally.maxHealth <= self.Menu.AutoW.AllyHP:Value() / 100 then
+					if bestAlly	then 
+						Control.CastSpell(HK_W, bestAlly)
+					end
+				end
+			end			
+		end	
+	end
+end	
+
+			
+function Yuumi:Draw()
+  if myHero.dead then return end
+	if self.Menu.Drawing.DrawR:Value() and Ready(_R) then
+    Draw.Circle(myHero, 1100, 1, Draw.Color(255, 225, 255, 10))
+	end                                                 
+	if self.Menu.Drawing.DrawQ:Value() and Ready(_Q) then
+    Draw.Circle(myHero, 1150, 1, Draw.Color(225, 225, 0, 10))
+	end
+	if self.Menu.Drawing.DrawW:Value() and Ready(_W) then
+    Draw.Circle(myHero, 700, 1, Draw.Color(225, 225, 125, 10))
+	end
+end
+       
+function Yuumi:KillSteal()	
+	local target = GetTarget(2000)     	
+	if target == nil then return end
+	local hp = target.health
+	local QDmg = getdmg("Q", target, myHero)
+	local RDmg = getdmg("R", target, myHero)
+	for i, Ally in pairs(GetAllyHeroes()) do
+	if IsValid(target,2000) then	
+		
+		if self.Menu.ks.UseQ:Value() and Ready(_Q) and GotBuff(Ally, "YuumiWAlly") == 0 then
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1150 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end
+		end
+		if self.Menu.ks.UseR:Value() and Ready(_R) and GotBuff(Ally, "YuumiWAlly") == 0 then
+			if RDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1100 then			
+				Control.CastSpell(HK_R, target.pos)
+	
+			end
+		end
+		if IsValid(Ally,1000) then
+		if self.Menu.ks.UseRAlly:Value() and Ready(_R) and GotBuff(Ally, "YuumiWAlly") > 0 then 
+			if RDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1100 then			
+				Control.CastSpell(HK_R, target.pos)
+	
+			end
+		end	
+		if self.Menu.ks.UseWR:Value() and RDmg >= hp then 
+			if myHero.pos:DistanceTo(Ally.pos) <= 700 and myHero.pos:DistanceTo(Ally.pos) <= myHero.pos:DistanceTo(target.pos) then			
+				if Ally.pos:DistanceTo(target.pos) <= 1100 and Ready(_W) and Ready(_R) then
+					Control.CastSpell(HK_W, Ally)
+				end
+			end
+			if myHero.pos:DistanceTo(target.pos) <= 1100 and Ready(_R) and GotBuff(Ally, "YuumiWAlly") > 0 then 
+				Control.CastSpell(HK_R, target.pos)
+			end
+		end
+		end
+	end
+	end
+end	
+
+function Yuumi:Combo()
+local target = GetTarget(1200)
+if target == nil then return end
+for i, Ally in pairs(GetAllyHeroes()) do	
+	if IsValid(target,1200) then		
+		
+		if self.Menu.Combo.UseQ:Value() and Ready(_Q) and GotBuff(Ally, "YuumiWAlly") == 0 then 
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 1150 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end	
+		end
+		
+		if self.Menu.Combo.UseR:Value() and Ready(_R) then 
+			if myHero.pos:DistanceTo(target.pos) <= 1100 and GetEnemyCount(300, target) >= self.Menu.Combo.UseRE:Value() then
+				if GotBuff(Ally, "YuumiWAlly") == 0 then   
+					Control.CastSpell(HK_R, target.pos)
+				end
+				if GotBuff(Ally, "YuumiWAlly") > 0 then   
+					Control.CastSpell(HK_R, target.pos)
+				end
+			end
+		end
+	end
+end
+end	
+
+function Yuumi:Harass()
+local target = GetTarget(1200)
+if target == nil then return end
+for i, Ally in pairs(GetAllyHeroes()) do	
+	if IsValid(target,1200) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
+		
+		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and GotBuff(Ally, "YuumiWAlly") == 0 then 
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 1150 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end
+		end
+	end
+end
+end	
+
+function Yuumi:Clear()
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+
+		if IsValid(minion, 1200) and minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
+			
+			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 1150 and self.Menu.Clear.UseQ:Value() then
+				Control.CastSpell(HK_Q, minion.pos)
+			end	  
+		end
+	end
+end
+
+function Yuumi:JungleClear()
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)	
+
+		if IsValid(minion, 1200) and minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
+			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 1150 and self.Menu.JClear.UseQ:Value() then
+				Control.CastSpell(HK_Q, minion.pos)
+			end 
+		end
+	end
+end
+
+
+
+
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -13507,6 +13849,11 @@ local DamageLibTable = {
 	{Slot = "R", Stage = 84, DamageType = 2, Damage = function(source, target, level) return ({70, 105, 140})[level] + 0.5 * source.ap end},--Xayah
 	{Slot = "R", Stage = 85, DamageType = 2, Damage = function(source, target, level) return ({140, 210, 280})[level] + 0.75 * source.ap end},--Yasuo
   },
+	["Yuumi"] = {  
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 65, 90, 115, 140,165})[level] + 0.45 * source.ap end},
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({240, 400, 560})[level] + 0.8 * source.ap end},
+
+  },  
 	["Zyra"] = {  
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 95, 130, 165, 200})[level] + 0.6 * source.ap end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 105, 150, 195, 240})[level] + 0.5 * source.ap end},
