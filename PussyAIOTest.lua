@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 0.9
+    local Version = 1.0
     
     local Files = {
         Lua = {
@@ -44,12 +44,15 @@ do
         else
             print(Files.Version.Name .. ": No Updates Found")
         end
-    
-    end
-    
-    AutoUpdate()
-
+		local function OnDraw()
+			if NewVersion > Version then
+				Draw.Text("New PussyAIO Version Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+			end			
+		end		
+	end
+	AutoUpdate()
 end 
+
 
 
 function OnLoad()
@@ -6296,8 +6299,9 @@ function Rakan:LoadMenu()
 	--MainMenu
 	self.Menu = MenuElement({type = MENU, id = "Rakan", name = "PussyRakan"})
 
-	--AutoQ
+	--AutoE
 	self.Menu:MenuElement({type = MENU, id = "AutoE", name = "Auto[E]Shield Ally"})
+	self.Menu.AutoE:MenuElement({id = "ally", name = "AutoE Immobile Ally",value = true})
 	self.Menu.AutoE:MenuElement({id = "E", name = "Auto E Toggle Key", key = 84, toggle = true})
 	self.Menu.AutoE:MenuElement({id = "HP", name = "Min AllyHP", value = 30, min = 0, max = 100, identifier = "%"})
 	self.Menu.AutoE:MenuElement({id = "Targets", name = "Ally Settings", type = MENU})
@@ -6367,6 +6371,7 @@ function Rakan:Tick()
 
 	self:KillSteal()
 	self:AutoE()
+	self:AutoCCE()
 
 	
 	end
@@ -6405,6 +6410,19 @@ function Rakan:Draw()
 	end
 			
 end	
+
+function Rakan:AutoCCE()
+	for i = 1, Game.HeroCount() do
+	local ally = Game.Hero(i)
+		if ally.isAlly and ally ~= myHero then
+			if IsValid(ally) then 
+				if self.Menu.AutoE.ally:Value() and Ready(_E) and myHero.pos:DistanceTo(ally.pos) <= 700 and IsImmobileTarget(ally) then
+					Control.CastSpell(HK_E, ally.pos)
+				end
+			end
+		end
+	end
+end
 
 
 function Rakan:AutoE()
