@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 0.8
+    local Version = 0.9
     
     local Files = {
         Lua = {
@@ -6298,7 +6298,7 @@ function Rakan:LoadMenu()
 
 	--AutoQ
 	self.Menu:MenuElement({type = MENU, id = "AutoE", name = "Auto[E]Shield Ally"})
-	self.Menu.AutoE:MenuElement({id = "UseE", name = "[E]", value = true})
+	self.Menu.AutoE:MenuElement({id = "E", name = "Auto E Toggle Key", key = 84, toggle = true})
 	self.Menu.AutoE:MenuElement({id = "HP", name = "Min AllyHP", value = 30, min = 0, max = 100, identifier = "%"})
 	self.Menu.AutoE:MenuElement({id = "Targets", name = "Ally Settings", type = MENU})
 	for i, Hero in pairs(GetAllyHeroes()) do
@@ -6398,6 +6398,12 @@ function Rakan:Draw()
 	if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 	end	
+	if self.Menu.AutoE.E:Value() then 
+		Draw.Text("Auto E ON", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 000, 255, 000))
+	else
+		Draw.Text("Auto E OFF", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 220, 050, 000)) 
+	end
+			
 end	
 
 
@@ -6406,7 +6412,7 @@ function Rakan:AutoE()
 	local ally = Game.Hero(i)
 		if ally.isAlly and ally ~= myHero then
 			if IsValid(ally) and GotBuff(ally, "RakanEShield") == 0 then 
-				if self.Menu.AutoE.UseE:Value() and self.Menu.AutoE.Targets[ally.charName] and self.Menu.AutoE.Targets[ally.charName]:Value() and Ready(_E) and ally.health/ally.maxHealth < self.Menu.AutoE.HP:Value()/100 then
+				if self.Menu.AutoE.E:Value() and self.Menu.AutoE.Targets[ally.charName] and self.Menu.AutoE.Targets[ally.charName]:Value() and Ready(_E) and ally.health/ally.maxHealth < self.Menu.AutoE.HP:Value()/100 then
 					if ally.charName == "Xayah" and myHero.pos:DistanceTo(ally.pos) <= 1000 then
 						Control.CastSpell(HK_E, ally.pos)
 					elseif ally.charName ~= "Xayah" and myHero.pos:DistanceTo(ally.pos) <= 700 then
