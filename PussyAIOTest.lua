@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 1.0
+    local Version = 1.1
     
     local Files = {
         Lua = {
@@ -43,12 +43,7 @@ do
             print("New PussyAIO Version Press 2x F6")
         else
             print(Files.Version.Name .. ": No Updates Found")
-        end
-		local function OnDraw()
-			if NewVersion > Version then
-				Draw.Text("New PussyAIO Version Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
-			end			
-		end		
+        end	
 	end
 	AutoUpdate()
 end 
@@ -6983,7 +6978,7 @@ end
 
 function Sona:AutoW()
 	if (not Ready(_W) or not self.Menu.Wset.AutoW:Value())then return end
-	for i, ally in pairs(self.Allies) do
+	for i, ally in pairs(GetAllyHeroes()) do
 		if isValidTarget(ally,W.range) then
 			if not ally.isMe then
 				if ally.health/ally.maxHealth  < self.Menu.Wset.AllyHp:Value()/100 then
@@ -7009,8 +7004,8 @@ if (not Ready(_R) or not self.Menu.Rset.AutoR:Value())then return end
 local target = GetTarget(1000)     	
 if target == nil then return end
 	if IsValid(target) then		
-		for i, ally in pairs(self.Allies) do
-			if (ally.health/ally.maxHealth  < self.Menu.Rset.AllyHp:Value()/100) and (EnemiesNear(ally.pos,500) > 0) and myHero.pos:DistanceTo(target.pos) <= 900 then
+		for i, ally in pairs(GetAllyHeroes()) do
+			if (ally.health/ally.maxHealth  < self.Menu.Rset.AllyHp:Value()/100) and (CountEnemiesNear(ally, 500) > 0) and myHero.pos:DistanceTo(target.pos) <= 900 then
 				Control.CastSpell(HK_R,target.pos)
 				return
 			end	
@@ -7023,7 +7018,7 @@ function Sona:AutoR2()
 	local target = GetTarget(1000)     	
 	if target == nil then return end
 	if IsValid(target) then	
-		if EnemiesNear(target.pos,140) >= self.Menu.Rset.RHit:Value() and myHero.pos:DistanceTo(target.pos) <= 900 then
+		if CountEnemiesNear(target, 500) >= self.Menu.Rset.RHit:Value() and myHero.pos:DistanceTo(target.pos) <= 900 then
 			Control.CastSpell(HK_R,target.pos)
 			return
 		end	
