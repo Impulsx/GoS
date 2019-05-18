@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 1.1
+    local Version = 1.2
     
     local Files = {
         Lua = {
@@ -3021,7 +3021,7 @@ function Ekko:Auto2()
 	if target == nil then return end		
 	local pred = GetGamsteronPrediction(target, WData, myHero)
 	if Ready(_W) and self.Menu.Auto2.UseWE:Value() and IsValid(target) then
-		if EnemiesAround(target.pos, 375) >= self.Menu.Auto2.Targets:Value() and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
+		if CountEnemiesNear(target, 375) >= self.Menu.Auto2.Targets:Value() and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
 			Control.CastSpell(HK_W, pred.CastPosition)
 		end
 		if myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "EkkoE" then	
