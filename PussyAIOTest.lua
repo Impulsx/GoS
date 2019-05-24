@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 1.7
+    local Version = 1.8
     
     local Files = {
         Lua = {
@@ -4341,6 +4341,10 @@ function Malzahar:Draw()
 		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 	end	
 end
+
+function Malzahar:IsRCharging()
+	return myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "MalzaharR"
+end
        
 function Malzahar:KillSteal()	
 	local target = GetTarget(1000)     	
@@ -4375,14 +4379,7 @@ function Malzahar:KillSteal()
 		end
 		if self.Menu.ks.UseR:Value() and Ready(_R) then
 			if RDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 700 then
-				Control.CastSpell(HK_R, target)
-			if myHero.activeSpell.isChanneling == true then	
-				_G.SDK.Orbwalker:SetMovement(false)
-				_G.SDK.Orbwalker:SetAttack(false)
-			elseif myHero.activeSpell.isChanneling == false then	
-				_G.SDK.Orbwalker:SetMovement(true)
-				_G.SDK.Orbwalker:SetAttack(true)
-			end	
+				Control.CastSpell(HK_R, target)	
 	
 			end
 		end
@@ -4403,16 +4400,15 @@ function Malzahar:KillSteal()
 				Control.CastSpell(HK_W, target.pos)
 				Control.CastSpell(HK_R, target)
 				end, 0.05)
-			if myHero.activeSpell.isChanneling == true then	
-				_G.SDK.Orbwalker:SetMovement(false)
-				_G.SDK.Orbwalker:SetAttack(false)
-			elseif myHero.activeSpell.isChanneling == false then	
-				_G.SDK.Orbwalker:SetMovement(true)
-				_G.SDK.Orbwalker:SetAttack(true)
-			end		
 			end
 		end
 	end
+	if self:IsRCharging() then	
+		_G.SDK.Orbwalker:SetMovement(false)
+		_G.SDK.Orbwalker:SetAttack(false)	
+	end
+	_G.SDK.Orbwalker:SetMovement(true)
+	_G.SDK.Orbwalker:SetAttack(true)	
 end	
 
 
@@ -4445,15 +4441,15 @@ if target == nil then return end
 			if myHero.pos:DistanceTo(target.pos) <= 700 then
 				Control.CastSpell(HK_R, target)
 			end
-			if myHero.activeSpell.isChanneling == true then	
-				_G.SDK.Orbwalker:SetMovement(false)
-				_G.SDK.Orbwalker:SetAttack(false)
-			elseif myHero.activeSpell.isChanneling == false then	
-				_G.SDK.Orbwalker:SetMovement(true)
-				_G.SDK.Orbwalker:SetAttack(true)
-			end
 		end
 	end
+	if self:IsRCharging() then	
+		_G.SDK.Orbwalker:SetMovement(false)
+		_G.SDK.Orbwalker:SetAttack(false)	
+	end
+	
+	_G.SDK.Orbwalker:SetMovement(true)
+	_G.SDK.Orbwalker:SetAttack(true)	
 end	
 
 function Malzahar:Harass()
