@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 1.5
+    local Version = 1.6
     
     local Files = {
         Lua = {
@@ -98,9 +98,11 @@ end
 
 function Start:Draw()
 local textPos = myHero.pos:To2D()	
-
+	if myHero.charName == "Veigar" and not FileExist(COMMON_PATH .. "TPred.lua") then
+		Draw.Text("TPred installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+	end
 	if Game.Timer() < 30 then
-		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
+		Draw.Text("Welcome to PussyAIO // Version 1.6 //", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Rakan        Nidalee", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Ryze          XinZhao", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
@@ -3064,14 +3066,13 @@ function Ekko:Auto2()
 	if target == nil then return end		
 	local pred = GetGamsteronPrediction(target, WData, myHero)
 	if self.Menu.Auto2.UseWE:Value() and IsValid(target) then
-		if Ready(_W) and CountEnemiesNear(target, 400) >= self.Menu.Auto2.Targets:Value() and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
+		if Ready(_W) and Ready(_E) and CountEnemiesNear(target, 400) >= self.Menu.Auto2.Targets:Value() and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
 			Control.CastSpell(HK_W, pred.CastPosition)
 		end
-		if GotBuff(target, "EkkoW") > 0 then	
-			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_E) then
-				Control.CastSpell(HK_E, target.pos)
+	
+		if myHero.pos:DistanceTo(target.pos) <= 650 and Ready(_E) then
+			Control.CastSpell(HK_E, target.pos)
 				
-			end
 		end	
 	end	
 end 
@@ -9872,7 +9873,7 @@ function Veigar:__init()
 	self:LoadSpells()
 	self:LoadMenu()
 	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("Draw", function() self:Draw() end)
+
 	if _G.EOWLoaded then
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
@@ -10026,12 +10027,7 @@ local Mode = GetMode()
 end
 end
 
-function Veigar:Draw()
-	local textPos = myHero.pos:To2D()
-	if not FileExist(COMMON_PATH .. "TPred.lua") then
-		Draw.Text("TPred installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
-	end
-end	
+
 
 function Veigar:Clear()
 	if self:CanCast(_Q) and self.Menu.Clear.UseW:Value() then
