@@ -1,12 +1,12 @@
 local Heroes = {"Rakan","Nidalee","Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
 local GsoPred = {"Rakan","Nidalee","Ryze","Cassiopeia","Malzahar","Zyra","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
-local HPred = {"Neeko","Sylas","Xerath","Warwick"}
+
 if not table.contains(Heroes, myHero.charName) then return end
 
 
 do
     
-    local Version = 1.4
+    local Version = 1.5
     
     local Files = {
         Lua = {
@@ -54,7 +54,7 @@ function OnLoad()
 	Start()
 	LoadUnits()
 	Activator()
-	--HPred()
+	HPred()
 
 	if table.contains(Heroes, myHero.charName) then
 		_G[myHero.charName]()
@@ -75,16 +75,6 @@ function LoadPred()
 		end
 	require('GamsteronPrediction')	
 	end
-	
-	if table.contains(HPred, myHero.charName) then
-		if not FileExist(COMMON_PATH .. "HPred.lua") then
-			DownloadFileAsync("https://raw.githubusercontent.com/Sikaka/GOSExternal/master/HPred.lua", COMMON_PATH .. "HPred.lua", function() end)
-			while not FileExist(COMMON_PATH .. "HPred.lua") do end
-
-
-		end
-	require('HPred')	
-	end	
 
 	if myHero.charName == "Veigar" then
 		if not FileExist(COMMON_PATH .. "TPred.lua") then
@@ -3077,7 +3067,7 @@ function Ekko:Auto2()
 		if Ready(_W) and CountEnemiesNear(target, 400) >= self.Menu.Auto2.Targets:Value() and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
 			Control.CastSpell(HK_W, pred.CastPosition)
 		end
-		if HasBuff(target, "EkkoW") > 0 then	
+		if GotBuff(target, "EkkoW") > 0 then	
 			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_E) then
 				Control.CastSpell(HK_E, target.pos)
 				
@@ -4530,17 +4520,7 @@ function Morgana:__init()
 	elseif _G.gsoSDK then
 		Orb = 4			
 	end
-	self.Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
-	DelayAction(function()
-		for i, spell in pairs(CCSpells) do
-			if not CCSpells[i] then return end
-			for j, k in pairs(GetEnemyHeroes()) do
-				if spell.charName == k.charName and not self.Menu.ESet.BlockList[i] then
-					if not self.Menu.ESet.BlockList[i] then self.Menu.ESet.BlockList:MenuElement({id = "Dodge"..i, name = ""..spell.charName.." "..self.Slot[spell.slot].." | "..spell.displayName, value = true}) end
-				end
-			end
-		end
-	end, 0.01)	
+	
 end
 
  
@@ -4673,6 +4653,17 @@ function Morgana:LoadMenu()
 	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "Kill", name = "Draw Killable Targets", value = true})
 	
+	self.Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
+	DelayAction(function()
+		for i, spell in pairs(CCSpells) do
+			if not CCSpells[i] then return end
+			for j, k in pairs(GetEnemyHeroes()) do
+				if spell.charName == k.charName and not self.Menu.ESet.BlockList[i] then
+					if not self.Menu.ESet.BlockList[i] then self.Menu.ESet.BlockList:MenuElement({id = "Dodge"..i, name = ""..spell.charName.." "..self.Slot[spell.slot].." | "..spell.displayName, value = true}) end
+				end
+			end
+		end
+	end, 0.01)
       
 end                     
 
@@ -5056,11 +5047,6 @@ function Neeko:__init()
 	end
 end
 
-function Neeko:QDmgMinion()
-	   local level = myHero:GetSpellData(_Q).level
-    local qdamage = (({70,115,160,205,250})[level] + 0.5 * myHero.ap)
-	return qdamage
-end
 
 function Neeko:LoadSpells()
 	
@@ -5172,7 +5158,8 @@ function Neeko:Tick()
 					if minion.team == TEAM_ENEMY and not minion.dead and (myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) then	
 						local count = GetMinionCount(225, minion)			
 						local hp = minion.health
-						local QDmg = self:QDmgMinion()
+						local level = myHero:GetSpellData(_Q).level
+						local QDmg = ({70,115,160,205,250})[level] + 0.5 * myHero.ap
 						if IsValid(minion,900) and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Harass.LH.UseQL:Value() and count >= self.Menu.Harass.LH.UseQLM:Value() and hp <= QDmg then
 							Control.CastSpell(HK_Q, minion)
 						end	 
@@ -5195,9 +5182,7 @@ end
 
 function Neeko:Draw()
 local textPos = myHero.pos:To2D()	
-if not FileExist(COMMON_PATH .. "HPred.lua") then
-	Draw.Text("HPred installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
-end	
+
 
 if myHero.dead then return end
 	if(self.Menu.Drawing.DrawR:Value()) and Ready(_R) then
@@ -5851,10 +5836,10 @@ end
 function Neeko:Clear()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-
+	local level = myHero:GetSpellData(_Q).level
 		if minion.team == TEAM_ENEMY and (myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) then	
 		local hp = minion.health
-		local QDmg = self:QDmgMinion()		
+		local QDmg = ({70,115,160,205,250})[level] + 0.5 * myHero.ap		
 			local count = GetMinionCount(225, minion)			
 			if IsValid(minion,800) and Ready(_Q) and hp <= QDmg and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Clear.UseQL:Value() and count >= self.Menu.Clear.UseQLM:Value() then
 				Control.CastSpell(HK_Q, minion)
@@ -7277,9 +7262,7 @@ end
 
 function Sylas:Draw()
 local textPos = myHero.pos:To2D()
-if not FileExist(COMMON_PATH .. "HPred.lua") then
-	Draw.Text("HPred installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
-end	
+
 
  if myHero.dead then return end
 	if(self.Menu.Drawing.DrawR:Value()) and Ready(_R) then
@@ -10424,9 +10407,7 @@ end
 
 function Warwick:Draw()
 local textPos = myHero.pos:To2D()
- if not FileExist(COMMON_PATH .. "HPred.lua") then
-	Draw.Text("HPred installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
-end	  
+  
 	if self.Menu.ComboMode.DrawRange:Value() and self:CanCast(_R) then Draw.Circle(myHero.pos, (2.5 * myHero.ms), Draw.Color(255, 000, 222, 255)) end
 	if self.Menu.ComboMode.DrawDamage:Value() then
 		for i, hero in pairs(GetEnemyHeroes()) do
@@ -10785,6 +10766,61 @@ local function CountEnemiesInRange(point, range)
   return n
 end
 
+function CalcuPhysicalDamage(source, target, amount)
+  local ArmorPenPercent = source.armorPenPercent
+  local ArmorPenFlat = (0.4 + target.levelData.lvl / 30) * source.armorPen
+  local BonusArmorPen = source.bonusArmorPenPercent
+
+  if source.type == Obj_AI_Minion then
+    ArmorPenPercent = 1
+    ArmorPenFlat = 0
+    BonusArmorPen = 1
+  elseif source.type == Obj_AI_Turret then
+    ArmorPenFlat = 0
+    BonusArmorPen = 1
+    if source.charName:find("3") or source.charName:find("4") then
+      ArmorPenPercent = 0.25
+    else
+      ArmorPenPercent = 0.7
+    end
+  end
+
+  if source.type == Obj_AI_Turret then
+    if target.type == Obj_AI_Minion then
+      amount = amount * 1.25
+      if string.ends(target.charName, "MinionSiege") then
+        amount = amount * 0.7
+      end
+      return amount
+    end
+  end
+
+  local armor = target.armor
+  local bonusArmor = target.bonusArmor
+  local value = 100 / (100 + (armor * ArmorPenPercent) - (bonusArmor * (1 - BonusArmorPen)) - ArmorPenFlat)
+
+  if armor < 0 then
+    value = 2 - 100 / (100 - armor)
+  elseif (armor * ArmorPenPercent) - (bonusArmor * (1 - BonusArmorPen)) - ArmorPenFlat < 0 then
+    value = 1
+  end
+  return math.max(0, math.floor(DamageReductionMod(source, target, PassivePercentMod(source, target, value) * amount, 1)))
+end
+
+function CalcuMagicalDamage(source, target, amount)
+  local mr = target.magicResist
+  local value = 100 / (100 + (mr * source.magicPenPercent) - source.magicPen)
+
+  if mr < 0 then
+    value = 2 - 100 / (100 - mr)
+  elseif (mr * source.magicPenPercent) - source.magicPen < 0 then
+    value = 1
+  end
+  return math.max(0, math.floor(DamageReductionMod(source, target, PassivePercentMod(source, target, value) * amount, 2)))
+end
+
+
+
 local DamageReductionTable = {
   ["Braum"] = {buff = "BraumShieldRaise", amount = function(target) return 1 - ({0.3, 0.325, 0.35, 0.375, 0.4})[target:GetSpellData(_E).level] end},
   ["Urgot"] = {buff = "urgotswapdef", amount = function(target) return 1 - ({0.3, 0.4, 0.5})[target:GetSpellData(_R).level] end},
@@ -10893,11 +10929,11 @@ local target = {}
 			if OnVision(hero).state == false then heroPos = hero.pos + Vector(hero.pos,hero.posTo):Normalized() * ((GetTickCount() - OnVision(hero).tick)/1000 * hero.ms) end
 			if GetDistance(pos,heroPos) <= range then
 				if t == "AD" then
-					target[(CalcPhysicalDamage(myHero,hero,100) / hero.health)*Priority(hero.charName)] = hero
+					target[(CalcuPhysicalDamage(myHero,hero,100) / hero.health)*Priority(hero.charName)] = hero
 				elseif t == "AP" then
-					target[(CalcMagicalDamage(myHero,hero,100) / hero.health)*Priority(hero.charName)] = hero
+					target[(CalcuMagicalDamage(myHero,hero,100) / hero.health)*Priority(hero.charName)] = hero
 				elseif t == "HYB" then
-					target[((CalcMagicalDamage(myHero,hero,50) + CalcPhysicalDamage(myHero,hero,50))/ hero.health)*Priority(hero.charName)] = hero
+					target[((CalcuMagicalDamage(myHero,hero,50) + CalcuPhysicalDamage(myHero,hero,50))/ hero.health)*Priority(hero.charName)] = hero
 				end
 			end
 		end
@@ -11228,9 +11264,7 @@ local textPos = myHero.pos:To2D()
 if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 	Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 end
-if not FileExist(COMMON_PATH .. "HPred.lua") then
-	Draw.Text("HPred installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
-end	
+
 
 if myHero.dead then return end
 	if self.Menu.Combo.R.useRkey:Value() then
@@ -11638,7 +11672,7 @@ function Xerath:EnemyLoop()
 				if self.Menu.Killsteal.useQ:Value() then
 					if Game.CanUseSpell(_Q) == 0 and GetDistance(myHero.pos,target.pos) < 1400 then
 						local hp = target.health + target.shieldAP + target.shieldAD
-						local dmg = CalcMagicalDamage(myHero,target,40 + 40*myHero:GetSpellData(_Q).level + (0.75*myHero.ap))
+						local dmg = CalcuMagicalDamage(myHero,target,40 + 40*myHero:GetSpellData(_Q).level + (0.75*myHero.ap))
 						if hp < dmg then
 							if self.chargeQ == false then
 								local qPred2 = GetPred(target,math.huge,1.25)
@@ -11856,7 +11890,7 @@ end
 
 function Xerath:useWkill(target,wPred)
 	if Game.Timer() - OnWaypoint(target).time > 0.05 and GetDistance(myHero.pos,wPred) < self.W.range then
-		if target.health + target.shieldAP + target.shieldAD < CalcMagicalDamage(myHero,target,30 + 30*myHero:GetSpellData(_W).level + (0.6*myHero.ap)) then
+		if target.health + target.shieldAP + target.shieldAD < CalcuMagicalDamage(myHero,target,30 + 30*myHero:GetSpellData(_W).level + (0.6*myHero.ap)) then
 			CastSpell(HK_W,wPred,self.W.range)
 		end
 	end
@@ -11864,7 +11898,7 @@ end
 
 function Xerath:useWkillGSO(target)
 	if Game.Timer() - OnWaypoint(target).time > 0.05 and GetDistance(myHero.pos,target.pos) < self.W.range then
-		if target.health + target.shieldAP + target.shieldAD < CalcMagicalDamage(myHero,target,30 + 30*myHero:GetSpellData(_W).level + (0.6*myHero.ap)) then
+		if target.health + target.shieldAP + target.shieldAD < CalcuMagicalDamage(myHero,target,30 + 30*myHero:GetSpellData(_W).level + (0.6*myHero.ap)) then
 			local pred = GetGamsteronPrediction(target, WData, myHero)
 			if pred.Hitchance >= _G.HITCHANCE_NORMAL then
 				CastSpell(HK_W,pred.CastPosition,self.W.range)
@@ -11875,7 +11909,7 @@ end
 
 function Xerath:useWkillHPred(target)
 	if Game.Timer() - OnWaypoint(target).time > 0.05 and GetDistance(myHero.pos,target.pos) < self.W.range then
-		if target.health + target.shieldAP + target.shieldAD < CalcMagicalDamage(myHero,target,30 + 30*myHero:GetSpellData(_W).level + (0.6*myHero.ap)) then
+		if target.health + target.shieldAP + target.shieldAD < CalcuMagicalDamage(myHero,target,30 + 30*myHero:GetSpellData(_W).level + (0.6*myHero.ap)) then
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, W.range, W.delay, W.speed, W.radius, W.collision)
 			if hitRate and hitRate >= 1 then
 				CastSpell(HK_W,aimPosition,self.W.range)
@@ -12004,7 +12038,7 @@ end
 
 function Xerath:useRkill(target)
 	if self.chargeR == false and self.Menu.Combo.R.BlackList[target.charName] ~= nil and not self.Menu.Combo.R.useRself:Value() and self.Menu.Combo.R.BlackList[target.charName]:Value() == false then
-		local rDMG = CalcMagicalDamage(myHero,target,160+40*myHero:GetSpellData(_R).level + (myHero.ap*0.43))*(2+myHero:GetSpellData(_R).level - self.Menu.Combo.R.safeR:Value())
+		local rDMG = CalcuMagicalDamage(myHero,target,160+40*myHero:GetSpellData(_R).level + (myHero.ap*0.43))*(2+myHero:GetSpellData(_R).level - self.Menu.Combo.R.safeR:Value())
 		if target.health + target.shieldAP + target.shieldAD < rDMG and CountAlliesInRange(target.pos,700) == 0 then
 			local delay =  math.floor((target.health + target.shieldAP + target.shieldAD)/(rDMG/(2+myHero:GetSpellData(_R).level))) * 0.8
 			if GetDistance(myHero.pos,target.pos) + target.ms*delay <= 2200 + 1320*myHero:GetSpellData(_R).level and not IsImmune(target) then
@@ -12046,7 +12080,7 @@ if tick - _targetSelectTick > 200 then
 		for i,hero in pairs(self:GetEnemyHeroes()) do
 			if hero.isEnemy and hero.valid and not hero.dead and hero.isTargetable and (OnVision(hero).state == true or (OnVision(hero).state == false and GetTickCount() - OnVision(hero).tick < 50)) and hero.isTargetable and GetDistance(myHero.pos,hero.pos) < maxRange then
 				local stacks = self.R_Stacks
-				local rDMG = CalcMagicalDamage(myHero,hero,160+40*myHero:GetSpellData(_R).level + (myHero.ap*0.43))*stacks
+				local rDMG = CalcuMagicalDamage(myHero,hero,160+40*myHero:GetSpellData(_R).level + (myHero.ap*0.43))*stacks
 				if hero.health + hero.shieldAP + hero.shieldAD < rDMG then
 					killable[hero.networkID] = hero
 				end
@@ -12056,7 +12090,7 @@ if tick - _targetSelectTick > 200 then
 		local p = 0
 		local oneshot = false
 		for i,kill in pairs(killable) do
-			if (CalcMagicalDamage(myHero,kill,160+40*myHero:GetSpellData(_R).level + (myHero.ap*0.43)) > kill.health + kill.shieldAP + kill.shieldAD) then
+			if (CalcuMagicalDamage(myHero,kill,160+40*myHero:GetSpellData(_R).level + (myHero.ap*0.43)) > kill.health + kill.shieldAP + kill.shieldAD) then
 				if p < Priority(kill.charName) then
 					p = Priority(kill.charName)
 					target = kill
@@ -12319,7 +12353,7 @@ function XinZhao:Clear()
 					break
 				end	
 				if IsValid(minion,W.range) and self.Menu.Mode.LaneClear.W:Value() and self:isReady(_W) then
-					if GetMinionCount(W.range, minion.pos) >= self.Menu.Mode.LaneClear.WMinion:Value() then
+					if GetMinionCount(W.range, minion) >= self.Menu.Mode.LaneClear.WMinion:Value() then
 						Control.CastSpell(HK_W,minion)
 						break
 					end	
@@ -13091,7 +13125,7 @@ function CalMagicalDamage(source, target, amount)
   end
   return math.max(0, math.floor(DamageReductionMod(source, target, PassivePercentMod(source, target, value) * amount, 2)))
 end
---[[
+
 class "HPred"
 
 
@@ -14213,5 +14247,5 @@ function HPred:GetDistance(p1, p2)
 	end
 	return math.sqrt(self:GetDistanceSqr(p1, p2))
 end
-]]
+
 
