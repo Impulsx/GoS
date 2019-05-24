@@ -1,12 +1,12 @@
 local Heroes = {"Rakan","Nidalee","Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
 local GsoPred = {"Rakan","Nidalee","Ryze","Cassiopeia","Malzahar","Zyra","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
-
+local HPred = {"Neeko","Sylas","Xerath","Warwick"}
 if not table.contains(Heroes, myHero.charName) then return end
 
 
 do
     
-    local Version = 1.3
+    local Version = 1.4
     
     local Files = {
         Lua = {
@@ -54,11 +54,17 @@ function OnLoad()
 	Start()
 	LoadUnits()
 	Activator()
-	HPred()
+	--HPred()
 
 	if table.contains(Heroes, myHero.charName) then
 		_G[myHero.charName]()
+		LoadPred()
 	end
+	
+
+end
+
+function LoadPred()
 	
 	if table.contains(GsoPred, myHero.charName) then
 		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
@@ -67,7 +73,18 @@ function OnLoad()
 
 
 		end
+	require('GamsteronPrediction')	
 	end
+	
+	if table.contains(HPred, myHero.charName) then
+		if not FileExist(COMMON_PATH .. "HPred.lua") then
+			DownloadFileAsync("https://raw.githubusercontent.com/Sikaka/GOSExternal/master/HPred.lua", COMMON_PATH .. "HPred.lua", function() end)
+			while not FileExist(COMMON_PATH .. "HPred.lua") do end
+
+
+		end
+	require('HPred')	
+	end	
 
 	if myHero.charName == "Veigar" then
 		if not FileExist(COMMON_PATH .. "TPred.lua") then
@@ -76,8 +93,9 @@ function OnLoad()
 
 
 		end
-	end	
-end
+	require('TPred')	
+	end
+end	
 
 class "Start"
 
@@ -123,7 +141,42 @@ local Orb
 local barHeight = 8
 local barWidth = 103
 local barXOffset = 0
-local barYOffset = 0
+local barYOffset = 0   
+
+local Icons = {
+["Kassadin"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/PussyKassadinScriptLogo.png",
+["Combo"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ComboScriptLogo.png",
+["BlockSpells"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/BlockSpellsScriptLogo.png",
+["Escape"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/EscapeScriptLogo.png",
+["Harass"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/HarassScriptLogo.png",
+["Clear"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/Clear%2BLasthitScriptLogo.png",
+["JClear"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/JungleClearScriptLogo.png",
+["Activator"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png",
+["Drawings"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/DrawingsScriptLogo.png",
+["ks"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/KillStealScriptLogo.png",
+["Pred"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/PredScriptLogo.png",
+["BlockSpell"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/BlockSpellsScriptLogo.png",
+["AutoUseCC"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/AutoUseCC.png",
+["Engage"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/Engage.png",
+["Mana"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ManaManger.png",
+["AutoWImmo"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/AutoWImmobile.png",
+["AutoWE"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/AutoWE.png",
+["AutoRSafeLife"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/AutoRSafeLife.png",
+["AutoW"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/AutoW.png",
+["AutoQImmo"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/AutoQImmobile.png",
+["AutoE"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/AutoE.png",
+["AutoECCSpells"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/AutoE%20IncommingCC.png",
+["Flee"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/Flee.png",
+["AutoEW"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/AutoEW.png",
+["KeySet"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/KeySettings.png",
+["QSet"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/QSettings.png",
+["WSet"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/WSettings.png",
+["RSet"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/RSettings.png",
+["AutoR"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/AutoR.png",
+["Gapclose"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/Gabclose.png",
+["Lasthit"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/Lasthit.png",
+["Misc"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/Misc.png"
+}
 
 
 
@@ -942,7 +995,7 @@ local function GetEnemyCount(range, pos)
 	for i = 1, Game.HeroCount() do 
 	local hero = Game.Hero(i)
 	local Range = range * range
-		if hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range then
+		if hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
 		count = count + 1
 		end
 	end
@@ -1021,17 +1074,17 @@ end
 
 function Activator:LoadMenu()
     
-    self.Menu = MenuElement({type = MENU, id = "Activator", name = "Activator"})
+    self.Menu = MenuElement({type = MENU, id = "Activator", leftIcon = Icons["Activator"]})
     
 	
 	--Shield/Heal MyHero
     self.Menu:MenuElement({id = "ZS", name = "MyHero Shield+Heal Items", type = MENU})
     self.Menu.ZS:MenuElement({id = "self", name = "MyHero Shield+Heal Items", type = MENU})	
 
-    self.Menu.ZS.self:MenuElement({id = "UseZ", name = "Zhonya's", value = true, leftIcon = "http://de.share-your-photo.com/img/76fbcec284.jpg"})
+    self.Menu.ZS.self:MenuElement({id = "UseZ", name = "Zhonya's", value = true, leftIcon = "https://de.share-your-photo.com/img/76fbcec284.jpg"})
 	self.Menu.ZS.self:MenuElement({id = "myHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 
-    self.Menu.ZS.self:MenuElement({id = "UseS", name = "Stopwatch", value = true, leftIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/e/e6/Stopwatch_item.png"})
+    self.Menu.ZS.self:MenuElement({id = "UseS", name = "Stopwatch", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e6/Stopwatch_item.png"})
  	self.Menu.ZS.self:MenuElement({id = "myHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})   
 
 	self.Menu.ZS.self:MenuElement({id = "Sera", name = "Seraphs Embrace", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3040.png"})	
@@ -1542,7 +1595,7 @@ end
 	
 -------------------------------------------------------------------------------------------------------------------------------------------------------------	
 class "Ahri"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 local QData =
@@ -1617,17 +1670,17 @@ function Ahri:CalculateEndPos(startPos, placementPos, unitPos, range, radius, co
 	return endPos, range
 end
 
-local HeroIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/a/aa/Star_Guardian_Ahri_profileicon.png"
-local QIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/1/19/Orb_of_Deception.png"
-local WIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/a/a8/Fox-Fire.png"
-local EIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/0/04/Charm.png"
-local RIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/8/86/Spirit_Rush.png"
+local HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/aa/Star_Guardian_Ahri_profileicon.png"
+local QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/1/19/Orb_of_Deception.png"
+local WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/a8/Fox-Fire.png"
+local EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/04/Charm.png"
+local RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/8/86/Spirit_Rush.png"
 
 function Ahri:LoadMenu()
 	--MainMenu
 	self.Menu = MenuElement({type = MENU, id = "Ahri", name = "PussyAhri", leftIcon = HeroIcon})
 	--ComboMenu
-	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true, leftIcon = QIcon})
 	self.Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true, leftIcon = WIcon})
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true, leftIcon = EIcon})
@@ -1639,41 +1692,41 @@ function Ahri:LoadMenu()
 	self.Menu.Combo.UseR:MenuElement({id = "BlockList", name = "CCSpell List", type = MENU})	
 	
 	--HarassMenu
-	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
+	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true, leftIcon = QIcon})
 	self.Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = true, leftIcon = WIcon})
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
 	
 	--LaneClear Menu
-	self.Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear"})
+	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})
 	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true, leftIcon = QIcon})
 	self.Menu.Clear:MenuElement({id = "Qmin", name = "Use Q If Hit X Minion ", value = 2, min = 1, max = 5, step = 1, leftIcon = QIcon})	
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
 	
 	--JungleClear
-	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JungleClear"})
+	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})
 	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true, leftIcon = QIcon})
 	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})
 	
 	--KillSteal
-	self.Menu:MenuElement({type = MENU, id = "KillSteal", name = "KillSteal"})
+	self.Menu:MenuElement({type = MENU, id = "KillSteal", leftIcon = Icons["ks"]})
 	self.Menu.KillSteal:MenuElement({id = "UseQ", name = "[Q]", value = true, leftIcon = QIcon})
 	self.Menu.KillSteal:MenuElement({id = "UseW", name = "[W]", value = true, leftIcon = WIcon})
 	self.Menu.KillSteal:MenuElement({id = "UseE", name = "[E]", value = true, leftIcon = EIcon})
 	
 	--AutoSpell on CC
-	self.Menu:MenuElement({id = "CC", name = "AutoUse on CC Target", type = MENU})
+	self.Menu:MenuElement({id = "CC", leftIcon = Icons["AutoUseCC"], type = MENU})
 	self.Menu.CC:MenuElement({id = "UseQ", name = "Q", value = true, leftIcon = QIcon})
 	self.Menu.CC:MenuElement({id = "UseE", name = "E", value = true, leftIcon = EIcon})
 	
 	--Prediction
-	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
+	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
 	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 	self.Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 	self.Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 	
 	--Drawing
-	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
 	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw[Q]", value = true, leftIcon = QIcon})
 	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw[W]", value = true, leftIcon = WIcon})
 	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw[E]", value = true, leftIcon = EIcon})	
@@ -2118,7 +2171,7 @@ class "Cassiopeia"
 
 
 
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 require "2DGeometry"
 
 function Cassiopeia:LoadSpells()
@@ -2166,12 +2219,12 @@ Type = _G.SPELLTYPE_CONE, Delay = 0.5, Radius = 80, Range = 825, Speed = 3200, C
 		Cass:MenuElement({name = " ", drop = {"General Settings"}})
 		
 		--Prediction
-		Cass:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
+		Cass:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
 		Cass.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 		Cass.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})		
 		
 		--Combo   
-		Cass:MenuElement({type = MENU, id = "c", name = "Combo"})
+		Cass:MenuElement({type = MENU, id = "c", leftIcon = Icons["Combo"]})
 		Cass.c:MenuElement({id = "Block", name = "Block AA in Combo [?]", value = true, tooltip = "Reload Script after changing"})
 		Cass.c:MenuElement({id = "Q", name = "Use Q", value = true})
 		Cass.c:MenuElement({id = "W", name = "Use W", value = true})
@@ -2183,36 +2236,36 @@ Type = _G.SPELLTYPE_CONE, Delay = 0.5, Radius = 80, Range = 825, Speed = 3200, C
 		Cass.c:MenuElement({id = "HP", name = "Min HP % to Panic R", value = 20, min = 0, max = 100, step = 1})
 		
 		--Harass
-		Cass:MenuElement({type = MENU, id = "h", name = "Harass"})
+		Cass:MenuElement({type = MENU, id = "h", leftIcon = Icons["Harass"]})
 		Cass.h:MenuElement({id = "Q", name = "UseQ", value = true})
 		Cass.h:MenuElement({id = "E", name = "UseE only poisend", value = true})		
 		
 		--Clear
-		Cass:MenuElement({type = MENU, id = "w", name = "Clear"})
+		Cass:MenuElement({type = MENU, id = "w", leftIcon = Icons["Clear"]})
 		Cass.w:MenuElement({id = "Q", name = "Use Q", value = true})
 		Cass.w:MenuElement({id = "W", name = "Use W", value = true})
 		Cass.w:MenuElement({id = "Count", name = "Min Minions to hit W", value = 3, min = 1, max = 5, step = 1})		
 		Cass.w:MenuElement({id = "E", name = "Auto E Toggle Key", key = 84, toggle = true})
 		
 		--JungleClear
-		Cass:MenuElement({type = MENU, id = "j", name = "JungleClear"})
+		Cass:MenuElement({type = MENU, id = "j", leftIcon = Icons["JClear"]})
 		Cass.j:MenuElement({id = "Q", name = "Use Q", value = true})
 		Cass.j:MenuElement({id = "W", name = "Use W", value = true})
 		Cass.j:MenuElement({id = "E", name = "Use E[poisend or Lasthit]", value = true})		
 		
 		--KillSteal
-		Cass:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
+		Cass:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
 		Cass.ks:MenuElement({id = "Q", name = "UseQ", value = true})
 		Cass.ks:MenuElement({id = "W", name = "UseW", value = true})
 		Cass.ks:MenuElement({id = "E", name = "UseE", value = true})
 	
 
 		--Engage
-		Cass:MenuElement({type = MENU, id = "kill", name = "Engage FullDmg + Ghost"})
+		Cass:MenuElement({type = MENU, id = "kill", leftIcon = Icons["Engage"]})
 		Cass.kill:MenuElement({id = "Eng", name = "EngageKill 1vs1", value = true, key = string.byte("T")})
 		
 		--Mana
-		Cass:MenuElement({type = MENU, id = "m", name = "Mana Manager"})
+		Cass:MenuElement({type = MENU, id = "m", leftIcon = Icons["Mana"]})
 		Cass.m:MenuElement({name = " ", drop = {"Harass [%]"}})
 		Cass.m:MenuElement({id = "Q", name = "Q Mana", value = 10, min = 0, max = 100, step = 1})
 		Cass.m:MenuElement({id = "W", name = "W Mana", value = 10, min = 0, max = 100, step = 1})
@@ -2226,7 +2279,7 @@ Type = _G.SPELLTYPE_CONE, Delay = 0.5, Radius = 80, Range = 825, Speed = 3200, C
 		Cass:MenuElement({name = " ", drop = {"Advanced Settings"}})
 
 		--Drawings
-		Cass:MenuElement({type = MENU, id = "d", name = "Drawings"})
+		Cass:MenuElement({type = MENU, id = "d", leftIcon = Icons["Drawings"]})
 		Cass.d:MenuElement({id = "ON", name = "Enable Drawings", value = true})
 		Cass.d:MenuElement({id = "Text", name = "Draw Text", value = true})
 		Cass.d:MenuElement({id = "Lines", name = "Draw Lines", value = true})
@@ -2566,7 +2619,7 @@ function Cassiopeia:Harass()
 
 	local target = GetTarget(950)
 	if target == nil then return end
-	local EDmg = CalcMagicalDamage(myHero, target, self:Edmg()) * 2 
+	local EDmg = CalcMagicalDamage(target, self:Edmg()) * 2 
 	local Dist = GetDistanceSqr(myHero.pos, target.pos)
 	local result = false
 	if IsValid(target, 950) then
@@ -2661,8 +2714,8 @@ end
 function Cassiopeia:KsE()
 local target = GetTarget(750)
 if target == nil then return end
-	local EDmg = CalcMagicalDamage(myHero, target, self:Edmg()) * 2
-	local PEDmg = CalcMagicalDamage(myHero, target, self:PEdmg()) 
+	local EDmg = CalcMagicalDamage(target, self:Edmg()) * 2
+	local PEDmg = CalcMagicalDamage(target, self:PEdmg()) 
 	if IsValid(target, 750) then	
 		if Cass.ks.E:Value() and Ready(_E) and GetDistanceSqr(target.pos, myHero.pos) < ERange then 
 			if HasPoison(target) and PEDmg > target.health then
@@ -2679,7 +2732,7 @@ end
 function Cassiopeia:KsQ()
 local target = GetTarget(900)
 if target == nil then return end
-	local QDmg = CalcMagicalDamage(myHero, target, self:Qdmg())
+	local QDmg = CalcMagicalDamage(target, self:Qdmg())
 	if IsValid(target, 900) then	
 		if Cass.ks.Q:Value() and Ready(_Q) and GetDistanceSqr(target.pos, myHero.pos) < QRange then 
 			if QDmg > target.health then
@@ -2693,7 +2746,7 @@ end
 function Cassiopeia:KsW()
 local target = GetTarget(900)
 if target == nil then return end
-	local WDmg = CalcMagicalDamage(myHero, target, self:Wdmg())
+	local WDmg = CalcMagicalDamage(target, self:Wdmg())
 	if IsValid(target, 900) then
 		if Cass.ks.W:Value() and Ready(_W) and GetDistanceSqr(target.pos, myHero.pos) < 800 then 
 			if WDmg > target.health then
@@ -2847,7 +2900,7 @@ end
 
 
 class "Ekko"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 
@@ -2894,54 +2947,54 @@ function Ekko:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Ekko", name = "PussyEkko"})
 	
 	--Auto W 
-	self.Menu:MenuElement({type = MENU, id = "Auto", name = "Auto[W]on Immobile"})
+	self.Menu:MenuElement({type = MENU, id = "Auto", leftIcon = Icons["AutoWImmo"]})
 	self.Menu.Auto:MenuElement({id = "UseW", name = "[W] Deadly Spines", value = true})			
 	self.Menu.Auto:MenuElement({id = "Targets", name = "Minimum Targets", value = 2, min = 1, max = 5, step = 1})
 
-	self.Menu:MenuElement({type = MENU, id = "Auto2", name = "Auto[W]+[E]min Targets"})
+	self.Menu:MenuElement({type = MENU, id = "Auto2", leftIcon = Icons["AutoWE"]})
 	self.Menu.Auto2:MenuElement({id = "UseWE", name = "[W]+[E] Stun", value = true})			
 	self.Menu.Auto2:MenuElement({id = "Targets", name = "Minimum Targets", value = 3, min = 1, max = 5, step = 1})
 
 	--Auto R safe Life
-	self.Menu:MenuElement({type = MENU, id = "Life", name = "Use[R] Safe Life"})	
+	self.Menu:MenuElement({type = MENU, id = "Life", leftIcon = Icons["AutoRSafeLife"]})	
 	self.Menu.Life:MenuElement({id = "UseR", name = "[R] Deadly Spines", value = true})	
 	self.Menu.Life:MenuElement({id = "life", name = "Min HP", value = 20, min = 0, max = 100, identifier = "%"})	
 	
 	--ComboMenu  
-	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})		
 	self.Menu.Combo:MenuElement({id = "UseWE", name = "[W]+[E] Stun", value = true})			
 	
 
 	--HarassMenu
-	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
+	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})	
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})	
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--LaneClear Menu
-	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})	
+	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
 	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})		
 	self.Menu.Clear:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})  	
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
-	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JClear"})
+	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})
 	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})         	
 	self.Menu.JClear:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})
 	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
  
 	--KillSteal
-	self.Menu:MenuElement({type = MENU, id = "ks", name = "ks"})
+	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
 	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})	
 	self.Menu.ks:MenuElement({id = "UseR", name = "Kill in Twin Range", value = true})	
 	
 	--Prediction
-	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
+	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
 	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 	self.Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 
 	--Drawing 
-	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
 	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
 
@@ -3020,15 +3073,14 @@ function Ekko:Auto2()
 	local target = GetTarget(1000)     	
 	if target == nil then return end		
 	local pred = GetGamsteronPrediction(target, WData, myHero)
-	if Ready(_W) and self.Menu.Auto2.UseWE:Value() and IsValid(target) then
-		if CountEnemiesNear(target, 450) >= self.Menu.Auto2.Targets:Value() and myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
+	if self.Menu.Auto2.UseWE:Value() and IsValid(target) then
+		if Ready(_W) and CountEnemiesNear(target, 400) >= self.Menu.Auto2.Targets:Value() and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredW:Value() + 1 then
 			Control.CastSpell(HK_W, pred.CastPosition)
 		end
-		if myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "EkkoE" then	
-			if myHero.pos:DistanceTo(target.pos) <= 405 and Ready(_E) then
-				DelayAction(function()
+		if HasBuff(target, "EkkoW") > 0 then	
+			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_E) then
 				Control.CastSpell(HK_E, target.pos)
-				end,0.8)
+				
 			end
 		end	
 	end	
@@ -3161,7 +3213,7 @@ end
 
 
 class "Kayle"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 
@@ -3197,14 +3249,14 @@ function Kayle:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Kayle", name = "PussyKayle"})
 
 	--AutoW
-	self.Menu:MenuElement({type = MENU, id = "AutoW", name = "Auto Heal"})
+	self.Menu:MenuElement({type = MENU, id = "AutoW", leftIcon = Icons["AutoW"]})
 	self.Menu.AutoW:MenuElement({id = "self", name = "Heal self", value = true})
 	self.Menu.AutoW:MenuElement({id = "ally", name = "Heal Ally", value = true})
 	self.Menu.AutoW:MenuElement({id = "HP", name = "HP Self/Ally", value = 50, min = 0, max = 100, step = 1, identifier = "%"})
 	self.Menu.AutoW:MenuElement({id = "Mana", name = "min. Mana", value = 50, min = 0, max = 100, step = 1, identifier = "%"})	
 	
 	--ComboMenu  
-	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q] Radiant Blast", value = true})		
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E] Starfire Spellblade", value = true})			
 	self.Menu.Combo:MenuElement({type = MENU, id = "UseR", name = "Ult Settings"})
@@ -3214,35 +3266,35 @@ function Kayle:LoadMenu()
 	
 
 	--HarassMenu
-	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
+	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})	
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Radiant Blast", value = true})
 	self.Menu.Harass:MenuElement({id = "UseE", name = "[E] Starfire Spellblade", value = true})	
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--LaneClear Menu
-	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Lasthit Clear"})	
+	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
 	self.Menu.Clear:MenuElement({id = "UseQ", name = "Lasthit[Q] Radiant Blast", value = true})		
 	self.Menu.Clear:MenuElement({id = "UseE", name = "Lasthit[E] Starfire Spellblade", value = true})	
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
-	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JClear"})
+	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})
 	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q] Radiant Blast", value = true})         	
 	self.Menu.JClear:MenuElement({id = "UseE", name = "[E] Starfire Spellblade", value = true})	
 	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
  
 	--KillSteal
-	self.Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
+	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
 	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q] Radiant Blast", value = true})		
 	self.Menu.ks:MenuElement({id = "UseE", name = "[E] Starfire Spellblade", value = true})	
 	self.Menu.ks:MenuElement({id = "gun", name = "Hextech Gunblade + [Q]", value = true})	
 
 	--Prediction
-	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
+	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
 	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})
 
 	--Drawing 
-	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
 	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
@@ -3513,19 +3565,7 @@ function Kassadin:LoadSpells()
   R = { range = myHero:GetSpellData(_R).range, delay = myHero:GetSpellData(_R).delay, speed = myHero:GetSpellData(_R).speed, width = myHero:GetSpellData(_R).width }
 end
 
-local Icons = {
-["Kassadin"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/PussyKassadinScriptLogo.png",
-["Combo"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ComboScriptLogo.png",
-["BlockSpells"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/BlockSpellsScriptLogo.png",
-["Escape"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/EscapeScriptLogo.png",
-["Harass"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/HarassScriptLogo.png",
-["Clear"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/Clear%2BLasthitScriptLogo.png",
-["JClear"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/JungleClearScriptLogo.png",
-["Activator"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png",
-["Drawings"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/DrawingsScriptLogo.png",
-["ks"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/KillStealScriptLogo.png",
-["Pred"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/PredScriptLogo.png"
-}
+
 
 
 function Kassadin:LoadMenu()                     
@@ -3992,10 +4032,10 @@ function Kassadin:FullRKill()
 	local hp = target.health
 	local dist = myHero.pos:DistanceTo(target.pos)
 	local level = myHero:GetSpellData(_R).level
-	local Fulldmg1 = CalcMagicalDamage(myHero, target,(({120, 150, 180})[level] + 0.5 * myHero.ap) + 0.03 * myHero.maxMana)
-	local Fulldmg2 = CalcMagicalDamage(myHero, target,(({160, 200, 240})[level] + 0.6 * myHero.ap) + 0.04 * myHero.maxMana)
-	local Fulldmg3 = CalcMagicalDamage(myHero, target,(({200, 250, 300})[level] + 0.7 * myHero.ap) + 0.05 * myHero.maxMana)
-	local Fulldmg4 = CalcMagicalDamage(myHero, target,(({240, 300, 360})[level] + 0.8 * myHero.ap) + 0.06 * myHero.maxMana)
+	local Fulldmg1 = CalcMagicalDamage(target,(({120, 150, 180})[level] + 0.5 * myHero.ap) + 0.03 * myHero.maxMana)
+	local Fulldmg2 = CalcMagicalDamage(target,(({160, 200, 240})[level] + 0.6 * myHero.ap) + 0.04 * myHero.maxMana)
+	local Fulldmg3 = CalcMagicalDamage(target,(({200, 250, 300})[level] + 0.7 * myHero.ap) + 0.05 * myHero.maxMana)
+	local Fulldmg4 = CalcMagicalDamage(target,(({240, 300, 360})[level] + 0.8 * myHero.ap) + 0.06 * myHero.maxMana)
 	local QWEdmg = getdmg("Q", target) + getdmg("W", target) + getdmg("E", target)	
 	
 	if IsValid(target, 2500) then	
@@ -4170,7 +4210,7 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class "Malzahar"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 
@@ -4200,11 +4240,11 @@ function Malzahar:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Malzahar", name = "PussyMalzahar"})
 
 	--AutoQ
-	self.Menu:MenuElement({type = MENU, id = "AutoQ", name = "Auto[Q] on Immobile Target"})
+	self.Menu:MenuElement({type = MENU, id = "AutoQ", leftIcon = Icons["AutoQImmo"]})
 	self.Menu.AutoQ:MenuElement({id = "UseQ", name = "[Q] Call of the Void", value = true})	
 	
 	--ComboMenu  
-	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q] Call of the Void", value = true})		
 	self.Menu.Combo:MenuElement({id = "UseW", name = "[W] Void Swarm", value = true})
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E] Malefic Visions", value = true})			
@@ -4212,14 +4252,14 @@ function Malzahar:LoadMenu()
 	
 
 	--HarassMenu
-	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
+	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})	
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Call of the Void", value = true})
 	self.Menu.Harass:MenuElement({id = "UseE", name = "[E] Malefic Visions", value = true})
 	self.Menu.Harass:MenuElement({id = "UseW", name = "[W] Void Swarm", value = true})	
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--LaneClear Menu
-	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})	
+	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
 	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q] Call of the Void", value = true})		
 	self.Menu.Clear:MenuElement({id = "UseE", name = "[E] Malefic Visions", value = true})
 	self.Menu.Clear:MenuElement({id = "UseEM", name = "Use [E] min Minions", value = 2, min = 1, max = 6})  	
@@ -4227,14 +4267,14 @@ function Malzahar:LoadMenu()
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
-	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JClear"})
+	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})
 	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q] Call of the Void", value = true})         	
 	self.Menu.JClear:MenuElement({id = "UseE", name = "[E] Malefic Visions", value = true})
 	self.Menu.JClear:MenuElement({id = "UseW", name = "[W] Void Swarm", value = true})	
 	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
  
 	--KillSteal
-	self.Menu:MenuElement({type = MENU, id = "ks", name = "ks"})
+	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
 	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q] Call of the Void", value = true})	
 	self.Menu.ks:MenuElement({id = "UseE", name = "[E] Malefic Visions", value = true})	
 	self.Menu.ks:MenuElement({id = "UseW", name = "[W] Malefic Visions", value = true})			
@@ -4242,12 +4282,12 @@ function Malzahar:LoadMenu()
 	self.Menu.ks:MenuElement({id = "full", name = "Full Combo", value = true})
 
 	--Prediction
-	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
+	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
 	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 
  
 	--Drawing 
-	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
 	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})
@@ -4356,7 +4396,8 @@ function Malzahar:KillSteal()
 				Control.CastSpell(HK_W, target.pos)
 				Control.CastSpell(HK_R, target)
 				end, 0.05)
-			elseif fullDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+			end	
+			if fullDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				DelayAction(function()
 				Control.CastSpell(HK_E, target)				
 				Control.CastSpell(HK_Q, pred.CastPosition)
@@ -4472,7 +4513,7 @@ end
 
 class "Morgana"
 
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 function Morgana:__init()
 	
 	self.DetectedMissiles = {}; self.DetectedSpells = {}; self.Target = nil; self.Timer = 0
@@ -4566,26 +4607,26 @@ function Morgana:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Morgana", name = "PussyMorgana"})
 
 	--AutoE
-	self.Menu:MenuElement({id = "AutoE", name = "Auto Shield CC", type = MENU})
-	self.Menu.AutoE:MenuElement({id = "self", name = "Use when Self CC ",value = true})
-	self.Menu.AutoE:MenuElement({id = "ally", name = "Use when Ally CC ",value = true})	
+	self.Menu:MenuElement({id = "AutoE", leftIcon = Icons["AutoE"], type = MENU})
+	self.Menu.AutoE:MenuElement({id = "self", name = "Use Self if CC ",value = true})
+	self.Menu.AutoE:MenuElement({id = "ally", name = "Use Ally if CC ",value = true})	
 	self.Menu.AutoE:MenuElement({id = "Targets", name = "Ally Settings", type = MENU})
 	for i, Hero in pairs(GetAllyHeroes()) do
 		self.Menu.AutoE.Targets:MenuElement({id = Hero.charName, name = Hero.charName, value = true})		
 	end		
 	
-	self.Menu:MenuElement({type = MENU, id = "ESet", name = "Shield incomming CC"})	
+	self.Menu:MenuElement({type = MENU, id = "ESet", leftIcon = Icons["AutoECCSpells"]})	
 	self.Menu.ESet:MenuElement({id = "UseE", name = "UseE Self", value = true})
 	self.Menu.ESet:MenuElement({id = "UseEally", name = "UseE Ally", value = true})	
 	self.Menu.ESet:MenuElement({id = "ST", name = "Track Spells", drop = {"Channeling", "Missiles", "Both"}, value = 1})	
 	self.Menu.ESet:MenuElement({id = "BlockList", name = "Spell List", type = MENU})	
 	
 	--AutoW
-	self.Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})	
-	self.Menu.AutoW:MenuElement({id = "UseW", name = "Auto[W] Immobile Target", value = true})
+	self.Menu:MenuElement({type = MENU, id = "AutoW", leftIcon = Icons["AutoWImmo"]})	
+	self.Menu.AutoW:MenuElement({id = "UseW", name = "Auto[W]", value = true})
 	
 	--ComboMenu  
-	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q] Dark Binding", value = true})		
 	self.Menu.Combo:MenuElement({id = "UseW", name = "[W]only if not Raedy[Q]", value = true})		
 	
@@ -4595,37 +4636,37 @@ function Morgana:LoadMenu()
 	self.Menu.Combo.Ult:MenuElement({id = "UseRE", name = "Use [R] min Targets", value = 2, min = 1, max = 5})
 
 	--HarassMenu
-	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
+	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})	
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Dark Binding", value = true})	
 	self.Menu.Harass:MenuElement({id = "UseW", name = "[W]only if not Raedy[Q]", value = true})	
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--LaneClear Menu
-	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})	
+	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
 	self.Menu.Clear:MenuElement({id = "UseQL", name = "LastHit[Q] Dark Binding", value = true})		
 	self.Menu.Clear:MenuElement({id = "UseW", name = "[W] Tormented Soil", value = true})  
 	self.Menu.Clear:MenuElement({id = "UseWM", name = "Use [W] min Minions", value = 3, min = 1, max = 6})	
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
-	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JClear"})
+	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})
 	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q] Dark Binding", value = true})         	
 	self.Menu.JClear:MenuElement({id = "UseW", name = "[W] Tormented Soil", value = true})
 	self.Menu.JClear:MenuElement({id = "UseWM", name = "Use [W] min Minions", value = 3, min = 1, max = 6})
 	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
  
 	--KillSteal
-	self.Menu:MenuElement({type = MENU, id = "ks", name = "ks"})
+	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
 	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q] Dark Binding", value = true})	
 	self.Menu.ks:MenuElement({id = "UseW", name = "[W] Tormented Soil", value = true})	
 
 	--Prediction
-	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
+	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
 	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 	self.Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
  
 	--Drawing 
-	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
 	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})
@@ -5029,28 +5070,12 @@ function Neeko:LoadSpells()
 
 end
 
-
-
-
-local Icons = {
-
-["Combo"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ComboScriptLogo.png",
-["Escape"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/EscapeScriptLogo.png",
-["Harass"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/HarassScriptLogo.png",
-["Clear"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/Clear%2BLasthitScriptLogo.png",
-["JClear"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/JungleClearScriptLogo.png",
-["Activator"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png",
-["Drawings"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/DrawingsScriptLogo.png",
-["ks"] = "http://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/KillStealScriptLogo.png"
-}
-
-
 function Neeko:LoadMenu()                     
 	--MainMenu
 	self.Menu = MenuElement({type = MENU, id = "Neeko", name = "PussyNeeko"})
 
 	--AutoE
-	self.Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})	
+	self.Menu:MenuElement({type = MENU, id = "AutoE", leftIcon = Icons["AutoE"]})	
 	self.Menu.AutoE:MenuElement({id = "UseE", name = "Auto[E] 2-5 Targets", value = true})	
  
 	--ComboMenu  
@@ -5169,6 +5194,10 @@ end
 
 
 function Neeko:Draw()
+local textPos = myHero.pos:To2D()	
+if not FileExist(COMMON_PATH .. "HPred.lua") then
+	Draw.Text("HPred installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+end	
 
 if myHero.dead then return end
 	if(self.Menu.Drawing.DrawR:Value()) and Ready(_R) then
@@ -5195,8 +5224,9 @@ if myHero.dead then return end
 		if Ready(_E) and Ready(_Q) and (getdmg("E", target) + getdmg("Q", target)) > hp then
 			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
 			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))	
-		end	
+		end
 	end
+	
 end
 
 			
@@ -5855,7 +5885,7 @@ end
 
 
 class "Nidalee"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 
@@ -5909,7 +5939,7 @@ function Nidalee:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Nidalee", name = "PussyNidalee"})
 	
 	--Combo
-	self.Menu:MenuElement({id = "ComboMode", name = "Combo", type = MENU})
+	self.Menu:MenuElement({id = "ComboMode", leftIcon = Icons["Combo"], type = MENU})
 	self.Menu.ComboMode:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
 	self.Menu.ComboMode:MenuElement({id = "UseW", name = "W: Bushwhack", value = true})
 	self.Menu.ComboMode:MenuElement({id = "UseE", name = "E: Primal Surge", value = true})
@@ -5920,11 +5950,11 @@ function Nidalee:LoadMenu()
 	self.Menu.ComboMode:MenuElement({id = "DrawDamage", name = "Draw damage on HPbar", value = true})
 		
 	--Harass
-	self.Menu:MenuElement({id = "HarassMode", name = "Harass", type = MENU})
+	self.Menu:MenuElement({id = "HarassMode", leftIcon = Icons["Harass"], type = MENU})
 	self.Menu.HarassMode:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
 
 	--Lane/JungleClear
-	self.Menu:MenuElement({id = "ClearMode", name = "Clear", type = MENU})
+	self.Menu:MenuElement({id = "ClearMode", leftIcon = Icons["Clear"], type = MENU})
 	self.Menu.ClearMode:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
 	self.Menu.ClearMode:MenuElement({id = "UseW", name = "W: Bushwhack", value = true})
 	self.Menu.ClearMode:MenuElement({id = "UseE", name = "E: Primal Surge", value = true})
@@ -5934,18 +5964,18 @@ function Nidalee:LoadMenu()
 	self.Menu.ClearMode:MenuElement({id = "UseR", name = "R: Aspect of the Cougar", value = true})
 	
 	--KillSteal
-	self.Menu:MenuElement({id = "KS", name = "KillSteal", type = MENU})
+	self.Menu:MenuElement({id = "KS", leftIcon = Icons["ks"], type = MENU})
 	self.Menu.KS:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
 
 	--Flee
-	self.Menu:MenuElement({id = "Fl", name = "Flee", type = MENU})
+	self.Menu:MenuElement({id = "Fl", leftIcon = Icons["Flee"], type = MENU})
 	self.Menu.Fl:MenuElement({id = "UseW", name = "W: Pounce", value = true, key = string.byte("A")})	
 	
-	self.Menu:MenuElement({id = "DrawQ", name = "Drawings", type = MENU})
+	self.Menu:MenuElement({id = "DrawQ", leftIcon = Icons["Drawings"], type = MENU})
 	self.Menu.DrawQ:MenuElement({id = "Q", name = "Draw Q", value = true})
 
 	--Prediction
-	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
+	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
 	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q Human]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 	self.Menu.Pred:MenuElement({id = "PredW1", name = "Hitchance[W Human]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 	self.Menu.Pred:MenuElement({id = "PredW2", name = "Hitchance[W Cougar]", value = 2, drop = {"Normal", "High", "Immobile"}})
@@ -6262,7 +6292,7 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class "Rakan"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 
@@ -6297,7 +6327,7 @@ function Rakan:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Rakan", name = "PussyRakan"})
 
 	--AutoE
-	self.Menu:MenuElement({type = MENU, id = "AutoE", name = "Auto[E]Shield Ally"})
+	self.Menu:MenuElement({type = MENU, id = "AutoE", leftIcon = Icons["AutoE"]})
 	self.Menu.AutoE:MenuElement({id = "ally", name = "AutoE Immobile Ally",value = true})
 	self.Menu.AutoE:MenuElement({id = "E", name = "Auto E Toggle Key", key = 84, toggle = true})
 	self.Menu.AutoE:MenuElement({id = "HP", name = "Min AllyHP", value = 30, min = 0, max = 100, identifier = "%"})
@@ -6311,7 +6341,7 @@ function Rakan:LoadMenu()
 	
 	
 	--ComboMenu  
-	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	self.Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})			
@@ -6320,30 +6350,30 @@ function Rakan:LoadMenu()
 	
 
 	--HarassMenu
-	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
+	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})	
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--LaneClear Menu
-	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Lane+Jungle Clear"})	
+	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
 	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})			
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
     
  
 	--KillSteal
-	self.Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
+	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
 	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	self.Menu.ks:MenuElement({id = "UseW", name = "[W]", value = true})			
 	self.Menu.ks:MenuElement({id = "UseR", name = "[R]", value = true})	
 	
 	--Prediction
-	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
+	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
 	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 	self.Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 
  
 	--Drawing 
-	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
 	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q]Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R]Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E]Range", value = true})
@@ -6549,7 +6579,7 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class "Ryze"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 local QData =
@@ -6577,7 +6607,7 @@ function Ryze:LoadMenu()
 	--MainMenu
 	self.Menu = MenuElement({type = MENU, id = "Ryze", name = "PussyRyze"})
 	--ComboMenu
-	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	self.Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
@@ -6585,36 +6615,36 @@ function Ryze:LoadMenu()
 
 	
 	--HarassMenu
-	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
+	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
 	
 	--LaneClear Menu
-	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})
+	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})
 	self.Menu.Clear:MenuElement({id = "UseQ", name = "[E]+[Q] kill Minion", value = true})
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
 	
 	--JungleClear
-	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JungleClear"})
+	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})
 	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})
 	
 	--KillSteal
-	self.Menu:MenuElement({type = MENU, id = "KillSteal", name = "KillSteal"})
+	self.Menu:MenuElement({type = MENU, id = "KillSteal", leftIcon = Icons["ks"]})
 	self.Menu.KillSteal:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	self.Menu.KillSteal:MenuElement({id = "UseW", name = "[W]", value = true})
 	self.Menu.KillSteal:MenuElement({id = "UseE", name = "[E]", value = true})
 	
 	--AutoSpell on CC
-	self.Menu:MenuElement({id = "CC", name = "AutoUse on CC", type = MENU})
-	self.Menu.CC:MenuElement({id = "UseEW", name = "E+W", value = true})
+	self.Menu:MenuElement({id = "CC", leftIcon = Icons["AutoEW"], type = MENU})
+	self.Menu.CC:MenuElement({id = "UseEW", name = "AutoE+W on CC", value = true})
 	
 	--Prediction
-	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
+	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
 	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 
 	--Drawing
-	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
 	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw[Q]", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw[W]", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw[E]", value = true})	
@@ -6848,7 +6878,7 @@ end
 
 
 class "Sona"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 local QData =
@@ -6894,28 +6924,28 @@ end
 
 function Sona:LoadMenu()
 	self.Menu = MenuElement( {id = "Sona", name = "PussySona", type = MENU})
-	self.Menu:MenuElement({id = "Key", name = "Key Settings", type = MENU})
+	self.Menu:MenuElement({id = "Key", leftIcon = Icons["KeySet"], type = MENU})
 	self.Menu.Key:MenuElement({id = "Combo",name = "Combo", key = 32})
 	self.Menu.Key:MenuElement({id = "Harass",name = "Harass", key = string.byte("C")})
 
-	self.Menu:MenuElement({type = MENU, id = "Qset", name = "Q Settings"})
+	self.Menu:MenuElement({type = MENU, id = "Qset", leftIcon = Icons["QSet"]})
 	self.Menu.Qset:MenuElement({id = "Combo",name = "Use in Combo", value = true })
 	self.Menu.Qset:MenuElement({id = "Harass", name = "Use in Harass", value = true})
 	
-	self.Menu:MenuElement({id = "Wset", name = "W Settings", type = MENU})
+	self.Menu:MenuElement({id = "Wset", leftIcon = Icons["WSet"], type = MENU})
 	self.Menu.Wset:MenuElement({id = "AutoW", name = "Enable Auto Health",value = true})
 	self.Menu.Wset:MenuElement({id = "MyHp", name = "Heal my HP Percent",value = 30, min = 1, max = 100,step = 1})
 	self.Menu.Wset:MenuElement({id = "AllyHp", name = "Heal AllyHP Percent",value = 50, min = 1, max = 100,step = 1})
 	
-	self.Menu:MenuElement({id = "Rset", name = "R Settings",type = MENU})
+	self.Menu:MenuElement({id = "Rset", leftIcon = Icons["RSet"],type = MENU})
 	self.Menu.Rset:MenuElement({id = "AutoR", name = "Enable Auto R",value = true})
 	self.Menu.Rset:MenuElement({id = "RHit", name = "Min enemies hit",value = 3, min = 1, max = 5,step = 1})
 	self.Menu.Rset:MenuElement({id = "AllyHp", name = "Use Ult if AllyHP Percent below ",value = 30, min = 1, max = 100,step = 1})	
 	
-	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
+	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
 	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 
-	self.Menu:MenuElement({type = MENU, id = "Draw",name = "> Draw Settings"})
+	self.Menu:MenuElement({type = MENU, id = "Draw", leftIcon = Icons["Drawings"]})
 	self.Menu.Draw:MenuElement({id = "Q", name = "Draw Q Range", value = true})
 	self.Menu.Draw:MenuElement({id = "W", name = "Draw W Range", value = true})
 	self.Menu.Draw:MenuElement({id = "E", name = "Draw E Range", value = true})
@@ -7108,12 +7138,12 @@ function Sylas:LoadMenu()
 
 	
 	--AutoW
-	self.Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})	
-	self.Menu.AutoW:MenuElement({id = "UseW", name = "Safe Auto[W]", value = true})
+	self.Menu:MenuElement({type = MENU, id = "AutoW", leftIcon = Icons["AutoW"]})	
+	self.Menu.AutoW:MenuElement({id = "UseW", name = "Safe Life", value = true})
 	self.Menu.AutoW:MenuElement({id = "hp", name = "Self Hp", value = 40, min = 1, max = 40, identifier = "%"})	
 
 	--AutoR
-	self.Menu:MenuElement({type = MENU, id = "AutoR", name = "AutoR"})	
+	self.Menu:MenuElement({type = MENU, id = "AutoR", leftIcon = Icons["AutoR"]})	
 	self.Menu.AutoR:MenuElement({id = "UseR", name = "Auto Pulling Ult", value = true})
 	self.Menu.AutoR:MenuElement({type = MENU, id = "Target", name = "Target Settings"})
 	for i, hero in pairs(GetEnemyHeroes()) do
@@ -7124,7 +7154,7 @@ function Sylas:LoadMenu()
 
 		
 	--ComboMenu  
-	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q] Chain Lash", value = true})		
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E] Abscond / Abduct", value = true})
 	self.Menu.Combo:MenuElement({id = "UseW", name = "[W] Kingslayer", value = true})
@@ -7145,7 +7175,7 @@ function Sylas:LoadMenu()
 	---------------------------------------------------------------------------------------------------------------------------------
 	
 	--HarassMenu
-	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
+	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})
 	self.Menu.Harass:MenuElement({type = MENU, id = "LH", name = "LastHit"})	
 	self.Menu.Harass.LH:MenuElement({id = "UseQL", name = "LastHit[Q] Minions", value = true, tooltip = "There is no Enemy nearby"})
 	self.Menu.Harass.LH:MenuElement({id = "UseQLM", name = "LastHit[Q] min Minions", value = 2, min = 1, max = 6})	
@@ -7155,7 +7185,7 @@ function Sylas:LoadMenu()
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--LaneClear Menu
-	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})	
+	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
 	self.Menu.Clear:MenuElement({id = "UseQL", name = "[Q] Chain Lash", value = true})	
 	self.Menu.Clear:MenuElement({id = "UseQLM", name = "[Q] min Minions", value = 2, min = 1, max = 6})	
 	self.Menu.Clear:MenuElement({id = "UseE", name = "[E] Abscond / Abduct", value = true})  
@@ -7164,20 +7194,20 @@ function Sylas:LoadMenu()
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
-	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JungleClear"})
+	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})
 	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q] Chain Lash", value = true})         	
 	self.Menu.JClear:MenuElement({id = "UseE", name = "[E] Abscond / Abduct", value = true})
 	self.Menu.JClear:MenuElement({id = "UseW", name = "[W] Kingslayer", value = true})
 	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
  
 	--KillSteal
-	self.Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
+	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
 	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q] Chain Lash", value = true})	
 	self.Menu.ks:MenuElement({id = "UseE", name = "[E] Abscond / Abduct", value = true})		
 	self.Menu.ks:MenuElement({id = "UseW", name = "[W] Kingslayer", value = true})
 
 	--Drawing 
-	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
 	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})
@@ -7247,6 +7277,9 @@ end
 
 function Sylas:Draw()
 local textPos = myHero.pos:To2D()
+if not FileExist(COMMON_PATH .. "HPred.lua") then
+	Draw.Text("HPred installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+end	
 
  if myHero.dead then return end
 	if(self.Menu.Drawing.DrawR:Value()) and Ready(_R) then
@@ -7282,7 +7315,7 @@ local textPos = myHero.pos:To2D()
 			Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
 			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))	
 		end		
-	end
+	end	
 end
        
 
@@ -9472,7 +9505,7 @@ function Tristana:__init()
 	end
 end
 
-local HeroIcon = "http://vignette.wikia.nocookie.net/leagueoflegends/images/0/06/TristanaSquare.png"
+
 
 function Tristana:LoadSpells()
 
@@ -9485,8 +9518,8 @@ end
 
 
 function Tristana:LoadMenu()
-	self.Menu = MenuElement({type = MENU, id = "Tristana", name = "PussyTristana", leftIcon = HeroIcon})
-	self.Menu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.Menu = MenuElement({type = MENU, id = "Tristana", name = "PussyTristana"})
+	self.Menu:MenuElement({id = "Combo", leftIcon = Icons["Combo"], type = MENU})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "AutoQ when Explosive Charge", value = true})
 	self.Menu.Combo:MenuElement({id = "UseE", name = "E", value = true})
 	self.Menu.Combo:MenuElement({id = "UseR", name = "(R)Finisher", tooltip = "is(R)Dmg+(E)Dmg+(E)StackDmg > TargetHP than Ult", value = true})
@@ -9495,23 +9528,23 @@ function Tristana:LoadMenu()
 	self.Menu.Combo.R:MenuElement({id = "RR"..hero.charName, name = "KS R on: "..hero.charName, value = true})
 	end	self.Menu.Combo:MenuElement({id = "comboActive", name = "Combo key", key = string.byte(" ")})
 	
-	self.Menu:MenuElement({id = "gap", name = "Gapclose", type = MENU})
+	self.Menu:MenuElement({id = "gap", leftIcon = Icons["Gabclose"], type = MENU})
 	self.Menu.gap:MenuElement({id = "UseR", name = "Ultimate Gapclose", value = true})
 	self.Menu.gap:MenuElement({id = "gapkey", name = "Gapclose key", key = string.byte("T")})
 	
 
 	
-	self.Menu:MenuElement({id = "Blitz", name = "AntiBlitzGrab", type = MENU})
+	self.Menu:MenuElement({id = "Blitz", leftIcon = Icons["Escape"], type = MENU})
 	self.Menu.Blitz:MenuElement({id = "UseW", name = "AutoW", value = true})
 	
-	self.Menu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.Menu:MenuElement({id = "Harass", leftIcon = Icons["Harass"], type = MENU})
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "AutoQ when Explosive Charge", value = true})
 	self.Menu.Harass:MenuElement({id = "UseE", name = "E", value = true})
 	self.Menu.Harass:MenuElement({id = "harassActive", name = "Harass key", key = string.byte("C")})
 
 	
 	
-	self.Menu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
+	self.Menu:MenuElement({id = "Drawings", leftIcon = Icons["Drawings"], type = MENU})
 	
 	--W
 	self.Menu.Drawings:MenuElement({id = "W", name = "Draw W range", type = MENU})
@@ -9577,14 +9610,14 @@ function Tristana:Draw()
 	if self:CanCast(_W) and self.Menu.Drawings.W.Enabled:Value() then Draw.Circle(myHero, 900, self.Menu.Drawings.W.Width:Value(), self.Menu.Drawings.W.Color:Value()) end
 	if self:CanCast(_E) and self.Menu.Drawings.E.Enabled:Value() then Draw.Circle(myHero, GetERange(), self.Menu.Drawings.E.Width:Value(), self.Menu.Drawings.E.Color:Value()) end
 	if self:CanCast(_R) and self.Menu.Drawings.R.Enabled:Value() then Draw.Circle(myHero, GetRRange(), self.Menu.Drawings.R.Width:Value(), self.Menu.Drawings.R.Color:Value()) end
-	local hero = GetTarget(GetRWRange())
-	if hero == nil then return end
+	local target = GetTarget(GetRWRange())
+	if target == nil then return end
 	local textPos = myHero.pos:To2D()	
-	if self.Menu.Drawings.DrawR:Value() and IsValid(hero, 1500) then 
-		if myHero.pos:DistanceTo(hero.pos) > R.Range and EnemyInRange(GetRWRange()) then
-		local Rdamage = self:RDMG(hero)		
-		local totalDMG = CalcMagicalDamage(hero, Rdamage)
-			if totalDMG > self:HpPred(hero,1) + hero.hpRegen * 1 and not hero.dead and self:IsReady(_R) and self:IsReady(_W) then
+	if self.Menu.Drawings.DrawR:Value() and IsValid(target, 1500) then 
+		if myHero.pos:DistanceTo(target.pos) > R.Range and EnemyInRange(GetRWRange()) then
+		local Rdamage = self:RDMG(target)		
+		local totalDMG = CalcMagicalDamage(target, Rdamage)
+			if totalDMG > self:HpPred(target,1) + target.hpRegen * 1 and not target.dead and self:IsReady(_R) and self:IsReady(_W) then
 			Draw.Text("GapcloseKill PressKey", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
 			end
 		end
@@ -9848,7 +9881,7 @@ class "Veigar"
 
 
 
-require('TPred')
+--require('TPred')
 require "Collision"
 
 function Veigar:__init()
@@ -9893,10 +9926,10 @@ end
 
 function Veigar:LoadSpells()
 
-	Q = {Range = 950, Width = 70, Delay = 0.25, Speed = 2000, Collision = true, aoe = false, Type = "line"}
-	W = {Range = 900, Width = 112, Delay = 1.25, Speed = math.huge, Collision = false, aoe = true, Type = "circular"}
-	E = {Range = 700, Width = 375, Delay = 0.5, Speed = math.huge, Collision = false, aoe = true, Type = "circular"}
-	R = {Range = 650, Width = 0, Delay = 0.25, Speed = 1400, Collision = false, aoe = false, Type = "line"}
+	Q = {Range = 950, Width = 70, Delay = 0.25, Speed = 2000, Collision = false, aoe = false, Type = "line"}
+	W = {Range = 900, Width = 225, Delay = 1.35, Speed = 1000, Collision = false, aoe = true, Type = "circular"}
+	E = {Range = 700, Width = 375, Delay = 0.5, Speed = 1000, Collision = false, aoe = true, Type = "circular"}
+	R = {Range = 650, Width = 50, Delay = 0.25, Speed = 1400, Collision = false, aoe = false, Type = "line"}
 
 end
 
@@ -9923,7 +9956,7 @@ end
 
 function Veigar:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Veigar", name = "PussyVeigar"})
-	self.Menu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.Menu:MenuElement({id = "Combo", leftIcon = Icons["Combo"], type = MENU})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "Q", value = true})
 	self.Menu.Combo:MenuElement({id = "UseW", name = "W", value = true})
 	self.Menu.Combo:MenuElement({id = "UseE", name = "E", value = true})
@@ -9931,27 +9964,27 @@ function Veigar:LoadMenu()
 	self.Menu.Combo:MenuElement({id = "EMode", name = "E Mode", drop = {"Edge", "Middle"}})
 	self.Menu.Combo:MenuElement({id = "comboActive", name = "Combo key", key = string.byte(" ")})
 		
-	self.Menu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.Menu:MenuElement({id = "Harass", leftIcon = Icons["Harass"], type = MENU})
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "Q", value = true})
 	self.Menu.Harass:MenuElement({id = "AutoQ", name = "Auto Q Toggle", value = false, toggle = true, key = string.byte("U")})
 	self.Menu.Harass:MenuElement({id = "UseW", name = "W", value = true})
 	self.Menu.Harass:MenuElement({id = "harassActive", name = "Harass key", key = string.byte("C")})
 	
-	self.Menu:MenuElement({id = "Lasthit", name = "Lasthit", type = MENU})
+	self.Menu:MenuElement({id = "Lasthit", leftIcon = Icons["Lasthit"], type = MENU})
 	self.Menu.Lasthit:MenuElement({id = "UseQ", name = "Q", value = true})
 	self.Menu.Lasthit:MenuElement({id = "AutoQFarm", name = "Auto Q Farm", value = false, toggle = true, key = string.byte("Z")})
 	self.Menu.Lasthit:MenuElement({id = "lasthitActive", name = "Lasthit key", key = string.byte("X")})
 	
-	self.Menu:MenuElement({id = "Clear", name = "Clear", type = MENU})
+	self.Menu:MenuElement({id = "Clear", leftIcon = Icons["Clear"], type = MENU})
 	self.Menu.Clear:MenuElement({id = "UseW", name = "W", value = true})
 	self.Menu.Clear:MenuElement({id = "WHit", name = "W hits x minions", value = 3,min = 1, max = 6, step = 1})
 	self.Menu.Clear:MenuElement({id = "clearActive", name = "Clear key", key = string.byte("V")})
 	
-	self.Menu:MenuElement({id = "Mana", name = "Mana", type = MENU})
+	self.Menu:MenuElement({id = "Mana", leftIcon = Icons["Mana"], type = MENU})
 	self.Menu.Mana:MenuElement({id = "QMana", name = "Min mana to use Q", value = 35, min = 0, max = 100, step = 1})
 	self.Menu.Mana:MenuElement({id = "WMana", name = "Min mana to use W", value = 40, min = 0, max = 100, step = 1})
 	
-	self.Menu:MenuElement({id = "Killsteal", name = "Killsteal", type = MENU})
+	self.Menu:MenuElement({id = "Killsteal", leftIcon = Icons["ks"], type = MENU})
 	self.Menu.Killsteal:MenuElement({id = "UseQ", name = "Q", value = true})
 	self.Menu.Killsteal:MenuElement({id = "UseW", name = "W", value = false})
 
@@ -9962,7 +9995,7 @@ function Veigar:LoadMenu()
 	end
 
 
-	self.Menu:MenuElement({id = "isCC", name = "CC Settings", type = MENU})
+	self.Menu:MenuElement({id = "isCC", leftIcon = Icons["AutoUseCC"], type = MENU})
 	self.Menu.isCC:MenuElement({id = "UseQ", name = "Q", value = true})
 	self.Menu.isCC:MenuElement({id = "UseW", name = "W", value = true})
 	self.Menu.isCC:MenuElement({id = "UseE", name = "E", value = false})
@@ -10056,7 +10089,7 @@ function Veigar:Combo()
 	if self.Menu.Combo.UseE:Value() and target and self:CanCast(_E) then
 		if EnemyInRange(E.Range) then
 			if self.Menu.Combo.EMode:Value() == 1 then
-				Control.CastSpell(HK_E, Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(myHero.pos)):Normalized()*375) 
+				Control.CastSpell(HK_E, Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(Vector(target:GetPrediction(E.Speed,E.Delay))-Vector(myHero.pos)):Normalized()*289) 
 			elseif self.Menu.Combo.EMode:Value() == 2 then
 				Control.CastSpell(HK_E,target)
 			end
@@ -10223,7 +10256,7 @@ function Veigar:SpellonCCE()
 		local ImmobileEnemy = IsImmobileTarget(target)
 	    if EnemyInRange(E.Range) and ImmobileEnemy then
 		if self.Menu.isCC.EMode:Value() == 1 then
-			Control.CastSpell(HK_E, Vector(target:GetPrediction(E.speed,E.delay))-Vector(Vector(target:GetPrediction(E.speed,E.delay))-Vector(myHero.pos)):Normalized()*375)
+			Control.CastSpell(HK_E, Vector(target:GetPrediction(E.speed,E.delay))-Vector(Vector(target:GetPrediction(E.speed,E.delay))-Vector(myHero.pos)):Normalized()*289)
 		elseif self.Menu.isCC.EMode:Value() == 2 then
 			Control.CastSpell(HK_E,target)
 		end
@@ -10334,7 +10367,7 @@ end
 
 function Warwick:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "PussyWarwick", name = "PussyWarwick"})
-	self.Menu:MenuElement({id = "ComboMode", name = "Combo", type = MENU})
+	self.Menu:MenuElement({id = "ComboMode", leftIcon = Icons["Combo"], type = MENU})
 	self.Menu.ComboMode:MenuElement({id = "UseQ", name = "Q: Jaws of the Beast", value = true})
 	self.Menu.ComboMode:MenuElement({id = "UseW", name = "W: Blood Hunt", value = true})
 	self.Menu.ComboMode:MenuElement({id = "UseE", name = "E: Primal Howl", value = true})
@@ -10345,13 +10378,13 @@ function Warwick:LoadMenu()
 	self.Menu.ComboMode:MenuElement({id = "DrawDamage", name = "Draw Killable", value = true})
 	self.Menu.ComboMode:MenuElement({id = "DrawRange", name = "Draw RRange", value = true})	
 		
-	self.Menu:MenuElement({id = "HarassMode", name = "Harass", type = MENU})
+	self.Menu:MenuElement({id = "HarassMode", leftIcon = Icons["Harass"], type = MENU})
 	self.Menu.HarassMode:MenuElement({id = "UseQ", name = "Q: Jaws of the Beast", value = true})
 	self.Menu.HarassMode:MenuElement({id = "UseW", name = "W: Blood Hunt", value = true})
 	self.Menu.HarassMode:MenuElement({id = "UseE", name = "E: Primal Howl", value = true})
 	self.Menu.HarassMode:MenuElement({id = "harassActive", name = "Harass key", key = string.byte("C")})
 
-	self.Menu:MenuElement({id = "ClearMode", name = "Clear", type = MENU})
+	self.Menu:MenuElement({id = "ClearMode", leftIcon = Icons["Clear"], type = MENU})
 	self.Menu.ClearMode:MenuElement({id = "UseQ", name = "Q: Jaws of the Beast", value = true})
 	self.Menu.ClearMode:MenuElement({id = "UseW", name = "W: Blood Hunt", value = true})
 	self.Menu.ClearMode:MenuElement({id = "UseE", name = "E: Primal Howl", value = true})
@@ -10391,7 +10424,9 @@ end
 
 function Warwick:Draw()
 local textPos = myHero.pos:To2D()
-   
+ if not FileExist(COMMON_PATH .. "HPred.lua") then
+	Draw.Text("HPred installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+end	  
 	if self.Menu.ComboMode.DrawRange:Value() and self:CanCast(_R) then Draw.Circle(myHero.pos, (2.5 * myHero.ms), Draw.Color(255, 000, 222, 255)) end
 	if self.Menu.ComboMode.DrawDamage:Value() then
 		for i, hero in pairs(GetEnemyHeroes()) do
@@ -10590,7 +10625,7 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class "Xerath"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 local QData =
@@ -10647,17 +10682,6 @@ function Xerath:__init()
 	function OnTick() self:Tick() end
  	function OnDraw() self:Draw() end
 end
-
-
-
-local spellIcons = {Q = "http://vignette3.wikia.nocookie.net/leagueoflegends/images/5/57/Arcanopulse.png",
-					W = "http://vignette1.wikia.nocookie.net/leagueoflegends/images/2/20/Eye_of_Destruction.png",
-					E = "http://vignette2.wikia.nocookie.net/leagueoflegends/images/6/6f/Shocking_Orb.png",
-					R = "http://vignette1.wikia.nocookie.net/leagueoflegends/images/3/37/Rite_of_the_Arcane.png"}
-
-local icons = {	["Xerath"] = "http://vignette2.wikia.nocookie.net/leagueoflegends/images/7/7a/XerathSquare.png",
-}
-
 
 
 local _EnemyHeroes
@@ -11071,19 +11095,24 @@ function Xerath:LoadSpells()
 	Q = {range = 750, radius = 145, delay = 0.35 + Game.Latency()/1000, speed = math.huge, collision = false}    
 	W = {range = 1100, radius = 200, delay = 0.5, speed = math.huge, collision = false}      
 	E = {range = 1050, radius = 30, delay = 0.25, speed = 2300, collision = true}   
- 
-
 end
+
+local spellIcons = {
+Q = "http://vignette3.wikia.nocookie.net/leagueoflegends/images/5/57/Arcanopulse.png",
+W = "http://vignette1.wikia.nocookie.net/leagueoflegends/images/2/20/Eye_of_Destruction.png",
+E = "http://vignette2.wikia.nocookie.net/leagueoflegends/images/6/6f/Shocking_Orb.png",
+R = "http://vignette1.wikia.nocookie.net/leagueoflegends/images/3/37/Rite_of_the_Arcane.png"
+}
 
 
 function Xerath:LoadMenu()
-	Xerath.Menu = MenuElement({id = "Xerath", name = "PussyXerath ", type = MENU})
-	Xerath.Menu:MenuElement({id = "Combo", name = "Combo", type = MENU})
-	self.Menu:MenuElement({id = "Harass", name = "Harass", type = MENU})
-	self.Menu:MenuElement({id = "Clear", name = "Lane+JungleClear", type = MENU})	
-	self.Menu:MenuElement({id = "Killsteal", name = "Killsteal", type = MENU})
-	self.Menu:MenuElement({id = "Misc", name = "Misc", type = MENU})
-	self.Menu:MenuElement({id = "Key", name = "Key Settings", type = MENU})
+	Xerath.Menu = MenuElement({id = "Xerath", name = "PussyXerath[Reworked LazyXerath] ", type = MENU})
+	Xerath.Menu:MenuElement({id = "Combo", leftIcon = Icons["Combo"], type = MENU})
+	self.Menu:MenuElement({id = "Harass", leftIcon = Icons["Harass"], type = MENU})
+	self.Menu:MenuElement({id = "Clear", leftIcon = Icons["Clear"], type = MENU})	
+	self.Menu:MenuElement({id = "Killsteal", leftIcon = Icons["ks"], type = MENU})
+	self.Menu:MenuElement({id = "Misc", leftIcon = Icons["Misc"], type = MENU})
+	self.Menu:MenuElement({id = "Key", leftIcon = Icons["KeySet"], type = MENU})
 	self.Menu.Key:MenuElement({id = "Combo", name = "Combo", key = string.byte(" ")})
 	self.Menu.Key:MenuElement({id = "Harass", name = "Harass | Mixed", key = string.byte("C")})
 	self.Menu.Key:MenuElement({id = "Clear", name = "LaneClear | JungleClear", key = string.byte("V")})
@@ -11101,21 +11130,21 @@ function Xerath:LoadMenu()
 	self.Menu.Combo.R:MenuElement({id = "safeR", name = "Safety R stack", value = 1, min = 0, max = 2, step = 1})
 	self.Menu.Combo.R:MenuElement({id = "targetChangeDelay", name = "Delay between target switch", value = 100, min = 0, max = 2000, step = 10})
 	self.Menu.Combo.R:MenuElement({id = "castDelay", name = "Delay between casts", value = 150, min = 0, max = 500, step = 1})
-	self.Menu.Combo.R:MenuElement({id = "useBlue", name = "Use Farsight Alteration", value = true, leftIcon = "http://vignette2.wikia.nocookie.net/leagueoflegends/images/7/75/Farsight_Alteration_item.png"})
+	self.Menu.Combo.R:MenuElement({id = "useBlue", name = "Use Farsight Alteration", value = true})
 	self.Menu.Combo.R:MenuElement({id = "useRkey", name = "On key press (close to mouse)", key = string.byte("T")})
 	
 	self.Menu.Harass:MenuElement({id = "useQ", name = "Use Q", value = true, leftIcon = spellIcons.Q})
-	self.Menu.Harass:MenuElement({id = "manaQ", name = " [Q]Mana-Manager", value = 40, min = 0, max = 100, step = 1, leftIcon = "http://vignette1.wikia.nocookie.net/leagueoflegends/images/1/1d/Mana_Potion_item.png"})
+	self.Menu.Harass:MenuElement({id = "manaQ", name = " [Q]Mana-Manager", value = 40, min = 0, max = 100, step = 1})
 	self.Menu.Harass:MenuElement({id = "useW", name = "Use W", value = true, leftIcon = spellIcons.W})
-	self.Menu.Harass:MenuElement({id = "manaW", name = " [W]Mana-Manager", value = 60, min = 0, max = 100, step = 1, leftIcon = "http://vignette1.wikia.nocookie.net/leagueoflegends/images/1/1d/Mana_Potion_item.png"})
+	self.Menu.Harass:MenuElement({id = "manaW", name = " [W]Mana-Manager", value = 60, min = 0, max = 100, step = 1})
 	self.Menu.Harass:MenuElement({id = "useE", name = "Use E", value = false, leftIcon = spellIcons.E})
-	self.Menu.Harass:MenuElement({id = "manaE", name = " [E]Mana-Manager", value = 80, min = 0, max = 100, step = 1, leftIcon = "http://vignette1.wikia.nocookie.net/leagueoflegends/images/1/1d/Mana_Potion_item.png"})
+	self.Menu.Harass:MenuElement({id = "manaE", name = " [E]Mana-Manager", value = 80, min = 0, max = 100, step = 1})
 
 	self.Menu.Clear:MenuElement({id = "useQ", name = "Use Q", value = true, leftIcon = spellIcons.Q})
-	self.Menu.Clear:MenuElement({id = "manaQ", name = " [Q]Mana-Manager", value = 40, min = 0, max = 100, step = 1, leftIcon = "http://vignette1.wikia.nocookie.net/leagueoflegends/images/1/1d/Mana_Potion_item.png"})
+	self.Menu.Clear:MenuElement({id = "manaQ", name = " [Q]Mana-Manager", value = 40, min = 0, max = 100, step = 1})
 	self.Menu.Clear:MenuElement({id = "hitQ", name = "min Minions Use Q", value = 2, min = 1, max = 6, step = 1})	
 	self.Menu.Clear:MenuElement({id = "useW", name = "Use W", value = true, leftIcon = spellIcons.W})
-	self.Menu.Clear:MenuElement({id = "manaW", name = " [W]Mana-Manager", value = 60, min = 0, max = 100, step = 1, leftIcon = "http://vignette1.wikia.nocookie.net/leagueoflegends/images/1/1d/Mana_Potion_item.png"})	
+	self.Menu.Clear:MenuElement({id = "manaW", name = " [W]Mana-Manager", value = 60, min = 0, max = 100, step = 1})	
 	self.Menu.Clear:MenuElement({id = "hitW", name = "min Minions Use W", value = 2, min = 1, max = 6, step = 1})	
 	
 	self.Menu.Killsteal:MenuElement({id = "useQ", name = "Use Q to killsteal", value = true, leftIcon = spellIcons.Q})
@@ -11199,6 +11228,9 @@ local textPos = myHero.pos:To2D()
 if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 	Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 end
+if not FileExist(COMMON_PATH .. "HPred.lua") then
+	Draw.Text("HPred installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+end	
 
 if myHero.dead then return end
 	if self.Menu.Combo.R.useRkey:Value() then
@@ -12151,7 +12183,7 @@ function XinZhao:LoadMenu()
 	--Main Menu-- PussyXinZhao
 	self.Menu:MenuElement({type = MENU, id = "Mode", name = "PussyXinZhao"})
 	--Main Menu-- PussyXinZhao -- Combo
-	self.Menu.Mode:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu.Mode:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Mode.Combo:MenuElement({id = "Q", name = "Use Q", value = true})
 	self.Menu.Mode.Combo:MenuElement({id = "W", name = "UseW if Target Flee", value = true})
 	self.Menu.Mode.Combo:MenuElement({id = "E", name = "Use E", value = true})
@@ -12160,28 +12192,28 @@ function XinZhao:LoadMenu()
 	self.Menu.Mode.Combo:MenuElement({id = "myRHP", name = "R when XinZhao HP%", value = 30, min = 0, max = 100, step = 1})
 	
 	--Main Menu-- PussyXinZhao -- Harass
-	self.Menu.Mode:MenuElement({type = MENU, id = "Harass", name = "Harass"})
+	self.Menu.Mode:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})
 	self.Menu.Mode.Harass:MenuElement({id = "W", name = "Use W", value = true})
 	self.Menu.Mode.Harass:MenuElement({type = MENU, id = "MM", name = "Mana Manager"})
 	self.Menu.Mode.Harass.MM:MenuElement({id = "WMana", name = "Min Mana to W in Harass(%)", value = 40, min = 0, max = 100, step = 1})
 	--Main Menu-- PussyXinZhao -- LaneClear
-	self.Menu.Mode:MenuElement({type = MENU, id = "LaneClear", name = "Lane Clear"})
+	self.Menu.Mode:MenuElement({type = MENU, id = "LaneClear", leftIcon = Icons["Clear"]})
 	self.Menu.Mode.LaneClear:MenuElement({id = "W", name = "Use W", value = true})
 	self.Menu.Mode.LaneClear:MenuElement({id = "WMinion", name = "Use W when X minions", value = 3,min = 1, max = 4, step = 1})
 	self.Menu.Mode.LaneClear:MenuElement({id = "Q", name = "Use Q", value = true})
 	self.Menu.Mode.LaneClear:MenuElement({id = "E", name = "Use E", value = true})
 	--Main Menu-- PussyXinZhao -- JungleClear
-	self.Menu.Mode:MenuElement({type = MENU, id = "JungleClear", name = "Jungle Clear"})
+	self.Menu.Mode:MenuElement({type = MENU, id = "JungleClear", leftIcon = Icons["JClear"]})
 	self.Menu.Mode.JungleClear:MenuElement({id = "Q", name = "Use Q", value = true})
 	self.Menu.Mode.JungleClear:MenuElement({id = "W", name = "Use W", value = true})
 	self.Menu.Mode.JungleClear:MenuElement({id = "E", name = "Use E", value = true})
 	
 	--Main Menu-- PussyXinZhao -- KillSteal
-	self.Menu.Mode:MenuElement({type = MENU, id = "KS", name = "KillSteal"})
+	self.Menu.Mode:MenuElement({type = MENU, id = "KS", leftIcon = Icons["ks"]})
 	self.Menu.Mode.KS:MenuElement({id = "E", name = "UseE KS", value = true})	
 	
 	--Main Menu-- PussyXinZhao -- Spell Range 
-	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Spell Range"})
+	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
 	self.Menu.Drawing:MenuElement({id = "E", name = "Draw E Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
 	self.Menu.Drawing:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 255, 255, 255)})
@@ -12281,7 +12313,7 @@ function XinZhao:Clear()
 	if self:GetValidMinion(600) == false then return end
 	for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
-			if minion.team == TEAM_ENEMY or minion.team == TEAM_JUNGLE then
+			if minion.team == TEAM_ENEMY then
 				if minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.LaneClear.E:Value() and self:isReady(_E) then
 					Control.CastSpell(HK_E,minion)
 					break
@@ -12296,8 +12328,8 @@ function XinZhao:Clear()
 					Control.CastSpell(HK_Q)
 					break
 				end
-
-			elseif minion.team == 300 then
+			end
+			if minion.team == TEAM_JUNGLE then
 				if  minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.JungleClear.E:Value() and self:isReady(_E) then
 					Control.CastSpell(HK_E,minion)
 					break
@@ -12313,6 +12345,7 @@ function XinZhao:Clear()
 			end
 		end
 	end
+
 	
 function XinZhao:Draw()
 if myHero.dead then return end
@@ -12329,7 +12362,7 @@ end
 
 
 class "Zyra"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 
@@ -12371,11 +12404,11 @@ function Zyra:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Zyra", name = "PussyZyra"})
 
 	--AutoE
-	self.Menu:MenuElement({type = MENU, id = "AutoE", name = "Auto[E] on Immobile Target"})
-	self.Menu.AutoE:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})	
+	self.Menu:MenuElement({type = MENU, id = "AutoE", leftIcon = Icons["AutoE"]})
+	self.Menu.AutoE:MenuElement({id = "UseE", name = "Auto[E]on Immobile", value = true})	
 	
 	--ComboMenu  
-	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})		
 	self.Menu.Combo:MenuElement({id = "UseW", name = "[W] Rampant Growth", value = true})
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})			
@@ -12388,38 +12421,38 @@ function Zyra:LoadMenu()
 	self.Menu.Combo.Ult:MenuElement({id = "Immo", name = "Use[R]Immobile Targets > 2", value = true})	
 
 	--HarassMenu
-	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
+	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})	
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})
 	self.Menu.Harass:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})
 	self.Menu.Harass:MenuElement({id = "UseW", name = "[W] Rampant Growth", value = true})	
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--LaneClear Menu
-	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})	
+	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
 	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})		
 	self.Menu.Clear:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})  	
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
-	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JClear"})
+	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})
 	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})         	
 	self.Menu.JClear:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})
 	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
  
 	--KillSteal
-	self.Menu:MenuElement({type = MENU, id = "ks", name = "ks"})
+	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
 	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})	
 	self.Menu.ks:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})	
 	self.Menu.ks:MenuElement({id = "UseEQ", name = "[E]+[Q]", value = true})
 
 	--Prediction
-	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
+	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
 	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 	self.Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 	self.Menu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})
 
 	--Drawing 
-	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
 	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})
@@ -13058,7 +13091,7 @@ function CalMagicalDamage(source, target, amount)
   end
   return math.max(0, math.floor(DamageReductionMod(source, target, PassivePercentMod(source, target, value) * amount, 2)))
 end
-
+--[[
 class "HPred"
 
 
@@ -14180,5 +14213,5 @@ function HPred:GetDistance(p1, p2)
 	end
 	return math.sqrt(self:GetDistanceSqr(p1, p2))
 end
-
+]]
 
