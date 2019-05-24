@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 1.8
+    local Version = 1.9
     
     local Files = {
         Lua = {
@@ -50,6 +50,15 @@ end
 
 
 
+local isLoaded = false
+function TryLoad()
+	if Game.Timer() < 5 then return end
+	isLoaded = true	
+	if table.contains(Heroes, myHero.charName) then
+		_G[myHero.charName]()
+	end	
+end
+
 function OnLoad()
 	Start()
 	LoadUnits()
@@ -57,7 +66,6 @@ function OnLoad()
 	HPred()
 
 	if table.contains(Heroes, myHero.charName) then
-		_G[myHero.charName]()
 		LoadPred()
 	end
 	
@@ -97,6 +105,11 @@ end
 
 
 function Start:Draw()
+if not isLoaded then
+	TryLoad()
+	return
+end
+
 local textPos = myHero.pos:To2D()	
 	if myHero.charName == "Veigar" and not FileExist(COMMON_PATH .. "TPred.lua") then
 		Draw.Text("TPred installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
@@ -1587,7 +1600,7 @@ end
 	
 -------------------------------------------------------------------------------------------------------------------------------------------------------------	
 class "Ahri"
---require('GamsteronPrediction')
+require('GamsteronPrediction')
 
 
 local QData =
@@ -2163,7 +2176,7 @@ class "Cassiopeia"
 
 
 
---require('GamsteronPrediction')
+require('GamsteronPrediction')
 require "2DGeometry"
 
 function Cassiopeia:LoadSpells()
@@ -2892,7 +2905,7 @@ end
 
 
 class "Ekko"
---require('GamsteronPrediction')
+require('GamsteronPrediction')
 
 
 
@@ -3204,7 +3217,7 @@ end
 
 
 class "Kayle"
---require('GamsteronPrediction')
+require('GamsteronPrediction')
 
 
 
@@ -4201,7 +4214,7 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class "Malzahar"
---require('GamsteronPrediction')
+require('GamsteronPrediction')
 
 
 
@@ -4522,7 +4535,7 @@ end
 
 class "Morgana"
 
---require('GamsteronPrediction')
+require('GamsteronPrediction')
 function Morgana:__init()
 	
 	self.DetectedMissiles = {}; self.DetectedSpells = {}; self.Target = nil; self.Timer = 0
@@ -5889,7 +5902,7 @@ end
 
 
 class "Nidalee"
---require('GamsteronPrediction')
+require('GamsteronPrediction')
 
 
 
@@ -6296,7 +6309,7 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class "Rakan"
---require('GamsteronPrediction')
+require('GamsteronPrediction')
 
 
 
@@ -6583,7 +6596,7 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class "Ryze"
---require('GamsteronPrediction')
+require('GamsteronPrediction')
 
 
 local QData =
@@ -6882,7 +6895,7 @@ end
 
 
 class "Sona"
---require('GamsteronPrediction')
+require('GamsteronPrediction')
 
 
 local QData =
@@ -10620,7 +10633,7 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class "Xerath"
---require('GamsteronPrediction')
+require('GamsteronPrediction')
 
 
 local QData =
@@ -12410,7 +12423,7 @@ end
 
 
 class "Zyra"
---require('GamsteronPrediction')
+require('GamsteronPrediction')
 
 
 
