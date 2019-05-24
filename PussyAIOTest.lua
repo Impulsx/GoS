@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 1.6
+    local Version = 1.7
     
     local Files = {
         Lua = {
@@ -4254,6 +4254,7 @@ function Malzahar:LoadMenu()
 	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q] Call of the Void", value = true})		
 	self.Menu.Clear:MenuElement({id = "UseE", name = "[E] Malefic Visions", value = true})
 	self.Menu.Clear:MenuElement({id = "UseEM", name = "Use [E] min Minions", value = 2, min = 1, max = 6})  	
+	self.Menu.Clear:MenuElement({id = "hp", name = "Use[E] if MinionHP less then", value = 50, min = 1, max = 100, identifier = "%"})	
 	self.Menu.Clear:MenuElement({id = "UseW", name = "[W] Void Swarm", value = true})	
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
   
@@ -4375,12 +4376,19 @@ function Malzahar:KillSteal()
 		if self.Menu.ks.UseR:Value() and Ready(_R) then
 			if RDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 700 then
 				Control.CastSpell(HK_R, target)
+			if myHero.activeSpell.isChanneling == true then	
+				_G.SDK.Orbwalker:SetMovement(false)
+				_G.SDK.Orbwalker:SetAttack(false)
+			elseif myHero.activeSpell.isChanneling == false then	
+				_G.SDK.Orbwalker:SetMovement(true)
+				_G.SDK.Orbwalker:SetAttack(true)
+			end	
 	
 			end
 		end
 		if self.Menu.ks.full:Value() and ready then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if (fullDmg + IGdamage) >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+			if (fullDmg) >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				DelayAction(function()
 				Control.CastSpell(HK_E, target)				
 				Control.CastSpell(HK_Q, pred.CastPosition)
@@ -4394,7 +4402,14 @@ function Malzahar:KillSteal()
 				Control.CastSpell(HK_Q, pred.CastPosition)
 				Control.CastSpell(HK_W, target.pos)
 				Control.CastSpell(HK_R, target)
-				end, 0.05)	
+				end, 0.05)
+			if myHero.activeSpell.isChanneling == true then	
+				_G.SDK.Orbwalker:SetMovement(false)
+				_G.SDK.Orbwalker:SetAttack(false)
+			elseif myHero.activeSpell.isChanneling == false then	
+				_G.SDK.Orbwalker:SetMovement(true)
+				_G.SDK.Orbwalker:SetAttack(true)
+			end		
 			end
 		end
 	end
@@ -4429,6 +4444,13 @@ if target == nil then return end
 		if Ready(_R) and self.Menu.Combo.UseR:Value() then
 			if myHero.pos:DistanceTo(target.pos) <= 700 then
 				Control.CastSpell(HK_R, target)
+			end
+			if myHero.activeSpell.isChanneling == true then	
+				_G.SDK.Orbwalker:SetMovement(false)
+				_G.SDK.Orbwalker:SetAttack(false)
+			elseif myHero.activeSpell.isChanneling == false then	
+				_G.SDK.Orbwalker:SetMovement(true)
+				_G.SDK.Orbwalker:SetAttack(true)
 			end
 		end
 	end
@@ -4465,7 +4487,7 @@ function Malzahar:Clear()
     local minion = Game.Minion(i)
 		if IsValid(minion, 1000) and minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
 			local count = GetMinionCount(650, minion)
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 650 and self.Menu.Clear.UseE:Value() and count >= self.Menu.Clear.UseEM:Value() then
+			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 650 and self.Menu.Clear.UseE:Value() and count >= self.Menu.Clear.UseEM:Value() and minion.health/minion.maxHealth <= self.Menu.Clear.hp:Value()/100 then
 				Control.CastSpell(HK_E, minion)
 			end
 			
