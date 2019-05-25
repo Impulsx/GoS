@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 2.4
+    local Version = 2.5
     
     local Files = {
         Lua = {
@@ -125,7 +125,7 @@ local textPos = myHero.pos:To2D()
 	end
 	
 	if NewVersion == Version and Game.Timer() < 20 then
-		Draw.Text("Welcome to PussyAIO Vers.2.4", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
+		Draw.Text("Welcome to PussyAIO Vers.2.5", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Rakan        Nidalee", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Ryze          XinZhao", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
