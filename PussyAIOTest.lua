@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 3.1
+    local Version = 3.2
     
     local Files = {
         Lua = {
@@ -54,7 +54,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 local isLoaded = false
 function TryLoad()
-	if Game.Timer() < 5 then return end
+	if Game.Timer() < 10 then return end
 	isLoaded = true	
 	if table.contains(Heroes, myHero.charName) then
 		_G[myHero.charName]()
@@ -2954,7 +2954,7 @@ function Ekko:LoadMenu()
 	--LaneClear Menu
 	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
 	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})		
-	self.Menu.Clear:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})  	
+	self.Menu.Clear:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = false})  	
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
@@ -4358,7 +4358,7 @@ function Malzahar:KillSteal()
 	local QDmg = getdmg("Q", target, myHero)
 	local EDmg = getdmg("E", target, myHero)
 	local WDmg = getdmg("W", target, myHero)
-	local RDmg = getdmg("R", target, myHero)
+	local RDmg = getdmg("R", target, myHero) * 2
 	local fullDmg = QDmg + EDmg + WDmg + RDmg
 
 	if IsValid(target,1000) then	
