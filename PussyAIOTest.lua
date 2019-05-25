@@ -126,7 +126,7 @@ local textPos = myHero.pos:To2D()
 	else
 	
 		if Game.Timer() < 20 then
-			Draw.Text("Welcome to PussyAIO 2.0", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
+			Draw.Text("Welcome to PussyAIO 2.2", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 			Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
 			Draw.Text("Rakan        Nidalee", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
 			Draw.Text("Ryze          XinZhao", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
