@@ -4,9 +4,9 @@ local GsoPred = {"Rakan","Nidalee","Ryze","Cassiopeia","Malzahar","Zyra","Kayle"
 if not table.contains(Heroes, myHero.charName) then return end
 
 
-
+do
     
-local Version = 2.2
+    local Version = 2.3
     
     local Files = {
         Lua = {
@@ -20,33 +20,34 @@ local Version = 2.2
             Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIOTest.version"
         }
     }
-	
-local function DownloadFile(url, path, fileName)
-    DownloadFileAsync(url, path .. fileName, function() end)
-    while not FileExist(path .. fileName) do end
-end
-        
-local function ReadFile(path, fileName)
-    local file = io.open(path .. fileName, "r")
-    local result = file:read()
-    file:close()
-    return result
-end	
     
     local function AutoUpdate()
-
+        
+        local function DownloadFile(url, path, fileName)
+            DownloadFileAsync(url, path .. fileName, function() end)
+            while not FileExist(path .. fileName) do end
+        end
+        
+        local function ReadFile(path, fileName)
+            local file = io.open(path .. fileName, "r")
+            local result = file:read()
+            file:close()
+            return result
+        end
+        
         DownloadFile(Files.Version.Url, Files.Version.Path, Files.Version.Name)
         local textPos = myHero.pos:To2D()
         local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
         if NewVersion > Version then
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
             print("New PussyAIO Version Press 2x F6")
+			Draw.Text("New PussyAIO Ver. Press 2xF6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
         else
             print(Files.Version.Name .. ": No Updates Found")
         end	
 	end
-	
-
+	AutoUpdate()
+end 
 
 
 
@@ -60,12 +61,10 @@ function TryLoad()
 end
 
 function OnLoad()
-	AutoUpdate()
 	Start()
 	LoadUnits()
 	Activator()
 	HPred()
-	
 
 	if table.contains(Heroes, myHero.charName) then
 		LoadPred()
@@ -115,30 +114,24 @@ if not isLoaded then
 	return
 end
 
-local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
 local textPos = myHero.pos:To2D()	
 	if myHero.charName == "Veigar" and not FileExist(COMMON_PATH .. "TPred.lua") then
 		Draw.Text("TPred installed Press 2xF6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 	end
-    if NewVersion > Version then
-		Draw.Text("New PussyAIO Vers. Press 2xF6", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 0, 0))
 	
-	else
-	
-		if Game.Timer() < 20 then
-			Draw.Text("Welcome to PussyAIO 2.2", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
-			Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
-			Draw.Text("Rakan        Nidalee", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
-			Draw.Text("Ryze          XinZhao", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
-			Draw.Text("Kassadin     Veigar", 25, textPos.x + 200, textPos.y - 60, Draw.Color(255, 255, 200, 0))
-			Draw.Text("Tristana      Warwick", 25, textPos.x + 200, textPos.y - 40, Draw.Color(255, 255, 200, 0))
-			Draw.Text("Neeko        Cassiopeia", 25, textPos.x + 200, textPos.y - 20, Draw.Color(255, 255, 200, 0))
-			Draw.Text("Malzahar    Zyra", 25, textPos.x + 200, textPos.y - 1 , Draw.Color(255, 255, 200, 0))
-			Draw.Text("Sylas         Kayle", 25, textPos.x + 200, textPos.y + 20, Draw.Color(255, 255, 200, 0))
-			Draw.Text("Morgana    Ekko", 25, textPos.x + 200, textPos.y + 40, Draw.Color(255, 255, 200, 0))
-			Draw.Text("Xerath       Sona", 25, textPos.x + 200, textPos.y + 60, Draw.Color(255, 255, 200, 0))		
-			Draw.Text("Ahri", 25, textPos.x + 200, textPos.y + 80, Draw.Color(255, 255, 200, 0))	
-		end
+	if Game.Timer() < 20 then
+		Draw.Text("Welcome to PussyAIO 2.3", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
+		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Rakan        Nidalee", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Ryze          XinZhao", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Kassadin     Veigar", 25, textPos.x + 200, textPos.y - 60, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Tristana      Warwick", 25, textPos.x + 200, textPos.y - 40, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Neeko        Cassiopeia", 25, textPos.x + 200, textPos.y - 20, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Malzahar    Zyra", 25, textPos.x + 200, textPos.y - 1 , Draw.Color(255, 255, 200, 0))
+		Draw.Text("Sylas         Kayle", 25, textPos.x + 200, textPos.y + 20, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Morgana    Ekko", 25, textPos.x + 200, textPos.y + 40, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Xerath       Sona", 25, textPos.x + 200, textPos.y + 60, Draw.Color(255, 255, 200, 0))		
+		Draw.Text("Ahri", 25, textPos.x + 200, textPos.y + 80, Draw.Color(255, 255, 200, 0))	
 	end
 end	
 
