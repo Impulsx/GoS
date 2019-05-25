@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 1.9
+    local Version = 2.0
     
     local Files = {
         Lua = {
@@ -81,7 +81,7 @@ function LoadPred()
 
 
 		end
-	require('GamsteronPrediction')	
+		
 	end
 
 	if myHero.charName == "Veigar" then
@@ -94,6 +94,9 @@ function LoadPred()
 	require('TPred')	
 	end
 end	
+require "GamsteronPrediction"
+require "Collision"
+require "2DGeometry"
 
 class "Start"
 
@@ -112,22 +115,28 @@ end
 
 local textPos = myHero.pos:To2D()	
 	if myHero.charName == "Veigar" and not FileExist(COMMON_PATH .. "TPred.lua") then
-		Draw.Text("TPred installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+		Draw.Text("TPred installed Press 2xF6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 	end
-	if Game.Timer() < 30 then
-		Draw.Text("Welcome to PussyAIO Ver. 1.9 ", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
-		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Rakan        Nidalee", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Ryze          XinZhao", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Kassadin     Veigar", 25, textPos.x + 200, textPos.y - 60, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Tristana      Warwick", 25, textPos.x + 200, textPos.y - 40, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Neeko        Cassiopeia", 25, textPos.x + 200, textPos.y - 20, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Malzahar    Zyra", 25, textPos.x + 200, textPos.y - 1 , Draw.Color(255, 255, 200, 0))
-		Draw.Text("Sylas         Kayle", 25, textPos.x + 200, textPos.y + 20, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Morgana    Ekko", 25, textPos.x + 200, textPos.y + 40, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Xerath       Sona", 25, textPos.x + 200, textPos.y + 60, Draw.Color(255, 255, 200, 0))		
-		Draw.Text("Ahri", 25, textPos.x + 200, textPos.y + 80, Draw.Color(255, 255, 200, 0))	
-	end	
+    if NewVersion > Version then
+		Draw.Text("New PussyAIO Vers. Press 2xF6", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 0, 0))
+	
+	else
+	
+		if Game.Timer() < 20 then
+			Draw.Text("Welcome to PussyAIO 2.0", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
+			Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
+			Draw.Text("Rakan        Nidalee", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
+			Draw.Text("Ryze          XinZhao", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
+			Draw.Text("Kassadin     Veigar", 25, textPos.x + 200, textPos.y - 60, Draw.Color(255, 255, 200, 0))
+			Draw.Text("Tristana      Warwick", 25, textPos.x + 200, textPos.y - 40, Draw.Color(255, 255, 200, 0))
+			Draw.Text("Neeko        Cassiopeia", 25, textPos.x + 200, textPos.y - 20, Draw.Color(255, 255, 200, 0))
+			Draw.Text("Malzahar    Zyra", 25, textPos.x + 200, textPos.y - 1 , Draw.Color(255, 255, 200, 0))
+			Draw.Text("Sylas         Kayle", 25, textPos.x + 200, textPos.y + 20, Draw.Color(255, 255, 200, 0))
+			Draw.Text("Morgana    Ekko", 25, textPos.x + 200, textPos.y + 40, Draw.Color(255, 255, 200, 0))
+			Draw.Text("Xerath       Sona", 25, textPos.x + 200, textPos.y + 60, Draw.Color(255, 255, 200, 0))		
+			Draw.Text("Ahri", 25, textPos.x + 200, textPos.y + 80, Draw.Color(255, 255, 200, 0))	
+		end
+	end
 end	
 
 
@@ -1600,7 +1609,7 @@ end
 	
 -------------------------------------------------------------------------------------------------------------------------------------------------------------	
 class "Ahri"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 local QData =
@@ -2176,8 +2185,8 @@ class "Cassiopeia"
 
 
 
-require('GamsteronPrediction')
-require "2DGeometry"
+--require('GamsteronPrediction')
+
 
 function Cassiopeia:LoadSpells()
 	R = {Range = 825, Width = 200, Delay = 0.8, Speed = math.huge, Collision = false, aoe = false, Type = "circular"}
@@ -2309,29 +2318,36 @@ Type = _G.SPELLTYPE_CONE, Delay = 0.5, Radius = 80, Range = 825, Speed = 3200, C
 		end
 	end
 
-	function Cassiopeia:Qdmg()
+	function Cassiopeia:Qdmg(target)
 		local level = myHero:GetSpellData(_Q).level
 		local base = ({75, 110, 145, 180, 215})[level] + 0.90 * myHero.ap
-		return base
+		return CalcMagicalDamage(target, base)
 	end
 	
-	function Cassiopeia:Wdmg()
+	function Cassiopeia:Wdmg(target)
 		local level = myHero:GetSpellData(_W).level
 		local base = ({100, 125, 150, 175, 200})[level] + 0.75 * myHero.ap
-		return base
+		return CalcMagicalDamage(target, base)
 	end
 
-	function Cassiopeia:Edmg()
+	function Cassiopeia:Edmg(target)
 		local level = myHero.levelData.lvl
 		local base = (48 + 4 * level) + (0.1 * myHero.ap)
-		return base
+		return CalcMagicalDamage(target, base)
 	end
 	
-	function Cassiopeia:PEdmg()
+	function Cassiopeia:Rdmg(target)
+		local level = myHero:GetSpellData(_R).level
+		local base = ({150, 250, 350})[level] + 0.5 * myHero.ap
+		return CalcMagicalDamage(target, base)
+		
+	end		
+	
+	function Cassiopeia:PEdmg(target)
 		local level = myHero:GetSpellData(_E).level
 		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * myHero.ap)
 		local PEdamage = self:Edmg() + bonus
-		return PEdamage
+		return CalcMagicalDamage(target, PEdamage)
 	end
 	
 	function Cassiopeia:EdmgCreep()
@@ -2346,21 +2362,6 @@ Type = _G.SPELLTYPE_CONE, Delay = 0.5, Radius = 80, Range = 825, Speed = 3200, C
 		local PEdamage = self:EdmgCreep(target) + bonus
 		return PEdamage
 	end	
-	
-	function Cassiopeia:Rdmg()
-		local level = myHero:GetSpellData(_R).level
-		local base = ({150, 250, 350})[level] + 0.5 * myHero.ap
-		return base
-		
-	end				
-	
-	function Cassiopeia:Ignitedmg()
-		local level = myHero.levelData.lvl
-		local base = 50 + (20 * level)
-		return base
-	end
-	
-
 
 	function Cassiopeia:GetAngle(v1, v2)
 		local vec1 = v1:Len()
@@ -2418,7 +2419,7 @@ Type = _G.SPELLTYPE_CONE, Delay = 0.5, Radius = 80, Range = 825, Speed = 3200, C
 	function Cassiopeia:RLogic()
 		local RTarget = nil 
 		local Most = 0
-		local Cast = false
+		local ShouldCast = false
 			local InFace = {}
 			for i = 1, Game.HeroCount() do
 			local Hero = Game.Hero(i)
@@ -2458,14 +2459,14 @@ Type = _G.SPELLTYPE_CONE, Delay = 0.5, Radius = 80, Range = 825, Speed = 3200, C
 			end
 		--	print(Most)
 			if Most >= Cass.c.Count:Value() or Most == Number then
-				Cast = true 
+				ShouldCast = true 
 			end
 		--	print(Most)
 		--	if RTarget then
 		--		LSS = Circle(Point(RTarget), 50)
 		--		LSS:__draw()
 		--	end
-		return RTarget, Cast
+		return RTarget, ShouldCast
 	end
 
 	function Cassiopeia:BlockAA()
@@ -2594,7 +2595,7 @@ function Cassiopeia:Combo()
 		end				
 		if Cass.c.R:Value() and Ready(_R) then
 			if Dist < RRange then 
-				if RTarget and ShouldCast and pred.Hitchance >= Cass.Pred.PredR:Value() then
+				if RTarget and ShouldCast == true and pred.Hitchance >= Cass.Pred.PredR:Value() then
 					Control.CastSpell(HK_R, pred.CastPosition)
 					
 				end 
@@ -2610,7 +2611,7 @@ function Cassiopeia:SemiR()
 	local Dist = GetDistanceSqr(myHero.pos, target.pos)	
 	local pred = GetGamsteronPrediction(RTarget, RData, myHero)
 	if IsValid(target, 950) and Ready(_R) then
-		if RTarget and ShouldCast and Dist < RRange and pred.Hitchance >= Cass.Pred.PredR:Value() then
+		if RTarget and Dist < RRange and pred.Hitchance >= Cass.Pred.PredR:Value() then
 			Control.CastSpell(HK_R, pred.CastPosition)
 		else
 			Control.CastSpell(HK_R, target.pos)			
@@ -2624,7 +2625,7 @@ function Cassiopeia:Harass()
 
 	local target = GetTarget(950)
 	if target == nil then return end
-	local EDmg = CalcMagicalDamage(target, self:Edmg()) * 2 
+	local EDmg = self:Edmg(target) * 2 
 	local Dist = GetDistanceSqr(myHero.pos, target.pos)
 	local result = false
 	if IsValid(target, 950) then
@@ -2719,8 +2720,8 @@ end
 function Cassiopeia:KsE()
 local target = GetTarget(750)
 if target == nil then return end
-	local EDmg = CalcMagicalDamage(target, self:Edmg()) * 2
-	local PEDmg = CalcMagicalDamage(target, self:PEdmg()) 
+	local EDmg = self:Edmg(target) * 2
+	local PEDmg = self:PEdmg(target) 
 	if IsValid(target, 750) then	
 		if Cass.ks.E:Value() and Ready(_E) and GetDistanceSqr(target.pos, myHero.pos) < ERange then 
 			if HasPoison(target) and PEDmg > target.health then
@@ -2737,7 +2738,7 @@ end
 function Cassiopeia:KsQ()
 local target = GetTarget(900)
 if target == nil then return end
-	local QDmg = CalcMagicalDamage(target, self:Qdmg())
+	local QDmg = self:Qdmg(target)
 	if IsValid(target, 900) then	
 		if Cass.ks.Q:Value() and Ready(_Q) and GetDistanceSqr(target.pos, myHero.pos) < QRange then 
 			if QDmg > target.health then
@@ -2751,7 +2752,7 @@ end
 function Cassiopeia:KsW()
 local target = GetTarget(900)
 if target == nil then return end
-	local WDmg = CalcMagicalDamage(target, self:Wdmg())
+	local WDmg = self:Wdmg(target)
 	if IsValid(target, 900) then
 		if Cass.ks.W:Value() and Ready(_W) and GetDistanceSqr(target.pos, myHero.pos) < 800 then 
 			if WDmg > target.health then
@@ -2774,7 +2775,7 @@ end
 		if IsValid(target) then
 			local pred = GetGamsteronPrediction(RTarget, RData, myHero)
 			if EnemiesNear(myHero.pos,825) == 1 and Ready(_R) and Ready(_W) and Ready(_Q) and Ready(_E) then 
-				if RTarget and ShouldCast and EnemyInRange(RRange) and fulldmg > target.health and pred.Hitchance >= Cass.Pred.PredR:Value() then
+				if RTarget and EnemyInRange(RRange) and fulldmg > target.health and pred.Hitchance >= Cass.Pred.PredR:Value() then
 					Control.CastSpell(HK_R, pred.CastPosition)
 				end
 			end 
@@ -2887,13 +2888,13 @@ self:DrawEngage()
 	end
 	
 function Cassiopeia:DrawEngage()
-	 local target = GetTarget(1200)
+local target = GetTarget(1200)
 if target == nil then return end
 	
 	if EnemiesNear(myHero.pos,1200) == 1 and Ready(_R) and Ready(_W) and Ready(_E) and Ready(_Q) then	
-		local fulldmg = self:Qdmg() + self:Wdmg() + self:Edmg() + self:Rdmg()
+		local fulldmg = self:Qdmg(target) + self:Wdmg(target) + self:Edmg(target) + self:Rdmg(target)
 		local textPos = target.pos:To2D()
-		if IsValid(target, 1200) and target.isEnemy then
+		if IsValid(target, 1200) then
 			 if fulldmg > target.health then 
 					Draw.Text("Engage PressKey", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
 			end
@@ -2905,7 +2906,7 @@ end
 
 
 class "Ekko"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 
@@ -3083,8 +3084,11 @@ function Ekko:Auto2()
 			Control.CastSpell(HK_W, pred.CastPosition)
 		end
 	
-		if myHero.pos:DistanceTo(target.pos) <= 650 and Ready(_E) then
-			Control.CastSpell(HK_E, target.pos)
+		if myHero.pos:DistanceTo(target.pos) <= 690 and Ready(_E) then
+			local EPos = myHero.pos:Extended(target.pos, 325)
+			Control.SetCursorPos(EPos)
+			Control.KeyDown(HK_E)
+			Control.KeyUp(HK_E)			
 				
 		end	
 	end	
@@ -3217,7 +3221,7 @@ end
 
 
 class "Kayle"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 
@@ -4214,7 +4218,7 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class "Malzahar"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 
@@ -4302,7 +4306,13 @@ function Malzahar:LoadMenu()
 	
 end
 
+function Malzahar:IsRCharging()
+	return myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "MalzaharR"
+end
+
 function Malzahar:Tick()
+self:ActiveUlt()	
+if self:IsRCharging() then return end
 	if myHero.dead == false and Game.IsChatOpen() == false then
 	local Mode = GetMode()
 		if Mode == "Combo" then
@@ -4319,7 +4329,7 @@ function Malzahar:Tick()
 
 	self:KillSteal()
 	self:AutoQ()
-
+	
 	
 	end
 end 
@@ -4355,8 +4365,14 @@ function Malzahar:Draw()
 	end	
 end
 
-function Malzahar:IsRCharging()
-	return myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "MalzaharR"
+function Malzahar:ActiveUlt()
+	if myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "MalzaharR" then	
+		_G.SDK.Orbwalker:SetMovement(false)
+		_G.SDK.Orbwalker:SetAttack(false)	
+	else
+		_G.SDK.Orbwalker:SetMovement(true)
+		_G.SDK.Orbwalker:SetAttack(true)
+	end
 end
        
 function Malzahar:KillSteal()	
@@ -4398,31 +4414,23 @@ function Malzahar:KillSteal()
 		end
 		if self.Menu.ks.full:Value() and ready then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if (fullDmg) >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
-				DelayAction(function()
-				Control.CastSpell(HK_E, target)				
-				Control.CastSpell(HK_Q, pred.CastPosition)
-				Control.CastSpell(HK_W, target.pos)
-				Control.CastSpell(HK_R, target)
-				end, 0.05)
-			end	
 			if fullDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+				Control.CastSpell(HK_E, target)
 				DelayAction(function()
-				Control.CastSpell(HK_E, target)				
 				Control.CastSpell(HK_Q, pred.CastPosition)
+				end, 0.25)
+				DelayAction(function()
 				Control.CastSpell(HK_W, target.pos)
+				end, 1.25)
+				DelayAction(function()
 				Control.CastSpell(HK_R, target)
-				end, 0.05)
-			end
+				end, 1.5)
+			end	
 		end
 	end
-	if self:IsRCharging() then	
-		_G.SDK.Orbwalker:SetMovement(false)
-		_G.SDK.Orbwalker:SetAttack(false)	
-	end
-	_G.SDK.Orbwalker:SetMovement(true)
-	_G.SDK.Orbwalker:SetAttack(true)	
 end	
+
+
 
 
 function Malzahar:Combo()
@@ -4535,7 +4543,7 @@ end
 
 class "Morgana"
 
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 function Morgana:__init()
 	
 	self.DetectedMissiles = {}; self.DetectedSpells = {}; self.Target = nil; self.Timer = 0
@@ -5902,7 +5910,7 @@ end
 
 
 class "Nidalee"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 
@@ -6309,7 +6317,7 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class "Rakan"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 
@@ -6596,7 +6604,7 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class "Ryze"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 local QData =
@@ -6895,7 +6903,7 @@ end
 
 
 class "Sona"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 local QData =
@@ -9464,9 +9472,7 @@ end
 
 class "Tristana"
 
-if FileExist(COMMON_PATH .. "Collision.lua") then
-	require 'Collision'
-end
+
 
 
 function Tristana:CheckSpell(range)
@@ -9897,7 +9903,7 @@ class "Veigar"
 
 
 --require('TPred')
-require "Collision"
+
 
 function Veigar:__init()
 	
@@ -10633,7 +10639,7 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class "Xerath"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 local QData =
@@ -12167,7 +12173,7 @@ class "XinZhao"
 
 
 
-require 'Collision'
+
 
 
 
@@ -12423,7 +12429,7 @@ end
 
 
 class "Zyra"
-require('GamsteronPrediction')
+--require('GamsteronPrediction')
 
 
 
