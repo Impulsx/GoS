@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 2.8
+    local Version = 2.9
     
     local Files = {
         Lua = {
@@ -125,7 +125,7 @@ local textPos = myHero.pos:To2D()
 	end
 	
 	if NewVersion == Version and Game.Timer() < 20 then
-		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
+		Draw.Text("Welcome to PussyAIO Vers.2.4", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Rakan        Nidalee", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Ryze          XinZhao", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
@@ -2862,25 +2862,25 @@ if target == nil then return end
 end
 
 	function Cassiopeia:Qdmg(target)
-		local base = 40 + 35 * myHero:GetSpellData(_Q).level + 0.90 * myHero.ap
+		local base = ((40 + 35 * myHero:GetSpellData(_Q).level) + 0.90 * myHero.ap)
 		local damage = base
 		return CalcMagicalDamage(target, damage)
 	end
 	
 	function Cassiopeia:Wdmg(target)
-		local base = 75 + 25 * myHero:GetSpellData(_W).level + 0.75 * myHero.ap
+		local base = ((75 + 25 * myHero:GetSpellData(_W).level) + 0.75 * myHero.ap)
 		local damage = base
 		return CalcMagicalDamage(target, damage)
 	end
 
 	function Cassiopeia:Edmg(target)
-		local base = 48 + 4 * myHero.levelData.lvl + 0.1 * myHero.ap
+		local base = ((48 + 4 * myHero.levelData.lvl) + 0.1 * myHero.ap)
 		local damage = base
 		return CalcMagicalDamage(target, damage)
 	end
 	
 	function Cassiopeia:Rdmg(target)
-		local 50 + 100 * myHero:GetSpellData(_R).level + 0.5 * myHero.ap
+		local ((50 + 100 * myHero:GetSpellData(_R).level) + 0.5 * myHero.ap)
 		local damage = base
 		return CalcMagicalDamage(target, damage)
 		
