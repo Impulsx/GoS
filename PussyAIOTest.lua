@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 3.0
+    local Version = 3.1
     
     local Files = {
         Lua = {
@@ -3060,10 +3060,11 @@ function Ekko:Auto2()
 	
 		if myHero.pos:DistanceTo(target.pos) <= 690 and Ready(_E) then
 			local EPos = myHero.pos:Extended(target.pos, 325)
+			DelayAction(function()
 			Control.SetCursorPos(EPos)
 			Control.KeyDown(HK_E)
 			Control.KeyUp(HK_E)			
-				
+			end, 2.0)	
 		end	
 	end	
 end 
