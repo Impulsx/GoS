@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 do
     
-    local Version = 2.0
+    local Version = 2.1
     
     local Files = {
         Lua = {
