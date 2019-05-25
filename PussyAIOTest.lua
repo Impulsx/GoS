@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 2.9
+    local Version = 3.0
     
     local Files = {
         Lua = {
@@ -2319,8 +2319,23 @@ Type = _G.SPELLTYPE_CONE, Delay = 0.5, Radius = 80, Range = 825, Speed = 3200, C
 			AA = true 
 		end
 	end
+	
+	
+
 
 	
+	function Cassiopeia:EdmgCreep()
+		local level = myHero.levelData.lvl
+		local base = (48 + 4 * level) + (0.1 * myHero.ap)
+		return base
+	end	
+
+	function Cassiopeia:PEdmgCreep()
+		local level = myHero:GetSpellData(_E).level
+		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * myHero.ap)
+		local PEdamage = self:EdmgCreep(target) + bonus
+		return PEdamage
+	end	
 
 	function Cassiopeia:GetAngle(v1, v2)
 		local vec1 = v1:Len()
@@ -2584,7 +2599,7 @@ function Cassiopeia:Harass()
 
 	local target = GetTarget(950)
 	if target == nil then return end
-	local EDmg = self:Edmg(target) * 2 
+	local EDmg = getdmg("E", target, myHero) * 2
 	local Dist = GetDistanceSqr(myHero.pos, target.pos)
 	local result = false
 	if IsValid(target, 950) then
@@ -2679,8 +2694,8 @@ end
 function Cassiopeia:KsE()
 local target = GetTarget(750)
 if target == nil then return end
-	local EDmg = self:Edmg(target) * 2
-	local PEDmg = self:PEdmg(target) 
+	local EDmg = getdmg("E", target, myHero) * 2
+	local PEDmg = getdmg("E", target, myHero) 
 	if IsValid(target, 750) then	
 		if Cass.ks.E:Value() and Ready(_E) and GetDistanceSqr(target.pos, myHero.pos) < ERange then 
 			if HasPoison(target) and PEDmg > target.health then
@@ -2697,7 +2712,7 @@ end
 function Cassiopeia:KsQ()
 local target = GetTarget(900)
 if target == nil then return end
-	local QDmg = self:Qdmg(target)
+	local QDmg = getdmg("Q", target, myHero)
 	if IsValid(target, 900) then	
 		if Cass.ks.Q:Value() and Ready(_Q) and GetDistanceSqr(target.pos, myHero.pos) < QRange then 
 			if QDmg > target.health then
@@ -2711,7 +2726,7 @@ end
 function Cassiopeia:KsW()
 local target = GetTarget(900)
 if target == nil then return end
-	local WDmg = self:Wdmg(target)
+	local WDmg = getdmg("W", target, myHero)
 	if IsValid(target, 900) then
 		if Cass.ks.W:Value() and Ready(_W) and GetDistanceSqr(target.pos, myHero.pos) < 800 then 
 			if WDmg > target.health then
@@ -2727,7 +2742,7 @@ end
 		local target = GetTarget(1200)
 		if target == nil then return end
 		
-		local fulldmg = self:Qdmg() + self:Wdmg() + self:Edmg() + self:Rdmg()
+		local fulldmg = getdmg("Q", target, myHero) + getdmg("W", target, myHero) + getdmg("E", target, myHero) + getdmg("R", target, myHero)
 		local Dist = GetDistanceSqr(myHero.pos, target.pos)
 		local RCheck = Ready(_R)
 		local RTarget, ShouldCast = self:RLogic()
@@ -2851,7 +2866,7 @@ local target = GetTarget(1200)
 if target == nil then return end
 	
 	if EnemiesNear(myHero.pos,1200) == 1 and Ready(_R) and Ready(_W) and Ready(_E) and Ready(_Q) then	
-		local fulldmg = self:Qdmg(target) + self:Wdmg(target) + self:Edmg(target) + self:Rdmg(target)
+		local fulldmg = getdmg("Q", target, myHero) + getdmg("W", target, myHero) + getdmg("E", target, myHero) + getdmg("R", target, myHero)
 		local textPos = target.pos:To2D()
 		if IsValid(target, 1200) then
 			 if fulldmg > target.health then 
@@ -2860,51 +2875,6 @@ if target == nil then return end
 		end
 	end
 end
-
-	function Cassiopeia:Qdmg(target)
-		local base = ((40 + 35 * myHero:GetSpellData(_Q).level) + 0.90 * myHero.ap)
-		local damage = base
-		return CalcMagicalDamage(target, damage)
-	end
-	
-	function Cassiopeia:Wdmg(target)
-		local base = ((75 + 25 * myHero:GetSpellData(_W).level) + 0.75 * myHero.ap)
-		local damage = base
-		return CalcMagicalDamage(target, damage)
-	end
-
-	function Cassiopeia:Edmg(target)
-		local base = ((48 + 4 * myHero.levelData.lvl) + 0.1 * myHero.ap)
-		local damage = base
-		return CalcMagicalDamage(target, damage)
-	end
-	
-	function Cassiopeia:Rdmg(target)
-		local ((50 + 100 * myHero:GetSpellData(_R).level) + 0.5 * myHero.ap)
-		local damage = base
-		return CalcMagicalDamage(target, damage)
-		
-	end		
-	
-	function Cassiopeia:PEdmg(target)
-		local level = myHero:GetSpellData(_E).level
-		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * myHero.ap)
-		local PEdamage = self:Edmg() + bonus
-		return CalcMagicalDamage(target, PEdamage)
-	end
-	
-	function Cassiopeia:EdmgCreep()
-		local level = myHero.levelData.lvl
-		local base = (48 + 4 * level) + (0.1 * myHero.ap)
-		return base
-	end	
-
-	function Cassiopeia:PEdmgCreep()
-		local level = myHero:GetSpellData(_E).level
-		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * myHero.ap)
-		local PEdamage = self:EdmgCreep(target) + bonus
-		return PEdamage
-	end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -12895,6 +12865,13 @@ local DamageLibTable = {
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 90, 120, 150, 180})[level] + 0.40 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 90, 120})[level] + 0.35 * source.ap end},
   },
+  
+	["Cassiopeia"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 110, 145, 2180, 215})[level] + 0.9 * source.ap end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({100, 125, 150, 175, 200})[level] + 0.75 * source.ap end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return 48 + 4 * source.levelData.lvl + 0.1 * source.ap + (target.isPoisoned and ({10, 30, 50, 70, 90})[level] + 0.6 * source.ap or 0) end},
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.5 * source.ap end},
+  },  
 
 	["Ekko"] = {  
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({100, 140, 180, 220, 260})[level] + 0.9 * source.ap end},
