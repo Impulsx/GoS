@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 2.6
+    local Version = 2.7
     
     local Files = {
         Lua = {
@@ -2320,54 +2320,7 @@ Type = _G.SPELLTYPE_CONE, Delay = 0.5, Radius = 80, Range = 825, Speed = 3200, C
 		end
 	end
 
-	function Cassiopeia:Qdmg(target)
-		local level = myHero:GetSpellData(_Q).level
-		local base = ({75, 110, 145, 180, 215})[level] + 0.90 * myHero.ap
-		local damage = base
-		return CalcMagicalDamage(target, damage)
-	end
 	
-	function Cassiopeia:Wdmg(target)
-		local level = myHero:GetSpellData(_W).level
-		local base = ({100, 125, 150, 175, 200})[level] + 0.75 * myHero.ap
-		local damage = base
-		return CalcMagicalDamage(target, damage)
-	end
-
-	function Cassiopeia:Edmg(target)
-		local level = myHero.levelData.lvl
-		local base = (48 + 4 * level) + (0.1 * myHero.ap)
-		local damage = base
-		return CalcMagicalDamage(target, damage)
-	end
-	
-	function Cassiopeia:Rdmg(target)
-		local level = myHero:GetSpellData(_R).level
-		local base = ({150, 250, 350})[level] + 0.5 * myHero.ap
-		local damage = base
-		return CalcMagicalDamage(target, damage)
-		
-	end		
-	
-	function Cassiopeia:PEdmg(target)
-		local level = myHero:GetSpellData(_E).level
-		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * myHero.ap)
-		local PEdamage = self:Edmg() + bonus
-		return CalcMagicalDamage(target, PEdamage)
-	end
-	
-	function Cassiopeia:EdmgCreep()
-		local level = myHero.levelData.lvl
-		local base = (48 + 4 * level) + (0.1 * myHero.ap)
-		return base
-	end	
-
-	function Cassiopeia:PEdmgCreep()
-		local level = myHero:GetSpellData(_E).level
-		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * myHero.ap)
-		local PEdamage = self:EdmgCreep(target) + bonus
-		return PEdamage
-	end	
 
 	function Cassiopeia:GetAngle(v1, v2)
 		local vec1 = v1:Len()
@@ -2907,6 +2860,55 @@ if target == nil then return end
 		end
 	end
 end
+
+	function Cassiopeia:Qdmg(target)
+		local level = myHero:GetSpellData(_Q).level
+		local base = ({75, 110, 145, 180, 215})[level] + 0.90 * myHero.ap
+		local damage = base
+		return CalcMagicalDamage(target, damage)
+	end
+	
+	function Cassiopeia:Wdmg(target)
+		local level = myHero:GetSpellData(_W).level
+		local base = ({100, 125, 150, 175, 200})[level] + 0.75 * myHero.ap
+		local damage = base
+		return CalcMagicalDamage(target, damage)
+	end
+
+	function Cassiopeia:Edmg(target)
+		local level = myHero.levelData.lvl
+		local base = (48 + 4 * level) + (0.1 * myHero.ap)
+		local damage = base
+		return CalcMagicalDamage(target, damage)
+	end
+	
+	function Cassiopeia:Rdmg(target)
+		local level = myHero:GetSpellData(_R).level
+		local base = ({150, 250, 350})[level] + 0.5 * myHero.ap
+		local damage = base
+		return CalcMagicalDamage(target, damage)
+		
+	end		
+	
+	function Cassiopeia:PEdmg(target)
+		local level = myHero:GetSpellData(_E).level
+		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * myHero.ap)
+		local PEdamage = self:Edmg() + bonus
+		return CalcMagicalDamage(target, PEdamage)
+	end
+	
+	function Cassiopeia:EdmgCreep()
+		local level = myHero.levelData.lvl
+		local base = (48 + 4 * level) + (0.1 * myHero.ap)
+		return base
+	end	
+
+	function Cassiopeia:PEdmgCreep()
+		local level = myHero:GetSpellData(_E).level
+		local bonus = (({10, 30, 50, 70, 90})[level] + 0.60 * myHero.ap)
+		local PEdamage = self:EdmgCreep(target) + bonus
+		return PEdamage
+	end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
