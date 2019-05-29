@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 3.4
+    local Version = 3.5
     
     local Files = {
         Lua = {
@@ -9524,7 +9524,7 @@ function Tristana:LoadMenu()
 	self.Menu.Combo.R:MenuElement({id = "RR"..hero.charName, name = "KS R on: "..hero.charName, value = true})
 	end	self.Menu.Combo:MenuElement({id = "comboActive", name = "Combo key", key = string.byte(" ")})
 	
-	self.Menu:MenuElement({type = MENU, id = "gap", leftIcon = Icons["Gabclose"]})
+	self.Menu:MenuElement({type = MENU, id = "gap", leftIcon = Icons["Gapclose"]})
 	self.Menu.gap:MenuElement({id = "UseR", name = "Ultimate Gapclose", value = true})
 	self.Menu.gap:MenuElement({id = "gapkey", name = "Gapclose key", key = string.byte("T")})
 	
