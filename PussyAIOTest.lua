@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 3.5
+    local Version = 3.6
     
     local Files = {
         Lua = {
@@ -11163,12 +11163,12 @@ function Xerath:LoadMenu()
 	self.Menu.Key:MenuElement({id = "LastHit", name = "LastHit", key = string.byte("X")})
 	self.Menu:MenuElement({id = "fastOrb", name = "Make Orbwalker fast again", value = true})	
 	
-	self.Menu.Combo:MenuElement({id = "useQ", name = "Use Q", value = true, leftIcon = spellIcons.Q})
+	self.Menu.Combo:MenuElement({id = "useQ", name = "Use Q", value = true})
 	self.Menu.Combo:MenuElement({id = "legitQ", name = "Legit Q slider", value = 0.075, min = 0, max = 0.15, step = 0.01})
-	self.Menu.Combo:MenuElement({id = "useW", name = "Use W", value = true, leftIcon = spellIcons.W})
-	self.Menu.Combo:MenuElement({id = "useE", name = "Use E", value = true, leftIcon = spellIcons.E})
-	self.Menu.Combo:MenuElement({id = "useR", name = "Use R", value = true, leftIcon = spellIcons.R})
-	self.Menu.Combo:MenuElement({type = MENU, id = "R", name = "Ultimate Settings", leftIcon = spellIcons.R})
+	self.Menu.Combo:MenuElement({id = "useW", name = "Use W", value = true})
+	self.Menu.Combo:MenuElement({id = "useE", name = "Use E", value = true})
+	self.Menu.Combo:MenuElement({id = "useR", name = "Use R", value = true})
+	self.Menu.Combo:MenuElement({type = MENU, id = "R", name = "Ultimate Settings"})
 	self.Menu.Combo.R:MenuElement({id = "useRself", name = "Start R manually", value = false})
 	self.Menu.Combo.R:MenuElement({type = MENU, id = "BlackList", name = "Auto R blacklist"})
 	self.Menu.Combo.R:MenuElement({id = "safeR", name = "Safety R stack", value = 1, min = 0, max = 2, step = 1})
@@ -11177,26 +11177,26 @@ function Xerath:LoadMenu()
 	self.Menu.Combo.R:MenuElement({id = "useBlue", name = "Use Farsight Alteration", value = true})
 	self.Menu.Combo.R:MenuElement({id = "useRkey", name = "On key press (close to mouse)", key = string.byte("T")})
 	
-	self.Menu.Harass:MenuElement({id = "useQ", name = "Use Q", value = true, leftIcon = spellIcons.Q})
+	self.Menu.Harass:MenuElement({id = "useQ", name = "Use Q", value = true})
 	self.Menu.Harass:MenuElement({id = "manaQ", name = " [Q]Mana-Manager", value = 40, min = 0, max = 100, step = 1})
-	self.Menu.Harass:MenuElement({id = "useW", name = "Use W", value = true, leftIcon = spellIcons.W})
+	self.Menu.Harass:MenuElement({id = "useW", name = "Use W", value = true})
 	self.Menu.Harass:MenuElement({id = "manaW", name = " [W]Mana-Manager", value = 60, min = 0, max = 100, step = 1})
-	self.Menu.Harass:MenuElement({id = "useE", name = "Use E", value = false, leftIcon = spellIcons.E})
+	self.Menu.Harass:MenuElement({id = "useE", name = "Use E", value = false})
 	self.Menu.Harass:MenuElement({id = "manaE", name = " [E]Mana-Manager", value = 80, min = 0, max = 100, step = 1})
 
-	self.Menu.Clear:MenuElement({id = "useQ", name = "Use Q", value = true, leftIcon = spellIcons.Q})
+	self.Menu.Clear:MenuElement({id = "useQ", name = "Use Q", value = true})
 	self.Menu.Clear:MenuElement({id = "manaQ", name = " [Q]Mana-Manager", value = 40, min = 0, max = 100, step = 1})
 	self.Menu.Clear:MenuElement({id = "hitQ", name = "min Minions Use Q", value = 2, min = 1, max = 6, step = 1})	
-	self.Menu.Clear:MenuElement({id = "useW", name = "Use W", value = true, leftIcon = spellIcons.W})
+	self.Menu.Clear:MenuElement({id = "useW", name = "Use W", value = true})
 	self.Menu.Clear:MenuElement({id = "manaW", name = " [W]Mana-Manager", value = 60, min = 0, max = 100, step = 1})	
 	self.Menu.Clear:MenuElement({id = "hitW", name = "min Minions Use W", value = 2, min = 1, max = 6, step = 1})	
 	
-	self.Menu.Killsteal:MenuElement({id = "useQ", name = "Use Q to killsteal", value = true, leftIcon = spellIcons.Q})
-	self.Menu.Killsteal:MenuElement({id = "useW", name = "Use W to killsteal", value = true, leftIcon = spellIcons.W})
+	self.Menu.Killsteal:MenuElement({id = "useQ", name = "Use Q to killsteal", value = true})
+	self.Menu.Killsteal:MenuElement({id = "useW", name = "Use W to killsteal", value = true})
 	
 	self.Menu.Misc:MenuElement({id = "Pred", name = "Prediction Settings", drop = {"LazyXerath Prediction", "Gamsteron Prediction", "HPred"}, value = 1})	
-	self.Menu.Misc:MenuElement({id = "gapE", name = "Use E on gapcloser", value = true, leftIcon = spellIcons.E})
-	self.Menu.Misc:MenuElement({id = "drawRrange", name = "Draw R range on MiniMap", value = true, leftIcon = spellIcons.R})
+	self.Menu.Misc:MenuElement({id = "gapE", name = "Use E on gapcloser", value = true})
+	self.Menu.Misc:MenuElement({id = "drawRrange", name = "Draw R range on MiniMap", value = true})
 	
 	self.Menu:MenuElement({id = "TargetSwitchDelay", name = "Delay between target switch", value = 350, min = 0, max = 750, step = 1})
 	self:TargetMenu()
