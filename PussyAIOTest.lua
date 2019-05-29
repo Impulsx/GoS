@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 3.6
+    local Version = 3.7
     
     local Files = {
         Lua = {
@@ -1762,7 +1762,7 @@ end
 
 
 function Ahri:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if myHero.dead == false and Game.IsChatOpen() == false and (ExtLibEvade and ExtLibEvade.Evading == false) then
 	self:KS()
 	self:CC()
 	self:AutoR()	
