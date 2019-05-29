@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 3.3
+    local Version = 3.4
     
     local Files = {
         Lua = {
@@ -11156,7 +11156,7 @@ function Xerath:LoadMenu()
 	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
 	self.Menu:MenuElement({type = MENU, id = "Killsteal", leftIcon = Icons["ks"]})
 	self.Menu:MenuElement({type = MENU, id = "Misc", leftIcon = Icons["Misc"]})
-	self.Menu:MenuElement(type = MENU, {id = "Key", leftIcon = Icons["KeySet"]})
+	self.Menu:MenuElement({type = MENU, id = "Key", leftIcon = Icons["KeySet"]})
 	self.Menu.Key:MenuElement({id = "Combo", name = "Combo", key = string.byte(" ")})
 	self.Menu.Key:MenuElement({id = "Harass", name = "Harass | Mixed", key = string.byte("C")})
 	self.Menu.Key:MenuElement({id = "Clear", name = "LaneClear | JungleClear", key = string.byte("V")})
