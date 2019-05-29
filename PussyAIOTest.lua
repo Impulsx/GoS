@@ -1,12 +1,12 @@
-local Heroes = {"Rakan","Nidalee","Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
-local GsoPred = {"Rakan","Nidalee","Ryze","Cassiopeia","Malzahar","Zyra","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
+local Heroes = {"Yuumi","Rakan","Nidalee","Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
+local GsoPred = {"Yuumi","Rakan","Nidalee","Ryze","Cassiopeia","Malzahar","Zyra","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
 
 if not table.contains(Heroes, myHero.charName) then return end
 
 
 
     
-    local Version = 3.2
+    local Version = 3.3
     
     local Files = {
         Lua = {
@@ -54,7 +54,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 local isLoaded = false
 function TryLoad()
-	if Game.Timer() < 10 then return end
+	if Game.Timer() < 5 then return end
 	isLoaded = true	
 	if table.contains(Heroes, myHero.charName) then
 		_G[myHero.charName]()
@@ -125,7 +125,7 @@ local textPos = myHero.pos:To2D()
 	end
 	
 	if NewVersion == Version and Game.Timer() < 20 then
-		Draw.Text("Welcome to PussyAIO Vers.2.4", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
+		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Rakan        Nidalee", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Ryze          XinZhao", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
@@ -5939,7 +5939,7 @@ function Nidalee:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Nidalee", name = "PussyNidalee"})
 	
 	--Combo
-	self.Menu:MenuElement({id = "ComboMode", leftIcon = Icons["Combo"], type = MENU})
+	self.Menu:MenuElement({type = MENU, id = "ComboMode", leftIcon = Icons["Combo"]})
 	self.Menu.ComboMode:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
 	self.Menu.ComboMode:MenuElement({id = "UseW", name = "W: Bushwhack", value = true})
 	self.Menu.ComboMode:MenuElement({id = "UseE", name = "E: Primal Surge", value = true})
@@ -5950,11 +5950,11 @@ function Nidalee:LoadMenu()
 	self.Menu.ComboMode:MenuElement({id = "DrawDamage", name = "Draw damage on HPbar", value = true})
 		
 	--Harass
-	self.Menu:MenuElement({id = "HarassMode", leftIcon = Icons["Harass"], type = MENU})
+	self.Menu:MenuElement({type = MENU, id = "HarassMode", leftIcon = Icons["Harass"]})
 	self.Menu.HarassMode:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
 
 	--Lane/JungleClear
-	self.Menu:MenuElement({id = "ClearMode", leftIcon = Icons["Clear"], type = MENU})
+	self.Menu:MenuElement({type = MENU, id = "ClearMode", leftIcon = Icons["Clear"]})
 	self.Menu.ClearMode:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
 	self.Menu.ClearMode:MenuElement({id = "UseW", name = "W: Bushwhack", value = true})
 	self.Menu.ClearMode:MenuElement({id = "UseE", name = "E: Primal Surge", value = true})
@@ -5964,14 +5964,14 @@ function Nidalee:LoadMenu()
 	self.Menu.ClearMode:MenuElement({id = "UseR", name = "R: Aspect of the Cougar", value = true})
 	
 	--KillSteal
-	self.Menu:MenuElement({id = "KS", leftIcon = Icons["ks"], type = MENU})
+	self.Menu:MenuElement({type = MENU, id = "KS", leftIcon = Icons["ks"]})
 	self.Menu.KS:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
 
 	--Flee
-	self.Menu:MenuElement({id = "Fl", leftIcon = Icons["Flee"], type = MENU})
+	self.Menu:MenuElement({type = MENU, id = "Fl", leftIcon = Icons["Flee"]})
 	self.Menu.Fl:MenuElement({id = "UseW", name = "W: Pounce", value = true, key = string.byte("A")})	
 	
-	self.Menu:MenuElement({id = "DrawQ", leftIcon = Icons["Drawings"], type = MENU})
+	self.Menu:MenuElement({type = MENU, id = "DrawQ", leftIcon = Icons["Drawings"]})
 	self.Menu.DrawQ:MenuElement({id = "Q", name = "Draw Q", value = true})
 
 	--Prediction
@@ -9515,45 +9515,45 @@ end
 
 function Tristana:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Tristana", name = "PussyTristana"})
-	self.Menu:MenuElement({id = "Combo", leftIcon = Icons["Combo"], type = MENU})
+	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "AutoQ when Explosive Charge", value = true})
 	self.Menu.Combo:MenuElement({id = "UseE", name = "E", value = true})
 	self.Menu.Combo:MenuElement({id = "UseR", name = "(R)Finisher", tooltip = "is(R)Dmg+(E)Dmg+(E)StackDmg > TargetHP than Ult", value = true})
-	self.Menu.Combo:MenuElement({id = "R", name = "R", type = MENU})
+	self.Menu.Combo:MenuElement({type = MENU, id = "R", name = "R"})
 	for i, hero in pairs(GetEnemyHeroes()) do
 	self.Menu.Combo.R:MenuElement({id = "RR"..hero.charName, name = "KS R on: "..hero.charName, value = true})
 	end	self.Menu.Combo:MenuElement({id = "comboActive", name = "Combo key", key = string.byte(" ")})
 	
-	self.Menu:MenuElement({id = "gap", leftIcon = Icons["Gabclose"], type = MENU})
+	self.Menu:MenuElement({type = MENU, id = "gap", leftIcon = Icons["Gabclose"]})
 	self.Menu.gap:MenuElement({id = "UseR", name = "Ultimate Gapclose", value = true})
 	self.Menu.gap:MenuElement({id = "gapkey", name = "Gapclose key", key = string.byte("T")})
 	
 
 	
-	self.Menu:MenuElement({id = "Blitz", leftIcon = Icons["Escape"], type = MENU})
+	self.Menu:MenuElement({type = MENU, id = "Blitz", leftIcon = Icons["Escape"]})
 	self.Menu.Blitz:MenuElement({id = "UseW", name = "AutoW", value = true})
 	
-	self.Menu:MenuElement({id = "Harass", leftIcon = Icons["Harass"], type = MENU})
+	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "AutoQ when Explosive Charge", value = true})
 	self.Menu.Harass:MenuElement({id = "UseE", name = "E", value = true})
 	self.Menu.Harass:MenuElement({id = "harassActive", name = "Harass key", key = string.byte("C")})
 
 	
 	
-	self.Menu:MenuElement({id = "Drawings", leftIcon = Icons["Drawings"], type = MENU})
+	self.Menu:MenuElement({type = MENU, id = "Drawings", leftIcon = Icons["Drawings"]})
 	
 	--W
-	self.Menu.Drawings:MenuElement({id = "W", name = "Draw W range", type = MENU})
+	self.Menu.Drawings:MenuElement({type = MENU, id = "W", name = "Draw W range"})
     self.Menu.Drawings.W:MenuElement({id = "Enabled", name = "Enabled", value = true})       
     self.Menu.Drawings.W:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
     self.Menu.Drawings.W:MenuElement({id = "Color", name = "Color", color = Draw.Color(200, 255, 255, 255)})
 	--E
-	self.Menu.Drawings:MenuElement({id = "E", name = "Draw E range", type = MENU})
+	self.Menu.Drawings:MenuElement({type = MENU, id = "E", name = "Draw E range"})
     self.Menu.Drawings.E:MenuElement({id = "Enabled", name = "Enabled", value = false})       
     self.Menu.Drawings.E:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
     self.Menu.Drawings.E:MenuElement({id = "Color", name = "Color", color = Draw.Color(200, 255, 255, 255)})	
 	--R
-	self.Menu.Drawings:MenuElement({id = "R", name = "Draw R range", type = MENU})
+	self.Menu.Drawings:MenuElement({type = MENU, id = "R", name = "Draw R range"})
     self.Menu.Drawings.R:MenuElement({id = "Enabled", name = "Enabled", value = true})
     self.Menu.Drawings.R:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
     self.Menu.Drawings.R:MenuElement({id = "Color", name = "Color", color = Draw.Color(200, 255, 255, 255)})
@@ -11150,13 +11150,13 @@ R = "http://vignette1.wikia.nocookie.net/leagueoflegends/images/3/37/Rite_of_the
 
 
 function Xerath:LoadMenu()
-	Xerath.Menu = MenuElement({id = "Xerath", name = "PussyXerath[Reworked LazyXerath] ", type = MENU})
-	Xerath.Menu:MenuElement({id = "Combo", leftIcon = Icons["Combo"], type = MENU})
-	self.Menu:MenuElement({id = "Harass", leftIcon = Icons["Harass"], type = MENU})
-	self.Menu:MenuElement({id = "Clear", leftIcon = Icons["Clear"], type = MENU})	
-	self.Menu:MenuElement({id = "Killsteal", leftIcon = Icons["ks"], type = MENU})
-	self.Menu:MenuElement({id = "Misc", leftIcon = Icons["Misc"], type = MENU})
-	self.Menu:MenuElement({id = "Key", leftIcon = Icons["KeySet"], type = MENU})
+	Xerath.Menu = MenuElement({type = MENU, id = "Xerath", name = "PussyXerath[Reworked LazyXerath] "})
+	Xerath.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
+	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})
+	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
+	self.Menu:MenuElement({type = MENU, id = "Killsteal", leftIcon = Icons["ks"]})
+	self.Menu:MenuElement({type = MENU, id = "Misc", leftIcon = Icons["Misc"]})
+	self.Menu:MenuElement(type = MENU, {id = "Key", leftIcon = Icons["KeySet"]})
 	self.Menu.Key:MenuElement({id = "Combo", name = "Combo", key = string.byte(" ")})
 	self.Menu.Key:MenuElement({id = "Harass", name = "Harass | Mixed", key = string.byte("C")})
 	self.Menu.Key:MenuElement({id = "Clear", name = "LaneClear | JungleClear", key = string.byte("V")})
@@ -11168,9 +11168,9 @@ function Xerath:LoadMenu()
 	self.Menu.Combo:MenuElement({id = "useW", name = "Use W", value = true, leftIcon = spellIcons.W})
 	self.Menu.Combo:MenuElement({id = "useE", name = "Use E", value = true, leftIcon = spellIcons.E})
 	self.Menu.Combo:MenuElement({id = "useR", name = "Use R", value = true, leftIcon = spellIcons.R})
-	self.Menu.Combo:MenuElement({id = "R", name = "Ultimate Settings", type = MENU, leftIcon = spellIcons.R})
+	self.Menu.Combo:MenuElement({type = MENU, id = "R", name = "Ultimate Settings", leftIcon = spellIcons.R})
 	self.Menu.Combo.R:MenuElement({id = "useRself", name = "Start R manually", value = false})
-	self.Menu.Combo.R:MenuElement({id = "BlackList", name = "Auto R blacklist", type = MENU})
+	self.Menu.Combo.R:MenuElement({type = MENU, id = "BlackList", name = "Auto R blacklist"})
 	self.Menu.Combo.R:MenuElement({id = "safeR", name = "Safety R stack", value = 1, min = 0, max = 2, step = 1})
 	self.Menu.Combo.R:MenuElement({id = "targetChangeDelay", name = "Delay between target switch", value = 100, min = 0, max = 2000, step = 10})
 	self.Menu.Combo.R:MenuElement({id = "castDelay", name = "Delay between casts", value = 150, min = 0, max = 500, step = 1})
@@ -12397,6 +12397,337 @@ if myHero.dead then return end
 end	
 
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class "Yuumi"
+
+
+
+
+    
+--require('GamsteronPrediction')
+
+
+
+local QData =
+{
+Type = _G.SPELLTYPE_LINE, Delay = 0.5, Radius = 65, Range = 1150, Speed = 100, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
+}
+
+
+function Yuumi:__init()
+	self.DetectedMissiles = {}; self.DetectedSpells = {}; self.Target = nil; self.Timer = 0
+	if menu ~= 1 then return end
+	menu = 2   	
+	self:LoadMenu()                                            
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end) 
+	if _G.EOWLoaded then
+		Orb = 1
+	elseif _G.SDK and _G.SDK.Orbwalker then
+		Orb = 2
+	elseif _G.gsoSDK then
+		Orb = 4			
+	end
+end
+
+
+function Yuumi:LoadMenu()                     
+	--MainMenu
+	self.Menu = MenuElement({type = MENU, id = "Yuumi", name = "PussyYuumi"})
+
+	--AutoW
+	self.Menu:MenuElement({type = MENU, id = "AutoW", name = "Auto[W]"})
+	self.Menu.AutoW:MenuElement({id = "UseW", name = "[W]Safe self[Auto search Tankist Ally]", value = true})
+	self.Menu.AutoW:MenuElement({id = "myHP", name = "MinHP self for search Ally", value = 30, min = 0, max = 100, identifier = "%"})
+	self.Menu.AutoW:MenuElement({id = "SwitchW", name = "[W]Auto Switch Ally", value = true})
+	self.Menu.AutoW:MenuElement({id = "AllyHP", name = "MinHP BoundedAlly to switch", value = 10, min = 0, max = 100, identifier = "%"})
+
+
+
+	--AutoE
+	self.Menu:MenuElement({type = MENU, id = "AutoE", name = "Auto[E]"})
+	self.Menu.AutoE:MenuElement({id = "UseEself", name = "[E]Auto Heal self", value = true})
+	self.Menu.AutoE:MenuElement({id = "myHP", name = "MinHP Self to Heal", value = 30, min = 0, max = 100, identifier = "%"})
+	self.Menu.AutoE:MenuElement({id = "UseEally", name = "[W]+[E]Auto Heal Ally", value = true})
+	self.Menu.AutoE:MenuElement({id = "AllyHP", name = "MinHP Ally to Heal", value = 70, min = 0, max = 100, identifier = "%"})	
+	
+	--AutoR on Immobile
+	self.Menu:MenuElement({type = MENU, id = "AutoR", name = "AutoR on Immobile"})
+	self.Menu.AutoR:MenuElement({id = "UseR", name = "[R]", value = true})
+	self.Menu.AutoR:MenuElement({id = "UseRE", name = "Use[R]min Immobile Targets", value = 2, min = 1, max = 5})	
+	
+	
+	--ComboMenu  
+	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})	
+	self.Menu.Combo:MenuElement({id = "UseQAlly", name = "[Q]if Bounded Ally[in work]", value = false})	
+	self.Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})
+	self.Menu.Combo:MenuElement({id = "UseRE", name = "Use [R] min Targets", value = 3, min = 1, max = 5})	
+	
+
+	--HarassMenu
+	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
+	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})
+	self.Menu.Harass:MenuElement({id = "UseQAlly", name = "[Q]if Bounded Ally[in work]", value = false})	
+	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
+  
+	--LaneClear Menu
+	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})	
+	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})		  	
+	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
+  
+	--JungleClear
+	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JClear"})
+	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})         	
+	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
+ 
+	--KillSteal
+	self.Menu:MenuElement({type = MENU, id = "ks", name = "ks"})
+	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})	
+	self.Menu.ks:MenuElement({id = "UseQAlly", name = "[Q]if Bounded Ally[in work]", value = true})	
+	self.Menu.ks:MenuElement({id = "UseR", name = "[R]if not Bounded Ally", value = true})	
+	self.Menu.ks:MenuElement({id = "UseRAlly", name = "[R]if Bounded Ally", value = true})
+	self.Menu.ks:MenuElement({id = "UseWR", name = "[W]+[R]if Killable Enemy in Ally range", value = true})	
+
+	--Drawing 
+	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
+	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
+	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
+	
+	
+end
+
+function Yuumi:Tick()
+if myHero.dead == false and Game.IsChatOpen() == false then
+local Mode = GetMode()
+	if Mode == "Combo" then
+		self:Combo()
+	elseif Mode == "Harass" then
+		self:Harass()
+	elseif Mode == "Clear" then
+		self:Clear()
+		self:JungleClear()
+	elseif Mode == "Flee" then
+		
+	end	
+	self:KillSteal()
+	self:AutoE()
+	self:AutoW()
+	self:AutoR()
+	
+
+end
+end 
+
+
+
+function Yuumi:GetTankAlly(pos, range)
+local Allys = GetAllyHeroes()
+local bestAlly, highest = nil, 0
+local pos = pos.pos
+local Range = range * range
+
+for i = 1, #Allys do
+    local ally = Allys[i]
+    local amount = ally.armor + ally.magicResist + ally.health
+	if GetDistanceSqr(pos, ally.pos) < Range then
+		if amount > highest then
+			highest = amount
+			bestAlly = ally
+		end	
+    end
+end
+
+return bestAlly
+end
+
+function Yuumi:AutoR()
+	if self.Menu.AutoR.UseR:Value() and Ready(_R) then 
+		if myHero.pos:DistanceTo(target.pos) <= 1100 and GetImmobileCount(300, target) >= self.Menu.AutoR.UseRE:Value() then
+			if GotBuff(Ally, "YuumiWAlly") == 0 then   
+				Control.CastSpell(HK_R, target.pos)
+			end
+			if GotBuff(Ally, "YuumiWAlly") > 0 then   
+				Control.CastSpell(HK_R, target.pos)
+			end
+		end
+	end
+end	
+
+function Yuumi:AutoE()
+	for i, Ally in pairs(GetAllyHeroes()) do	
+		if self.Menu.AutoE.UseEself:Value() and Ready(_E) and GotBuff(Ally, "YuumiWAlly") == 0 then
+			if myHero.health/myHero.maxHealth <= self.Menu.AutoE.myHP:Value() / 100 then
+				Control.CastSpell(HK_E)
+			end
+		end
+		if IsValid(Ally,1000) then	
+			if self.Menu.AutoE.UseEally:Value() and Ready(_E) then
+				if myHero.pos:DistanceTo(Ally.pos) <= 700 and Ally.health/Ally.maxHealth <= self.Menu.AutoE.AllyHP:Value() / 100 then
+					if Ready(_W) and GotBuff(Ally, "YuumiWAlly") == 0 then   
+						Control.CastSpell(HK_W, Ally)	
+					end
+				end
+				if GotBuff(Ally, "YuumiWAlly") > 0 and Ally.health/Ally.maxHealth <= self.Menu.AutoE.AllyHP:Value() / 100 then 	
+					Control.CastSpell(HK_E)
+				end
+			end
+		end
+	end
+end
+
+
+
+function Yuumi:AutoW()
+	for i, Ally in pairs(GetAllyHeroes()) do
+	local BoundAlly = GotBuff(Ally, "YuumiWAlly")	
+	local bestAlly = self:GetTankAlly(myHero, 700)	
+		if IsValid(Ally,1000) then	
+			
+			if self.Menu.AutoW.UseW:Value() and Ready(_W) and GotBuff(Ally, "YuumiWAlly") == 0 then
+				if myHero.health/myHero.maxHealth <= self.Menu.AutoW.myHP:Value() / 100 then
+					if bestAlly then 
+						Control.CastSpell(HK_W, bestAlly)
+					end
+				end
+			end	
+			if self.Menu.AutoW.SwitchW:Value() and Ready(_W) and GotBuff(Ally, "YuumiWAlly") > 0 then  
+				if BoundAlly and Ally.health/Ally.maxHealth <= self.Menu.AutoW.AllyHP:Value() / 100 then
+					if bestAlly	then 
+						Control.CastSpell(HK_W, bestAlly)
+					end
+				end
+			end			
+		end	
+	end
+end	
+
+			
+function Yuumi:Draw()
+  if myHero.dead then return end
+	if self.Menu.Drawing.DrawR:Value() and Ready(_R) then
+    Draw.Circle(myHero, 1100, 1, Draw.Color(255, 225, 255, 10))
+	end                                                 
+	if self.Menu.Drawing.DrawQ:Value() and Ready(_Q) then
+    Draw.Circle(myHero, 1150, 1, Draw.Color(225, 225, 0, 10))
+	end
+	if self.Menu.Drawing.DrawW:Value() and Ready(_W) then
+    Draw.Circle(myHero, 700, 1, Draw.Color(225, 225, 125, 10))
+	end
+end
+       
+function Yuumi:KillSteal()	
+	local target = GetTarget(2000)     	
+	if target == nil then return end
+	local hp = target.health
+	local QDmg = getdmg("Q", target, myHero)
+	local RDmg = getdmg("R", target, myHero)
+	for i, Ally in pairs(GetAllyHeroes()) do
+	if IsValid(target,2000) then	
+		
+		if self.Menu.ks.UseQ:Value() and Ready(_Q) and GotBuff(Ally, "YuumiWAlly") == 0 then
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1150 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end
+		end
+		if self.Menu.ks.UseR:Value() and Ready(_R) and GotBuff(Ally, "YuumiWAlly") == 0 then
+			if RDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1100 then			
+				Control.CastSpell(HK_R, target.pos)
+	
+			end
+		end
+		if IsValid(Ally,1000) then
+		if self.Menu.ks.UseRAlly:Value() and Ready(_R) and GotBuff(Ally, "YuumiWAlly") > 0 then 
+			if RDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 1100 then			
+				Control.CastSpell(HK_R, target.pos)
+	
+			end
+		end	
+		if self.Menu.ks.UseWR:Value() and RDmg >= hp then 
+			if myHero.pos:DistanceTo(Ally.pos) <= 700 and myHero.pos:DistanceTo(Ally.pos) <= myHero.pos:DistanceTo(target.pos) then			
+				if Ally.pos:DistanceTo(target.pos) <= 1100 and Ready(_W) and Ready(_R) then
+					Control.CastSpell(HK_W, Ally)
+				end
+			end
+			if myHero.pos:DistanceTo(target.pos) <= 1100 and Ready(_R) and GotBuff(Ally, "YuumiWAlly") > 0 then 
+				Control.CastSpell(HK_R, target.pos)
+			end
+		end
+		end
+	end
+	end
+end	
+
+function Yuumi:Combo()
+local target = GetTarget(1200)
+if target == nil then return end
+for i, Ally in pairs(GetAllyHeroes()) do	
+	if IsValid(target,1200) then		
+		
+		if self.Menu.Combo.UseQ:Value() and Ready(_Q) and GotBuff(Ally, "YuumiWAlly") == 0 then 
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 1150 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end	
+		end
+		
+		if self.Menu.Combo.UseR:Value() and Ready(_R) then 
+			if myHero.pos:DistanceTo(target.pos) <= 1100 and GetEnemyCount(300, target) >= self.Menu.Combo.UseRE:Value() then
+				if GotBuff(Ally, "YuumiWAlly") == 0 then   
+					Control.CastSpell(HK_R, target.pos)
+				end
+				if GotBuff(Ally, "YuumiWAlly") > 0 then   
+					Control.CastSpell(HK_R, target.pos)
+				end
+			end
+		end
+	end
+end
+end	
+
+function Yuumi:Harass()
+local target = GetTarget(1200)
+if target == nil then return end
+for i, Ally in pairs(GetAllyHeroes()) do	
+	if IsValid(target,1200) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
+		
+		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and GotBuff(Ally, "YuumiWAlly") == 0 then 
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 1150 and pred.Hitchance >= _G.HITCHANCE_NORMAL then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end
+		end
+	end
+end
+end	
+
+function Yuumi:Clear()
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+
+		if IsValid(minion, 1200) and minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
+			
+			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 1150 and self.Menu.Clear.UseQ:Value() then
+				Control.CastSpell(HK_Q, minion.pos)
+			end	  
+		end
+	end
+end
+
+function Yuumi:JungleClear()
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)	
+
+		if IsValid(minion, 1200) and minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
+			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 1150 and self.Menu.JClear.UseQ:Value() then
+				Control.CastSpell(HK_Q, minion.pos)
+			end 
+		end
+	end
+end
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
