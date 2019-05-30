@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 3.8
+    local Version = 3.9
     
     local Files = {
         Lua = {
@@ -4541,16 +4541,7 @@ local JungleTable = {
 	SRU_Dragon_Elder = "",
 }
 
-function Lux:DMGJng()
-    local level = myHero:GetSpellData(_R).level
-    local rdamage = (({900, 1100, 1400})[level] + 0.75 * myHero.ap)
-	return rdamage
-end
-function Lux:DMGBaron()
-    local level = myHero:GetSpellData(_R).level
-    local rdamage = (({900, 1100, 1900})[level] + 0.75 * myHero.ap)
-	return rdamage
-end
+
 
 function Lux:JungleSteal()
 	
@@ -4593,6 +4584,17 @@ local minionlist = {}
 			end
 		end
 	end
+end
+
+function Lux:DMGJng()
+    local level = myHero:GetSpellData(_R).level
+    local rdamage = (({900, 1100, 1400})[level] + 0.75 * myHero.ap)
+	return rdamage
+end
+function Lux:DMGBaron()
+    local level = myHero:GetSpellData(_R).level
+    local rdamage = (({900, 1100, 1900})[level] + 0.75 * myHero.ap)
+	return rdamage
 end
 
 function Lux:KillSteal()
