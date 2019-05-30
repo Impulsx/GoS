@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 4.1
+    local Version = 4.2
     
     local Files = {
         Lua = {
@@ -4225,7 +4225,7 @@ end
 
 function Lux:LoadMenu()                     
 	--MainMenu
-	self.Menu = MenuElement({type = MENU, id = "Lux", name = "PussyLux[Version 4.1]"})
+	self.Menu = MenuElement({type = MENU, id = "Lux", name = "PussyLux[Version 4.2]"})
 
 	--AutoQ
 	self.Menu:MenuElement({type = MENU, id = "AutoQ", leftIcon = Icons["AutoQImmo"]})
@@ -4435,15 +4435,16 @@ end
 function Lux:AutoR()
 local target = GetTarget(3500)     	
 if target == nil then return end
-local pred = GetGamsteronPrediction(target, RData, myHero)	
+local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 1, math.huge, 120, false)	
 	if IsValid(target,3500) and self.Menu.AutoR.UseR:Value() and Ready(_R) then
-		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 3340 and pred.Hitchance >= self.Menu.Pred.PredR:Value() + 1 then 		
-			Control.CastSpell(HK_R, pred.CastPosition) 
+		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 3340 and hitRate and hitRate >= 1 then 		
+			if aimPosition:To2D().onScreen then 		
+				Control.CastSpell(HK_R, aimPosition) 
 				
-			if not target.pos:To2D().onScreen then	
-			local castPos = myHero.pos:Extended(target.pos, 1000)    
+			elseif not aimPosition:To2D().onScreen then	
+			local castPos = myHero.pos:Extended(aimPosition, 1000)    
 				Control.CastSpell(HK_R, castPos)
-			end	
+			end 
 		end	
 	end
 end	
@@ -4468,13 +4469,14 @@ if target == nil then return end
 		end
 
 		if self.Menu.Combo.Ult.CountR:Value() and Ready(_R) then
-		local pred = GetGamsteronPrediction(target, RData, myHero)
-		local targetCount = HPred:GetLineTargetCount(myHero.pos, pred, 1.0, 1000, 190, false)
-			if myHero.pos:DistanceTo(target.pos) <= 3340 and pred.Hitchance >= self.Menu.Pred.PredR:Value() + 1 and targetCount >= self.Menu.Combo.Ult.CountMin:Value() then 		
-				Control.CastSpell(HK_R, pred.CastPosition) 
+		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 1, math.huge, 120, false)	
+		local targetCount = HPred:GetLineTargetCount(myHero.pos, aimPosition, 1.0, 1000, 190, false)
+			if myHero.pos:DistanceTo(target.pos) <= 3340 and hitRate and hitRate >= 1 and targetCount >= self.Menu.Combo.Ult.CountMin:Value() then 		
+				if aimPosition:To2D().onScreen then 		
+					Control.CastSpell(HK_R, aimPosition) 
 				
-				if not target.pos:To2D().onScreen then	
-				local castPos = myHero.pos:Extended(target.pos, 1000)    
+				elseif not aimPosition:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(aimPosition, 1000)    
 					Control.CastSpell(HK_R, castPos)
 				end	
 			end
@@ -4668,13 +4670,15 @@ function Lux:KillstealR()
 	if target == nil then return end
 	if self.Menu.ks.UseR:Value() and Ready(_R) then
 		if myHero.pos:DistanceTo(target.pos) <= 3340 then 
-			local pred = GetGamsteronPrediction(target, RData, myHero)
-			if pred.Hitchance >= self.Menu.Pred.PredR:Value() + 1 then
-				Control.CastSpell(HK_R, pred.CastPosition)
-				if not target.pos:To2D().onScreen then	
-				local castPos = myHero.pos:Extended(target.pos, 1000)    
+			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 1, math.huge, 120, false)
+			if hitRate and hitRate >= 1 then
+				if aimPosition:To2D().onScreen then 		
+					Control.CastSpell(HK_R, aimPosition) 
+				
+				elseif not aimPosition:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(aimPosition, 1000)    
 					Control.CastSpell(HK_R, castPos)
-				end	
+				end		
 			end
 		end
 	end
