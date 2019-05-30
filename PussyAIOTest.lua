@@ -4425,7 +4425,7 @@ function Lux:AutoW()
 			if myHero.health/myHero.maxHealth <= self.Menu.AutoW.Heal:Value()/100 then
 				Control.CastSpell(HK_W)
 			end
-			if ally.health/ally.maxHealth <= self.Menu.AutoW.Heal:Value()/100 and myHero.pos:DistanceTo(ally.pos) <= 1075 then
+			if IsValid(ally,1300) and ally.health/ally.maxHealth <= self.Menu.AutoW.Heal:Value()/100 and myHero.pos:DistanceTo(ally.pos) <= 1075 then
 				Control.CastSpell(HK_W, ally.pos)
 			end
 		end
