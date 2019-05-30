@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 4.0
+    local Version = 4.1
     
     local Files = {
         Lua = {
@@ -4225,7 +4225,7 @@ end
 
 function Lux:LoadMenu()                     
 	--MainMenu
-	self.Menu = MenuElement({type = MENU, id = "Lux", name = "PussyLux"})
+	self.Menu = MenuElement({type = MENU, id = "Lux", name = "PussyLux[Version 4.1]"})
 
 	--AutoQ
 	self.Menu:MenuElement({type = MENU, id = "AutoQ", leftIcon = Icons["AutoQImmo"]})
@@ -4440,7 +4440,7 @@ local pred = GetGamsteronPrediction(target, RData, myHero)
 		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 3340 and pred.Hitchance >= self.Menu.Pred.PredR:Value() + 1 then 		
 			Control.CastSpell(HK_R, pred.CastPosition) 
 				
-			if not target:To2D().onScreen then	
+			if not target.pos:To2D().onScreen then	
 			local castPos = myHero.pos:Extended(target.pos, 1000)    
 				Control.CastSpell(HK_R, castPos)
 			end	
@@ -4473,7 +4473,7 @@ if target == nil then return end
 			if myHero.pos:DistanceTo(target.pos) <= 3340 and pred.Hitchance >= self.Menu.Pred.PredR:Value() + 1 and targetCount >= self.Menu.Combo.Ult.CountMin:Value() then 		
 				Control.CastSpell(HK_R, pred.CastPosition) 
 				
-				if not target:To2D().onScreen then	
+				if not target.pos:To2D().onScreen then	
 				local castPos = myHero.pos:Extended(target.pos, 1000)    
 					Control.CastSpell(HK_R, castPos)
 				end	
@@ -4671,7 +4671,10 @@ function Lux:KillstealR()
 			local pred = GetGamsteronPrediction(target, RData, myHero)
 			if pred.Hitchance >= self.Menu.Pred.PredR:Value() + 1 then
 				Control.CastSpell(HK_R, pred.CastPosition)
-				
+				if not target.pos:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(target.pos, 1000)    
+					Control.CastSpell(HK_R, castPos)
+				end	
 			end
 		end
 	end
