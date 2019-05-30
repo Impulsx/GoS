@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 4.3
+    local Version = 4.4
     
     local Files = {
         Lua = {
@@ -4225,7 +4225,7 @@ end
 
 function Lux:LoadMenu()                     
 	--MainMenu
-	self.Menu = MenuElement({type = MENU, id = "Lux", name = "PussyLux[Version 4.3]"})
+	self.Menu = MenuElement({type = MENU, id = "Lux", name = "PussyLux[Version 4.4]"})
 
 	--AutoQ
 	self.Menu:MenuElement({type = MENU, id = "AutoQ", leftIcon = Icons["AutoQImmo"]})
@@ -4381,7 +4381,7 @@ end
 function Lux:AutoE()
 local target = GetTarget(1300)     	
 if target == nil then return end
-	if self:IsELanded() then
+	if self:IsELanded() and IsValid(target,1300) then
 		if self:NearestEnemy(eParticle) < 310 then	
 			Control.CastSpell(HK_E)
 			eParticle = nil
@@ -4409,9 +4409,8 @@ if target == nil then return end
 				end
 			end			
 		elseif Ready(_E) and IsImmobileTarget(target) then
-			local target, aimPosition = HPred:GetReliableTarget(myHero.pos, 1000, 0.25, 1200, 310, false)
-			if self.Menu.AutoE.UseE:Value() and target and HPred:IsInRange(myHero.pos, aimPosition, 1000) then
-				Control.CastSpell(HK_E, aimPosition)
+			if self.Menu.AutoE.UseE:Value() and myHero.pos:DistanceTo(ally.pos) <= 1000 then
+				Control.CastSpell(HK_E, target.pos)
 				eMissile = nil
 
 			end
