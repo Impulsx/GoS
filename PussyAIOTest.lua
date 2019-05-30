@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 4.2
+    local Version = 4.3
     
     local Files = {
         Lua = {
@@ -4225,7 +4225,7 @@ end
 
 function Lux:LoadMenu()                     
 	--MainMenu
-	self.Menu = MenuElement({type = MENU, id = "Lux", name = "PussyLux[Version 4.2]"})
+	self.Menu = MenuElement({type = MENU, id = "Lux", name = "PussyLux[Version 4.3]"})
 
 	--AutoQ
 	self.Menu:MenuElement({type = MENU, id = "AutoQ", leftIcon = Icons["AutoQImmo"]})
@@ -4420,6 +4420,7 @@ if target == nil then return end
 end
 
 function Lux:AutoW()
+if IsRecalling() == true then return end	
 	for i, ally in pairs(GetAllyHeroes()) do
 		if self.Menu.AutoW.UseW:Value() and Ready(_W) then
 			if myHero.health/myHero.maxHealth <= self.Menu.AutoW.Heal:Value()/100 then
@@ -4547,22 +4548,25 @@ local JungleTable = {
 
 function Lux:JungleSteal()
 	
-local RDamage = self:DMGJng()
-local RDamageBaron = self:DMGBaron()
+
+
 local minionlist = {}
 	if _G.SDK then
 		minionlist = _G.SDK.ObjectManager:GetMonsters(1200)
 	elseif _G.GOS then
 		for i = 1, Game.MinionCount() do
 			local minion = Game.Minion(i)
-			if minion == nil then return end
+			
 			if minion.valid and minion.isEnemy and minion.pos:DistanceTo(myHero.pos) < 1200 then
 				table.insert(minionlist, minion)
 			end
 		end
 	end
+	
 	for i, minion in pairs(minionlist) do
+	if minion == nil then return end	
 		if self.Menu.Jsteal.Dragon:Value() and Ready(_R) and Ready(_Q) then
+			local RDamage = self:DMGJng()
 			if JungleTable[minion.charName] and RDamage > minion.health then
 				Control.SetCursorPos(minion.pos)
 				Control.KeyDown(HK_Q)
@@ -4571,6 +4575,7 @@ local minionlist = {}
 			end
 		end
 		if self.Menu.Jsteal.Herald:Value() and Ready(_R) and Ready(_Q) then
+			local RDamage = self:DMGJng()
 			if minion.charName == "SRU_RiftHerald" and RDamage > minion.health then
 				Control.SetCursorPos(minion.pos)
 				Control.KeyDown(HK_Q)
@@ -4579,6 +4584,7 @@ local minionlist = {}
 			end
 		end
 		if self.Menu.Jsteal.Baron:Value() and Ready(_R) and Ready(_Q) then
+			local RDamageBaron = self:DMGBaron()
 			if minion.charName == "SRU_Baron" and RDamageBaron > minion.health then
 				Control.SetCursorPos(minion.pos)
 				Control.KeyDown(HK_Q)
@@ -4608,7 +4614,7 @@ function Lux:KillSteal()
 	local EDmg = getdmg("E", target, myHero)
 	local RDmg = getdmg("R", target, myHero) 
 	local RDmg2 = (getdmg("R", target, myHero) + (10 + 10 * myHero.levelData.lvl + myHero.ap * 0.2))
-	local fullDmg = QDmg + EDmg + RDmg2
+	local fullDmg = QDmg + EDmg + RDmg
 
 	if IsValid(target,3500) then	
 		
@@ -4623,7 +4629,7 @@ function Lux:KillSteal()
 			end
 		end
 		if myHero.pos:DistanceTo(target.pos) <= 3340 then
-			if HPred:HasBuff(target, "LuxIlluminatingFraulein",1.25) and RDmg2 >= hp then
+			if HPred:HasBuff(target, "LuxIlluminatingFraulein",1.25) and RDmg >= hp then
 				self:KillstealR()
 			end
 			if RDmg >= hp then
