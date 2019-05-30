@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 3.9
+    local Version = 4.0
     
     local Files = {
         Lua = {
@@ -4299,7 +4299,7 @@ function Lux:LoadMenu()
 end	
 
 function Lux:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if myHero.dead == false and Game.IsChatOpen() == false and IsRecalling() == false then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -4553,30 +4553,31 @@ local minionlist = {}
 	elseif _G.GOS then
 		for i = 1, Game.MinionCount() do
 			local minion = Game.Minion(i)
+			if minion == nil then return end
 			if minion.valid and minion.isEnemy and minion.pos:DistanceTo(myHero.pos) < 1200 then
 				table.insert(minionlist, minion)
 			end
 		end
 	end
 	for i, minion in pairs(minionlist) do
-		if self.Menu.Jsteal.Dragon:Value() then
-			if JungleTable[minion.charName] and RDamage > minion.health and Ready(_R) and Ready(_Q) then
+		if self.Menu.Jsteal.Dragon:Value() and Ready(_R) and Ready(_Q) then
+			if JungleTable[minion.charName] and RDamage > minion.health then
 				Control.SetCursorPos(minion.pos)
 				Control.KeyDown(HK_Q)
 				Control.KeyUp(HK_Q)					
 				Control.CastSpell(HK_R, minion.pos)
 			end
 		end
-		if self.Menu.Jsteal.Herald:Value() then
-			if minion.charName == "SRU_RiftHerald" and RDamage > minion.health and Ready(_R) and Ready(_Q) then
+		if self.Menu.Jsteal.Herald:Value() and Ready(_R) and Ready(_Q) then
+			if minion.charName == "SRU_RiftHerald" and RDamage > minion.health then
 				Control.SetCursorPos(minion.pos)
 				Control.KeyDown(HK_Q)
 				Control.KeyUp(HK_Q)					
 				Control.CastSpell(HK_R, minion.pos)				
 			end
 		end
-		if self.Menu.Jsteal.Baron:Value() then
-			if minion.charName == "SRU_Baron" and RDamageBaron > minion.health and Ready(_R) and Ready(_Q) then
+		if self.Menu.Jsteal.Baron:Value() and Ready(_R) and Ready(_Q) then
+			if minion.charName == "SRU_Baron" and RDamageBaron > minion.health then
 				Control.SetCursorPos(minion.pos)
 				Control.KeyDown(HK_Q)
 				Control.KeyUp(HK_Q)					
