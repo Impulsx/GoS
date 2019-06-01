@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 4.4
+    local Version = 4.5
     
     local Files = {
         Lua = {
@@ -67,15 +67,9 @@ function OnLoad()
 	LoadUnits()
 	Activator()
 	HPred()
-
-	if table.contains(Heroes, myHero.charName) then
-		LoadPred()
-	end
-	
-
 end
 
-function LoadPred()
+
 	
 	if table.contains(GsoPred, myHero.charName) then
 		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
@@ -84,7 +78,7 @@ function LoadPred()
 
 
 		end
-		
+	require "GamsteronPrediction"	
 	end
 
 	if myHero.charName == "Veigar" then
@@ -96,8 +90,8 @@ function LoadPred()
 		end
 	require('TPred')	
 	end
-end	
-require "GamsteronPrediction"
+	
+
 require "Collision"
 require "2DGeometry"
 
@@ -4202,10 +4196,7 @@ local QData =
 Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1175, Speed = 1200, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
 }
 
-local RData =
-{
-Type = _G.SPELLTYPE_LINE, Delay = 1.0, Radius = 190, Range = 3340, Speed = 1000, Collision = false
-}
+
 
 function Lux:__init()
 
@@ -4239,19 +4230,12 @@ function Lux:LoadMenu()
 	--AutoE
 	self.Menu:MenuElement({type = MENU, id = "AutoE", leftIcon = Icons["AutoE"]})
 	self.Menu.AutoE:MenuElement({id = "UseE", name = "Auto[E]Immobile Target", value = true})	
-	
-	--AutoR
-	self.Menu:MenuElement({type = MENU, id = "AutoR", leftIcon = Icons["AutoR"]})	
-	self.Menu.AutoR:MenuElement({id = "UseR", name = "Auto[R]Immobile Target", value = true})	
-	
+		
 	--ComboMenu  
 	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q] Light Binding", value = true})		
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E] Lucent Singularity", value = true})			
-	self.Menu.Combo:MenuElement({type = MENU, id = "Ult", name = "Combo Ult Settings"})	
-	self.Menu.Combo.Ult:MenuElement({id = "CountR", name = "Auto[R]min Targets in Line", value = true})	
-	self.Menu.Combo.Ult:MenuElement({id = "CountMin", name = "How many Targets in Line", value = 3, min = 1, max = 5, step = 1})	
-
+	
 	--HarassMenu
 	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})	
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Light Binding", value = true})
@@ -4274,7 +4258,7 @@ function Lux:LoadMenu()
 	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q] Light Binding", value = true})	
 	self.Menu.ks:MenuElement({id = "UseE", name = "[E] Lucent Singularity", value = true})				
 	self.Menu.ks:MenuElement({id = "UseR", name = "[R] Final Spark", value = true})	
-	self.Menu.ks:MenuElement({id = "UseQER", name = "Full KS[Q]+[E]+[R]", value = true})	
+	
 	
 	--JungleSteal
 	self.Menu:MenuElement({type = MENU, id = "Jsteal", leftIcon = Icons["junglesteal"]})
@@ -4314,7 +4298,6 @@ function Lux:Tick()
 	self:KillSteal()
 	self:AutoQ()
 	self:AutoE()
-	self:AutoR()
 	self:AutoW()
 	
 	end
@@ -4409,7 +4392,7 @@ if target == nil then return end
 				end
 			end			
 		elseif Ready(_E) and IsImmobileTarget(target) then
-			if self.Menu.AutoE.UseE:Value() and myHero.pos:DistanceTo(ally.pos) <= 1000 then
+			if self.Menu.AutoE.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 1000 then
 				Control.CastSpell(HK_E, target.pos)
 				eMissile = nil
 
@@ -4432,27 +4415,11 @@ if IsRecalling() == true then return end
 	end
 end
 
-function Lux:AutoR()
-local target = GetTarget(3500)     	
-if target == nil then return end
-local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 1, math.huge, 120, false)	
-	if IsValid(target,3500) and self.Menu.AutoR.UseR:Value() and Ready(_R) then
-		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 3340 and hitRate and hitRate >= 1 then 		
-			if aimPosition:To2D().onScreen then 		
-				Control.CastSpell(HK_R, aimPosition) 
-				
-			elseif not aimPosition:To2D().onScreen then	
-			local castPos = myHero.pos:Extended(aimPosition, 1000)    
-				Control.CastSpell(HK_R, castPos)
-			end 
-		end	
-	end
-end	
 
 function Lux:Combo()
-local target = GetTarget(3500)     	
+local target = GetTarget(1300)     	
 if target == nil then return end
-	if IsValid(target,3500) then
+	if IsValid(target,1300) then
 				
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
@@ -4465,20 +4432,6 @@ if target == nil then return end
 			if myHero.pos:DistanceTo(target.pos) <= 1000 then			
 				Control.CastSpell(HK_E, target.pos)
 	
-			end
-		end
-
-		if self.Menu.Combo.Ult.CountR:Value() and Ready(_R) then
-		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 1, math.huge, 120, false)	
-		local targetCount = HPred:GetLineTargetCount(myHero.pos, aimPosition, 1.0, 1000, 190, false)
-			if myHero.pos:DistanceTo(target.pos) <= 3340 and hitRate and hitRate >= 1 and targetCount >= self.Menu.Combo.Ult.CountMin:Value() then 		
-				if aimPosition:To2D().onScreen then 		
-					Control.CastSpell(HK_R, aimPosition) 
-				
-				elseif not aimPosition:To2D().onScreen then	
-				local castPos = myHero.pos:Extended(aimPosition, 1000)    
-					Control.CastSpell(HK_R, castPos)
-				end	
 			end
 		end
 	end	
@@ -4612,35 +4565,35 @@ function Lux:KillSteal()
 	local QDmg = getdmg("Q", target, myHero)
 	local EDmg = getdmg("E", target, myHero)
 	local RDmg = getdmg("R", target, myHero) 
-	local RDmg2 = (getdmg("R", target, myHero) + (10 + 10 * myHero.levelData.lvl + myHero.ap * 0.2))
-	local fullDmg = QDmg + EDmg + RDmg
+	local RDmg2 = getdmg("R", target, myHero) + (10 + 10 * myHero.levelData.lvl + myHero.ap * 0.2)
+	local QRDmg = QDmg + RDmg
 
 	if IsValid(target,3500) then	
 		
-		if myHero.pos:DistanceTo(target.pos) <= 1175 then
+		if Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 1175 then
 			if QDmg >= hp then
 				self:KillstealQ()
 			end
 		end
-		if myHero.pos:DistanceTo(target.pos) <= 1000 then
+		if Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 1000 then
 			if EDmg >= hp then
 				self:KillstealE()
 			end
 		end
-		if myHero.pos:DistanceTo(target.pos) <= 3340 then
-			if HPred:HasBuff(target, "LuxIlluminatingFraulein",1.25) and RDmg >= hp then
+		if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= 3340 then
+			if HPred:HasBuff(target, "LuxIlluminatingFraulein",1.25) and RDmg2 >= hp then
 				self:KillstealR()
 			end
 			if RDmg >= hp then
 				self:KillstealR()
 			end
 		end
-		if self.Menu.ks.UseQER:Value() then
-			if myHero.pos:DistanceTo(target.pos) <= 1175 and fullDmg >= hp then
-				self:KillstealQ()
-				self:KillstealE()
-				self:KillstealR()
-			end	
+		if Ready(_R) and Ready(_Q) myHero.pos:DistanceTo(target.pos) <= 1175 and QRDmg >= hp then
+			self:KillstealQ()
+		end
+		if Ready(_R) and IsImmobileTarget(target) and RDmg >= hp then
+			self:KillstealR()
+				
 		end
 	end
 end	
@@ -4648,7 +4601,7 @@ end
 function Lux:KillstealQ()
 	local target = GetTarget(1300)
 	if target == nil then return end
-	if self.Menu.ks.UseQ:Value() and Ready(_Q) then
+	if self.Menu.ks.UseQ:Value() then
 		if myHero.pos:DistanceTo(target.pos) <= 1175 then 	
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
@@ -4662,7 +4615,7 @@ end
 function Lux:KillstealE()
 	local target = GetTarget(1300)
 	if target == nil then return end
-	if self.Menu.ks.UseE:Value() and Ready(_E) then
+	if self.Menu.ks.UseE:Value() then
 		if myHero.pos:DistanceTo(target.pos) <= 1000 then 
 			Control.CastSpell(HK_E, target.pos)
 			
@@ -4673,9 +4626,9 @@ end
 function Lux:KillstealR()
     local target = GetTarget(3400)
 	if target == nil then return end
-	if self.Menu.ks.UseR:Value() and Ready(_R) then
+	if self.Menu.ks.UseR:Value() then
 		if myHero.pos:DistanceTo(target.pos) <= 3340 then 
-			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 1, math.huge, 120, false)
+			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3340, 1.0, 1000, 190, false)
 			if hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 		
 					Control.CastSpell(HK_R, aimPosition) 
