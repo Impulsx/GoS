@@ -11803,12 +11803,12 @@ end
 
 function Xerath:castingR()
 	local rBuff = GetBuffData(myHero,"XerathLocusOfPower2")
-	if self.chargeR == false and self:IsRCharging() then
+	if self.chargeR == false and rBuff.count > 0 then
 		self.chargeR = true
 		self.chargeRTick = GetTickCount()
 		self.firstRCast = true
 	end
-	if self.chargeR == true and self:IsRCharging() == false then
+	if self.chargeR == true and rBuff.count == 0 then
 		self.chargeR = false
 		self.R_target = nil
 	end
@@ -11892,7 +11892,7 @@ function Xerath:Combo()
 			end				
 		end	
 	end
-	self:useR()
+self:useR()
 end
 
 function Xerath:Harass()
