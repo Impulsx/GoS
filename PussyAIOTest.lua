@@ -119,7 +119,7 @@ local textPos = myHero.pos:To2D()
 	end
 	
 	if NewVersion == Version and Game.Timer() < 20 then
-		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
+		Draw.Text("Welcome to PussyAIO[Version 4.6]", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Rakan        Nidalee", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Ryze          XinZhao", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
@@ -4216,7 +4216,7 @@ end
 
 function Lux:LoadMenu()                     
 	--MainMenu
-	self.Menu = MenuElement({type = MENU, id = "Lux", name = "PussyLux[Version 4.4]"})
+	self.Menu = MenuElement({type = MENU, id = "Lux", name = "PussyLux"})
 
 	--AutoQ
 	self.Menu:MenuElement({type = MENU, id = "AutoQ", leftIcon = Icons["AutoQImmo"]})
