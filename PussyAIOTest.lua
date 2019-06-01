@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 4.5
+    local Version = 4.6
     
     local Files = {
         Lua = {
@@ -4588,7 +4588,7 @@ function Lux:KillSteal()
 				self:KillstealR()
 			end
 		end
-		if Ready(_R) and Ready(_Q) myHero.pos:DistanceTo(target.pos) <= 1175 and QRDmg >= hp then
+		if Ready(_R) and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 1175 and QRDmg >= hp then
 			self:KillstealQ()
 		end
 		if Ready(_R) and IsImmobileTarget(target) and RDmg >= hp then
