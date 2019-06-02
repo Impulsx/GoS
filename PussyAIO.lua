@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 0.25
+    local Version = 0.26
     
     local Files = {
         Lua = {
@@ -11862,7 +11862,7 @@ local Fdmg = (Qdmg + Wdmg + Rdmg)
 				
 			end
 		end	
-		if hp <= Rdmg and self.chargeR == false and Game.CanUseSpell(_R) == 0 and IsValid(target) and GetDistance(myHero.pos,target.pos) > 1000 and GetDistance(myHero.pos,target.pos) <= rRange then
+		if hp <= Rdmg and self.chargeR == false and Game.CanUseSpell(_R) == 0 and IsValid(target) and GetDistanceSqr(myHero.pos,target.pos) > 1000 and GetDistanceSqr(myHero.pos,target.pos) <= rRange then
 			self:startR(target)
 		end
 		
@@ -11876,7 +11876,7 @@ local target = self:GetRTarget(1100,2200 + 1220*myHero:GetSpellData(_R).level)
 if target == nil then return end	
 local blue = GetInventorySlotItem(3363)   	
 	if self.chargeR == true and not target.visible then		
-		if blue and GetDistance(myHero.pos,target.pos) < 3800 then
+		if blue and GetDistanceSqr(myHero.pos,target.pos) < 3800 then
         local bluePred = GetPred(target,math.huge,0.25)
 			CastSpellMM(ItemHotKey[blue],bluePred,4000,50)
         
