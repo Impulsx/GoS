@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 0.24
+    local Version = 0.25
     
     local Files = {
         Lua = {
@@ -5156,6 +5156,7 @@ function Morgana:Tick()
 		self:AutoE()
 		self:Auto1()
 		self:Auto2()
+		
 	end
 end 
 
@@ -5228,7 +5229,7 @@ function Morgana:OnMissileCreate()
 	for i = 1, Game.MissileCount() do
 		local missile = Game.Missile(i)
 		if CCSpells[missile.missileData.name] then
-			local unit = self:GetHeroByHandle(missile.missileData.owner)
+			local unit = Morgana:GetHeroByHandle(missile.missileData.owner)
 			if (not unit.visible and CCSpells[missile.missileData.name].origin ~= "spell") or CCExceptions[missile.missileData.name] then
 				if GetDistance(unit.pos, myHero.pos) > 3000 or not self.Menu.ESet.BlockList["Dodge"..missile.missileData.name]:Value() then return end
 				local Detected = CCSpells[missile.missileData.name]
@@ -5298,7 +5299,7 @@ for i, Hero in pairs(GetAllyHeroes()) do
 	for i = 1, Game.MissileCount() do
 		local missile = Game.Missile(i)
 		if CCSpells[missile.missileData.name] then
-			local unit = self:GetHeroByHandle(missile.missileData.owner)
+			local unit = Morgana:GetHeroByHandle(missile.missileData.owner)
 			if (not unit.visible and CCSpells[missile.missileData.name].origin ~= "spell") or CCExceptions[missile.missileData.name] then
 				if GetDistance(unit.pos, Hero.pos) > 3000 or not self.Menu.ESet.BlockList["Dodge"..missile.missileData.name]:Value() then return end
 				local Detected = CCSpells[missile.missileData.name]
@@ -11630,7 +11631,7 @@ function Xerath:LoadMenu()
 	self.Menu.Combo.R:MenuElement({id = "targetChangeDelay", name = "Delay between target switch", value = 100, min = 0, max = 2000, step = 10})
 	self.Menu.Combo.R:MenuElement({id = "castDelay", name = "Delay between casts", value = 150, min = 0, max = 500, step = 1})
 	self.Menu.Combo.R:MenuElement({id = "useBlue", name = "Use Farsight Alteration", value = true})
-	self.Menu.Combo.R:MenuElement({id = "useRkey", name = "On key press (close to mouse)", key = string.byte("T")})
+	self.Menu.Combo.R:MenuElement({id = "useRkey", name = "On key press (close to mouse)", key = string.byte("Z")})
 	
 	self.Menu.Harass:MenuElement({id = "useQ", name = "Use Q", value = true})
 	self.Menu.Harass:MenuElement({id = "manaQ", name = " [Q]Mana-Manager", value = 40, min = 0, max = 100, step = 1})
@@ -11688,6 +11689,10 @@ function Xerath:MenuRTarget(v,t)
 end
 
 function Xerath:Tick()
+	if castSpell.state == 1 and GetTickCount() - castSpell.casting > Game.Latency() then
+            Control.SetCursorPos(castSpell.mouse)
+            castSpell.state = 0
+    end
 	if myHero.dead == false and Game.IsChatOpen() == false then
 
 	
@@ -11711,7 +11716,8 @@ function Xerath:Tick()
 	self:castingR()
 	self:useRonKey()
 	self:EnemyLoop()
-	self:KSFull()	
+	self:KSFull()
+	self:Auto()
 	end
 end
 
@@ -11803,12 +11809,12 @@ end
 
 function Xerath:castingR()
 	local rBuff = GetBuffData(myHero,"XerathLocusOfPower2")
-	if self.chargeR == false and self:IsRCharging() then
+	if self.chargeR == false and rBuff.count > 0 then
 		self.chargeR = true
 		self.chargeRTick = GetTickCount()
 		self.firstRCast = true
 	end
-	if self.chargeR == true and self:IsRCharging() == false then
+	if self.chargeR == true and rBuff.count == 0 then
 		self.chargeR = false
 		self.R_target = nil
 	end
@@ -11831,15 +11837,17 @@ function Xerath:castingR()
 end
 
 function Xerath:KSFull()
-local target = GetTarget(6000)
+local target = self:GetRTarget(1100,2200 + 1220*myHero:GetSpellData(_R).level)
 if target == nil then return end
 local hp = target.health + target.shieldAP + target.shieldAD
-local Qdmg = CalcuMagicalDamage(myHero,target,40 + 40*myHero:GetSpellData(_Q).level + (0.75*myHero.ap))	
-local Wdmg = CalcuMagicalDamage(myHero,target,45 + 45*myHero:GetSpellData(_W).level + (0.9*myHero.ap))
-local Rdmg = CalcuMagicalDamage(myHero,target,160 + 40*myHero:GetSpellData(_R).level + (0.43*myHero.ap) * 3)
+local rRange = 2200 + 1220*myHero:GetSpellData(_R).level
+local Qdmg = CalcuMagicalDamage(myHero,target,40 + 40*myHero:GetSpellData(_Q).level + 0.75*myHero.ap)	
+local Wdmg = CalcuMagicalDamage(myHero,target,45 + 45*myHero:GetSpellData(_W).level + 0.9*myHero.ap)
+local stackdmg = 2 + myHero:GetSpellData(_R).level
+local Rdmg = CalcuMagicalDamage(myHero,target,160 + 40 * myHero:GetSpellData(_R).level + myHero.ap * 0.43) * stackdmg
 local Fdmg = (Qdmg + Wdmg + Rdmg)	
 	if self.Menu.Killsteal.full:Value() then
-		if self.chargeR == false and hp < Fdmg then
+		if self.chargeR == false and hp <= Fdmg then
 			if self.Menu.Misc.Pred:Value() == 1 then
 				self:useQ()
 				self:useW()
@@ -11852,11 +11860,29 @@ local Fdmg = (Qdmg + Wdmg + Rdmg)
 				self:useQHPred()			
 				self:useWHPred()
 				
-			end	
+			end
+		end	
+		if hp <= Rdmg and self.chargeR == false and Game.CanUseSpell(_R) == 0 and IsValid(target) and GetDistance(myHero.pos,target.pos) > 1000 and GetDistance(myHero.pos,target.pos) <= rRange then
+			self:startR(target)
 		end
-	self:useR()
+		
+	self:AutoR()
 	end
 end
+
+function Xerath:Auto()
+if myHero.dead then return end
+local target = self:GetRTarget(1100,2200 + 1220*myHero:GetSpellData(_R).level)
+if target == nil then return end	
+local blue = GetInventorySlotItem(3363)   	
+	if self.chargeR == true and not target.visible then		
+		if blue and GetDistance(myHero.pos,target.pos) < 3800 then
+        local bluePred = GetPred(target,math.huge,0.25)
+			CastSpellMM(ItemHotKey[blue],bluePred,4000,50)
+        
+		end	
+	end
+end	
 
 function Xerath:Combo()
 	if self.chargeR == false then
@@ -12535,7 +12561,7 @@ end
 function Xerath:useRkill(target)
 	if self.chargeR == false and self.Menu.Combo.R.BlackList[target.charName] ~= nil and not self.Menu.Combo.R.useRself:Value() and self.Menu.Combo.R.BlackList[target.charName]:Value() == false then
 		local rDMG = CalcuMagicalDamage(myHero,target,160+40*myHero:GetSpellData(_R).level + (myHero.ap*0.43))*(2+myHero:GetSpellData(_R).level - self.Menu.Combo.R.safeR:Value())
-		if target.health + target.shieldAP + target.shieldAD < rDMG and CountAlliesInRange(target.pos,700) == 0 then
+		if target.health + target.shieldAP + target.shieldAD < rDMG then
 			local delay =  math.floor((target.health + target.shieldAP + target.shieldAD)/(rDMG/(2+myHero:GetSpellData(_R).level))) * 0.8
 			if GetDistance(myHero.pos,target.pos) + target.ms*delay <= 2200 + 1320*myHero:GetSpellData(_R).level and not IsImmune(target) then
 				self:startR(target)
@@ -12561,6 +12587,28 @@ function Xerath:useRonKey()
 					self.R_target = target
 					self.R_target_tick = GetTickCount()
 				end
+			end
+		end
+	end
+end
+
+function Xerath:AutoR()
+
+	if self.chargeR == true and Game.CanUseSpell(_R) == 0 then
+		
+		if not target then target = self:GetTarget(2200 + 1320*myHero:GetSpellData(_R).level,"AP") end
+		if target and not IsImmune(target) then
+				
+			local rPred = GetPred(target,math.huge,0.45)
+			if rPred:ToScreen().onScreen then
+				CastSpell(HK_R,rPred,2200 + 1320*myHero:GetSpellData(_R).level,100)
+				self.R_target = target
+				self.R_target_tick = GetTickCount()
+			else
+				CastSpellMM(HK_R,rPred,2200 + 1320*myHero:GetSpellData(_R).level,100)
+				self.R_target = target
+				self.R_target_tick = GetTickCount()
+				
 			end
 		end
 	end
