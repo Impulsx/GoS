@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 5.0
+    local Version = 5.1
     
     local Files = {
         Lua = {
@@ -11863,10 +11863,25 @@ local Fdmg = (Qdmg + Wdmg + Rdmg)
 		end	
 		if hp <= Rdmg and self.chargeR == false and Game.CanUseSpell(_R) == 0 and IsValid(target) and GetDistance(myHero.pos,target.pos) > 1000 and GetDistance(myHero.pos,target.pos) <= rRange then
 			self:startR(target)
-		end 
+		end
+	self:Auto()	
 	self:AutoR()
 	end
 end
+
+function Xerath:Auto()
+if myHero.dead then return end
+local target = GetTarget(4000)
+if target == nil then return end	
+local blue = GetInventorySlotItem(3363)   	
+	if self.chargeR == true and not target.visible then		
+		if blue and GetDistance(myHero.pos,target.pos) < 3800 then
+        local bluePred = GetPred(target,math.huge,0.25)
+			CastSpellMM(ItemHotKey[blue],bluePred,4000,50)
+        
+		end	
+	end
+end	
 
 function Xerath:Combo()
 	if self.chargeR == false then
