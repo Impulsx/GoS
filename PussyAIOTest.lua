@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 4.6
+    local Version = 4.7
     
     local Files = {
         Lua = {
@@ -119,19 +119,19 @@ local textPos = myHero.pos:To2D()
 	end
 	
 	if NewVersion == Version and Game.Timer() < 20 then
-		Draw.Text("Welcome to PussyAIO[Version 4.6]", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
+		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Rakan        Nidalee", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Ryze          XinZhao", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Kassadin     Veigar", 25, textPos.x + 200, textPos.y - 60, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Tristana      Warwick", 25, textPos.x + 200, textPos.y - 40, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Neeko        Cassiopeia", 25, textPos.x + 200, textPos.y - 20, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Kassadin    Veigar", 25, textPos.x + 200, textPos.y - 60, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Tristana     Warwick", 25, textPos.x + 200, textPos.y - 40, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Neeko       Cassiopeia", 25, textPos.x + 200, textPos.y - 20, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Malzahar    Zyra", 25, textPos.x + 200, textPos.y - 1 , Draw.Color(255, 255, 200, 0))
 		Draw.Text("Sylas         Kayle", 25, textPos.x + 200, textPos.y + 20, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Morgana    Ekko", 25, textPos.x + 200, textPos.y + 40, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Xerath       Sona", 25, textPos.x + 200, textPos.y + 60, Draw.Color(255, 255, 200, 0))		
-		Draw.Text("Ahri", 25, textPos.x + 200, textPos.y + 80, Draw.Color(255, 255, 200, 0))	
-		
+		Draw.Text("Ahri          Lux", 25, textPos.x + 200, textPos.y + 80, Draw.Color(255, 255, 200, 0))	
+		Draw.Text("Yuumi", 25, textPos.x + 200, textPos.y + 100, Draw.Color(255, 255, 200, 0))
 	end
 end	
 
@@ -1212,8 +1212,7 @@ local HuntersPotionSlot = 0;
 
 
 function Activator:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end    
-	self:Auto()
+    self:Auto()
 	self:MyHero()
     self:Ally()
     self:Summoner()
@@ -1314,7 +1313,7 @@ end
 function Activator:MyHero()
 if myHero.dead then return end
 local Zo, St, Se, Ed, Mi, Qu, Mik, Iro, Re = GetInventorySlotItem(3157), GetInventorySlotItem(2420), GetInventorySlotItem(3040), GetInventorySlotItem(3814), GetInventorySlotItem(3139), GetInventorySlotItem(3140), GetInventorySlotItem(3222), GetInventorySlotItem(3190), GetInventorySlotItem(3107)   
-	if self:EnemiesAround(myHero.pos, 1000) then
+	if self:EnemiesAround(myHero, 1000) then
         
 		if Zo and self.Menu.ZS.self.UseZ:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHP:Value()/100 then
             Control.CastSpell(ItemHotKey[Zo])
@@ -1701,7 +1700,7 @@ function Ahri:LoadMenu()
 	self.Menu.Combo.UseR:MenuElement({id = "RR", name = "On/Off Ult Logic", value = true})	
 	self.Menu.Combo.UseR:MenuElement({id = "Type", name = "Ult Logic", value = 1,drop = {"Use for Kill", "Use Full in Combo", "Use after manually activate"}})	
 	self.Menu.Combo.UseR:MenuElement({id = "CC", name = "AutoUlt incomming CCSpells", value = true})
-	self.Menu.Combo.UseR:MenuElement({type = MENU, id = "BlockList", name = "CCSpell List"})	
+	self.Menu.Combo.UseR:MenuElement({id = "BlockList", name = "CCSpell List", type = MENU})	
 	
 	--HarassMenu
 	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})
@@ -1727,7 +1726,7 @@ function Ahri:LoadMenu()
 	self.Menu.KillSteal:MenuElement({id = "UseE", name = "[E]", value = true, leftIcon = EIcon})
 	
 	--AutoSpell on CC
-	self.Menu:MenuElement({type = MENU, id = "CC", leftIcon = Icons["AutoUseCC"]})
+	self.Menu:MenuElement({id = "CC", leftIcon = Icons["AutoUseCC"], type = MENU})
 	self.Menu.CC:MenuElement({id = "UseQ", name = "Q", value = true, leftIcon = QIcon})
 	self.Menu.CC:MenuElement({id = "UseE", name = "E", value = true, leftIcon = EIcon})
 	
@@ -1758,8 +1757,7 @@ end
 
 
 function Ahri:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if myHero.dead == false and Game.IsChatOpen() == false and (ExtLibEvade and ExtLibEvade.Evading == false) then
 	self:KS()
 	self:CC()
 	self:AutoR()	
@@ -2345,7 +2343,6 @@ Type = _G.SPELLTYPE_CONE, Delay = 0.5, Radius = 80, Range = 825, Speed = 3200, C
 	end
 
 	function Cassiopeia:Tick()
-	if ExtLibEvade and ExtLibEvade.Evading then return end	
 		if myHero.dead == false and Game.IsChatOpen() == false then
 		local Mode = GetMode()
 			if Mode == "Combo" then
@@ -2630,7 +2627,7 @@ function Cassiopeia:Clear()
 		local Dist = GetDistanceSqr(Minion.pos, myHero.pos)	
 		if Ready(_W) and IsRecalling() == false and WValue and myHero.mana/myHero.maxMana > Cass.m.WW:Value()/100 then
 			if Dist < MaxWRange and Dist > MinWRange then	
-				if IsValid(Minion, 800) and GetDistanceSqr(Pos, myHero.pos) < MaxWRange and MinionsNear(myHero.pos,800) >= Cass.w.Count:Value() then 
+				if IsValid(Minion, 800) and GetDistanceSqr(Pos, myHero.pos) < MaxWRange and MinionsNear(myHero,800) >= Cass.w.Count:Value() then 
 					self:CastW(HK_W, Pos)
 													
 					
@@ -2746,7 +2743,7 @@ end
 		local RTarget, ShouldCast = self:RLogic()
 		if IsValid(target) then
 			local pred = GetGamsteronPrediction(RTarget, RData, myHero)
-			if EnemiesNear(myHero.pos,825) == 1 and Ready(_R) and Ready(_W) and Ready(_Q) and Ready(_E) then 
+			if EnemiesNear(myHero,825) == 1 and Ready(_R) and Ready(_W) and Ready(_Q) and Ready(_E) then 
 				if RTarget and EnemyInRange(RRange) and fulldmg > target.health and pred.Hitchance >= Cass.Pred.PredR:Value() then
 					Control.CastSpell(HK_R, pred.CastPosition)
 				end
@@ -2863,7 +2860,7 @@ function Cassiopeia:DrawEngage()
 local target = GetTarget(1200)
 if target == nil then return end
 	
-	if EnemiesNear(myHero.pos,1200) == 1 and Ready(_R) and Ready(_W) and Ready(_E) and Ready(_Q) then	
+	if EnemiesNear(myHero,1200) == 1 and Ready(_R) and Ready(_W) and Ready(_E) and Ready(_Q) then	
 		local fulldmg = getdmg("Q", target, myHero) + getdmg("W", target, myHero) + getdmg("E", target, myHero) + getdmg("R", target, myHero)
 		local textPos = target.pos:To2D()
 		if IsValid(target, 1200) then
@@ -2981,7 +2978,6 @@ function Ekko:LoadMenu()
 end
 
 function Ekko:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end	
 	if myHero.dead == false and Game.IsChatOpen() == false then
 		local Mode = GetMode()
 		if Mode == "Combo" then
@@ -3286,7 +3282,6 @@ function Kayle:LoadMenu()
 end
 
 function Kayle:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end	
 	if myHero.dead == false and Game.IsChatOpen() == false then
 	local Mode = GetMode()
 		if Mode == "Combo" then
@@ -3429,7 +3424,7 @@ if target == nil then return end
 			for i = 1, Game.HeroCount() do
 			local unit = Game.Hero(i)
 				if unit.isAlly and IsValid(unit, 1000) then
-				local enemy = EnemiesAround(unit.pos, 650)			
+				local enemy = EnemiesAround(unit, 650)			
 					if enemy >= 1 and unit.health/unit.maxHealth <= self.Menu.Combo.UseR.HP:Value()/100 and myHero.pos:DistanceTo(unit.pos) <= 900  then
 						Control.CastSpell(HK_R, unit)
 					end
@@ -3640,7 +3635,6 @@ function Kassadin:LoadMenu()
 end
 
 function Kassadin:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end	
 	if myHero.dead == false and Game.IsChatOpen() == false then	
 	self:EscapeR()
 	self:OnBuff(myHero)
@@ -4222,7 +4216,7 @@ end
 
 function Lux:LoadMenu()                     
 	--MainMenu
-	self.Menu = MenuElement({type = MENU, id = "Lux", name = "PussyLux"})
+	self.Menu = MenuElement({type = MENU, id = "Lux", name = "PussyLux[Version 4.4]"})
 
 	--AutoQ
 	self.Menu:MenuElement({type = MENU, id = "AutoQ", leftIcon = Icons["AutoQImmo"]})
@@ -4289,7 +4283,6 @@ function Lux:LoadMenu()
 end	
 
 function Lux:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end	
 	if myHero.dead == false and Game.IsChatOpen() == false and IsRecalling() == false then
 	local Mode = GetMode()
 		if Mode == "Combo" then
@@ -4749,8 +4742,7 @@ end
 
 function Malzahar:Tick()
 self:ActiveUlt()	
-
-if self:IsRCharging() or ExtLibEvade and ExtLibEvade.Evading then return end
+if self:IsRCharging() then return end
 	if myHero.dead == false and Game.IsChatOpen() == false then
 	local Mode = GetMode()
 		if Mode == "Combo" then
@@ -5065,10 +5057,10 @@ function Morgana:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Morgana", name = "PussyMorgana"})
 
 	--AutoE
-	self.Menu:MenuElement({type = MENU, id = "AutoE", leftIcon = Icons["AutoE"]})
+	self.Menu:MenuElement({id = "AutoE", leftIcon = Icons["AutoE"], type = MENU})
 	self.Menu.AutoE:MenuElement({id = "self", name = "Use Self if CC ",value = true})
 	self.Menu.AutoE:MenuElement({id = "ally", name = "Use Ally if CC ",value = true})	
-	self.Menu.AutoE:MenuElement({type = MENU, id = "Targets", name = "Ally Settings"})
+	self.Menu.AutoE:MenuElement({id = "Targets", name = "Ally Settings", type = MENU})
 	for i, Hero in pairs(GetAllyHeroes()) do
 		self.Menu.AutoE.Targets:MenuElement({id = Hero.charName, name = Hero.charName, value = true})		
 	end		
@@ -5077,7 +5069,7 @@ function Morgana:LoadMenu()
 	self.Menu.ESet:MenuElement({id = "UseE", name = "UseE Self", value = true})
 	self.Menu.ESet:MenuElement({id = "UseEally", name = "UseE Ally", value = true})	
 	self.Menu.ESet:MenuElement({id = "ST", name = "Track Spells", drop = {"Channeling", "Missiles", "Both"}, value = 1})	
-	self.Menu.ESet:MenuElement({type = MENU, id = "BlockList", name = "Spell List"})	
+	self.Menu.ESet:MenuElement({id = "BlockList", name = "Spell List", type = MENU})	
 	
 	--AutoW
 	self.Menu:MenuElement({type = MENU, id = "AutoW", leftIcon = Icons["AutoWImmo"]})	
@@ -5146,7 +5138,6 @@ function Morgana:LoadMenu()
 end                     
 
 function Morgana:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end	
 	if myHero.dead == false and Game.IsChatOpen() == false then
 		local Mode = GetMode()
 		if Mode == "Combo" then
@@ -5165,6 +5156,7 @@ if ExtLibEvade and ExtLibEvade.Evading then return end
 		self:AutoE()
 		self:Auto1()
 		self:Auto2()
+		
 	end
 end 
 
@@ -5237,7 +5229,7 @@ function Morgana:OnMissileCreate()
 	for i = 1, Game.MissileCount() do
 		local missile = Game.Missile(i)
 		if CCSpells[missile.missileData.name] then
-			local unit = self:GetHeroByHandle(missile.missileData.owner)
+			local unit = Morgana:GetHeroByHandle(missile.missileData.owner)
 			if (not unit.visible and CCSpells[missile.missileData.name].origin ~= "spell") or CCExceptions[missile.missileData.name] then
 				if GetDistance(unit.pos, myHero.pos) > 3000 or not self.Menu.ESet.BlockList["Dodge"..missile.missileData.name]:Value() then return end
 				local Detected = CCSpells[missile.missileData.name]
@@ -5307,7 +5299,7 @@ for i, Hero in pairs(GetAllyHeroes()) do
 	for i = 1, Game.MissileCount() do
 		local missile = Game.Missile(i)
 		if CCSpells[missile.missileData.name] then
-			local unit = self:GetHeroByHandle(missile.missileData.owner)
+			local unit = Morgana:GetHeroByHandle(missile.missileData.owner)
 			if (not unit.visible and CCSpells[missile.missileData.name].origin ~= "spell") or CCExceptions[missile.missileData.name] then
 				if GetDistance(unit.pos, Hero.pos) > 3000 or not self.Menu.ESet.BlockList["Dodge"..missile.missileData.name]:Value() then return end
 				local Detected = CCSpells[missile.missileData.name]
@@ -5620,7 +5612,6 @@ function Neeko:LoadMenu()
 end
 
 function Neeko:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end	
 	if myHero.dead == false and Game.IsChatOpen() == false then
 	
 	local Mode = GetMode()
@@ -5853,7 +5844,7 @@ function Neeko:GankW()
 	if target == nil then return end
 	if target and not target.dead and not myHero.dead then
 		if self.Menu.evade.gank:Value() and Ready(_W) then
-			local targetCount = CountEnemiesNear(myHero.pos, 1000)
+			local targetCount = CountEnemiesNear(myHero, 1000)
 			local allyCount = GetAllyCount(1500, myHero)
 			if targetCount > 1 and allyCount == 0 then
 				local attackFalse = _G.SDK.Orbwalker:SetAttack(false)
@@ -5877,7 +5868,7 @@ if target == nil then return end
 local Protobelt = GetItemSlot(myHero, 3152)	
 	if IsValid(target,1000) and self.Menu.Combo.Ult.WR.UseR:Value() and self.Menu.a.ON:Value() then
 		if Ready(_R) and Ready(_W) and ((Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
-			local targetCount = CountEnemiesNear(myHero.pos, 600)
+			local targetCount = CountEnemiesNear(myHero, 600)
 			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and myHero.pos:DistanceTo(target.pos) < 400 then
 				SetAttack(false)
 				Control.CastSpell(HK_W)
@@ -5887,7 +5878,7 @@ local Protobelt = GetItemSlot(myHero, 3152)
 			end
 			
 		elseif Ready(_R) and not Ready(_W) and ((Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then	
-			local targetCount = CountEnemiesNear(myHero.pos, 600)
+			local targetCount = CountEnemiesNear(myHero, 600)
 			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and myHero.pos:DistanceTo(target.pos) < 400 then
 				SetAttack(false)
 				self:Proto()
@@ -5896,7 +5887,7 @@ local Protobelt = GetItemSlot(myHero, 3152)
 			end
 		
 		elseif Ready(_R) and Ready(_W) and ((not Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
-			local targetCount = CountEnemiesNear(myHero.pos, 600)
+			local targetCount = CountEnemiesNear(myHero, 600)
 			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and myHero.pos:DistanceTo(target.pos) < 400 then
 				SetAttack(false)
 				Control.CastSpell(HK_W)
@@ -5905,7 +5896,7 @@ local Protobelt = GetItemSlot(myHero, 3152)
 			end
 			
 		elseif Ready(_R) and not Ready(_W) and ((not Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then	
-			local targetCount = CountEnemiesNear(myHero.pos, 600)
+			local targetCount = CountEnemiesNear(myHero, 600)
 			if targetCount >= self.Menu.Combo.Ult.WR.RHit:Value() and myHero.pos:DistanceTo(target.pos) < 400 then
 				SetAttack(false)
 				Control.CastSpell(HK_R)	
@@ -5929,7 +5920,7 @@ local Protobelt = GetItemSlot(myHero, 3152)
 	if IsValid(target,500) then
 		
 		if self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and Ready(_W) and ((Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
-			local targetCount = CountEnemiesNear(myHero.pos, 2000)
+			local targetCount = CountEnemiesNear(myHero, 2000)
 			local allyCount = GetAllyCount(1500, myHero)
 			if targetCount <= 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 400 and hp < (RDmg+QDmg+EDmg) then
 				SetAttack(false)
@@ -5939,7 +5930,7 @@ local Protobelt = GetItemSlot(myHero, 3152)
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end
 		elseif self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and not Ready(_W) and ((Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
-			local targetCount = CountEnemiesNear(myHero.pos, 2000)
+			local targetCount = CountEnemiesNear(myHero, 2000)
 			local allyCount = GetAllyCount(1500, myHero)
 			if targetCount <= 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 400 and hp < (RDmg+QDmg+EDmg) then
 				SetAttack(false)
@@ -5948,7 +5939,7 @@ local Protobelt = GetItemSlot(myHero, 3152)
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end	
 		elseif self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and Ready(_W) and ((not Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
-			local targetCount = CountEnemiesNear(myHero.pos, 2000)
+			local targetCount = CountEnemiesNear(myHero, 2000)
 			local allyCount = GetAllyCount(1500, myHero)
 			if targetCount <= 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 300 and hp < (RDmg+QDmg+EDmg) then
 				SetAttack(false)
@@ -5957,7 +5948,7 @@ local Protobelt = GetItemSlot(myHero, 3152)
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end
 		elseif self.Menu.Combo.Ult.One.UseR1:Value() and self.Menu.a.ON:Value() and Ready(_R) and not Ready(_W) and (( not Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
-			local targetCount = CountEnemiesNear(myHero.pos, 2000)
+			local targetCount = CountEnemiesNear(myHero, 2000)
 			local allyCount = GetAllyCount(1500, myHero)
 			if targetCount <= 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 300 and hp < (RDmg+QDmg+EDmg) then
 				SetAttack(false)
@@ -5989,7 +5980,7 @@ function Neeko:AutoUlt1() --full
 
 	for i,ally in pairs(GetAllyHeroes()) do	
 		if IsValid(ally,900) then
-		local targetCount = CountEnemiesNear(ally.pos, 600)	
+		local targetCount = CountEnemiesNear(ally, 600)	
 			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 800 and myHero.pos:DistanceTo(ally.pos) >= 300 then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
@@ -6018,7 +6009,7 @@ function Neeko:AutoUlt2()   --no[W]
 
 	for i,ally in pairs(GetAllyHeroes()) do	
 		if IsValid(ally,900) then
-		local targetCount = CountEnemiesNear(ally.pos, 600)		
+		local targetCount = CountEnemiesNear(ally, 600)		
 			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 800 and myHero.pos:DistanceTo(ally.pos) >= 300 then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
@@ -6045,7 +6036,7 @@ function Neeko:AutoUlt3() --noProtobelt
 
 	for i,ally in pairs(GetAllyHeroes()) do	
 		if IsValid(ally,500) then
-		local targetCount = CountEnemiesNear(ally.pos, 600)		
+		local targetCount = CountEnemiesNear(ally, 600)		
 			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 500 and myHero.pos:DistanceTo(ally.pos) >= 200 then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
@@ -6074,7 +6065,7 @@ function Neeko:AutoUlt4()  --noFlash
 
 	for i,ally in pairs(GetAllyHeroes()) do	
 		if IsValid(ally,500) then
-		local targetCount = CountEnemiesNear(ally.pos, 600)		
+		local targetCount = CountEnemiesNear(ally, 600)		
 			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 400 and myHero.pos:DistanceTo(ally.pos) >= 100 then
 					SetAttack(false)
@@ -6095,7 +6086,7 @@ function Neeko:AutoUlt5()  --noFlash, no[W]
 
 	for i,ally in pairs(GetAllyHeroes()) do	
 		if IsValid(ally,500) then
-		local targetCount = CountEnemiesNear(ally.pos, 600)	
+		local targetCount = CountEnemiesNear(ally, 600)	
 			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 400 and myHero.pos:DistanceTo(ally.pos) >= 100 then
 					SetAttack(false)
@@ -6113,7 +6104,7 @@ function Neeko:AutoUlt6() --noProtobelt, no[W]
 
 	for i,ally in pairs(GetAllyHeroes()) do
 		if IsValid(ally,500) then
-		local targetCount = CountEnemiesNear(ally.pos, 600)		
+		local targetCount = CountEnemiesNear(ally, 600)		
 			if self.Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 400 and myHero.pos:DistanceTo(ally.pos) >= 200 then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
@@ -6447,8 +6438,7 @@ function Nidalee:LoadMenu()
 end
 
 function Nidalee:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end    
-	if myHero.dead or Game.IsChatOpen() == true or IsRecalling() == true then return end
+    if myHero.dead or Game.IsChatOpen() == true or IsRecalling() == true then return end
 	self:KillSteal()
 	local Mode = GetMode()
 	if Mode == "Combo" then
@@ -6797,7 +6787,7 @@ function Rakan:LoadMenu()
 	self.Menu.AutoE:MenuElement({id = "ally", name = "AutoE Immobile Ally",value = true})
 	self.Menu.AutoE:MenuElement({id = "E", name = "Auto E Toggle Key", key = 84, toggle = true})
 	self.Menu.AutoE:MenuElement({id = "HP", name = "Min AllyHP", value = 30, min = 0, max = 100, identifier = "%"})
-	self.Menu.AutoE:MenuElement({type = MENU, id = "Targets", name = "Ally Settings"})
+	self.Menu.AutoE:MenuElement({id = "Targets", name = "Ally Settings", type = MENU})
 	for i, Hero in pairs(GetAllyHeroes()) do
 		self.Menu.AutoE.Targets:MenuElement({id = Hero.charName, name = Hero.charName, value = true})		
 		
@@ -6849,7 +6839,6 @@ function Rakan:LoadMenu()
 end
 
 function Rakan:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end
 	if myHero.dead == false and Game.IsChatOpen() == false then
 	local Mode = GetMode()
 		if Mode == "Combo" then
@@ -7103,7 +7092,7 @@ function Ryze:LoadMenu()
 	self.Menu.KillSteal:MenuElement({id = "UseE", name = "[E]", value = true})
 	
 	--AutoSpell on CC
-	self.Menu:MenuElement({type = MENU, id = "CC", leftIcon = Icons["AutoEW"]})
+	self.Menu:MenuElement({id = "CC", leftIcon = Icons["AutoEW"], type = MENU})
 	self.Menu.CC:MenuElement({id = "UseEW", name = "AutoE+W on CC", value = true})
 	
 	--Prediction
@@ -7119,7 +7108,6 @@ function Ryze:LoadMenu()
 end
 
 function Ryze:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end
 	if myHero.dead == false and Game.IsChatOpen() == false then
 	self:KS()
 	self:CC()
@@ -7391,8 +7379,8 @@ end
 
 
 function Sona:LoadMenu()
-	self.Menu = MenuElement( {type = MENU, id = "Sona", name = "PussySona"})
-	self.Menu:MenuElement({type = MENU, id = "Key", leftIcon = Icons["KeySet"]})
+	self.Menu = MenuElement( {id = "Sona", name = "PussySona", type = MENU})
+	self.Menu:MenuElement({id = "Key", leftIcon = Icons["KeySet"], type = MENU})
 	self.Menu.Key:MenuElement({id = "Combo",name = "Combo", key = 32})
 	self.Menu.Key:MenuElement({id = "Harass",name = "Harass", key = string.byte("C")})
 
@@ -7400,12 +7388,12 @@ function Sona:LoadMenu()
 	self.Menu.Qset:MenuElement({id = "Combo",name = "Use in Combo", value = true })
 	self.Menu.Qset:MenuElement({id = "Harass", name = "Use in Harass", value = true})
 	
-	self.Menu:MenuElement({type = MENU, id = "Wset", leftIcon = Icons["WSet"]})
+	self.Menu:MenuElement({id = "Wset", leftIcon = Icons["WSet"], type = MENU})
 	self.Menu.Wset:MenuElement({id = "AutoW", name = "Enable Auto Health",value = true})
 	self.Menu.Wset:MenuElement({id = "MyHp", name = "Heal my HP Percent",value = 30, min = 1, max = 100,step = 1})
 	self.Menu.Wset:MenuElement({id = "AllyHp", name = "Heal AllyHP Percent",value = 50, min = 1, max = 100,step = 1})
 	
-	self.Menu:MenuElement({type = MENU, id = "Rset", leftIcon = Icons["RSet"]})
+	self.Menu:MenuElement({id = "Rset", leftIcon = Icons["RSet"],type = MENU})
 	self.Menu.Rset:MenuElement({id = "AutoR", name = "Enable Auto R",value = true})
 	self.Menu.Rset:MenuElement({id = "RHit", name = "Min enemies hit",value = 3, min = 1, max = 5,step = 1})
 	self.Menu.Rset:MenuElement({id = "AllyHp", name = "Use Ult if AllyHP Percent below ",value = 30, min = 1, max = 100,step = 1})	
@@ -7422,7 +7410,6 @@ end
 
 
 function Sona:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end	
 	if myHero.dead == false and Game.IsChatOpen() == false then
 	local Mode = GetMode()
 		if Mode == "Combo" then
@@ -7685,7 +7672,6 @@ function Sylas:LoadMenu()
 end
 
 function Sylas:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end
 if myHero.dead == false and Game.IsChatOpen() == false then
 	local Mode = GetMode()
 	if Mode == "Combo" then
@@ -10040,7 +10026,6 @@ function Tristana:LoadMenu()
 end
 
 function Tristana:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end
 if myHero.dead == false and Game.IsChatOpen() == false then
 local Mode = GetMode()
 	if Mode == "Combo" then
@@ -10423,7 +10408,7 @@ end
 
 function Veigar:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Veigar", name = "PussyVeigar"})
-	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
+	self.Menu:MenuElement({id = "Combo", leftIcon = Icons["Combo"], type = MENU})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "Q", value = true})
 	self.Menu.Combo:MenuElement({id = "UseW", name = "W", value = true})
 	self.Menu.Combo:MenuElement({id = "UseE", name = "E", value = true})
@@ -10431,38 +10416,38 @@ function Veigar:LoadMenu()
 	self.Menu.Combo:MenuElement({id = "EMode", name = "E Mode", drop = {"Edge", "Middle"}})
 	self.Menu.Combo:MenuElement({id = "comboActive", name = "Combo key", key = string.byte(" ")})
 		
-	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})
+	self.Menu:MenuElement({id = "Harass", leftIcon = Icons["Harass"], type = MENU})
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "Q", value = true})
 	self.Menu.Harass:MenuElement({id = "AutoQ", name = "Auto Q Toggle", value = false, toggle = true, key = string.byte("U")})
 	self.Menu.Harass:MenuElement({id = "UseW", name = "W", value = true})
 	self.Menu.Harass:MenuElement({id = "harassActive", name = "Harass key", key = string.byte("C")})
 	
-	self.Menu:MenuElement({type = MENU, id = "Lasthit", leftIcon = Icons["Lasthit"]})
+	self.Menu:MenuElement({id = "Lasthit", leftIcon = Icons["Lasthit"], type = MENU})
 	self.Menu.Lasthit:MenuElement({id = "UseQ", name = "Q", value = true})
 	self.Menu.Lasthit:MenuElement({id = "AutoQFarm", name = "Auto Q Farm", value = false, toggle = true, key = string.byte("Z")})
 	self.Menu.Lasthit:MenuElement({id = "lasthitActive", name = "Lasthit key", key = string.byte("X")})
 	
-	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})
+	self.Menu:MenuElement({id = "Clear", leftIcon = Icons["Clear"], type = MENU})
 	self.Menu.Clear:MenuElement({id = "UseW", name = "W", value = true})
 	self.Menu.Clear:MenuElement({id = "WHit", name = "W hits x minions", value = 3,min = 1, max = 6, step = 1})
 	self.Menu.Clear:MenuElement({id = "clearActive", name = "Clear key", key = string.byte("V")})
 	
-	self.Menu:MenuElement({type = MENU, id = "Mana", leftIcon = Icons["Mana"]})
+	self.Menu:MenuElement({id = "Mana", leftIcon = Icons["Mana"], type = MENU})
 	self.Menu.Mana:MenuElement({id = "QMana", name = "Min mana to use Q", value = 35, min = 0, max = 100, step = 1})
 	self.Menu.Mana:MenuElement({id = "WMana", name = "Min mana to use W", value = 40, min = 0, max = 100, step = 1})
 	
-	self.Menu:MenuElement({type = MENU, id = "Killsteal", leftIcon = Icons["ks"]})
+	self.Menu:MenuElement({id = "Killsteal", leftIcon = Icons["ks"], type = MENU})
 	self.Menu.Killsteal:MenuElement({id = "UseQ", name = "Q", value = true})
 	self.Menu.Killsteal:MenuElement({id = "UseW", name = "W", value = false})
 
 	
-	self.Menu.Killsteal:MenuElement({type = MENU, id = "RR", name = "UseR on killalble target:", value = true})
+	self.Menu.Killsteal:MenuElement({id = "RR", name = "UseR on killalble target:", value = true, type = MENU})
 	for i, hero in pairs(GetEnemyHeroes()) do
 	self.Menu.Killsteal.RR:MenuElement({id = "UseR"..hero.charName, name = "UseR" ..hero.charName, value = true})
 	end
 
 
-	self.Menu:MenuElement({type = MENU, id = "isCC", leftIcon = Icons["AutoUseCC"]})
+	self.Menu:MenuElement({id = "isCC", leftIcon = Icons["AutoUseCC"], type = MENU})
 	self.Menu.isCC:MenuElement({id = "UseQ", name = "Q", value = true})
 	self.Menu.isCC:MenuElement({id = "UseW", name = "W", value = true})
 	self.Menu.isCC:MenuElement({id = "UseE", name = "E", value = false})
@@ -10477,7 +10462,6 @@ function Veigar:LoadMenu()
 end
 
 function Veigar:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end
 if myHero.dead == false and Game.IsChatOpen() == false then
 local Mode = GetMode()
 	if Mode == "Combo" then
@@ -10830,7 +10814,7 @@ end
 
 function Warwick:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "PussyWarwick", name = "PussyWarwick"})
-	self.Menu:MenuElement({type = MENU, id = "ComboMode", leftIcon = Icons["Combo"]})
+	self.Menu:MenuElement({id = "ComboMode", leftIcon = Icons["Combo"], type = MENU})
 	self.Menu.ComboMode:MenuElement({id = "UseQ", name = "Q: Jaws of the Beast", value = true})
 	self.Menu.ComboMode:MenuElement({id = "UseW", name = "W: Blood Hunt", value = true})
 	self.Menu.ComboMode:MenuElement({id = "UseE", name = "E: Primal Howl", value = true})
@@ -10841,13 +10825,13 @@ function Warwick:LoadMenu()
 	self.Menu.ComboMode:MenuElement({id = "DrawDamage", name = "Draw Killable", value = true})
 	self.Menu.ComboMode:MenuElement({id = "DrawRange", name = "Draw RRange", value = true})	
 		
-	self.Menu:MenuElement({type = MENU, id = "HarassMode", leftIcon = Icons["Harass"]})
+	self.Menu:MenuElement({id = "HarassMode", leftIcon = Icons["Harass"], type = MENU})
 	self.Menu.HarassMode:MenuElement({id = "UseQ", name = "Q: Jaws of the Beast", value = true})
 	self.Menu.HarassMode:MenuElement({id = "UseW", name = "W: Blood Hunt", value = true})
 	self.Menu.HarassMode:MenuElement({id = "UseE", name = "E: Primal Howl", value = true})
 	self.Menu.HarassMode:MenuElement({id = "harassActive", name = "Harass key", key = string.byte("C")})
 
-	self.Menu:MenuElement({type = MENU, id = "ClearMode", leftIcon = Icons["Clear"]})
+	self.Menu:MenuElement({id = "ClearMode", leftIcon = Icons["Clear"], type = MENU})
 	self.Menu.ClearMode:MenuElement({id = "UseQ", name = "Q: Jaws of the Beast", value = true})
 	self.Menu.ClearMode:MenuElement({id = "UseW", name = "W: Blood Hunt", value = true})
 	self.Menu.ClearMode:MenuElement({id = "UseE", name = "E: Primal Howl", value = true})
@@ -10860,7 +10844,6 @@ function Warwick:LoadMenu()
 end
 
 function Warwick:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end
 if myHero.dead == false and Game.IsChatOpen() == false then
 	local Mode = GetMode()
 		if Mode == "Combo" then
@@ -11648,7 +11631,7 @@ function Xerath:LoadMenu()
 	self.Menu.Combo.R:MenuElement({id = "targetChangeDelay", name = "Delay between target switch", value = 100, min = 0, max = 2000, step = 10})
 	self.Menu.Combo.R:MenuElement({id = "castDelay", name = "Delay between casts", value = 150, min = 0, max = 500, step = 1})
 	self.Menu.Combo.R:MenuElement({id = "useBlue", name = "Use Farsight Alteration", value = true})
-	self.Menu.Combo.R:MenuElement({id = "useRkey", name = "On key press (close to mouse)", key = string.byte("T")})
+	self.Menu.Combo.R:MenuElement({id = "useRkey", name = "On key press (close to mouse)", key = string.byte("Z")})
 	
 	self.Menu.Harass:MenuElement({id = "useQ", name = "Use Q", value = true})
 	self.Menu.Harass:MenuElement({id = "manaQ", name = " [Q]Mana-Manager", value = 40, min = 0, max = 100, step = 1})
@@ -11706,7 +11689,10 @@ function Xerath:MenuRTarget(v,t)
 end
 
 function Xerath:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end	
+	if castSpell.state == 1 and GetTickCount() - castSpell.casting > Game.Latency() then
+            Control.SetCursorPos(castSpell.mouse)
+            castSpell.state = 0
+    end
 	if myHero.dead == false and Game.IsChatOpen() == false then
 
 	
@@ -11850,15 +11836,16 @@ function Xerath:castingR()
 end
 
 function Xerath:KSFull()
-local target = GetTarget(6000)
+local target = self:GetRTarget(1100,2200 + 1220*myHero:GetSpellData(_R).level)
 if target == nil then return end
 local hp = target.health + target.shieldAP + target.shieldAD
-local Qdmg = CalcuMagicalDamage(myHero,target,40 + 40*myHero:GetSpellData(_Q).level + (0.75*myHero.ap))	
-local Wdmg = CalcuMagicalDamage(myHero,target,45 + 45*myHero:GetSpellData(_W).level + (0.9*myHero.ap))
-local Rdmg = CalcuMagicalDamage(myHero,target,160 + 40*myHero:GetSpellData(_R).level + (0.43*myHero.ap) * 3)
+local Qdmg = CalcuMagicalDamage(myHero,target,40 + 40*myHero:GetSpellData(_Q).level + 0.75*myHero.ap)	
+local Wdmg = CalcuMagicalDamage(myHero,target,45 + 45*myHero:GetSpellData(_W).level + 0.9*myHero.ap)
+local stackdmg = 2 + myHero:GetSpellData(_R).level
+local Rdmg = CalcuMagicalDamage(myHero,target,160 + 40 * myHero:GetSpellData(_R).level + myHero.ap * 0.43) * stackdmg
 local Fdmg = (Qdmg + Wdmg + Rdmg)	
 	if self.Menu.Killsteal.full:Value() then
-		if self.chargeR == false and hp < Fdmg then
+		if self.chargeR == false and hp <= Fdmg then
 			if self.Menu.Misc.Pred:Value() == 1 then
 				self:useQ()
 				self:useW()
@@ -11871,9 +11858,12 @@ local Fdmg = (Qdmg + Wdmg + Rdmg)
 				self:useQHPred()			
 				self:useWHPred()
 				
-			end	
-		end
-	self:useR()
+			end
+		end	
+		if hp <= Rdmg and self.chargeR == false and Game.CanUseSpell(_R) == 0 then
+			self:startR(target)
+		end 
+	self:AutoR()
 	end
 end
 
@@ -11911,7 +11901,7 @@ function Xerath:Combo()
 			end				
 		end	
 	end
-self:useR()
+	self:useR()
 end
 
 function Xerath:Harass()
@@ -12554,7 +12544,7 @@ end
 function Xerath:useRkill(target)
 	if self.chargeR == false and self.Menu.Combo.R.BlackList[target.charName] ~= nil and not self.Menu.Combo.R.useRself:Value() and self.Menu.Combo.R.BlackList[target.charName]:Value() == false then
 		local rDMG = CalcuMagicalDamage(myHero,target,160+40*myHero:GetSpellData(_R).level + (myHero.ap*0.43))*(2+myHero:GetSpellData(_R).level - self.Menu.Combo.R.safeR:Value())
-		if target.health + target.shieldAP + target.shieldAD < rDMG and CountAlliesInRange(target.pos,700) == 0 then
+		if target.health + target.shieldAP + target.shieldAD < rDMG then
 			local delay =  math.floor((target.health + target.shieldAP + target.shieldAD)/(rDMG/(2+myHero:GetSpellData(_R).level))) * 0.8
 			if GetDistance(myHero.pos,target.pos) + target.ms*delay <= 2200 + 1320*myHero:GetSpellData(_R).level and not IsImmune(target) then
 				self:startR(target)
@@ -12580,6 +12570,28 @@ function Xerath:useRonKey()
 					self.R_target = target
 					self.R_target_tick = GetTickCount()
 				end
+			end
+		end
+	end
+end
+
+function Xerath:AutoR()
+
+	if self.chargeR == true and Game.CanUseSpell(_R) == 0 then
+		
+		if not target then target = self:GetTarget(2200 + 1320*myHero:GetSpellData(_R).level,"AP") end
+		if target and not IsImmune(target) then
+				
+			local rPred = GetPred(target,math.huge,0.45)
+			if rPred:ToScreen().onScreen then
+				CastSpell(HK_R,rPred,2200 + 1320*myHero:GetSpellData(_R).level,100)
+				self.R_target = target
+				self.R_target_tick = GetTickCount()
+			else
+				CastSpellMM(HK_R,rPred,2200 + 1320*myHero:GetSpellData(_R).level,100)
+				self.R_target = target
+				self.R_target_tick = GetTickCount()
+				
 			end
 		end
 	end
@@ -12769,7 +12781,6 @@ function XinZhao:LoadMenu()
 end
 
 function XinZhao:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end
 if myHero.dead == false and Game.IsChatOpen() == false then
 local Mode = GetMode()
 	if Mode == "Combo" then
@@ -12945,7 +12956,7 @@ function Yuumi:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Yuumi", name = "PussyYuumi"})
 
 	--AutoW
-	self.Menu:MenuElement({type = MENU, id = "AutoW", leftIcon = Icons["AutoW"]})
+	self.Menu:MenuElement({type = MENU, id = "AutoW", name = "Auto[W]"})
 	self.Menu.AutoW:MenuElement({id = "UseW", name = "[W]Safe self[Auto search Tankist Ally]", value = true})
 	self.Menu.AutoW:MenuElement({id = "myHP", name = "MinHP self for search Ally", value = 30, min = 0, max = 100, identifier = "%"})
 	self.Menu.AutoW:MenuElement({id = "SwitchW", name = "[W]Auto Switch Ally", value = true})
@@ -12954,20 +12965,20 @@ function Yuumi:LoadMenu()
 
 
 	--AutoE
-	self.Menu:MenuElement({type = MENU, id = "AutoE", leftIcon = Icons["AutoE"]})
+	self.Menu:MenuElement({type = MENU, id = "AutoE", name = "Auto[E]"})
 	self.Menu.AutoE:MenuElement({id = "UseEself", name = "[E]Auto Heal self", value = true})
 	self.Menu.AutoE:MenuElement({id = "myHP", name = "MinHP Self to Heal", value = 30, min = 0, max = 100, identifier = "%"})
 	self.Menu.AutoE:MenuElement({id = "UseEally", name = "[W]+[E]Auto Heal Ally", value = true})
 	self.Menu.AutoE:MenuElement({id = "AllyHP", name = "MinHP Ally to Heal", value = 70, min = 0, max = 100, identifier = "%"})	
 	
 	--AutoR on Immobile
-	self.Menu:MenuElement({type = MENU, id = "AutoR", leftIcon = Icons["AutoR"]})
-	self.Menu.AutoR:MenuElement({id = "UseR", name = "[R]on Immobile Targets", value = true})
+	self.Menu:MenuElement({type = MENU, id = "AutoR", name = "AutoR on Immobile"})
+	self.Menu.AutoR:MenuElement({id = "UseR", name = "[R]", value = true})
 	self.Menu.AutoR:MenuElement({id = "UseRE", name = "Use[R]min Immobile Targets", value = 2, min = 1, max = 5})	
 	
 	
 	--ComboMenu  
-	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
+	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})	
 	self.Menu.Combo:MenuElement({id = "UseQAlly", name = "[Q]if Bounded Ally[in work]", value = false})	
 	self.Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})
@@ -12975,23 +12986,23 @@ function Yuumi:LoadMenu()
 	
 
 	--HarassMenu
-	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})	
+	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})
 	self.Menu.Harass:MenuElement({id = "UseQAlly", name = "[Q]if Bounded Ally[in work]", value = false})	
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--LaneClear Menu
-	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
+	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})	
 	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})		  	
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
-	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})
+	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JClear"})
 	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})         	
 	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
  
 	--KillSteal
-	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
+	self.Menu:MenuElement({type = MENU, id = "ks", name = "ks"})
 	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q]if not Bounded Ally", value = true})	
 	self.Menu.ks:MenuElement({id = "UseQAlly", name = "[Q]if Bounded Ally[in work]", value = true})	
 	self.Menu.ks:MenuElement({id = "UseR", name = "[R]if not Bounded Ally", value = true})	
@@ -12999,7 +13010,7 @@ function Yuumi:LoadMenu()
 	self.Menu.ks:MenuElement({id = "UseWR", name = "[W]+[R]if Killable Enemy in Ally range", value = true})	
 
 	--Drawing 
-	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
+	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
 	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
@@ -13008,7 +13019,6 @@ function Yuumi:LoadMenu()
 end
 
 function Yuumi:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end
 if myHero.dead == false and Game.IsChatOpen() == false then
 local Mode = GetMode()
 	if Mode == "Combo" then
@@ -13345,7 +13355,6 @@ function Zyra:LoadMenu()
 end
 
 function Zyra:Tick()
-if ExtLibEvade and ExtLibEvade.Evading then return end
 if myHero.dead == false and Game.IsChatOpen() == false then
 local Mode = GetMode()
 	if Mode == "Combo" then
