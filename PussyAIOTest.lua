@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 5.3
+    local Version = 5.4
     
     local Files = {
         Lua = {
@@ -11872,7 +11872,7 @@ end
 
 function Xerath:Auto()
 if myHero.dead then return end
-local target = self:GetRTarget(4000)
+local target = self:GetRTarget(1100,2200 + 1220*myHero:GetSpellData(_R).level)
 if target == nil then return end	
 local blue = GetInventorySlotItem(3363)   	
 	if self.chargeR == true and not target.visible then		
