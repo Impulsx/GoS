@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 5.1
+    local Version = 5.2
     
     local Files = {
         Lua = {
@@ -11716,7 +11716,8 @@ function Xerath:Tick()
 	self:castingR()
 	self:useRonKey()
 	self:EnemyLoop()
-	self:KSFull()	
+	self:KSFull()
+	self:Auto()
 	end
 end
 
@@ -11864,7 +11865,7 @@ local Fdmg = (Qdmg + Wdmg + Rdmg)
 		if hp <= Rdmg and self.chargeR == false and Game.CanUseSpell(_R) == 0 and IsValid(target) and GetDistance(myHero.pos,target.pos) > 1000 and GetDistance(myHero.pos,target.pos) <= rRange then
 			self:startR(target)
 		end
-	self:Auto()	
+		
 	self:AutoR()
 	end
 end
