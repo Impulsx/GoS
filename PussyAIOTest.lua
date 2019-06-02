@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 4.7
+    local Version = 4.8
     
     local Files = {
         Lua = {
@@ -11860,7 +11860,7 @@ local Fdmg = (Qdmg + Wdmg + Rdmg)
 				
 			end
 		end	
-		if hp <= Rdmg and self.chargeR == false and Game.CanUseSpell(_R) == 0 then
+		if hp <= Rdmg and self.chargeR == false and Game.CanUseSpell(_R) == 0 and IsValid(target) then
 			self:startR(target)
 		end 
 	self:AutoR()
