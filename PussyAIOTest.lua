@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 4.9
+    local Version = 5.0
     
     local Files = {
         Lua = {
@@ -11839,6 +11839,7 @@ function Xerath:KSFull()
 local target = self:GetRTarget(1100,2200 + 1220*myHero:GetSpellData(_R).level)
 if target == nil then return end
 local hp = target.health + target.shieldAP + target.shieldAD
+local rRange = 2200 + 1220*myHero:GetSpellData(_R).level
 local Qdmg = CalcuMagicalDamage(myHero,target,40 + 40*myHero:GetSpellData(_Q).level + 0.75*myHero.ap)	
 local Wdmg = CalcuMagicalDamage(myHero,target,45 + 45*myHero:GetSpellData(_W).level + 0.9*myHero.ap)
 local stackdmg = 2 + myHero:GetSpellData(_R).level
@@ -11860,7 +11861,7 @@ local Fdmg = (Qdmg + Wdmg + Rdmg)
 				
 			end
 		end	
-		if hp <= Rdmg and self.chargeR == false and Game.CanUseSpell(_R) == 0 and IsValid(target) and GetDistance(myHero.pos,target.pos) > 1000 then
+		if hp <= Rdmg and self.chargeR == false and Game.CanUseSpell(_R) == 0 and IsValid(target) and GetDistance(myHero.pos,target.pos) > 1000 and GetDistance(myHero.pos,target.pos) <= rRange then
 			self:startR(target)
 		end 
 	self:AutoR()
