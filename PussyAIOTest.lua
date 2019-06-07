@@ -1,12 +1,12 @@
-local Heroes = {"Lux","Yuumi","Rakan","Nidalee","Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
-local GsoPred = {"Lux","Yuumi","Rakan","Nidalee","Ryze","Cassiopeia","Malzahar","Zyra","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
+local Heroes = {"Soraka","Lux","Yuumi","Rakan","Nidalee","Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
+local GsoPred = {"Soraka","Lux","Yuumi","Rakan","Nidalee","Ryze","Cassiopeia","Malzahar","Zyra","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
 
 if not table.contains(Heroes, myHero.charName) then return end
 
 
 
     
-    local Version = 5.4
+    local Version = 5.5
     
     local Files = {
         Lua = {
@@ -1757,7 +1757,7 @@ end
 
 
 function Ahri:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false and (ExtLibEvade and ExtLibEvade.Evading == false) then
+	if myHero.dead == false and Game.IsChatOpen() == false and (ExtLibEvade == nil or ExtLibEvade.Evading == false) then
 	self:KS()
 	self:CC()
 	self:AutoR()	
@@ -1926,7 +1926,7 @@ function Ahri:OnMissileCreate()
 	for i = 1, Game.MissileCount() do
 		local missile = Game.Missile(i)
 		if CCSpells[missile.missileData.name] then
-			local unit = self:GetHeroByHandle(missile.missileData.owner)
+			local unit = Ahri:GetHeroByHandle(missile.missileData.owner)
 			if (not unit.visible and CCSpells[missile.missileData.name].origin ~= "spell") or CCExceptions[missile.missileData.name] then
 				if GetDistance(unit.pos, myHero.pos) > 3000 or not self.Menu.Combo.UseR.BlockList["Dodge"..missile.missileData.name]:Value() then return end
 				local Detected = CCSpells[missile.missileData.name]
@@ -4813,7 +4813,7 @@ function Malzahar:KillSteal()
 	local QDmg = getdmg("Q", target, myHero)
 	local EDmg = getdmg("E", target, myHero)
 	local WDmg = getdmg("W", target, myHero)
-	local RDmg = getdmg("R", target, myHero) * 2
+	local RDmg = getdmg("R", target, myHero) 
 	local fullDmg = QDmg + EDmg + WDmg + RDmg
 
 	if IsValid(target,1000) then	
@@ -4843,25 +4843,33 @@ function Malzahar:KillSteal()
 			end
 		end
 		if self.Menu.ks.full:Value() and ready then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if fullDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 650 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
-				Control.CastSpell(HK_E, target)
-				DelayAction(function()
-				Control.CastSpell(HK_Q, pred.CastPosition)
-				end, 0.25)
-				DelayAction(function()
-				Control.CastSpell(HK_W, target.pos)
-				end, 1.25)
-				DelayAction(function()
-				Control.CastSpell(HK_R, target)
-				end, 1.5)
-			end	
+			if fullDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 700 then
+				self:KsFull(target)
+			end
 		end
 	end
 end	
 
-
-
+function Malzahar:KsFull(target)
+	local pred = GetGamsteronPrediction(target, QData, myHero)
+	
+	if myHero.pos:DistanceTo(target.pos) <= 650 then
+		Control.CastSpell(HK_E, target)
+	end	
+		if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then 
+			Control.CastSpell(HK_Q, pred.CastPosition)
+		end	
+			if myHero.pos:DistanceTo(target.pos) <= 650 then
+				Control.CastSpell(HK_W, target.pos)
+			end	
+				if myHero.pos:DistanceTo(target.pos) <= 700 then
+					Control.CastSpell(HK_R, target)
+				end
+			
+		
+	
+end
+				
 
 function Malzahar:Combo()
 local target = GetTarget(1000)
@@ -7324,9 +7332,350 @@ local Immobile = IsImmobileTarget(target)
 	end	
 end
 end
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class "Soraka"
+--require('GamsteronPrediction')
 
 
 
+
+function Soraka:__init()
+
+	if menu ~= 1 then return end
+	menu = 2
+	self:LoadMenu()
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)
+	if _G.EOWLoaded then
+		Orb = 1
+	elseif _G.SDK and _G.SDK.Orbwalker then
+		Orb = 2
+	elseif _G.gsoSDK then
+		Orb = 4
+	end
+end
+
+function Soraka:QdelayCheck(target)
+	local Delay = 0
+	local Range = myHero.pos:DistanceTo(target.pos) 
+	if Range < 100 then
+	Delay = 0.25 end return Delay
+	if Range < 150 and Range > 100 then
+	Delay = 0.3 end return Delay	
+	if Range < 200 and Range > 150 then
+	Delay = 0.35 end return Delay
+	if Range < 250 and Range > 200 then
+	Delay = 0.4 end return Delay
+	if Range < 300 and Range > 250 then
+	Delay = 0.45 end return Delay
+	if Range < 350 and Range > 300 then
+	Delay = 0.5 end return Delay
+	if Range < 400 and Range > 350 then
+	Delay = 0.55 end return Delay
+	if Range < 450 and Range > 400 then
+	Delay = 0.6 end return Delay
+	if Range < 500 and Range > 450 then
+	Delay = 0.65 end return Delay
+	if Range < 550 and Range > 500 then
+	Delay = 0.7 end return Delay
+	if Range < 600 and Range > 550 then
+	Delay = 0.75 end return Delay
+	if Range < 650 and Range > 600 then
+	Delay = 0.8 end return Delay
+	if Range < 700 and Range > 650 then
+	Delay = 0.85 end return Delay
+	if Range < 750 and Range > 700 then
+	Delay = 0.9 end return Delay
+	if Range < 800 and Range > 750 then
+	Delay = 0.95 end return Delay
+	if Range > 800 then
+	Delay = 1.0 end return Delay
+end
+
+local QData =
+{
+Type = _G.SPELLTYPE_CIRCLE, Delay = self:QdelayCheck(target), Radius = 235, Range = 800, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
+}
+
+local EData =
+{
+Type = _G.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 250, Range = 925, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
+}
+
+function Soraka:LoadMenu()
+	--MainMenu
+	self.Menu = MenuElement({type = MENU, id = "Soraka", name = "PussySoraka"})
+	
+	--AutoE
+	self.Menu:MenuElement({type = MENU, id = "AutoE", leftIcon = Icons["AutoE"]})
+	self.Menu.AutoE:MenuElement({id = "UseE", name = "Auto[E]Immobile Target", value = true})
+
+	--AutoW
+	self.Menu:MenuElement({type = MENU, id = "AutoW", leftIcon = Icons["AutoW"]})
+	self.Menu.AutoW:MenuElement({id = "UseW", name = "Auto Heal Ally", value = true})
+	self.Menu.AutoW:MenuElement({id = "UseWE", name = "Minimum Health Ally", value = 30, min = 0, max = 100, identifier = "%"})
+	self.Menu.AutoW:MenuElement({id = "Mana", name = "Min Mana", value = 20, min = 0, max = 100, identifier = "%"})	
+
+	--AutoR
+	self.Menu:MenuElement({type = MENU, id = "AutoR", leftIcon = Icons["AutoR"]})
+	self.Menu.AutoR:MenuElement({id = "UseR", name = "Auto Heal Allys below 40%", value = true})
+	self.Menu.AutoR:MenuElement({id = "UseRE", name = "Minimum Allys below 40%", value = 2, min = 1, max = 5})
+	self.Menu.AutoR:MenuElement({type = MENU, id = "AutoR2", name = "AutoSafe priority Ally"})
+	self.Menu.AutoR.AutoR2:MenuElement({id = "UseRE", name = "Minimum Health priority Ally", value = 40, min = 0, max = 100, identifier = "%"})	
+	for i, Hero in pairs(GetAllyHeroes()) do
+		self.Menu.AutoR.AutoR2:MenuElement({id = Hero.charName, name = Hero.charName, value = false})		
+	end	
+	
+	--ComboMenu  
+	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
+	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})		
+	self.Menu.Combo:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})			
+		
+	--HarassMenu
+	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})	
+	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})
+	self.Menu.Harass:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})	
+	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
+  
+	--LaneClear Menu
+	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
+	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})		
+	self.Menu.Clear:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})  	
+	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
+  
+	--JungleClear
+	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})
+	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})         	
+	self.Menu.JClear:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})
+	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
+ 
+	--KillSteal
+	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
+	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})	
+	self.Menu.ks:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})	
+
+
+	--Prediction
+	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+
+
+	--Drawing 
+	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
+	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
+	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})
+	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
+
+	
+	
+end
+
+function Soraka:Tick()
+if myHero.dead == false and Game.IsChatOpen() == false then
+local Mode = GetMode()
+	if Mode == "Combo" then
+		self:Combo()
+	elseif Mode == "Harass" then
+		self:Harass()
+	elseif Mode == "Clear" then
+		self:Clear()
+		self:JungleClear()
+	elseif Mode == "Flee" then
+		
+	end	
+	self:KillSteal()
+	self:AutoW()
+	self:AutoR()
+	self:AutoR2()
+	self:ImmoE()	
+	
+end
+end 
+
+function Soraka:RCount()
+	local count = 0
+	for i = 1, Game.HeroCount() do
+		local hero = Game.Hero(i)
+		if hero and hero.isAlly and IsValid(hero) and hero.health/hero.maxHealth  * 100 < 40 then
+			count = count + 1
+		
+		end
+	end	
+	return count
+end
+
+function Soraka:ImmoE()
+local target = GetTarget(1000)     	
+if target == nil then return end		
+	local pred = GetGamsteronPrediction(target, EData, myHero)
+	if IsValid(target,1000) and Ready(_E) and self.Menu.AutoE.UseE:Value() then
+		if myHero.pos:DistanceTo(target.pos) <= 925 then
+			if IsImmobileTarget(target) and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then   
+				Control.CastSpell(HK_E, pred.CastPosition) 
+			end
+		end	
+	end
+end
+
+
+function Soraka:AutoR()
+for i, ally in pairs(GetAllyHeroes()) do     	
+if ally == nil then return end	
+	if self.Menu.AutoR.UseR:Value() and Ready(_R) then
+		if self:RCount() >= self.Menu.AutoR.UseRE:Value() then
+			Control.CastSpell(HK_R)
+		end	
+	end
+end	
+end
+
+function Soraka:AutoR2()
+for i, ally in pairs(GetAllyHeroes()) do     	
+if ally == nil then return end	
+	if IsValid(ally) and Ready(_R) then 
+		if self.Menu.AutoR.AutoR2[ally.charName] and self.Menu.AutoR.AutoR2[ally.charName]:Value() and ally.health/ally.maxHealth <= self.Menu.AutoR.UseRE:Value()/100 then
+			Control.CastSpell(HK_R)
+		end	
+	end	
+end
+end	
+
+
+function Soraka:AutoW()
+for i, ally in pairs(GetAllyHeroes()) do     	
+if ally == nil then return end	
+	if IsValid(ally, 700) and Ready(_W) then 
+		if self.Menu.AutoW.UseW:Value() and myHero.pos:DistanceTo(ally.pos) <= 550 then
+			if ally.health/ally.maxHealth <= self.Menu.AutoW.UseWE:Value()/100 and myHero.mana/myHero.maxMana >= self.Menu.AutoW.Mana:Value()/100 then
+				Control.CastSpell(HK_W, ally)
+			end	
+		end	
+	end
+end
+end
+
+			
+function Soraka:Draw()
+  if myHero.dead then return end                                                 
+	if self.Menu.Drawing.DrawQ:Value() and Ready(_Q) then
+    Draw.Circle(myHero, 800, 1, Draw.Color(225, 225, 0, 10))
+	end
+	if self.Menu.Drawing.DrawE:Value() and Ready(_E) then
+    Draw.Circle(myHero, 925, 1, Draw.Color(225, 225, 125, 10))
+	end
+	if self.Menu.Drawing.DrawW:Value() and Ready(_W) then
+    Draw.Circle(myHero, 550, 1, Draw.Color(225, 225, 125, 10))
+	end
+	local textPos = myHero.pos:To2D()	
+	if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+	end	
+end
+       
+function Soraka:KillSteal()	
+	local target = GetTarget(1000)     	
+	if target == nil then return end
+	local hp = target.health
+	local QDmg = getdmg("Q", target, myHero)
+	local EDmg = getdmg("E", target, myHero)
+	if IsValid(target,1000) then	
+		
+		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end
+		end
+		if self.Menu.ks.UseE:Value() and Ready(_E) then
+			local pred = GetGamsteronPrediction(target, EData, myHero)
+			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 925 and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then			
+				Control.CastSpell(HK_E, pred.CastPosition)
+	
+			end
+		end
+	end
+end	
+
+function Soraka:Combo()
+local target = GetTarget(1000)
+if target == nil then return end
+	if IsValid(target,1000) then		
+		
+		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end	
+		end
+		
+		if self.Menu.Combo.UseE:Value() and Ready(_E) then
+			local pred = GetGamsteronPrediction(target, EData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 925 and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then			
+				Control.CastSpell(HK_E, pred.CastPosition)
+	
+			end
+		end
+	end
+end	
+
+function Soraka:Harass()
+local target = GetTarget(1000)
+if target == nil then return end
+	if IsValid(target,1000) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
+		
+		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 800 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end
+		end
+		if self.Menu.Harass.UseE:Value() and Ready(_E) then
+			local pred = GetGamsteronPrediction(target, EData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 925 and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then			
+				Control.CastSpell(HK_E, pred.CastPosition)
+	
+			end
+		end
+	end
+end	
+
+function Soraka:Clear()
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+
+		if IsValid(minion, 1200) and minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
+			
+			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Clear.UseQ:Value() then
+				Control.CastSpell(HK_Q, minion.pos)
+			end	
+
+			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 1100 and self.Menu.Clear.UseE:Value() then
+				Control.CastSpell(HK_E, minion.pos)
+			end  
+		end
+	end
+end
+
+function Soraka:JungleClear()
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)	
+
+		if IsValid(minion, 1200) and minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
+			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.JClear.UseQ:Value() then
+				Control.CastSpell(HK_Q, minion.pos)
+			end
+
+			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 1100 and self.Menu.JClear.UseE:Value() then
+				Control.CastSpell(HK_E, minion.pos)
+			end  
+		end
+	end
+end
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -11862,7 +12211,7 @@ local Fdmg = (Qdmg + Wdmg + Rdmg)
 				
 			end
 		end	
-		if hp <= Rdmg and self.chargeR == false and Game.CanUseSpell(_R) == 0 and IsValid(target) and GetDistance(myHero.pos,target.pos) > 1000 and GetDistance(myHero.pos,target.pos) <= rRange then
+		if hp <= Rdmg and self.chargeR == false and Game.CanUseSpell(_R) == 0 and IsValid(target) and GetDistanceSqr(myHero.pos,target.pos) > 1000 and GetDistanceSqr(myHero.pos,target.pos) <= rRange then
 			self:startR(target)
 		end
 		
@@ -11876,7 +12225,7 @@ local target = self:GetRTarget(1100,2200 + 1220*myHero:GetSpellData(_R).level)
 if target == nil then return end	
 local blue = GetInventorySlotItem(3363)   	
 	if self.chargeR == true and not target.visible then		
-		if blue and GetDistance(myHero.pos,target.pos) < 3800 then
+		if blue and GetDistanceSqr(myHero.pos,target.pos) < 3800 then
         local bluePred = GetPred(target,math.huge,0.25)
 			CastSpellMM(ItemHotKey[blue],bluePred,4000,50)
         
@@ -13799,6 +14148,11 @@ local DamageLibTable = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({60, 85, 110, 135, 160, 185})[level] + 0.45 * source.ap + 0.03 * source.maxMana) * (1 + (GotBuff(target, "RyzeE") > 0 and ({40, 55, 70, 85, 100, 100})[level] / 100 or 0)) end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.6 * source.ap + 0.01 * source.maxMana end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 90, 110, 130, 150})[level] + 0.3 * source.ap + 0.02 * source.maxMana end},
+  },
+
+	["Soraka"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 95, 130, 165, 200})[level] + 0.35 * source.ap end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 95, 120, 145, 170})[level] + 0.4 * source.ap end},
   },  
 
 	["Sylas"] = {
@@ -15136,5 +15490,4 @@ function HPred:GetDistance(p1, p2)
 	end
 	return math.sqrt(self:GetDistanceSqr(p1, p2))
 end
-
 
