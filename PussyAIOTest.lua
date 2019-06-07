@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 5.5
+    local Version = 5.6
     
     local Files = {
         Lua = {
@@ -7355,7 +7355,7 @@ function Soraka:__init()
 		Orb = 4
 	end
 end
-
+--[[
 function Soraka:QdelayCheck(target)
 	local Delay = 0
 	local Range = myHero.pos:DistanceTo(target.pos) 
@@ -7391,11 +7391,11 @@ function Soraka:QdelayCheck(target)
 	Delay = 0.95 end return Delay
 	if Range > 800 then
 	Delay = 1.0 end return Delay
-end
+end]]
 
 local QData =
 {
-Type = _G.SPELLTYPE_CIRCLE, Delay = self:QdelayCheck(target), Radius = 235, Range = 800, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
+Type = _G.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 235, Range = 800, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
 }
 
 local EData =
