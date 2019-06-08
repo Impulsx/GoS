@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 5.7
+    local Version = 5.8
     
     local Files = {
         Lua = {
@@ -1097,10 +1097,10 @@ function Activator:LoadMenu()
     self.Menu.ZS:MenuElement({id = "self", name = "MyHero Shield+Heal Items", type = MENU})	
 
     self.Menu.ZS.self:MenuElement({id = "UseZ", name = "Zhonya's", value = true, leftIcon = "https://de.share-your-photo.com/img/76fbcec284.jpg"})
-	self.Menu.ZS.self:MenuElement({id = "myHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
+	self.Menu.ZS.self:MenuElement({id = "myHPZ", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 
     self.Menu.ZS.self:MenuElement({id = "UseS", name = "Stopwatch", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e6/Stopwatch_item.png"})
- 	self.Menu.ZS.self:MenuElement({id = "myHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})   
+ 	self.Menu.ZS.self:MenuElement({id = "myHPS", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})   
 
 	self.Menu.ZS.self:MenuElement({id = "Sera", name = "Seraphs Embrace", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3040.png"})	
 	self.Menu.ZS.self:MenuElement({id = "SeraHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
@@ -1528,11 +1528,11 @@ if myHero.dead then return end
 local Zo, St, Se, Ed, Mi, Qu, Mik, Iro, Re = GetInventorySlotItem(3157), GetInventorySlotItem(2420), GetInventorySlotItem(3040), GetInventorySlotItem(3814), GetInventorySlotItem(3139), GetInventorySlotItem(3140), GetInventorySlotItem(3222), GetInventorySlotItem(3190), GetInventorySlotItem(3107)   
 	if self:EnemiesAround(myHero, 1000) then
         
-		if Zo and self.Menu.ZS.self.UseZ:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHP:Value()/100 then
+		if Zo and self.Menu.ZS.self.UseZ:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHPZ:Value()/100 then
             Control.CastSpell(ItemHotKey[Zo])
         end
     
-		if St and self.Menu.ZS.self.UseS:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHP:Value()/100 then
+		if St and self.Menu.ZS.self.UseS:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHPS:Value()/100 then
             Control.CastSpell(ItemHotKey[St])
         end
 		
