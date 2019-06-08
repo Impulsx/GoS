@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 5.6
+    local Version = 5.7
     
     local Files = {
         Lua = {
@@ -18,7 +18,7 @@ if not table.contains(Heroes, myHero.charName) then return end
             Path = SCRIPT_PATH,
             Name = "PussyAIOTest.version",
             Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIOTest.version"
-        }
+        }	
     }
     
         local function DownloadFile(url, path, fileName)
@@ -67,6 +67,7 @@ function OnLoad()
 	LoadUnits()
 	Activator()
 	HPred()
+
 	
 end
 
@@ -132,7 +133,7 @@ local textPos = myHero.pos:To2D()
 		Draw.Text("Morgana    Ekko", 25, textPos.x + 200, textPos.y + 40, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Xerath       Sona", 25, textPos.x + 200, textPos.y + 60, Draw.Color(255, 255, 200, 0))		
 		Draw.Text("Ahri          Lux", 25, textPos.x + 200, textPos.y + 80, Draw.Color(255, 255, 200, 0))	
-		Draw.Text("Yuumi", 25, textPos.x + 200, textPos.y + 100, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Yuumi       Soraka", 25, textPos.x + 200, textPos.y + 100, Draw.Color(255, 255, 200, 0))
 	end
 end	
 
@@ -1079,9 +1080,9 @@ class "Activator"
 
 function Activator:__init()
     self:LoadMenu()
-   
+	self:OnLoad()
 	Callback.Add("Tick", function() self:Tick() end)
-	function OnDraw() self:OnDraw() end
+	Callback.Add("Draw", function() self:OnDraw() end)
 end
 
 
@@ -1190,7 +1191,7 @@ function Activator:LoadMenu()
     self.Menu.summ.ign:MenuElement({id = "hp", name = "TargetHP:", value = 30, min = 5, max = 95, identifier = "%"})
 	
     self.Menu.summ:MenuElement({id = "SmiteMenu", name = "SummonerSmite", type = MENU, leftIcon = "http://puu.sh/rPsnZ/a05d0f19a8.png"})
-	self.Menu.summ.SmiteMenu:MenuElement({id = "Enabled", name = "Enabled", value = true})
+	self.Menu.summ.SmiteMenu:MenuElement({id = "Enabled", name = "Enabled[OfficialSmiteManager]", value = true})
 	
 	self.Menu.summ.SmiteMenu:MenuElement({type = MENU, id = "SmiteMarker", name = "Smite Marker Minions"})
 	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "Enabled", name = "Enabled", value = true})
@@ -1231,11 +1232,14 @@ function Activator:Tick()
     self:Summoner()
 	self:Ignite()
 	self:Pots()
+	self:Smite()
 	
 	local Mode = GetMode()
 	if Mode == "Combo" then
 	self:Target()
 	end
+
+	
 end
 
 local MarkTable = {
@@ -1296,7 +1300,7 @@ local RefillablePotSlot = 0;
 local CorruptPotionSlot = 0;
 local HuntersPotionSlot = 0;
 
-local function GetSmite(smiteSlot)
+function Activator:GetSmite(smiteSlot)
 	local returnVal = 0;
 	local spellName = myHero:GetSpellData(smiteSlot).name;
 	for i = 1, 5 do
@@ -1307,14 +1311,16 @@ local function GetSmite(smiteSlot)
 	return returnVal;
 end
 
-function OnLoad()
-	mySmiteSlot = GetSmite(SUMMONER_1);
+
+
+function Activator:OnLoad()
+	mySmiteSlot = self:GetSmite(SUMMONER_1);
 	if mySmiteSlot == 0 then
-		mySmiteSlot = GetSmite(SUMMONER_2);
+		mySmiteSlot = self:GetSmite(SUMMONER_2);
 	end
 end
 
-local function DrawSmiteableMinion(type,minion)
+function Activator:DrawSmiteableMinion(type,minion)
 	if not type or not self.Menu.summ.SmiteMenu.SmiteMarker[type] then
 		return
 	end
@@ -1325,7 +1331,7 @@ local function DrawSmiteableMinion(type,minion)
 	end
 end
 
-local function AutoSmiteMinion(type,minion)
+function Activator:AutoSmiteMinion(type,minion)
 	if not type or not self.Menu.summ.SmiteMenu.AutoSmiter[type] then
 		return
 	end
@@ -1340,18 +1346,7 @@ local function AutoSmiteMinion(type,minion)
 	end
 end
 
-
-function OnDraw()
-if myHero.alive == false then return end
-	if self.Menu.summ.SmiteMenu.Enabled:Value() and (mySmiteSlot > 0) then
-		if self.Menu.summ.SmiteMenu.AutoSmiter.DrawSTS:Value() then
-			local myKey = self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key();
-			if self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then
-				if myKey > 0 then Draw.Text("AutoSmite Enabled ".."["..string.char(self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key()).."]",18,myHero.pos2D.x-70,myHero.pos2D.y+70,Draw.Color(255, 30, 230, 30)) end;
-				else
-				if myKey > 0 then Draw.Text("AutoSmite Disabled ".."["..string.char(self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key()).."]",18,myHero.pos2D.x-70,myHero.pos2D.y+70,Draw.Color(255, 230, 30, 30)) end;
-				end
-			end
+function Activator:Smite()
 		if self.Menu.summ.SmiteMenu.SmiteMarker.Enabled:Value() or self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then 
 			local SData = myHero:GetSpellData(mySmiteSlot);
 			for i = 1, Game.MinionCount() do
@@ -1360,14 +1355,14 @@ if myHero.alive == false then return end
 					if minion.health <= SmiteDamage[myHero.levelData.lvl] then
 						local minionName = minion.charName;
 						if self.Menu.summ.SmiteMenu.SmiteMarker.Enabled:Value() then
-							DrawSmiteableMinion(MarkTable[minionName], minion);
+							self:DrawSmiteableMinion(MarkTable[minionName], minion);
 						end
 						if self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then
 							if mySmiteSlot > 0 then
 								if SData.level > 0 then
 									if (SData.ammo > 0) then
 										if minion.distance <= (500+myHero.boundingRadius+minion.boundingRadius) then
-											AutoSmiteMinion(SmiteTable[minionName], minion);
+											self:AutoSmiteMinion(SmiteTable[minionName], minion);
 										end
 									end
 								end
@@ -1377,43 +1372,65 @@ if myHero.alive == false then return end
 				end
 			end
 		end 		
-		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 then return end
-		local smiteDmg = SmiteDamage[myHero.levelData.lvl]
+local target = GetTarget(800)
+if target == nil then return end	
+	if IsValid(target,800) then	
+		
+		local smiteDmg = 20+8*myHero.levelData.lvl;
 		local SData = myHero:GetSpellData(mySmiteSlot);
-		if SData.name == SmiteNames[3] then
+		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 and SData.name == SmiteNames[3] then
 			if SData.level > 0 then
 				if (SData.ammo > 0) then
 					for i = 1, Game.HeroCount() do
 						hero = Game.Hero(i);
-						if hero and hero.valid and hero.visible and hero.isEnemy and (hero.distance <= (500+myHero.boundingRadius+hero.boundingRadius)) and hero.health <= smiteDmg then
-							if mySmiteSlot == SUMMONER_1 then
-								Control.CastSpell(HK_SUMMONER_1,hero)
-							else
-								Control.CastSpell(HK_SUMMONER_2,hero)
+						if (target.distance <= (500+myHero.boundingRadius+hero.boundingRadius)) and target.health <= smiteDmg then
+							if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
+								Control.CastSpell(HK_SUMMONER_1,target)
+							end	
+							if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
+								Control.CastSpell(HK_SUMMONER_2,target)
 							end
 						end
 					end
 				end
 			end
 		end
-		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 then return end
+		
+		
 		local SData = myHero:GetSpellData(mySmiteSlot);
-		if SData.name == SmiteNames[3] then
+		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 and SData.name == SmiteNames[3] then
 			if SData.level > 0 then
 				if (SData.ammo > 0) then
 					for i = 1, Game.HeroCount() do
 						hero = Game.Hero(i);
-						if hero and hero.valid and hero.visible and hero.isEnemy and (hero.distance <= (500+myHero.boundingRadius+hero.boundingRadius)) then
-							if mySmiteSlot == SUMMONER_1 then
-								Control.CastSpell(HK_SUMMONER_1,hero)
-							else
-								Control.CastSpell(HK_SUMMONER_2,hero)
+						if (target.distance <= (500+myHero.boundingRadius+hero.boundingRadius)) then
+							if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
+								Control.CastSpell(HK_SUMMONER_1,target)
+							end	
+							if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
+								Control.CastSpell(HK_SUMMONER_2,target)
 							end
 						end
 					end
 				end
 			end
-		end		
+		end
+	end	
+end	
+
+
+function Activator:OnDraw()
+if myHero.alive == false then return end
+	if self.Menu.summ.SmiteMenu.Enabled:Value() and (mySmiteSlot > 0) then
+		if self.Menu.summ.SmiteMenu.AutoSmiter.DrawSTS:Value() then
+			local myKey = self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key();
+			if self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then
+				if myKey > 0 then Draw.Text("Smite On ".."["..string.char(self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key()).."]",18,myHero.pos2D.x-70,myHero.pos2D.y+70,Draw.Color(255, 30, 230, 30)) end;
+				else
+				if myKey > 0 then Draw.Text("Smite Off ".."["..string.char(self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key()).."]",18,myHero.pos2D.x-70,myHero.pos2D.y+70,Draw.Color(255, 230, 30, 30)) end;
+				end
+			end
+	
 	end
 end
 
