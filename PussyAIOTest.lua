@@ -67,6 +67,7 @@ function OnLoad()
 	LoadUnits()
 	Activator()
 	HPred()
+	
 end
 
 
@@ -1078,7 +1079,9 @@ class "Activator"
 
 function Activator:__init()
     self:LoadMenu()
-    Callback.Add("Tick", function() self:Tick() end)
+   
+	Callback.Add("Tick", function() self:Tick() end)
+	function OnDraw() self:OnDraw() end
 end
 
 
@@ -1185,10 +1188,93 @@ function Activator:LoadMenu()
     self.Menu.summ:MenuElement({id = "ign", name = "SummonerIgnite", type = MENU, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/spell/SummonerDot.png"})
  	self.Menu.summ.ign:MenuElement({id = "ST", name = "TargetHP or KillSteal", drop = {"TargetHP", "KillSteal"}, value = 1})   
     self.Menu.summ.ign:MenuElement({id = "hp", name = "TargetHP:", value = 30, min = 5, max = 95, identifier = "%"})
+	
+    self.Menu.summ:MenuElement({id = "SmiteMenu", name = "SummonerSmite", type = MENU, leftIcon = "http://puu.sh/rPsnZ/a05d0f19a8.png"})
+	self.Menu.summ.SmiteMenu:MenuElement({id = "Enabled", name = "Enabled", value = true})
+	
+	self.Menu.summ.SmiteMenu:MenuElement({type = MENU, id = "SmiteMarker", name = "Smite Marker Minions"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "Enabled", name = "Enabled", value = true})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkBaron", name = "Mark Baron", value = true, leftIcon = "http://puu.sh/rPuVv/933a78e350.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkHerald", name = "Mark Herald", value = true, leftIcon = "http://puu.sh/rQs4A/47c27fa9ea.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkDragon", name = "Mark Dragon", value = true, leftIcon = "http://puu.sh/rPvdF/a00d754b30.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkBlue", name = "Mark Blue Buff", value = true, leftIcon = "http://puu.sh/rPvNd/f5c6cfb97c.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkRed", name = "Mark Red Buff", value = true, leftIcon = "http://puu.sh/rPvQs/fbfc120d17.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkGromp", name = "Mark Gromp", value = true, leftIcon = "http://puu.sh/rPvSY/2cf9ff7a8e.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkWolves", name = "Mark Wolves", value = true, leftIcon = "http://puu.sh/rPvWu/d9ae64a105.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkRazorbeaks", name = "Mark Razorbeaks", value = true, leftIcon = "http://puu.sh/rPvZ5/acf0e03cc7.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkKrugs", name = "Mark Krugs", value = true, leftIcon = "http://puu.sh/rPw6a/3096646ec4.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkCrab", name = "Mark Crab", value = true, leftIcon = "http://puu.sh/rPwaw/10f0766f4d.png"})
+	
+	self.Menu.summ.SmiteMenu:MenuElement({type = MENU, id = "AutoSmiter", name = "Auto Smite Minions"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "Enabled", name = "Toggle Enable Key", key = string.byte("M"), toggle = true})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "DrawSTS", name = "Draw Smite Toggle State", value = true})
+	
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteBaron", name = "Smite Baron", value = true, leftIcon = "http://puu.sh/rPuVv/933a78e350.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteHerald", name = "Smite Herald", value = true, leftIcon = "http://puu.sh/rQs4A/47c27fa9ea.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteDragon", name = "Smite Dragon", value = true, leftIcon = "http://puu.sh/rPvdF/a00d754b30.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteBlue", name = "Smite Blue Buff", value = true, leftIcon = "http://puu.sh/rPvNd/f5c6cfb97c.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteRed", name = "Smite Red Buff", value = true, leftIcon = "http://puu.sh/rPvQs/fbfc120d17.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteGromp", name = "Smite Gromp", value = false, leftIcon = "http://puu.sh/rPvSY/2cf9ff7a8e.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteWolves", name = "Smite Wolves", value = false, leftIcon = "http://puu.sh/rPvWu/d9ae64a105.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteRazorbeaks", name = "Smite Razorbeaks", value = false, leftIcon = "http://puu.sh/rPvZ5/acf0e03cc7.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteKrugs", name = "Smite Krugs", value = false, leftIcon = "http://puu.sh/rPw6a/3096646ec4.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteCrab", name = "Smite Crab", value = false, leftIcon = "http://puu.sh/rPwaw/10f0766f4d.png"})
+	
+	self.Menu.summ.SmiteMenu:MenuElement({type = MENU, id = "AutoSmiterH", name = "Auto Smite Heroes"})	
+	self.Menu.summ.SmiteMenu.AutoSmiterH:MenuElement({id = "Enabled", name = "Smite Logic", value = 2, drop = {"AutoSmite Always", "AutoSmite KillSteal"}})
 end
 
+function Activator:Tick()
+    self:Auto()
+	self:MyHero()
+    self:Ally()
+    self:Summoner()
+	self:Ignite()
+	self:Pots()
+	
+	local Mode = GetMode()
+	if Mode == "Combo" then
+	self:Target()
+	end
+end
 
+local MarkTable = {
+	SRU_Baron = "MarkBaron",
+	SRU_RiftHerald = "MarkHerald",
+	SRU_Dragon_Water = "MarkDragon",
+	SRU_Dragon_Fire = "MarkDragon",
+	SRU_Dragon_Earth = "MarkDragon",
+	SRU_Dragon_Air = "MarkDragon",
+	SRU_Dragon_Elder = "MarkDragon",
+	SRU_Blue = "MarkBlue",
+	SRU_Red = "MarkRed",
+	SRU_Gromp = "MarkGromp",
+	SRU_Murkwolf = "MarkWolves",
+	SRU_Razorbeak = "MarkRazorbeaks",
+	SRU_Krug = "MarkKrugs",
+	Sru_Crab = "MarkCrab",
+}
 
+local SmiteTable = {
+	SRU_Baron = "SmiteBaron",
+	SRU_RiftHerald = "SmiteHerald",
+	SRU_Dragon_Water = "SmiteDragon",
+	SRU_Dragon_Fire = "SmiteDragon",
+	SRU_Dragon_Earth = "SmiteDragon",
+	SRU_Dragon_Air = "SmiteDragon",
+	SRU_Dragon_Elder = "SmiteDragon",
+	SRU_Blue = "SmiteBlue",
+	SRU_Red = "SmiteRed",
+	SRU_Gromp = "SmiteGromp",
+	SRU_Murkwolf = "SmiteWolves",
+	SRU_Razorbeak = "SmiteRazorbeaks",
+	SRU_Krug = "SmiteKrugs",
+	Sru_Crab = "SmiteCrab",
+}
+
+local SmiteNames = {'SummonerSmite','S5_SummonerSmiteDuel','S5_SummonerSmitePlayerGanker','S5_SummonerSmiteQuick','ItemSmiteAoE'};
+local SmiteDamage = {390 , 410 , 430 , 450 , 480 , 510 , 540 , 570 , 600 , 640 , 680 , 720 , 760 , 800 , 850 , 900 , 950 , 1000};
+local mySmiteSlot = 0;
 
 local myPotTicks = 0;
 local myHealTicks = 0;
@@ -1210,19 +1296,129 @@ local RefillablePotSlot = 0;
 local CorruptPotionSlot = 0;
 local HuntersPotionSlot = 0;
 
+local function GetSmite(smiteSlot)
+	local returnVal = 0;
+	local spellName = myHero:GetSpellData(smiteSlot).name;
+	for i = 1, 5 do
+		if spellName == SmiteNames[i] then
+			returnVal = smiteSlot
+		end
+	end
+	return returnVal;
+end
 
-function Activator:Tick()
-    self:Auto()
-	self:MyHero()
-    self:Ally()
-    self:Summoner()
-	self:Ignite()
-	self:Pots()
-	local Mode = GetMode()
-	if Mode == "Combo" then
-	self:Target()
+function OnLoad()
+	mySmiteSlot = GetSmite(SUMMONER_1);
+	if mySmiteSlot == 0 then
+		mySmiteSlot = GetSmite(SUMMONER_2);
 	end
 end
+
+local function DrawSmiteableMinion(type,minion)
+	if not type or not self.Menu.summ.SmiteMenu.SmiteMarker[type] then
+		return
+	end
+	if self.Menu.summ.SmiteMenu.SmiteMarker[type]:Value() then
+		if minion.pos2D.onScreen then
+			Draw.Circle(minion.pos,minion.boundingRadius,6,Draw.Color(0xFF00FF00));
+		end
+	end
+end
+
+local function AutoSmiteMinion(type,minion)
+	if not type or not self.Menu.summ.SmiteMenu.AutoSmiter[type] then
+		return
+	end
+	if self.Menu.summ.SmiteMenu.AutoSmiter[type]:Value() then
+		if minion.pos2D.onScreen then
+			if mySmiteSlot == SUMMONER_1 then
+				Control.CastSpell(HK_SUMMONER_1,minion)
+			else
+				Control.CastSpell(HK_SUMMONER_2,minion)
+			end
+		end
+	end
+end
+
+
+function OnDraw()
+if myHero.alive == false then return end
+	if self.Menu.summ.SmiteMenu.Enabled:Value() and (mySmiteSlot > 0) then
+		if self.Menu.summ.SmiteMenu.AutoSmiter.DrawSTS:Value() then
+			local myKey = self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key();
+			if self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then
+				if myKey > 0 then Draw.Text("AutoSmite Enabled ".."["..string.char(self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key()).."]",18,myHero.pos2D.x-70,myHero.pos2D.y+70,Draw.Color(255, 30, 230, 30)) end;
+				else
+				if myKey > 0 then Draw.Text("AutoSmite Disabled ".."["..string.char(self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key()).."]",18,myHero.pos2D.x-70,myHero.pos2D.y+70,Draw.Color(255, 230, 30, 30)) end;
+				end
+			end
+		if self.Menu.summ.SmiteMenu.SmiteMarker.Enabled:Value() or self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then 
+			local SData = myHero:GetSpellData(mySmiteSlot);
+			for i = 1, Game.MinionCount() do
+				minion = Game.Minion(i);
+				if minion and minion.valid and (minion.team == 300) and minion.visible then
+					if minion.health <= SmiteDamage[myHero.levelData.lvl] then
+						local minionName = minion.charName;
+						if self.Menu.summ.SmiteMenu.SmiteMarker.Enabled:Value() then
+							DrawSmiteableMinion(MarkTable[minionName], minion);
+						end
+						if self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then
+							if mySmiteSlot > 0 then
+								if SData.level > 0 then
+									if (SData.ammo > 0) then
+										if minion.distance <= (500+myHero.boundingRadius+minion.boundingRadius) then
+											AutoSmiteMinion(SmiteTable[minionName], minion);
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end 		
+		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 then return end
+		local smiteDmg = SmiteDamage[myHero.levelData.lvl]
+		local SData = myHero:GetSpellData(mySmiteSlot);
+		if SData.name == SmiteNames[3] then
+			if SData.level > 0 then
+				if (SData.ammo > 0) then
+					for i = 1, Game.HeroCount() do
+						hero = Game.Hero(i);
+						if hero and hero.valid and hero.visible and hero.isEnemy and (hero.distance <= (500+myHero.boundingRadius+hero.boundingRadius)) and hero.health <= smiteDmg then
+							if mySmiteSlot == SUMMONER_1 then
+								Control.CastSpell(HK_SUMMONER_1,hero)
+							else
+								Control.CastSpell(HK_SUMMONER_2,hero)
+							end
+						end
+					end
+				end
+			end
+		end
+		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 then return end
+		local SData = myHero:GetSpellData(mySmiteSlot);
+		if SData.name == SmiteNames[3] then
+			if SData.level > 0 then
+				if (SData.ammo > 0) then
+					for i = 1, Game.HeroCount() do
+						hero = Game.Hero(i);
+						if hero and hero.valid and hero.visible and hero.isEnemy and (hero.distance <= (500+myHero.boundingRadius+hero.boundingRadius)) then
+							if mySmiteSlot == SUMMONER_1 then
+								Control.CastSpell(HK_SUMMONER_1,hero)
+							else
+								Control.CastSpell(HK_SUMMONER_2,hero)
+							end
+						end
+					end
+				end
+			end
+		end		
+	end
+end
+
+
+
 
 --Utility------------------------
 function Ready(spell)
@@ -1360,7 +1556,7 @@ end
 
 function Activator:QSS()
     if myHero.dead then return end
-    local hasBuff = HasBuff(myHero, "zedrdeathmark")
+    local hasBuff = HasBuff(myHero, "zedrdeathmark") --Zed_Base_R_buf_tell  ,,  zedrtargetmark
     local S, Z = GetInventorySlotItem(2420), GetInventorySlotItem(3157)
     if self.Menu.ZS.self.QSS.UseSZ:Value() and hasBuff then
         if S then
@@ -4813,8 +5009,8 @@ function Malzahar:KillSteal()
 	local QDmg = getdmg("Q", target, myHero)
 	local EDmg = getdmg("E", target, myHero)
 	local WDmg = getdmg("W", target, myHero)
-	local RDmg = getdmg("R", target, myHero) 
-	local fullDmg = QDmg + EDmg + WDmg + RDmg
+	local RDmg = (getdmg("R", target, myHero) + getdmg("R", target, myHero, 2))	
+	local fullDmg = (QDmg + EDmg + WDmg + RDmg) 
 
 	if IsValid(target,1000) then	
 		
@@ -4847,6 +5043,9 @@ function Malzahar:KillSteal()
 				self:KsFull(target)
 			end
 		end
+		if self.Menu.ks.full:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) <= 700 and RDmg >= hp then
+			Control.CastSpell(HK_R, target)
+		end
 	end
 end	
 
@@ -4856,18 +5055,12 @@ function Malzahar:KsFull(target)
 	if myHero.pos:DistanceTo(target.pos) <= 650 then
 		Control.CastSpell(HK_E, target)
 	end	
-		if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then 
-			Control.CastSpell(HK_Q, pred.CastPosition)
-		end	
-			if myHero.pos:DistanceTo(target.pos) <= 650 then
-				Control.CastSpell(HK_W, target.pos)
-			end	
-				if myHero.pos:DistanceTo(target.pos) <= 700 then
-					Control.CastSpell(HK_R, target)
-				end
-			
-		
-	
+	if myHero.pos:DistanceTo(target.pos) <= 900 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then 
+		Control.CastSpell(HK_Q, pred.CastPosition)
+	end	
+	if myHero.pos:DistanceTo(target.pos) <= 650 then
+		Control.CastSpell(HK_W, target.pos)
+	end	
 end
 				
 
@@ -7360,37 +7553,38 @@ function Soraka:QdelayCheck(target)
 	local Delay = 0
 	local Range = myHero.pos:DistanceTo(target.pos) 
 	if Range < 100 then
-	Delay = 0.25 end return Delay
+	Delay = 0.25 end 
 	if Range < 150 and Range > 100 then
-	Delay = 0.3 end return Delay	
+	Delay = 0.3 end 	
 	if Range < 200 and Range > 150 then
-	Delay = 0.35 end return Delay
+	Delay = 0.35 end 
 	if Range < 250 and Range > 200 then
-	Delay = 0.4 end return Delay
+	Delay = 0.4 end 
 	if Range < 300 and Range > 250 then
-	Delay = 0.45 end return Delay
+	Delay = 0.45 end 
 	if Range < 350 and Range > 300 then
-	Delay = 0.5 end return Delay
+	Delay = 0.5 end 
 	if Range < 400 and Range > 350 then
-	Delay = 0.55 end return Delay
+	Delay = 0.55 end 
 	if Range < 450 and Range > 400 then
-	Delay = 0.6 end return Delay
+	Delay = 0.6 end 
 	if Range < 500 and Range > 450 then
-	Delay = 0.65 end return Delay
+	Delay = 0.65 end 
 	if Range < 550 and Range > 500 then
-	Delay = 0.7 end return Delay
+	Delay = 0.7 end 
 	if Range < 600 and Range > 550 then
-	Delay = 0.75 end return Delay
+	Delay = 0.75 end 
 	if Range < 650 and Range > 600 then
-	Delay = 0.8 end return Delay
+	Delay = 0.8 end 
 	if Range < 700 and Range > 650 then
-	Delay = 0.85 end return Delay
+	Delay = 0.85 end 
 	if Range < 750 and Range > 700 then
-	Delay = 0.9 end return Delay
+	Delay = 0.9 end 
 	if Range < 800 and Range > 750 then
-	Delay = 0.95 end return Delay
+	Delay = 0.95 end 
 	if Range > 800 then
-	Delay = 1.0 end return Delay
+	Delay = 1.0 end 
+	return Delay
 end]]
 
 local QData =
@@ -7429,31 +7623,31 @@ function Soraka:LoadMenu()
 	
 	--ComboMenu  
 	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
-	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})		
-	self.Menu.Combo:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})			
+	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
+	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})			
 		
 	--HarassMenu
 	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})	
-	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})
-	self.Menu.Harass:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})	
+	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	self.Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})	
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--LaneClear Menu
 	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
-	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})		
-	self.Menu.Clear:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})  	
+	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})		
+	self.Menu.Clear:MenuElement({id = "UseE", name = "[E]", value = true})  	
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
 	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})
-	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})         	
-	self.Menu.JClear:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})
+	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true})         	
+	self.Menu.JClear:MenuElement({id = "UseE", name = "[E]", value = true})
 	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
  
 	--KillSteal
 	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
-	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q] Deadly Spines", value = true})	
-	self.Menu.ks:MenuElement({id = "UseE", name = "[E] Grasping Roots", value = true})	
+	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})	
+	self.Menu.ks:MenuElement({id = "UseE", name = "[E]", value = true})	
 
 
 	--Prediction
@@ -14123,6 +14317,7 @@ local DamageLibTable = {
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({12, 14, 16, 18, 20})[level] + 0.4 * source.bonusDamage + 0.2 * source.ap + QLvL end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 115, 150, 185, 220})[level] + 0.8 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({125, 200, 275})[level] + 0.8 * source.ap end},
+	{Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return 2.5 * (({6, 8, 10})[level] / 100 + 0.015 * source.ap / 100) * target.maxHealth end},	
 
   },
 	["Morgana"] = {  
@@ -14925,4 +15120,569 @@ function HPred:CacheTeleports()
 		end
 	end	
 	
-	--Get enemies who are teleporting
+	--Get enemies who are teleporting to wards	
+	for i = 1, Game.WardCount() do
+		local ward = Game.Ward(i)
+		if ward and ward.isEnemy and not _cachedTeleports[ward.networkID] then
+			local hasBuff, expiresAt = self:HasBuff(ward, "teleport_target")
+			if hasBuff then
+				self:RecordTeleport(ward, self:GetTeleportOffset(ward.pos,100.01),expiresAt)
+			end
+		end
+	end
+	
+	--Get enemies who are teleporting to minions
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
+		if minion and minion.isEnemy and not _cachedTeleports[minion.networkID] then
+			local hasBuff, expiresAt = self:HasBuff(minion, "teleport_target")
+			if hasBuff then
+				self:RecordTeleport(minion, self:GetTeleportOffset(minion.pos,143.25),expiresAt)
+			end
+		end
+	end	
+end
+
+function HPred:RecordTeleport(target, aimPos, endTime)
+	_cachedTeleports[target.networkID] = {}
+	_cachedTeleports[target.networkID]["target"] = target
+	_cachedTeleports[target.networkID]["aimPos"] = aimPos
+	_cachedTeleports[target.networkID]["expireTime"] = endTime + Game.Timer()
+end
+
+
+function HPred:CalculateIncomingDamage()
+	_incomingDamage = {}
+	local currentTime = Game.Timer()
+	for _, missile in pairs(_cachedMissiles) do
+		if missile then 
+			local dist = self:GetDistance(missile.data.pos, missile.target.pos)			
+			if missile.name == "" or currentTime >= missile.timeout or dist < missile.target.boundingRadius then
+				_cachedMissiles[_] = nil
+			else
+				if not _incomingDamage[missile.target.networkID] then
+					_incomingDamage[missile.target.networkID] = missile.damage
+				else
+					_incomingDamage[missile.target.networkID] = _incomingDamage[missile.target.networkID] + missile.damage
+				end
+			end
+		end
+	end	
+end
+
+function HPred:GetIncomingDamage(target)
+	local damage = 0
+	if _incomingDamage[target.networkID] then
+		damage = _incomingDamage[target.networkID]
+	end
+	return damage
+end
+
+
+
+
+--Right now only used to cache enemy windwalls
+function HPred:CacheParticles()	
+	if _windwall and _windwall.name == "" then
+		_windwall = nil
+	end
+	
+	for i = 1, Game.ParticleCount() do
+		local particle = Game.Particle(i)		
+		if particle and self:IsInRange(particle.pos, myHero.pos, _maxCacheRange) then			
+			if string.find(particle.name, "W_windwall%d") and not _windwall then
+				--We don't care about ally windwalls for now
+				local owner =  self:GetObjectByHandle(particle.handle)
+				if owner and owner.isEnemy then
+					_windwall = particle
+					_windwallStartPos = Vector(particle.pos.x, particle.pos.y, particle.pos.z)				
+					
+					local index = string.len(particle.name) - 5
+					local spellLevel = string.sub(particle.name, index, index) -1
+					--Simple fix
+					if type(spellLevel) ~= "number" then
+						spellLevel = 1
+					end
+					_windwallWidth = 150 + spellLevel * 25					
+				end
+			end
+		end
+	end
+end
+
+function HPred:CacheMissiles()
+	local currentTime = Game.Timer()
+	for i = 1, Game.MissileCount() do
+		local missile = Game.Missile(i)
+		if missile and not _cachedMissiles[missile.networkID] and missile.missileData then
+			--Handle targeted missiles
+			if missile.missileData.target and missile.missileData.owner then
+				local missileName = missile.missileData.name
+				local owner =  self:GetObjectByHandle(missile.missileData.owner)	
+				local target =  self:GetObjectByHandle(missile.missileData.target)		
+				if owner and target and string.find(target.type, "Hero") then			
+					--The missile is an auto attack of some sort that is targeting a player	
+					if (string.find(missileName, "BasicAttack") or string.find(missileName, "CritAttack")) then
+						--Cache it all and update the count
+						_cachedMissiles[missile.networkID] = {}
+						_cachedMissiles[missile.networkID].target = target
+						_cachedMissiles[missile.networkID].data = missile
+						_cachedMissiles[missile.networkID].danger = 1
+						_cachedMissiles[missile.networkID].timeout = currentTime + 1.5
+						
+						local damage = owner.totalDamage
+						if string.find(missileName, "CritAttack") then
+							--Leave it rough we're not that concerned
+							damage = damage * 1.5
+						end						
+						_cachedMissiles[missile.networkID].damage = self:CalculatePhysicalDamage(target, damage)
+					end
+				end
+			end
+		end
+	end
+end
+
+function HPred:CalculatePhysicalDamage(target, damage)			
+	local targetArmor = target.armor * myHero.armorPenPercent - myHero.armorPen
+	local damageReduction = 100 / ( 100 + targetArmor)
+	if targetArmor < 0 then
+		damageReduction = 2 - (100 / (100 - targetArmor))
+	end		
+	damage = damage * damageReduction	
+	return damage
+end
+
+function HPred:CalculateMagicDamage(target, damage)			
+	local targetMR = target.magicResist * myHero.magicPenPercent - myHero.magicPen
+	local damageReduction = 100 / ( 100 + targetMR)
+	if targetMR < 0 then
+		damageReduction = 2 - (100 / (100 - targetMR))
+	end		
+	damage = damage * damageReduction
+	
+	return damage
+end
+
+
+function HPred:GetTeleportingTarget(source, range, delay, speed, timingAccuracy, checkCollision, radius)
+
+	local target
+	local aimPosition
+	for _, teleport in pairs(_cachedTeleports) do
+		if teleport.expireTime > Game.Timer() and self:IsInRange(source,teleport.aimPos, range) then			
+			local spellInterceptTime = self:GetSpellInterceptTime(source, teleport.aimPos, delay, speed)
+			local teleportRemaining = teleport.expireTime - Game.Timer()
+			if spellInterceptTime > teleportRemaining and spellInterceptTime - teleportRemaining <= timingAccuracy and (not checkCollision or not self:CheckMinionCollision(source, teleport.aimPos, delay, speed, radius)) then								
+				target = teleport.target
+				aimPosition = teleport.aimPos
+				return target, aimPosition
+			end
+		end
+	end		
+end
+
+function HPred:GetTargetMS(target)
+	local ms = target.pathing.isDashing and target.pathing.dashSpeed or target.ms
+	return ms
+end
+
+function HPred:Angle(A, B)
+	local deltaPos = A - B
+	local angle = math.atan2(deltaPos.x, deltaPos.z) *  180 / math.pi	
+	if angle < 0 then angle = angle + 360 end
+	return angle
+end
+
+--Returns where the unit will be when the delay has passed given current pathing information. This assumes the target makes NO CHANGES during the delay.
+function HPred:PredictUnitPosition(unit, delay)
+	local predictedPosition = unit.pos
+	local timeRemaining = delay
+	local pathNodes = self:GetPathNodes(unit)
+	for i = 1, #pathNodes -1 do
+		local nodeDistance = self:GetDistance(pathNodes[i], pathNodes[i +1])
+		local nodeTraversalTime = nodeDistance / self:GetTargetMS(unit)
+			
+		if timeRemaining > nodeTraversalTime then
+			--This node of the path will be completed before the delay has finished. Move on to the next node if one remains
+			timeRemaining =  timeRemaining - nodeTraversalTime
+			predictedPosition = pathNodes[i + 1]
+		else
+			local directionVector = (pathNodes[i+1] - pathNodes[i]):Normalized()
+			predictedPosition = pathNodes[i] + directionVector *  self:GetTargetMS(unit) * timeRemaining
+			break;
+		end
+	end
+	return predictedPosition
+end
+
+function HPred:IsChannelling(target, interceptTime)
+	if target.activeSpell and target.activeSpell.valid and target.activeSpell.isChanneling then
+		return true
+	end
+end
+
+function HPred:HasBuff(target, buffName, minimumDuration)
+	local duration = minimumDuration
+	if not minimumDuration then
+		duration = 0
+	end
+	local durationRemaining
+	for i = 1, target.buffCount do 
+		local buff = target:GetBuff(i)
+		if buff.duration > duration and buff.name == buffName then
+			durationRemaining = buff.duration
+			return true, durationRemaining
+		end
+	end
+end
+
+--Moves an origin towards the enemy team nexus by magnitude
+function HPred:GetTeleportOffset(origin, magnitude)
+	local teleportOffset = origin + (self:GetEnemyNexusPosition()- origin):Normalized() * magnitude
+	return teleportOffset
+end
+
+function HPred:GetSpellInterceptTime(startPos, endPos, delay, speed)	
+	local interceptTime = Game.Latency()/2000 + delay + self:GetDistance(startPos, endPos) / speed
+	return interceptTime
+end
+
+--Checks if a target can be targeted by abilities or auto attacks currently.
+--CanTarget(target)
+	--target : gameObject we are trying to hit
+function HPred:CanTarget(target, allowInvisible)
+	return target.isEnemy and target.alive and target.health > 0  and (allowInvisible or target.visible) and target.isTargetable
+end
+
+--Derp: dont want to fuck with the isEnemy checks elsewhere. This will just let us know if the target can actually be hit by something even if its an ally
+function HPred:CanTargetALL(target)
+	return target.alive and target.health > 0 and target.visible and target.isTargetable
+end
+
+--Returns a position and radius in which the target could potentially move before the delay ends. ReactionTime defines how quick we expect the target to be able to change their current path
+function HPred:UnitMovementBounds(unit, delay, reactionTime)
+	local startPosition = self:PredictUnitPosition(unit, delay)
+	
+	local radius = 0
+	local deltaDelay = delay -reactionTime- self:GetImmobileTime(unit)	
+	if (deltaDelay >0) then
+		radius = self:GetTargetMS(unit) * deltaDelay	
+	end
+	return startPosition, radius	
+end
+
+--Returns how long (in seconds) the target will be unable to move from their current location
+function HPred:GetImmobileTime(unit)
+	local duration = 0
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff.count > 0 and buff.duration> duration and (buff.type == 5 or buff.type == 8 or buff.type == 21 or buff.type == 22 or buff.type == 24 or buff.type == 11 or buff.type == 29 or buff.type == 30 or buff.type == 39 ) then
+			duration = buff.duration
+		end
+	end
+	return duration		
+end
+
+--Returns how long (in seconds) the target will be slowed for
+function HPred:GetSlowedTime(unit)
+	local duration = 0
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff.count > 0 and buff.duration > duration and buff.type == 10 then
+			duration = buff.duration			
+			return duration
+		end
+	end
+	return duration		
+end
+
+--Returns all existing path nodes
+function HPred:GetPathNodes(unit)
+	local nodes = {}
+	table.insert(nodes, unit.pos)
+	if unit.pathing.hasMovePath then
+		for i = unit.pathing.pathIndex, unit.pathing.pathCount do
+			path = unit:GetPath(i)
+			table.insert(nodes, path)
+		end
+	end		
+	return nodes
+end
+
+--Finds any game object with the correct handle to match (hero, minion, wards on either team)
+function HPred:GetObjectByHandle(handle)
+	local target
+	for i = 1, Game.HeroCount() do
+		local enemy = Game.Hero(i)
+		if enemy and enemy.handle == handle then
+			target = enemy
+			return target
+		end
+	end
+	
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
+		if minion and minion.handle == handle then
+			target = minion
+			return target
+		end
+	end
+	
+	for i = 1, Game.WardCount() do
+		local ward = Game.Ward(i)
+		if ward and ward.handle == handle then
+			target = ward
+			return target
+		end
+	end
+	
+	for i = 1, Game.TurretCount() do 
+		local turret = Game.Turret(i)
+		if turret and turret.handle == handle then
+			target = turret
+			return target
+		end
+	end
+	
+	for i = 1, Game.ParticleCount() do 
+		local particle = Game.Particle(i)
+		if particle and particle.handle == handle then
+			target = particle
+			return target
+		end
+	end
+end
+
+function HPred:GetHeroByPosition(position)
+	local target
+	for i = 1, Game.HeroCount() do
+		local enemy = Game.Hero(i)
+		if enemy and enemy.pos.x == position.x and enemy.pos.y == position.y and enemy.pos.z == position.z then
+			target = enemy
+			return target
+		end
+	end
+end
+
+function HPred:GetObjectByPosition(position)
+	local target
+	for i = 1, Game.HeroCount() do
+		local enemy = Game.Hero(i)
+		if enemy and enemy.pos.x == position.x and enemy.pos.y == position.y and enemy.pos.z == position.z then
+			target = enemy
+			return target
+		end
+	end
+	
+	for i = 1, Game.MinionCount() do
+		local enemy = Game.Minion(i)
+		if enemy and enemy.pos.x == position.x and enemy.pos.y == position.y and enemy.pos.z == position.z then
+			target = enemy
+			return target
+		end
+	end
+	
+	for i = 1, Game.WardCount() do
+		local enemy = Game.Ward(i)
+		if enemy and enemy.pos.x == position.x and enemy.pos.y == position.y and enemy.pos.z == position.z then
+			target = enemy
+			return target
+		end
+	end
+	
+	for i = 1, Game.ParticleCount() do 
+		local enemy = Game.Particle(i)
+		if enemy and enemy.pos.x == position.x and enemy.pos.y == position.y and enemy.pos.z == position.z then
+			target = enemy
+			return target
+		end
+	end
+end
+
+function HPred:GetEnemyHeroByHandle(handle)	
+	local target
+	for i = 1, Game.HeroCount() do
+		local enemy = Game.Hero(i)
+		if enemy and enemy.handle == handle then
+			target = enemy
+			return target
+		end
+	end
+end
+
+--Finds the closest particle to the origin that is contained in the names array
+function HPred:GetNearestParticleByNames(origin, names)
+	local target
+	local distance = 999999
+	for i = 1, Game.ParticleCount() do 
+		local particle = Game.Particle(i)
+		if particle then 
+			local d = self:GetDistance(origin, particle.pos)
+			if d < distance then
+				distance = d
+				target = particle
+			end
+		end
+	end
+	return target, distance
+end
+
+--Returns the total distance of our current path so we can calculate how long it will take to complete
+function HPred:GetPathLength(nodes)
+	local result = 0
+	for i = 1, #nodes -1 do
+		result = result + self:GetDistance(nodes[i], nodes[i + 1])
+	end
+	return result
+end
+
+
+--I know this isn't efficient but it works accurately... Leaving it for now.
+function HPred:CheckMinionCollision(origin, endPos, delay, speed, radius, frequency)
+		
+	if not frequency then
+		frequency = radius
+	end
+	local directionVector = (endPos - origin):Normalized()
+	local checkCount = self:GetDistance(origin, endPos) / frequency
+	for i = 1, checkCount do
+		local checkPosition = origin + directionVector * i * frequency
+		local checkDelay = delay + self:GetDistance(origin, checkPosition) / speed
+		if self:IsMinionIntersection(checkPosition, radius, checkDelay, radius * 3) then
+			return true
+		end
+	end
+	return false
+end
+
+
+function HPred:IsMinionIntersection(location, radius, delay, maxDistance)
+	if not maxDistance then
+		maxDistance = 500
+	end
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
+		if minion and self:CanTarget(minion) and self:IsInRange(minion.pos, location, maxDistance) then
+			local predictedPosition = self:PredictUnitPosition(minion, delay)
+			if self:IsInRange(location, predictedPosition, radius + minion.boundingRadius) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+function HPred:VectorPointProjectionOnLineSegment(v1, v2, v)
+	assert(v1 and v2 and v, "VectorPointProjectionOnLineSegment: wrong argument types (3 <Vector> expected)")
+	local cx, cy, ax, ay, bx, by = v.x, (v.z or v.y), v1.x, (v1.z or v1.y), v2.x, (v2.z or v2.y)
+	local rL = ((cx - ax) * (bx - ax) + (cy - ay) * (by - ay)) / ((bx - ax) * (bx - ax) + (by - ay) * (by - ay))
+	local pointLine = { x = ax + rL * (bx - ax), y = ay + rL * (by - ay) }
+	local rS = rL < 0 and 0 or (rL > 1 and 1 or rL)
+	local isOnSegment = rS == rL
+	local pointSegment = isOnSegment and pointLine or { x = ax + rS * (bx - ax), y = ay + rS * (by - ay) }
+	return pointSegment, pointLine, isOnSegment
+end
+
+--Determines if there is a windwall between the source and target pos. 
+function HPred:IsWindwallBlocking(source, target)
+	if _windwall then
+		local windwallFacing = (_windwallStartPos-_windwall.pos):Normalized()
+		return self:DoLineSegmentsIntersect(source, target, _windwall.pos + windwallFacing:Perpendicular() * _windwallWidth, _windwall.pos + windwallFacing:Perpendicular2() * _windwallWidth)
+	end	
+	return false
+end
+--Returns if two line segments cross eachother. AB is segment 1, CD is segment 2.
+function HPred:DoLineSegmentsIntersect(A, B, C, D)
+
+	local o1 = self:GetOrientation(A, B, C)
+	local o2 = self:GetOrientation(A, B, D)
+	local o3 = self:GetOrientation(C, D, A)
+	local o4 = self:GetOrientation(C, D, B)
+	
+	if o1 ~= o2 and o3 ~= o4 then
+		return true
+	end
+	
+	if o1 == 0 and self:IsOnSegment(A, C, B) then return true end
+	if o2 == 0 and self:IsOnSegment(A, D, B) then return true end
+	if o3 == 0 and self:IsOnSegment(C, A, D) then return true end
+	if o4 == 0 and self:IsOnSegment(C, B, D) then return true end
+	
+	return false
+end
+
+--Determines the orientation of ordered triplet
+--0 = Colinear
+--1 = Clockwise
+--2 = CounterClockwise
+function HPred:GetOrientation(A,B,C)
+	local val = (B.z - A.z) * (C.x - B.x) -
+		(B.x - A.x) * (C.z - B.z)
+	if val == 0 then
+		return 0
+	elseif val > 0 then
+		return 1
+	else
+		return 2
+	end
+	
+end
+
+function HPred:IsOnSegment(A, B, C)
+	return B.x <= _max(A.x, C.x) and 
+		B.x >= math.min(A.x, C.x) and
+		B.z <= _max(A.z, C.z) and
+		B.z >= math.min(A.z, C.z)
+end
+
+--Gets the slope between two vectors. Ignores Y because it is non-needed height data. Its all 2d math.
+function HPred:GetSlope(A, B)
+	return (B.z - A.z) / (B.x - A.x)
+end
+
+function HPred:GetEnemyByName(name)
+	local target
+	for i = 1, Game.HeroCount() do
+		local enemy = Game.Hero(i)
+		if enemy and enemy.isEnemy and enemy.charName == name then
+			target = enemy
+			return target
+		end
+	end
+end
+
+function HPred:IsPointInArc(source, origin, target, angle, range)
+	local deltaAngle = math.abs(HPred:Angle(origin, target) - HPred:Angle(source, origin))
+	if deltaAngle < angle and self:IsInRange(origin,target,range) then
+		return true
+	end
+end
+
+function HPred:GetDistanceSqr(p1, p2)
+	if not p1 or not p2 then
+		local dInfo = debug.getinfo(2)
+		print("Undefined GetDistanceSqr target. Please report. Method: " .. dInfo.name .. "  Line: " .. dInfo.linedefined)
+		return math.huge
+	end
+	return (p1.x - p2.x) *  (p1.x - p2.x) + ((p1.z or p1.y) - (p2.z or p2.y)) * ((p1.z or p1.y) - (p2.z or p2.y)) 
+end
+
+function HPred:IsInRange(p1, p2, range)
+	if not p1 or not p2 then
+		local dInfo = debug.getinfo(2)
+		print("Undefined IsInRange target. Please report. Method: " .. dInfo.name .. "  Line: " .. dInfo.linedefined)
+		return false
+	end
+	return (p1.x - p2.x) *  (p1.x - p2.x) + ((p1.z or p1.y) - (p2.z or p2.y)) * ((p1.z or p1.y) - (p2.z or p2.y)) < range * range 
+end
+
+function HPred:GetDistance(p1, p2)
+	if not p1 or not p2 then
+		local dInfo = debug.getinfo(2)
+		print("Undefined GetDistance target. Please report. Method: " .. dInfo.name .. "  Line: " .. dInfo.linedefined)
+		return math.huge
+	end
+	return math.sqrt(self:GetDistanceSqr(p1, p2))
+end
+
