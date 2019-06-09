@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 0.27
+    local Version = 0.28
     
     local Files = {
         Lua = {
@@ -67,6 +67,8 @@ function OnLoad()
 	LoadUnits()
 	Activator()
 	HPred()
+
+	
 end
 
 
@@ -131,7 +133,7 @@ local textPos = myHero.pos:To2D()
 		Draw.Text("Morgana    Ekko", 25, textPos.x + 200, textPos.y + 40, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Xerath       Sona", 25, textPos.x + 200, textPos.y + 60, Draw.Color(255, 255, 200, 0))		
 		Draw.Text("Ahri          Lux", 25, textPos.x + 200, textPos.y + 80, Draw.Color(255, 255, 200, 0))	
-		Draw.Text("Yuumi", 25, textPos.x + 200, textPos.y + 100, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Yuumi       Soraka", 25, textPos.x + 200, textPos.y + 100, Draw.Color(255, 255, 200, 0))
 	end
 end	
 
@@ -1078,7 +1080,9 @@ class "Activator"
 
 function Activator:__init()
     self:LoadMenu()
-    Callback.Add("Tick", function() self:Tick() end)
+	self:OnLoad()
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:OnDraw() end)
 end
 
 
@@ -1093,10 +1097,10 @@ function Activator:LoadMenu()
     self.Menu.ZS:MenuElement({id = "self", name = "MyHero Shield+Heal Items", type = MENU})	
 
     self.Menu.ZS.self:MenuElement({id = "UseZ", name = "Zhonya's", value = true, leftIcon = "https://de.share-your-photo.com/img/76fbcec284.jpg"})
-	self.Menu.ZS.self:MenuElement({id = "myHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
+	self.Menu.ZS.self:MenuElement({id = "myHPZ", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 
     self.Menu.ZS.self:MenuElement({id = "UseS", name = "Stopwatch", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e6/Stopwatch_item.png"})
- 	self.Menu.ZS.self:MenuElement({id = "myHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})   
+ 	self.Menu.ZS.self:MenuElement({id = "myHPS", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})   
 
 	self.Menu.ZS.self:MenuElement({id = "Sera", name = "Seraphs Embrace", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3040.png"})	
 	self.Menu.ZS.self:MenuElement({id = "SeraHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
@@ -1185,10 +1189,96 @@ function Activator:LoadMenu()
     self.Menu.summ:MenuElement({id = "ign", name = "SummonerIgnite", type = MENU, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/spell/SummonerDot.png"})
  	self.Menu.summ.ign:MenuElement({id = "ST", name = "TargetHP or KillSteal", drop = {"TargetHP", "KillSteal"}, value = 1})   
     self.Menu.summ.ign:MenuElement({id = "hp", name = "TargetHP:", value = 30, min = 5, max = 95, identifier = "%"})
+	
+    self.Menu.summ:MenuElement({id = "SmiteMenu", name = "SummonerSmite", type = MENU, leftIcon = "http://puu.sh/rPsnZ/a05d0f19a8.png"})
+	self.Menu.summ.SmiteMenu:MenuElement({id = "Enabled", name = "Enabled[OfficialSmiteManager]", value = true})
+	
+	self.Menu.summ.SmiteMenu:MenuElement({type = MENU, id = "SmiteMarker", name = "Smite Marker Minions"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "Enabled", name = "Enabled", value = true})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkBaron", name = "Mark Baron", value = true, leftIcon = "http://puu.sh/rPuVv/933a78e350.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkHerald", name = "Mark Herald", value = true, leftIcon = "http://puu.sh/rQs4A/47c27fa9ea.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkDragon", name = "Mark Dragon", value = true, leftIcon = "http://puu.sh/rPvdF/a00d754b30.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkBlue", name = "Mark Blue Buff", value = true, leftIcon = "http://puu.sh/rPvNd/f5c6cfb97c.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkRed", name = "Mark Red Buff", value = true, leftIcon = "http://puu.sh/rPvQs/fbfc120d17.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkGromp", name = "Mark Gromp", value = true, leftIcon = "http://puu.sh/rPvSY/2cf9ff7a8e.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkWolves", name = "Mark Wolves", value = true, leftIcon = "http://puu.sh/rPvWu/d9ae64a105.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkRazorbeaks", name = "Mark Razorbeaks", value = true, leftIcon = "http://puu.sh/rPvZ5/acf0e03cc7.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkKrugs", name = "Mark Krugs", value = true, leftIcon = "http://puu.sh/rPw6a/3096646ec4.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkCrab", name = "Mark Crab", value = true, leftIcon = "http://puu.sh/rPwaw/10f0766f4d.png"})
+	
+	self.Menu.summ.SmiteMenu:MenuElement({type = MENU, id = "AutoSmiter", name = "Auto Smite Minions"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "Enabled", name = "Toggle Enable Key", key = string.byte("M"), toggle = true})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "DrawSTS", name = "Draw Smite Toggle State", value = true})
+	
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteBaron", name = "Smite Baron", value = true, leftIcon = "http://puu.sh/rPuVv/933a78e350.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteHerald", name = "Smite Herald", value = true, leftIcon = "http://puu.sh/rQs4A/47c27fa9ea.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteDragon", name = "Smite Dragon", value = true, leftIcon = "http://puu.sh/rPvdF/a00d754b30.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteBlue", name = "Smite Blue Buff", value = true, leftIcon = "http://puu.sh/rPvNd/f5c6cfb97c.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteRed", name = "Smite Red Buff", value = true, leftIcon = "http://puu.sh/rPvQs/fbfc120d17.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteGromp", name = "Smite Gromp", value = false, leftIcon = "http://puu.sh/rPvSY/2cf9ff7a8e.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteWolves", name = "Smite Wolves", value = false, leftIcon = "http://puu.sh/rPvWu/d9ae64a105.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteRazorbeaks", name = "Smite Razorbeaks", value = false, leftIcon = "http://puu.sh/rPvZ5/acf0e03cc7.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteKrugs", name = "Smite Krugs", value = false, leftIcon = "http://puu.sh/rPw6a/3096646ec4.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteCrab", name = "Smite Crab", value = false, leftIcon = "http://puu.sh/rPwaw/10f0766f4d.png"})
+	
+	self.Menu.summ.SmiteMenu:MenuElement({type = MENU, id = "AutoSmiterH", name = "Auto Smite Heroes"})	
+	self.Menu.summ.SmiteMenu.AutoSmiterH:MenuElement({id = "Enabled", name = "Smite Logic", value = 2, drop = {"AutoSmite Always", "AutoSmite KillSteal"}})
 end
 
+function Activator:Tick()
+    self:Auto()
+	self:MyHero()
+    self:Ally()
+    self:Summoner()
+	self:Ignite()
+	self:Pots()
+	self:Smite()
+	
+	local Mode = GetMode()
+	if Mode == "Combo" then
+	self:Target()
+	end
 
+	
+end
 
+local MarkTable = {
+	SRU_Baron = "MarkBaron",
+	SRU_RiftHerald = "MarkHerald",
+	SRU_Dragon_Water = "MarkDragon",
+	SRU_Dragon_Fire = "MarkDragon",
+	SRU_Dragon_Earth = "MarkDragon",
+	SRU_Dragon_Air = "MarkDragon",
+	SRU_Dragon_Elder = "MarkDragon",
+	SRU_Blue = "MarkBlue",
+	SRU_Red = "MarkRed",
+	SRU_Gromp = "MarkGromp",
+	SRU_Murkwolf = "MarkWolves",
+	SRU_Razorbeak = "MarkRazorbeaks",
+	SRU_Krug = "MarkKrugs",
+	Sru_Crab = "MarkCrab",
+}
+
+local SmiteTable = {
+	SRU_Baron = "SmiteBaron",
+	SRU_RiftHerald = "SmiteHerald",
+	SRU_Dragon_Water = "SmiteDragon",
+	SRU_Dragon_Fire = "SmiteDragon",
+	SRU_Dragon_Earth = "SmiteDragon",
+	SRU_Dragon_Air = "SmiteDragon",
+	SRU_Dragon_Elder = "SmiteDragon",
+	SRU_Blue = "SmiteBlue",
+	SRU_Red = "SmiteRed",
+	SRU_Gromp = "SmiteGromp",
+	SRU_Murkwolf = "SmiteWolves",
+	SRU_Razorbeak = "SmiteRazorbeaks",
+	SRU_Krug = "SmiteKrugs",
+	Sru_Crab = "SmiteCrab",
+}
+
+local SmiteNames = {'SummonerSmite','S5_SummonerSmiteDuel','S5_SummonerSmitePlayerGanker','S5_SummonerSmiteQuick','ItemSmiteAoE'};
+local SmiteDamage = {390 , 410 , 430 , 450 , 480 , 510 , 540 , 570 , 600 , 640 , 680 , 720 , 760 , 800 , 850 , 900 , 950 , 1000};
+local mySmiteSlot = 0;
 
 local myPotTicks = 0;
 local myHealTicks = 0;
@@ -1210,19 +1300,143 @@ local RefillablePotSlot = 0;
 local CorruptPotionSlot = 0;
 local HuntersPotionSlot = 0;
 
+function Activator:GetSmite(smiteSlot)
+	local returnVal = 0;
+	local spellName = myHero:GetSpellData(smiteSlot).name;
+	for i = 1, 5 do
+		if spellName == SmiteNames[i] then
+			returnVal = smiteSlot
+		end
+	end
+	return returnVal;
+end
 
-function Activator:Tick()
-    self:Auto()
-	self:MyHero()
-    self:Ally()
-    self:Summoner()
-	self:Ignite()
-	self:Pots()
-	local Mode = GetMode()
-	if Mode == "Combo" then
-	self:Target()
+
+
+function Activator:OnLoad()
+	mySmiteSlot = self:GetSmite(SUMMONER_1);
+	if mySmiteSlot == 0 then
+		mySmiteSlot = self:GetSmite(SUMMONER_2);
 	end
 end
+
+function Activator:DrawSmiteableMinion(type,minion)
+	if not type or not self.Menu.summ.SmiteMenu.SmiteMarker[type] then
+		return
+	end
+	if self.Menu.summ.SmiteMenu.SmiteMarker[type]:Value() then
+		if minion.pos2D.onScreen then
+			Draw.Circle(minion.pos,minion.boundingRadius,6,Draw.Color(0xFF00FF00));
+		end
+	end
+end
+
+function Activator:AutoSmiteMinion(type,minion)
+	if not type or not self.Menu.summ.SmiteMenu.AutoSmiter[type] then
+		return
+	end
+	if self.Menu.summ.SmiteMenu.AutoSmiter[type]:Value() then
+		if minion.pos2D.onScreen then
+			if mySmiteSlot == SUMMONER_1 then
+				Control.CastSpell(HK_SUMMONER_1,minion)
+			else
+				Control.CastSpell(HK_SUMMONER_2,minion)
+			end
+		end
+	end
+end
+
+function Activator:Smite()
+if mySmiteSlot == 0 then return end		
+		if self.Menu.summ.SmiteMenu.SmiteMarker.Enabled:Value() or self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then 
+			local SData = myHero:GetSpellData(mySmiteSlot);
+			for i = 1, Game.MinionCount() do
+				minion = Game.Minion(i);
+				if minion and minion.valid and (minion.team == 300) and minion.visible then
+					if minion.health <= SmiteDamage[myHero.levelData.lvl] then
+						local minionName = minion.charName;
+						if self.Menu.summ.SmiteMenu.SmiteMarker.Enabled:Value() then
+							self:DrawSmiteableMinion(MarkTable[minionName], minion);
+						end
+						if self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then
+							if mySmiteSlot > 0 then
+								if SData.level > 0 then
+									if (SData.ammo > 0) then
+										if minion.distance <= (500+myHero.boundingRadius+minion.boundingRadius) then
+											self:AutoSmiteMinion(SmiteTable[minionName], minion);
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end 		
+local target = GetTarget(800)
+if target == nil then return end	
+	if IsValid(target,800) then	
+		
+		local smiteDmg = 20+8*myHero.levelData.lvl;
+		local SData = myHero:GetSpellData(mySmiteSlot);
+		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 and SData.name == SmiteNames[3] then
+			if SData.level > 0 then
+				if (SData.ammo > 0) then
+					for i = 1, Game.HeroCount() do
+						hero = Game.Hero(i);
+						if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) and target.health <= smiteDmg then
+							if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
+								Control.CastSpell(HK_SUMMONER_1,target)
+							end	
+							if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
+								Control.CastSpell(HK_SUMMONER_2,target)
+							end
+						end
+					end
+				end
+			end
+		end
+		
+		
+		local SData = myHero:GetSpellData(mySmiteSlot);
+		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 and SData.name == SmiteNames[3] then
+			if SData.level > 0 then
+				if (SData.ammo > 0) then
+					for i = 1, Game.HeroCount() do
+						hero = Game.Hero(i);
+						if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) then
+							if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
+								Control.CastSpell(HK_SUMMONER_1,target)
+							end	
+							if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
+								Control.CastSpell(HK_SUMMONER_2,target)
+							end
+						end
+					end
+				end
+			end
+		end
+	end	
+end	
+
+
+function Activator:OnDraw()
+if myHero.alive == false then return end
+	if self.Menu.summ.SmiteMenu.Enabled:Value() and (mySmiteSlot > 0) then
+		if self.Menu.summ.SmiteMenu.AutoSmiter.DrawSTS:Value() then
+			local myKey = self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key();
+			if self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then
+				if myKey > 0 then Draw.Text("Smite On ".."["..string.char(self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key()).."]",18,myHero.pos2D.x-70,myHero.pos2D.y+70,Draw.Color(255, 30, 230, 30)) end;
+				else
+				if myKey > 0 then Draw.Text("Smite Off ".."["..string.char(self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key()).."]",18,myHero.pos2D.x-70,myHero.pos2D.y+70,Draw.Color(255, 230, 30, 30)) end;
+				end
+			end
+	
+	end
+end
+
+
+
 
 --Utility------------------------
 function Ready(spell)
@@ -1315,11 +1529,11 @@ if myHero.dead then return end
 local Zo, St, Se, Ed, Mi, Qu, Mik, Iro, Re = GetInventorySlotItem(3157), GetInventorySlotItem(2420), GetInventorySlotItem(3040), GetInventorySlotItem(3814), GetInventorySlotItem(3139), GetInventorySlotItem(3140), GetInventorySlotItem(3222), GetInventorySlotItem(3190), GetInventorySlotItem(3107)   
 	if self:EnemiesAround(myHero, 1000) then
         
-		if Zo and self.Menu.ZS.self.UseZ:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHP:Value()/100 then
+		if Zo and self.Menu.ZS.self.UseZ:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHPZ:Value()/100 then
             Control.CastSpell(ItemHotKey[Zo])
         end
     
-		if St and self.Menu.ZS.self.UseS:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHP:Value()/100 then
+		if St and self.Menu.ZS.self.UseS:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHPS:Value()/100 then
             Control.CastSpell(ItemHotKey[St])
         end
 		
@@ -1360,7 +1574,7 @@ end
 
 function Activator:QSS()
     if myHero.dead then return end
-    local hasBuff = HasBuff(myHero, "zedrdeathmark")
+    local hasBuff = HasBuff(myHero, "zedrdeathmark") --Zed_Base_R_buf_tell  ,,  zedrtargetmark
     local S, Z = GetInventorySlotItem(2420), GetInventorySlotItem(3157)
     if self.Menu.ZS.self.QSS.UseSZ:Value() and hasBuff then
         if S then
