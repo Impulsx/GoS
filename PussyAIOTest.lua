@@ -1,12 +1,12 @@
-local Heroes = {"Soraka","Lux","Yuumi","Rakan","Nidalee","Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
-local GsoPred = {"Soraka","Lux","Yuumi","Rakan","Nidalee","Ryze","Cassiopeia","Malzahar","Zyra","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
+local Heroes = {"LeeSin","Soraka","Lux","Yuumi","Rakan","Nidalee","Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
+local GsoPred = {"LeeSin","Soraka","Lux","Yuumi","Rakan","Nidalee","Ryze","Cassiopeia","Malzahar","Zyra","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
 
 if not table.contains(Heroes, myHero.charName) then return end
 
 
 
     
-    local Version = 5.8
+    local Version = 5.9
     
     local Files = {
         Lua = {
@@ -1347,6 +1347,7 @@ function Activator:AutoSmiteMinion(type,minion)
 end
 
 function Activator:Smite()
+if mySmiteSlot == 0 then return end		
 		if self.Menu.summ.SmiteMenu.SmiteMarker.Enabled:Value() or self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then 
 			local SData = myHero:GetSpellData(mySmiteSlot);
 			for i = 1, Game.MinionCount() do
@@ -1383,7 +1384,7 @@ if target == nil then return end
 				if (SData.ammo > 0) then
 					for i = 1, Game.HeroCount() do
 						hero = Game.Hero(i);
-						if (target.distance <= (500+myHero.boundingRadius+hero.boundingRadius)) and target.health <= smiteDmg then
+						if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) and target.health <= smiteDmg then
 							if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
 								Control.CastSpell(HK_SUMMONER_1,target)
 							end	
@@ -1403,7 +1404,7 @@ if target == nil then return end
 				if (SData.ammo > 0) then
 					for i = 1, Game.HeroCount() do
 						hero = Game.Hero(i);
-						if (target.distance <= (500+myHero.boundingRadius+hero.boundingRadius)) then
+						if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) then
 							if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
 								Control.CastSpell(HK_SUMMONER_1,target)
 							end	
@@ -4396,6 +4397,538 @@ function OnDraw()
 		Draw.Text("Blockable Spell Found", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
 	end
 end
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class "LeeSin"
+--require('GamsteronPrediction')
+
+
+
+local QData =
+{
+Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 65, Range = 1200, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
+}
+
+
+
+function LeeSin:__init()
+
+  if menu ~= 1 then return end
+  menu = 2   	
+  self:LoadMenu()                                            
+  Callback.Add("Tick", function() self:Tick() end)
+  Callback.Add("Draw", function() self:Draw() end) 
+	if _G.EOWLoaded then
+		Orb = 1
+	elseif _G.SDK and _G.SDK.Orbwalker then
+		Orb = 2
+	elseif _G.gsoSDK then
+		Orb = 4			
+	end
+end
+
+function LeeSin:LoadMenu()                     
+	--MainMenu
+	self.Menu = MenuElement({type = MENU, id = "LeeSin", name = "PussyLeeSin"})
+
+	--AutoQ
+	self.Menu:MenuElement({type = MENU, id = "AutoQ", leftIcon = Icons["AutoQImmo"]})
+	self.Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto[Q] + Auto[W]SavePos", value = true})
+
+	--AutoW 
+	self.Menu:MenuElement({type = MENU, id = "AutoW", leftIcon = Icons["AutoW"]})
+	self.Menu.AutoW:MenuElement({id = "UseW", name = "Safe Ally", value = true})
+	self.Menu.AutoW:MenuElement({id = "Heal", name = "min Hp Self or Ally", value = 30, min = 0, max = 100, identifier = "%"})	
+
+	--AutoR
+	self.Menu:MenuElement({type = MENU, id = "AutoR", leftIcon = Icons["AutoRSafeLife"]})
+	self.Menu.AutoR:MenuElement({id = "UseR", name = "Auto[R] safe your Life", value = true})
+	self.Menu.AutoR:MenuElement({id = "Heal", name = "min Hp", value = 20, min = 0, max = 100, identifier = "%"})	
+		
+	--ComboMenu  
+	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
+	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
+	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})			
+	
+	--HarassMenu
+	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})	
+	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	self.Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})	
+	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Energy to Harass", value = 40, min = 0, max = 100, identifier = "%"})
+   
+	--LaneClear Menu
+	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})			
+	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})	
+	self.Menu.Clear:MenuElement({id = "UseW", name = "[W]", value = true})
+	self.Menu.Clear:MenuElement({id = "Heal", name = "min selfHp Use[W]", value = 70, min = 0, max = 100, identifier = "%"})	
+	self.Menu.Clear:MenuElement({id = "UseE", name = "[E]", value = true})
+	self.Menu.Clear:MenuElement({id = "UseEM", name = "Use[E] min Minions", value = 3, min = 1, max = 6, step = 1})  		
+	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Energy to Clear", value = 40, min = 0, max = 100, identifier = "%"})
+  
+	--JungleClear
+	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})         	
+	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	self.Menu.JClear:MenuElement({id = "UseW", name = "[W]", value = true})	
+	self.Menu.JClear:MenuElement({id = "UseE", name = "[E]", value = true})	
+	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Energy to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
+ 
+	--KillSteal
+	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
+	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})	
+	self.Menu.ks:MenuElement({id = "UseE", name = "[E]", value = true})				
+	self.Menu.ks:MenuElement({id = "UseR", name = "[R]", value = true})	
+	self.Menu.ks:MenuElement({id = "UseQR", name = "[Q]+[R]", value = true})	
+	
+	
+	--JungleSteal
+	self.Menu:MenuElement({type = MENU, id = "Jsteal", leftIcon = Icons["junglesteal"]})
+	self.Menu.Jsteal:MenuElement({id = "Dragon", name = "Steal Dragon", value = true})
+	self.Menu.Jsteal:MenuElement({id = "Baron", name = "Steal Baron", value = true})
+	self.Menu.Jsteal:MenuElement({id = "Herald", name = "Steal Herald", value = true})	
+	self.Menu.Jsteal:MenuElement({id = "Active", name = "Activate Key", key = string.byte("T")})	
+
+	--Prediction
+	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
+
+ 
+	--Drawing 
+	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
+	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
+	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
+	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})
+	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
+
+	
+	
+end	
+
+function LeeSin:Tick()
+	if myHero.dead == false and Game.IsChatOpen() == false and IsRecalling() == false then
+	local Mode = GetMode()
+		if Mode == "Combo" then
+			self:Combo()
+
+		elseif Mode == "Harass" then
+			self:Harass()
+		elseif Mode == "Clear" then
+			self:Clear()
+			self:JungleClear()
+		end	
+	self:JungleSteal()
+	self:KillSteal()
+	self:AutoQ()
+	self:AutoR()
+	self:AutoW()
+	
+	end
+end
+
+
+local _wards = {2055, 2049, 2050, 2301, 2302, 2303, 3340, 3361, 3362, 3711, 1408, 1409, 1410, 1411, 2043, 2055}
+
+local JungleTable = {
+	SRU_Baron = "",
+	SRU_RiftHerald = "",
+	SRU_Dragon_Water = "",
+	SRU_Dragon_Fire = "",
+	SRU_Dragon_Earth = "",
+	SRU_Dragon_Air = "",
+	SRU_Dragon_Elder = "",
+}
+
+function LeeSin:NearestEnemy(entity)
+	local distance = 999999
+	local enemy = nil
+	for i = 1,Game.HeroCount()  do
+		local hero = Game.Hero(i)	
+		if hero and HPred:CanTarget(hero) then
+			local d = HPred:GetDistanceSqr(entity.pos, hero.pos)
+			if d < distance then
+				distance = d
+				enemy = hero
+			end
+		end
+	end
+	return _sqrt(distance), enemy
+end
+
+function LeeSin:Draw()
+  if myHero.dead then return end
+	if self.Menu.Drawing.DrawR:Value() and Ready(_R) then
+    Draw.Circle(myHero, 375, 1, Draw.Color(255, 225, 255, 10))
+	end                                                 
+	if self.Menu.Drawing.DrawQ:Value() and Ready(_Q) and myHero:GetSpellData(_Q).name == "BlindMonkQOne" then
+    Draw.Circle(myHero, 1200, 1, Draw.Color(225, 225, 0, 10))
+	end
+	if self.Menu.Drawing.DrawQ:Value() and Ready(_Q) and myHero:GetSpellData(_Q).name == "BlindMonkQTwo" then
+    Draw.Circle(myHero, 1300, 1, Draw.Color(225, 225, 0, 10))
+	end	
+	if self.Menu.Drawing.DrawE:Value() and Ready(_E) and myHero:GetSpellData(_E).name == "BlindMonkEOne"  then
+    Draw.Circle(myHero, 350, 1, Draw.Color(225, 225, 125, 10))
+	end
+	if self.Menu.Drawing.DrawE:Value() and Ready(_E) and myHero:GetSpellData(_E).name == "BlindMonkETwo"  then
+    Draw.Circle(myHero, 500, 1, Draw.Color(225, 225, 125, 10))
+	end	
+	if self.Menu.Drawing.DrawW:Value() and Ready(_W) then
+    Draw.Circle(myHero, 700, 1, Draw.Color(225, 225, 125, 10))
+	end
+	local textPos = myHero.pos:To2D()	
+	if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+	end	
+end
+
+function LeeSin:AutoQ()
+local target = GetTarget(1500)     	
+if target == nil then return end	
+local pred = GetGamsteronPrediction(target, QData, myHero)	
+	if IsValid(target,1500) and self.Menu.AutoQ.UseQ:Value() and Ready(_Q) then
+		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1200 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+			Control.CastSpell(HK_Q, pred.CastPosition)
+		end	
+		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
+			Control.CastSpell(HK_Q)
+		end	
+		self:SafePos(target)
+	end
+end
+
+function LeeSin:SafePos(target)
+local QDmg = getdmg("Q", target, myHero)
+local EDmg = getdmg("E", target, myHero)
+local RDmg = getdmg("R", target, myHero)
+local Damage = (QDmg+EDmg+RDmg)	
+	if target.health > Damage and Ready(_W) and HasBuff(myHero, "BlindMonkQTwoDash") then
+		for i, ally in pairs(GetAllyHeroes()) do	
+			if IsValid(ally) then
+				if EnemiesAround(ally, 500) == 0 and myHero.pos:DistanceTo(ally.pos) <= 700 then
+					Control.CastSpell(HK_W, ally)
+				end
+			end
+		end
+		for i = 1, Game.MinionCount() do 
+		local Minion = Game.Minion(i)
+			if IsValid(Minion, 800) and Minion.team == TEAM_ALLY then
+				if EnemiesAround(Minion, 500) == 0 and myHero.pos:DistanceTo(Minion.pos) <= 700 then
+					Control.CastSpell(HK_W, Minion)
+				end
+			end
+		end			
+	end
+end	
+
+function LeeSin:AutoR()
+local target = GetTarget(1000)     	
+if target == nil then return end
+	if IsValid(target,1000) then
+		if self.Menu.AutoR.UseR:Value() and Ready(_R) then
+			if myHero.health/myHero.maxHealth <= self.Menu.AutoR.Heal:Value()/100 and myHero.pos:DistanceTo(target.pos) <= 375 then
+				Control.CastSpell(HK_R, target)
+			end
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) > 375 and myHero.pos:DistanceTo(target.pos) <= 800 and Ready(_Q) then
+				if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+					Control.CastSpell(HK_Q, pred.CastPosition)
+				end
+			end	
+		end
+	end	
+end
+
+function LeeSin:AutoW()
+local target = GetTarget(800)     	
+if IsRecalling() or target == nil then return end	
+	
+		if self.Menu.AutoW.UseW:Value() and Ready(_W) then
+			if myHero.health/myHero.maxHealth <= self.Menu.AutoW.Heal:Value()/100 then
+				Control.CastSpell(HK_W, myHero)
+				if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
+					Control.CastSpell(HK_W)
+				end
+			end
+			for i, ally in pairs(GetAllyHeroes()) do
+			if IsValid(ally,1000) and ally.health/ally.maxHealth <= self.Menu.AutoW.Heal:Value()/100 and myHero.pos:DistanceTo(ally.pos) <= 700 then
+				Control.CastSpell(HK_W, ally)
+				if HasBuff(ally, "blindmonkwoneshield") then
+					Control.CastSpell(HK_W)
+				end
+			end
+		end
+		end
+end
+
+
+function LeeSin:Combo()
+local target = GetTarget(1500)     	
+if target == nil then return end
+	if IsValid(target,1500) then
+				
+		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 1200 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end	
+		
+			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
+				Control.CastSpell(HK_Q)
+			end
+		end
+		
+		if self.Menu.Combo.UseE:Value() and Ready(_E) then
+			if myHero.pos:DistanceTo(target.pos) <= 350 then			
+				Control.CastSpell(HK_E)
+			end
+			
+			if myHero:GetSpellData(_E).name == "BlindMonkETwo" and EnemiesAround(myHero, 500) >= 1 then
+				Control.CastSpell(HK_E)
+			end	
+		end
+		
+		self:SafePos(target)
+	end	
+end	
+
+function LeeSin:Harass()
+local target = GetTarget(1500)
+if target == nil then return end
+	if IsValid(target,1500) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
+		
+		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 1200 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end	
+		
+			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
+				Control.CastSpell(HK_Q)
+			end
+		end
+		
+		if self.Menu.Harass.UseE:Value() and Ready(_E) then
+			if myHero.pos:DistanceTo(target.pos) <= 350 then			
+				Control.CastSpell(HK_E)
+			end
+			
+			if myHero:GetSpellData(_E).name == "BlindMonkETwo" and EnemiesAround(myHero, 500) >= 1 then
+				Control.CastSpell(HK_E)
+			end	
+		end
+		
+		self:SafePos(target)
+	end	
+end	
+
+function LeeSin:Clear()
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+		if IsValid(minion, 1500) and minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
+			
+			if self.Menu.Clear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 1200 and myHero.pos:DistanceTo(minion.pos) >= 500 then
+				Control.CastSpell(HK_Q, minion.pos)
+			end	
+			if myHero.pos:DistanceTo(minion.pos) <= 1300 and HasBuff(minion, "BlindMonkQOne") then
+				Control.CastSpell(HK_Q)
+			end
+			
+			if self.Menu.Clear.UseW:Value() and Ready(_W) and MinionsNear(myHero,500) >= 1 then 
+				if myHero.health/myHero.maxHealth <= self.Menu.Clear.Heal:Value()/100 then
+					Control.CastSpell(HK_W, myHero)
+				end
+				if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
+					Control.CastSpell(HK_W)
+				end
+			end
+			
+			if Ready(_E) and self.Menu.Clear.UseE:Value() then
+				if GetMinionCount(350, myHero) >= self.Menu.Clear.UseEM:Value() then
+					Control.CastSpell(HK_E)
+				end
+				if GetMinionCount(500, myHero) >= self.Menu.Clear.UseEM:Value() and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
+					Control.CastSpell(HK_E)
+				end	
+			end 
+		end
+	end
+end
+
+function LeeSin:JungleClear()
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)	
+		if IsValid(minion, 1500) and minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
+			
+			if self.Menu.JClear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 1200 then
+				Control.CastSpell(HK_Q, minion.pos)
+			end	
+			if myHero.pos:DistanceTo(minion.pos) <= 1300 and myHero:GetSpellData(_Q).name == "BlindMonkQTwo" then
+				Control.CastSpell(HK_Q)
+			end
+			
+			if self.Menu.JClear.UseW:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) <= 500 then 
+				Control.CastSpell(HK_W, myHero)
+			
+				if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
+					Control.CastSpell(HK_W)
+				end
+			end
+			
+			if Ready(_E) and self.Menu.JClear.UseE:Value() then
+				if GetMinionCount(350, myHero) >= 1 then
+					Control.CastSpell(HK_E)
+				end
+				if GetMinionCount(500, myHero) >= 1 and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
+					Control.CastSpell(HK_E)
+				end	
+			end 
+		end
+	end
+end
+
+local SmiteDamage = {390 , 410 , 430 , 450 , 480 , 510 , 540 , 570 , 600 , 640 , 680 , 720 , 760 , 800 , 850 , 900 , 950 , 1000};
+
+function LeeSin:JungleSteal()
+local minionlist = {}
+	if _G.SDK then
+		minionlist = _G.SDK.ObjectManager:GetMonsters(1500)
+	elseif _G.GOS then
+		for i = 1, Game.MinionCount() do
+			local minion = Game.Minion(i)
+			
+			if minion.valid and minion.isEnemy and minion.pos:DistanceTo(myHero.pos) < 1500 then
+				table.insert(minionlist, minion)
+			end
+		end
+	end
+	
+	for i, minion in pairs(minionlist) do
+	if minion == nil then return end	
+	if (myHero:GetSpellData(SUMMONER_1).name == "SummonerSmite" and Ready(SUMMONER_1) or myHero:GetSpellData(SUMMONER_2).name == "SummonerSmite" and Ready(SUMMONER_2)) then	
+		local Damage = (SmiteDamage[myHero.levelData.lvl] + getdmg("Q", minion, myHero))	
+		if self.Menu.Jsteal.Active:Value() then	
+			if self.Menu.Jsteal.Dragon:Value() and Ready(_Q) then
+				if JungleTable[minion.charName] and Damage > minion.health then
+					if minion.pos:DistanceTo(myHero.pos) < 1200 then
+						Control.CastSpell(HK_Q, minion.pos)
+					end
+					if minion.pos:DistanceTo(myHero.pos) < 1300 and HasBuff(minion, "BlindMonkQOne") then
+						Control.CastSpell(HK_Q)
+					end 
+				end
+			end
+			
+			if self.Menu.Jsteal.Herald:Value() and Ready(_Q) then
+				if minion.charName == "SRU_RiftHerald" and Damage > minion.health then
+					if minion.pos:DistanceTo(myHero.pos) < 1200 then
+						Control.CastSpell(HK_Q, minion.pos)
+					end
+					if minion.pos:DistanceTo(myHero.pos) < 1300 and HasBuff(minion, "BlindMonkQOne") then
+						Control.CastSpell(HK_Q)
+					end 
+				end
+			end
+			
+			if self.Menu.Jsteal.Baron:Value() and Ready(_Q) then
+				if minion.charName == "SRU_Baron" and Damage > minion.health then
+					if minion.pos:DistanceTo(myHero.pos) < 1200 then
+						Control.CastSpell(HK_Q, minion.pos)
+					end
+					if minion.pos:DistanceTo(myHero.pos) < 1300 and HasBuff(minion, "BlindMonkQOne") then
+						Control.CastSpell(HK_Q)
+					end 
+				end
+			end
+		end
+	end
+	end
+	self:FleeW()
+end
+
+function LeeSin:FleeW()
+local target = GetTarget(800)     	
+if target == nil then return end
+for i, ally in pairs(GetAllyHeroes()) do	
+local QDmg = getdmg("Q", target, myHero)
+local EDmg = getdmg("E", target, myHero)
+local RDmg = getdmg("R", target, myHero)
+local Damage = (QDmg+EDmg+RDmg)		
+	if IsValid(target,800) then
+		if EnemiesAround(myHero, 800) == 1 then	
+			if target.health > Damage and Ready(_W) then
+				if IsValid(ally) then
+						if EnemiesAround(ally, 500) == 0 and myHero.pos:DistanceTo(ally.pos) <= 700 then
+							Control.CastSpell(HK_W, ally)
+						end
+					end
+				end
+			end
+		end
+		if EnemiesAround(myHero, 800) >= 2 then
+			if IsValid(ally) then
+				if EnemiesAround(ally, 500) == 0 and myHero.pos:DistanceTo(ally.pos) <= 700 then
+					Control.CastSpell(HK_W, ally)
+				end
+			end
+		end
+	end
+end
+
+
+
+function LeeSin:KillSteal()
+	local target = GetTarget(1500)     	
+	if target == nil then return end
+	local hp = target.health
+	local QDmg = getdmg("Q", target, myHero)
+	local EDmg = getdmg("E", target, myHero)
+	local RDmg = getdmg("R", target, myHero) 
+	local QRDmg = (QDmg + RDmg)
+
+	if IsValid(target,1500) then
+		
+		if self.Menu.ks.UseQR:Value() and Ready(_Q) and Ready(_R) and QRDmg >= hp then
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 1200 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end
+			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
+				Control.CastSpell(HK_Q)
+			end	
+		end
+		
+		if self.Menu.ks.UseQ:Value() and Ready(_Q) and QDmg >= hp then
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 1200 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end
+			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
+				Control.CastSpell(HK_Q)
+			end	
+		end
+		
+		if self.Menu.ks.UseE:Value() and Ready(_E) then
+			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 350 then
+				Control.CastSpell(HK_E)
+			end
+			if myHero:GetSpellData(_E).name == "BlindMonkETwo" and myHero.pos:DistanceTo(target.pos) <= 500 then
+				Control.CastSpell(HK_E)
+			end
+		end
+		
+		if self.Menu.ks.UseR:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) <= 375 then
+			if RDmg >= hp then
+				Control.CastSpell(HK_R, target)
+			end
+		end
+	end
+end	
+
+
+
+
+
+
+
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -14322,6 +14855,12 @@ local DamageLibTable = {
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 100, 120})[level] + (0.4 * source.ap) + (0.02 * source.maxMana) end},
     {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({40, 50, 60})[level] + (0.1 * source.ap) + (0.01 * source.maxMana) end},
   },
+	
+	["LeeSin"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({100, 150, 200, 250, 300})[level] + 2 * source.bonusDamage + 0.01 * (target.maxHealth - target.health) end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 120, 160, 200, 240})[level] + source.bonusDamage end},
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({150, 375, 600})[level] + 2 * source.bonusDamage end},
+  },  
   
 	["Lux"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 115, 160, 205, 250})[level] + 0.7 * source.ap end},
@@ -14533,7 +15072,7 @@ function CalPhysicalDamage(source, target, amount)
   local ArmorPenFlat = (0.4 + target.levelData.lvl / 30) * source.armorPen
   local BonusArmorPen = source.bonusArmorPenPercent
 
-  if source.type == Obj_AImath.minion then
+  if source.type == Obj_AI_Minion then
     ArmorPenPercent = 1
     ArmorPenFlat = 0
     BonusArmorPen = 1
@@ -14548,7 +15087,7 @@ function CalPhysicalDamage(source, target, amount)
   end
 
   if source.type == Obj_AI_Turret then
-    if target.type == Obj_AImath.minion then
+    if target.type == Obj_AI_Minion then
       amount = amount * 1.25
       if string.ends(target.charName, "MinionSiege") then
         amount = amount * 0.7
