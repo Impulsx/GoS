@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 5.9
+    local Version = 6.0
     
     local Files = {
         Lua = {
@@ -4438,7 +4438,7 @@ function LeeSin:LoadMenu()
 
 	--AutoW 
 	self.Menu:MenuElement({type = MENU, id = "AutoW", leftIcon = Icons["AutoW"]})
-	self.Menu.AutoW:MenuElement({id = "UseW", name = "Safe Ally", value = true})
+	self.Menu.AutoW:MenuElement({id = "UseW", name = "Safe Ally/Self", value = true})
 	self.Menu.AutoW:MenuElement({id = "Heal", name = "min Hp Self or Ally", value = 30, min = 0, max = 100, identifier = "%"})	
 
 	--AutoR
@@ -4596,26 +4596,28 @@ local pred = GetGamsteronPrediction(target, QData, myHero)
 end
 
 function LeeSin:SafePos(target)
-local QDmg = getdmg("Q", target, myHero)
+local QDmg = getdmg("Q", target, myHero)*2
 local EDmg = getdmg("E", target, myHero)
 local RDmg = getdmg("R", target, myHero)
 local Damage = (QDmg+EDmg+RDmg)	
 	if target.health > Damage and Ready(_W) and HasBuff(myHero, "BlindMonkQTwoDash") then
-		for i, ally in pairs(GetAllyHeroes()) do	
-			if IsValid(ally) then
-				if EnemiesAround(ally, 500) == 0 and myHero.pos:DistanceTo(ally.pos) <= 700 then
-					Control.CastSpell(HK_W, ally)
+		if GetAllyCount(800, myHero) == 0 and target.health > myHero.health then
+			for i, ally in pairs(GetAllyHeroes()) do	
+				if IsValid(ally) then
+					if EnemiesAround(ally, 500) == 0 and myHero.pos:DistanceTo(ally.pos) <= 700 then
+						Control.CastSpell(HK_W, ally)
+					end
 				end
 			end
-		end
-		for i = 1, Game.MinionCount() do 
-		local Minion = Game.Minion(i)
-			if IsValid(Minion, 800) and Minion.team == TEAM_ALLY then
-				if EnemiesAround(Minion, 500) == 0 and myHero.pos:DistanceTo(Minion.pos) <= 700 then
-					Control.CastSpell(HK_W, Minion)
+			for i = 1, Game.MinionCount() do 
+			local Minion = Game.Minion(i)
+				if IsValid(Minion, 800) and Minion.team == TEAM_ALLY then
+					if EnemiesAround(Minion, 500) == 0 and myHero.pos:DistanceTo(Minion.pos) <= 700 then
+						Control.CastSpell(HK_W, Minion)
+					end
 				end
-			end
-		end			
+			end	
+		end	
 	end
 end	
 
@@ -4725,10 +4727,10 @@ function LeeSin:Clear()
     local minion = Game.Minion(i)
 		if IsValid(minion, 1500) and minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
 			
-			if self.Menu.Clear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 1200 and myHero.pos:DistanceTo(minion.pos) >= 500 then
+			if self.Menu.Clear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 1200 and myHero.pos:DistanceTo(minion.pos) >= 500 and Ready(_Q) then
 				Control.CastSpell(HK_Q, minion.pos)
 			end	
-			if myHero.pos:DistanceTo(minion.pos) <= 1300 and HasBuff(minion, "BlindMonkQOne") then
+			if myHero.pos:DistanceTo(minion.pos) <= 1300 and HasBuff(minion, "BlindMonkQOne") and Ready(_Q) then
 				Control.CastSpell(HK_Q)
 			end
 			
@@ -4758,10 +4760,10 @@ function LeeSin:JungleClear()
     local minion = Game.Minion(i)	
 		if IsValid(minion, 1500) and minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
 			
-			if self.Menu.JClear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 1200 then
+			if self.Menu.JClear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 1200 and Ready(_Q) then
 				Control.CastSpell(HK_Q, minion.pos)
 			end	
-			if myHero.pos:DistanceTo(minion.pos) <= 1300 and myHero:GetSpellData(_Q).name == "BlindMonkQTwo" then
+			if myHero.pos:DistanceTo(minion.pos) <= 1300 and myHero:GetSpellData(_Q).name == "BlindMonkQTwo" and Ready(_Q) then
 				Control.CastSpell(HK_Q)
 			end
 			
@@ -4879,10 +4881,10 @@ function LeeSin:KillSteal()
 	local target = GetTarget(1500)     	
 	if target == nil then return end
 	local hp = target.health
-	local QDmg = getdmg("Q", target, myHero)
+	local QDmg = getdmg("Q", target, myHero)*3
 	local EDmg = getdmg("E", target, myHero)
-	local RDmg = getdmg("R", target, myHero) 
-	local QRDmg = (QDmg + RDmg)
+	local RDmg = getdmg("R", target, myHero)
+	local QRDmg = QDmg + RDmg
 
 	if IsValid(target,1500) then
 		
@@ -4894,8 +4896,10 @@ function LeeSin:KillSteal()
 			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
 				Control.CastSpell(HK_Q)
 			end	
+			if myHero.pos:DistanceTo(target.pos) <= 350 and HasBuff(myHero, "BlindMonkQTwoDash") then
+				Control.CastSpell(HK_R, target)
+			end
 		end
-		
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) and QDmg >= hp then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if myHero.pos:DistanceTo(target.pos) <= 1200 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
