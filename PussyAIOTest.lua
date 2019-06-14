@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 7.2
+    local Version = 7.3
     
     local Files = {
         Lua = {
@@ -4759,20 +4759,24 @@ function LeeSin:Clear()
 						Control.CastSpell(HK_W, myHero)
 					end
 					if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
+						DelayAction(function()
 						Control.CastSpell(HK_W)
+						end, 1.8)
 					end
 				end 
-			end, 2)
+			end, 1.8)
 			DelayAction(function()
 				if Ready(_E) and self.Menu.Clear.UseE:Value() then
 					if GetMinionCount(350, myHero) >= self.Menu.Clear.UseEM:Value() then
 						Control.CastSpell(HK_E)
 					end
 					if GetMinionCount(500, myHero) >= self.Menu.Clear.UseEM:Value() and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
+						DelayAction(function()
 						Control.CastSpell(HK_E)
+						end, 1.8)
 					end	
 				end
-			end, 3)
+			end, 1)
 		end
 	end
 end
@@ -4793,20 +4797,24 @@ function LeeSin:JungleClear()
 					Control.CastSpell(HK_W, myHero)
 			
 					if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
+						DelayAction(function()
 						Control.CastSpell(HK_W)
+						end, 1.8)
 					end
 				end 
-			end, 2)
+			end, 1.8)
 			DelayAction(function()
 				if Ready(_E) and self.Menu.JClear.UseE:Value() then
 					if GetMinionCount(350, myHero) >= 1 then
 						Control.CastSpell(HK_E)
 					end
 					if GetMinionCount(500, myHero) >= 1 and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
+						DelayAction(function()
 						Control.CastSpell(HK_E)
+						end, 1.8)
 					end	
 				end
-			end, 3)
+			end, 1)
 		end
 	end
 end
