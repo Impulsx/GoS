@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 6.8
+    local Version = 6.9
     
     local Files = {
         Lua = {
@@ -4602,7 +4602,7 @@ end
 
 function LeeSin:AutoQ()
 local target = GetTarget(1500)     	
-if target == nil then return end	
+if target == nil or IsUnderTurret(target) then return end	
 local pred = GetGamsteronPrediction(target, QData, myHero)	
 	if IsValid(target,1500) and self.Menu.AutoQ.UseQ:Value() and Ready(_Q) then
 		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1200 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
@@ -4753,7 +4753,7 @@ function LeeSin:Clear()
 			if myHero.pos:DistanceTo(minion.pos) <= 1300 and HasBuff(minion, "BlindMonkQOne") and Ready(_Q) then
 				Control.CastSpell(HK_Q)
 			end
-			
+			DelayAction(function()
 			if self.Menu.Clear.UseW:Value() and Ready(_W) and MinionsNear(myHero,500) >= 1 then 
 				if myHero.health/myHero.maxHealth <= self.Menu.Clear.Heal:Value()/100 then
 					Control.CastSpell(HK_W, myHero)
@@ -4761,15 +4761,15 @@ function LeeSin:Clear()
 				if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
 					Control.CastSpell(HK_W)
 				end
-			end
-			
+			end end, 3)
+			DelayAction(function()
 			if Ready(_E) and self.Menu.Clear.UseE:Value() then
 				if GetMinionCount(350, myHero) >= self.Menu.Clear.UseEM:Value() then
 					Control.CastSpell(HK_E)
 				end
 				if GetMinionCount(500, myHero) >= self.Menu.Clear.UseEM:Value() and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
 					Control.CastSpell(HK_E)
-				end	
+				end	end, 3)
 			end 
 		end
 	end
@@ -4786,22 +4786,22 @@ function LeeSin:JungleClear()
 			if myHero.pos:DistanceTo(minion.pos) <= 1300 and myHero:GetSpellData(_Q).name == "BlindMonkQTwo" and Ready(_Q) then
 				Control.CastSpell(HK_Q)
 			end
-			
+			DelayAction(function()
 			if self.Menu.JClear.UseW:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) <= 500 then 
 				Control.CastSpell(HK_W, myHero)
 			
 				if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
 					Control.CastSpell(HK_W)
 				end
-			end
-			
+			end end, 3)
+			DelayAction(function()
 			if Ready(_E) and self.Menu.JClear.UseE:Value() then
 				if GetMinionCount(350, myHero) >= 1 then
 					Control.CastSpell(HK_E)
 				end
 				if GetMinionCount(500, myHero) >= 1 and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
 					Control.CastSpell(HK_E)
-				end	
+				end	end, 3)
 			end 
 		end
 	end
@@ -4907,28 +4907,29 @@ function LeeSin:KillSteal()
 	local QRDmg = QDmg + RDmg
 
 	if IsValid(target,1500) then
-		
-		if self.Menu.ks.UseQR:Value() and Ready(_Q) and Ready(_R) and QRDmg >= hp then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 1200 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
-				Control.CastSpell(HK_Q, pred.CastPosition)
+		if IsUnderTurret(target) then return end
+			if self.Menu.ks.UseQR:Value() and Ready(_Q) and Ready(_R) and QRDmg >= hp then
+				local pred = GetGamsteronPrediction(target, QData, myHero)
+				if myHero.pos:DistanceTo(target.pos) <= 1200 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+					Control.CastSpell(HK_Q, pred.CastPosition)
+				end
+				if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
+					Control.CastSpell(HK_Q)
+				end	
+				if myHero.pos:DistanceTo(target.pos) <= 350 and HasBuff(myHero, "BlindMonkQTwoDash") then
+					Control.CastSpell(HK_R, target)
+				end
 			end
-			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
-				Control.CastSpell(HK_Q)
-			end	
-			if myHero.pos:DistanceTo(target.pos) <= 350 and HasBuff(myHero, "BlindMonkQTwoDash") then
-				Control.CastSpell(HK_R, target)
+			if self.Menu.ks.UseQ:Value() and Ready(_Q) and QDmg >= hp then
+				local pred = GetGamsteronPrediction(target, QData, myHero)
+				if myHero.pos:DistanceTo(target.pos) <= 1200 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+					Control.CastSpell(HK_Q, pred.CastPosition)
+				end
+				if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
+					Control.CastSpell(HK_Q)
+				end	
 			end
-		end
-		if self.Menu.ks.UseQ:Value() and Ready(_Q) and QDmg >= hp then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 1200 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
-				Control.CastSpell(HK_Q, pred.CastPosition)
-			end
-			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
-				Control.CastSpell(HK_Q)
-			end	
-		end
+
 		
 		if self.Menu.ks.UseE:Value() and Ready(_E) then
 			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 350 then
@@ -12065,6 +12066,7 @@ function Warwick:Combo()
 		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, rRange, 0.1, 1800, 55, false)
         if self.Menu.ComboMode.UseR:Value() then
 			if myHero.pos:DistanceTo(target.pos) < rRange and hitRate and hitRate >= 1 then
+			if EnemiesAround(aimPosition, 500) > 1 then self:CastER(aimPosition) return end	
 				if aimPosition:To2D().onScreen then
 					Control.CastSpell(HK_R, aimPosition)
 					
@@ -12086,6 +12088,17 @@ function Warwick:Combo()
         end
     end
 end
+
+function Warwick:CastER(aimPosition)
+	if aimPosition:To2D().onScreen then
+		Control.CastSpell(HK_R, aimPosition)
+					
+	elseif not aimPosition:To2D().onScreen then	
+	local castPos = myHero.pos:Extended(aimPosition.pos, 1000)
+		Control.CastSpell(HK_R, castPos)
+	end	
+end
+
 
 function Warwick:Harass()
     if self.Menu.ComboMode.UseHYDRA:Value() and HasBuff(myHero, "Blood Hunt") and EnemyInRange(300) then
