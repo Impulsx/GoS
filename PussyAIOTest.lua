@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 6.9
+    local Version = 7.0
     
     local Files = {
         Lua = {
@@ -4754,23 +4754,25 @@ function LeeSin:Clear()
 				Control.CastSpell(HK_Q)
 			end
 			DelayAction(function()
-			if self.Menu.Clear.UseW:Value() and Ready(_W) and MinionsNear(myHero,500) >= 1 then 
-				if myHero.health/myHero.maxHealth <= self.Menu.Clear.Heal:Value()/100 then
-					Control.CastSpell(HK_W, myHero)
-				end
-				if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
-					Control.CastSpell(HK_W)
-				end
-			end end, 3)
+				if self.Menu.Clear.UseW:Value() and Ready(_W) and MinionsNear(myHero,500) >= 1 then 
+					if myHero.health/myHero.maxHealth <= self.Menu.Clear.Heal:Value()/100 then
+						Control.CastSpell(HK_W, myHero)
+					end
+					if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
+						Control.CastSpell(HK_W)
+					end
+				end 
+			end, 3)
 			DelayAction(function()
-			if Ready(_E) and self.Menu.Clear.UseE:Value() then
-				if GetMinionCount(350, myHero) >= self.Menu.Clear.UseEM:Value() then
-					Control.CastSpell(HK_E)
+				if Ready(_E) and self.Menu.Clear.UseE:Value() then
+					if GetMinionCount(350, myHero) >= self.Menu.Clear.UseEM:Value() then
+						Control.CastSpell(HK_E)
+					end
+					if GetMinionCount(500, myHero) >= self.Menu.Clear.UseEM:Value() and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
+						Control.CastSpell(HK_E)
+					end	
 				end
-				if GetMinionCount(500, myHero) >= self.Menu.Clear.UseEM:Value() and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
-					Control.CastSpell(HK_E)
-				end	end, 3)
-			end 
+			end, 3)
 		end
 	end
 end
@@ -4787,22 +4789,24 @@ function LeeSin:JungleClear()
 				Control.CastSpell(HK_Q)
 			end
 			DelayAction(function()
-			if self.Menu.JClear.UseW:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) <= 500 then 
-				Control.CastSpell(HK_W, myHero)
+				if self.Menu.JClear.UseW:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) <= 500 then 
+					Control.CastSpell(HK_W, myHero)
 			
-				if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
-					Control.CastSpell(HK_W)
-				end
-			end end, 3)
+					if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
+						Control.CastSpell(HK_W)
+					end
+				end 
+			end, 3)
 			DelayAction(function()
-			if Ready(_E) and self.Menu.JClear.UseE:Value() then
-				if GetMinionCount(350, myHero) >= 1 then
-					Control.CastSpell(HK_E)
+				if Ready(_E) and self.Menu.JClear.UseE:Value() then
+					if GetMinionCount(350, myHero) >= 1 then
+						Control.CastSpell(HK_E)
+					end
+					if GetMinionCount(500, myHero) >= 1 and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
+						Control.CastSpell(HK_E)
+					end	
 				end
-				if GetMinionCount(500, myHero) >= 1 and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
-					Control.CastSpell(HK_E)
-				end	end, 3)
-			end 
+			end, 3)
 		end
 	end
 end
