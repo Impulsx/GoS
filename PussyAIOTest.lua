@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 6.6
+    local Version = 6.7
     
     local Files = {
         Lua = {
@@ -7672,14 +7672,12 @@ function Soraka:LoadMenu()
   
 	--LaneClear Menu
 	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
-	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})		
-	self.Menu.Clear:MenuElement({id = "UseE", name = "[E]", value = true})  	
+	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})		  	
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
 	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})
 	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true})         	
-	self.Menu.JClear:MenuElement({id = "UseE", name = "[E]", value = true})
 	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
  
 	--KillSteal
@@ -7881,11 +7879,7 @@ function Soraka:Clear()
 			
 			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.Clear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
-			end	
-
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 1100 and self.Menu.Clear.UseE:Value() then
-				Control.CastSpell(HK_E, minion.pos)
-			end  
+			end	  
 		end
 	end
 end
@@ -7897,11 +7891,7 @@ function Soraka:JungleClear()
 		if IsValid(minion, 1200) and minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
 			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 800 and self.Menu.JClear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
-			end
-
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 1100 and self.Menu.JClear.UseE:Value() then
-				Control.CastSpell(HK_E, minion.pos)
-			end  
+			end 
 		end
 	end
 end
