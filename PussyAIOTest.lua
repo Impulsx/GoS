@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 6.5
+    local Version = 6.6
     
     local Files = {
         Lua = {
@@ -1086,7 +1086,7 @@ local function GetItemSlot(unit, id)
 end
 
 local function MyHeroReady()
-    return myHero.dead == false and Game.IsChatOpen() == false and BaseCheck() and (ExtLibEvade == nil or ExtLibEvade.Evading == false)
+    return myHero.dead == false and Game.IsChatOpen() == false and BaseCheck() and (ExtLibEvade == nil or ExtLibEvade.Evading == false) and IsRecalling() == false
 end
 
 
@@ -1990,7 +1990,7 @@ end
 
 
 function Ahri:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false and (ExtLibEvade == nil or ExtLibEvade.Evading == false) then
+	if MyHeroReady() then
 	self:KS()
 	self:CC()
 	self:AutoR()	
@@ -2576,7 +2576,7 @@ Type = _G.SPELLTYPE_CONE, Delay = 0.5, Radius = 80, Range = 825, Speed = 3200, C
 	end
 
 	function Cassiopeia:Tick()
-		if myHero.dead == false and Game.IsChatOpen() == false then
+		if MyHeroReady() then
 		local Mode = GetMode()
 			if Mode == "Combo" then
 				self:BlockAA()
@@ -3211,7 +3211,7 @@ function Ekko:LoadMenu()
 end
 
 function Ekko:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 		local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -3515,7 +3515,7 @@ function Kayle:LoadMenu()
 end
 
 function Kayle:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -3868,7 +3868,7 @@ function Kassadin:LoadMenu()
 end
 
 function Kassadin:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then	
+	if MyHeroReady() then
 	self:EscapeR()
 	self:OnBuff(myHero)
 	self:KillSteal()
@@ -4516,7 +4516,7 @@ function Lux:LoadMenu()
 end	
 
 function Lux:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false and IsRecalling() == false then
+	if MyHeroReady() then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -4976,7 +4976,7 @@ end
 function Malzahar:Tick()
 self:ActiveUlt()	
 if self:IsRCharging() then return end
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -5376,7 +5376,7 @@ function Morgana:LoadMenu()
 end                     
 
 function Morgana:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 		local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -5850,7 +5850,7 @@ function Neeko:LoadMenu()
 end
 
 function Neeko:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 	
 	local Mode = GetMode()
 		if Mode == "Combo" then
@@ -6676,7 +6676,7 @@ function Nidalee:LoadMenu()
 end
 
 function Nidalee:Tick()
-    if myHero.dead or Game.IsChatOpen() == true or IsRecalling() == true then return end
+if MyHeroReady() then
 	self:KillSteal()
 	local Mode = GetMode()
 	if Mode == "Combo" then
@@ -6688,6 +6688,7 @@ function Nidalee:Tick()
 	elseif Mode == "Flee" then
 		self:Flee()
 	end	
+end
 end
 
 function Nidalee:Qdmg(target)
@@ -7077,7 +7078,7 @@ function Rakan:LoadMenu()
 end
 
 function Rakan:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -7346,7 +7347,7 @@ function Ryze:LoadMenu()
 end
 
 function Ryze:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 	self:KS()
 	self:CC()
 
@@ -7704,7 +7705,7 @@ function Soraka:LoadMenu()
 end
 
 function Soraka:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
@@ -7990,7 +7991,7 @@ end
 
 
 function Sona:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			if self.Menu.Key.Combo:Value() then
@@ -8252,7 +8253,7 @@ function Sylas:LoadMenu()
 end
 
 function Sylas:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 	local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
@@ -10606,7 +10607,7 @@ function Tristana:LoadMenu()
 end
 
 function Tristana:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		if self.Menu.Combo.comboActive:Value() then
@@ -11042,7 +11043,7 @@ function Veigar:LoadMenu()
 end
 
 function Veigar:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		if self.Menu.Combo.comboActive:Value() then
@@ -11424,7 +11425,7 @@ function Warwick:LoadMenu()
 end
 
 function Warwick:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			if self.Menu.ComboMode.comboActive:Value() then
@@ -12273,7 +12274,7 @@ function Xerath:Tick()
             Control.SetCursorPos(castSpell.mouse)
             castSpell.state = 0
     end
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 
 	
 	if Xerath:GetMode() == "Combo" then   
@@ -13378,7 +13379,7 @@ function XinZhao:LoadMenu()
 end
 
 function XinZhao:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
@@ -13616,7 +13617,7 @@ function Yuumi:LoadMenu()
 end
 
 function Yuumi:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
@@ -13952,7 +13953,7 @@ function Zyra:LoadMenu()
 end
 
 function Zyra:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
