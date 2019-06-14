@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 6.3
+    local Version = 6.4
     
     local Files = {
         Lua = {
@@ -100,11 +100,7 @@ require "2DGeometry"
 class "Start"
 
 function Start:__init()
-	self.AllyBase = nil; 
-	for i = 1, Game.ObjectCount() do
-		local base = Game.Object(i)
-		if base.isAlly and base.type == Obj_AI_SpawnPoint then self.AllyBase = base break end
-	end	
+	
 	Callback.Add("Draw", function() self:Draw() end)
 end
 
@@ -498,9 +494,7 @@ local function IsValid(unit)
     return false;
 end
 
-local function BaseCheck()
-    return myHero.pos:DistanceTo(self.AllyBase.pos) >= 800
-end 
+
 
 local function Ready(spell)
     return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
@@ -832,6 +826,21 @@ local function IsRecalling()
 	end 
 	return false
 end
+
+
+
+local function BaseCheck()
+	for i = 1, Game.ObjectCount() do
+		local base = Game.Object(i)
+		if base.type == Obj_AI_SpawnPoint then
+			if base.isAlly and myHero.pos:DistanceTo(base.pos) >= 800 then
+				return true
+			end
+		end
+	end	
+	return false	
+end			
+
 
 local function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
