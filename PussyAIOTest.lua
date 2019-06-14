@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 6.2
+    local Version = 6.3
     
     local Files = {
         Lua = {
@@ -101,8 +101,8 @@ class "Start"
 
 function Start:__init()
 	self.AllyBase = nil; 
-	for i = 1, GameObjectCount() do
-		local base = GameObject(i)
+	for i = 1, Game.ObjectCount() do
+		local base = Game.Object(i)
 		if base.isAlly and base.type == Obj_AI_SpawnPoint then self.AllyBase = base break end
 	end	
 	Callback.Add("Draw", function() self:Draw() end)
