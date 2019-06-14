@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 7.1
+    local Version = 7.2
     
     local Files = {
         Lua = {
@@ -4762,7 +4762,7 @@ function LeeSin:Clear()
 						Control.CastSpell(HK_W)
 					end
 				end 
-			end, 1)
+			end, 2)
 			DelayAction(function()
 				if Ready(_E) and self.Menu.Clear.UseE:Value() then
 					if GetMinionCount(350, myHero) >= self.Menu.Clear.UseEM:Value() then
@@ -4796,7 +4796,7 @@ function LeeSin:JungleClear()
 						Control.CastSpell(HK_W)
 					end
 				end 
-			end, 1)
+			end, 2)
 			DelayAction(function()
 				if Ready(_E) and self.Menu.JClear.UseE:Value() then
 					if GetMinionCount(350, myHero) >= 1 then
