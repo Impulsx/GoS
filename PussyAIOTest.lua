@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 6.1
+    local Version = 6.2
     
     local Files = {
         Lua = {
@@ -100,8 +100,12 @@ require "2DGeometry"
 class "Start"
 
 function Start:__init()
+	self.AllyBase = nil; 
+	for i = 1, GameObjectCount() do
+		local base = GameObject(i)
+		if base.isAlly and base.type == Obj_AI_SpawnPoint then self.AllyBase = base break end
+	end	
 	Callback.Add("Draw", function() self:Draw() end)
-
 end
 
 
@@ -494,11 +498,13 @@ local function IsValid(unit)
     return false;
 end
 
-local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
+local function BaseCheck()
+    return myHero.pos:DistanceTo(self.AllyBase.pos) >= 800
 end 
 
-
+local function Ready(spell)
+    return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
+end
 
 keybindings = { [ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6}
 local function GetInventorySlotItem(itemID)
@@ -1081,6 +1087,7 @@ class "Activator"
 function Activator:__init()
     self:LoadMenu()
 	self:OnLoad()
+
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:OnDraw() end)
 end
@@ -1226,7 +1233,8 @@ function Activator:LoadMenu()
 end
 
 function Activator:Tick()
-    self:Auto()
+if myHero.dead == false and Game.IsChatOpen() == false and BaseCheck() then  
+	self:Auto()
 	self:MyHero()
     self:Ally()
     self:Summoner()
@@ -1240,6 +1248,7 @@ function Activator:Tick()
 	end
 
 	
+end
 end
 
 local MarkTable = {
@@ -1377,29 +1386,27 @@ local target = GetTarget(800)
 if target == nil then return end	
 	if IsValid(target,800) then	
 		
-		--[[local smiteDmg = 20+8*myHero.levelData.lvl;
+		local smiteDmg = 20+8*myHero.levelData.lvl;
 		local SData = myHero:GetSpellData(mySmiteSlot);
 		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 and SData.name == SmiteNames[3] then
 			if SData.level > 0 then
 				if (SData.ammo > 0) then
-					for i = 1, Game.HeroCount() do
-						hero = Game.Hero(i);
-						if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) and target.health <= smiteDmg then
-							if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
-								Control.CastSpell(HK_SUMMONER_1,target)
-							end	
-							if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
-								Control.CastSpell(HK_SUMMONER_2,target)
-							end
+					if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) and target.health <= smiteDmg then
+						if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
+							Control.CastSpell(HK_SUMMONER_1,target)
+						end	
+						if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
+							Control.CastSpell(HK_SUMMONER_2,target)
 						end
 					end
 				end
 			end
-		end]]
+		end
+		
 		
 		
 		local SData = myHero:GetSpellData(mySmiteSlot);
-		if --[[self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 and]] SData.name == SmiteNames[3] then
+		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 and SData.name == SmiteNames[3] then
 			if SData.level > 0 then
 				if (SData.ammo > 0) then
 					if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) then
