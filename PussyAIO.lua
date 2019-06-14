@@ -6,19 +6,19 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 0.28
+    local Version = 6.6
     
     local Files = {
         Lua = {
             Path = SCRIPT_PATH,
-            Name = "PussyAIO.lua",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIO.lua"
+            Name = "PussyAIOTest.lua",
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIOTest.lua"
         },
         Version = {
             Path = SCRIPT_PATH,
-            Name = "PussyAIO.version",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIO.version"
-        }
+            Name = "PussyAIOTest.version",
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIOTest.version"
+        }	
     }
     
         local function DownloadFile(url, path, fileName)
@@ -100,8 +100,8 @@ require "2DGeometry"
 class "Start"
 
 function Start:__init()
+	
 	Callback.Add("Draw", function() self:Draw() end)
-
 end
 
 
@@ -496,9 +496,7 @@ end
 
 local function Ready(spell)
     return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
-end 
-
-
+end
 
 keybindings = { [ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6}
 local function GetInventorySlotItem(itemID)
@@ -827,6 +825,21 @@ local function IsRecalling()
 	return false
 end
 
+
+
+local function BaseCheck()
+	for i = 1, Game.ObjectCount() do
+		local base = Game.Object(i)
+		if base.type == Obj_AI_SpawnPoint then
+			if base.isAlly and myHero.pos:DistanceTo(base.pos) >= 800 then
+				return true
+			end
+		end
+	end	
+	return false	
+end			
+
+
 local function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
@@ -1071,6 +1084,13 @@ local function GetItemSlot(unit, id)
   end
   return 0
 end
+
+local function MyHeroReady()
+    return myHero.dead == false and Game.IsChatOpen() == false and BaseCheck() and (ExtLibEvade == nil or ExtLibEvade.Evading == false) and IsRecalling() == false
+end
+
+
+
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -1081,6 +1101,7 @@ class "Activator"
 function Activator:__init()
     self:LoadMenu()
 	self:OnLoad()
+
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:OnDraw() end)
 end
@@ -1226,7 +1247,8 @@ function Activator:LoadMenu()
 end
 
 function Activator:Tick()
-    self:Auto()
+if MyHeroReady() then  
+	self:Auto()
 	self:MyHero()
     self:Ally()
     self:Summoner()
@@ -1240,6 +1262,7 @@ function Activator:Tick()
 	end
 
 	
+end
 end
 
 local MarkTable = {
@@ -1379,45 +1402,41 @@ if target == nil then return end
 		
 		local smiteDmg = 20+8*myHero.levelData.lvl;
 		local SData = myHero:GetSpellData(mySmiteSlot);
-		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 and SData.name == SmiteNames[3] then
+		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 then
 			if SData.level > 0 then
 				if (SData.ammo > 0) then
-					for i = 1, Game.HeroCount() do
-						hero = Game.Hero(i);
-						if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) and target.health <= smiteDmg then
-							if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
-								Control.CastSpell(HK_SUMMONER_1,target)
-							end	
-							if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
-								Control.CastSpell(HK_SUMMONER_2,target)
-							end
+					if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) and target.health <= smiteDmg then
+						if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
+							Control.CastSpell(HK_SUMMONER_1,target)
+						end	
+						if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
+							Control.CastSpell(HK_SUMMONER_2,target)
 						end
 					end
 				end
 			end
 		end
+		
 		
 		
 		local SData = myHero:GetSpellData(mySmiteSlot);
-		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 and SData.name == SmiteNames[3] then
+		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 then
 			if SData.level > 0 then
 				if (SData.ammo > 0) then
-					for i = 1, Game.HeroCount() do
-						hero = Game.Hero(i);
-						if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) then
-							if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
-								Control.CastSpell(HK_SUMMONER_1,target)
-							end	
-							if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
-								Control.CastSpell(HK_SUMMONER_2,target)
-							end
+					if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) then
+						if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
+							Control.CastSpell(HK_SUMMONER_1,target)
+						end	
+						if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
+							Control.CastSpell(HK_SUMMONER_2,target)
 						end
 					end
 				end
 			end
 		end
-	end	
+	end
 end	
+
 
 
 function Activator:OnDraw()
@@ -1971,7 +1990,7 @@ end
 
 
 function Ahri:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false and (ExtLibEvade == nil or ExtLibEvade.Evading == false) then
+	if MyHeroReady() then
 	self:KS()
 	self:CC()
 	self:AutoR()	
@@ -2557,7 +2576,7 @@ Type = _G.SPELLTYPE_CONE, Delay = 0.5, Radius = 80, Range = 825, Speed = 3200, C
 	end
 
 	function Cassiopeia:Tick()
-		if myHero.dead == false and Game.IsChatOpen() == false then
+		if MyHeroReady() then
 		local Mode = GetMode()
 			if Mode == "Combo" then
 				self:BlockAA()
@@ -3192,7 +3211,7 @@ function Ekko:LoadMenu()
 end
 
 function Ekko:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 		local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -3496,7 +3515,7 @@ function Kayle:LoadMenu()
 end
 
 function Kayle:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -3849,7 +3868,7 @@ function Kassadin:LoadMenu()
 end
 
 function Kassadin:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then	
+	if MyHeroReady() then
 	self:EscapeR()
 	self:OnBuff(myHero)
 	self:KillSteal()
@@ -4497,7 +4516,7 @@ function Lux:LoadMenu()
 end	
 
 function Lux:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false and IsRecalling() == false then
+	if MyHeroReady() then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -4957,7 +4976,7 @@ end
 function Malzahar:Tick()
 self:ActiveUlt()	
 if self:IsRCharging() then return end
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -5357,7 +5376,7 @@ function Morgana:LoadMenu()
 end                     
 
 function Morgana:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 		local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -5831,7 +5850,7 @@ function Neeko:LoadMenu()
 end
 
 function Neeko:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 	
 	local Mode = GetMode()
 		if Mode == "Combo" then
@@ -6657,7 +6676,7 @@ function Nidalee:LoadMenu()
 end
 
 function Nidalee:Tick()
-    if myHero.dead or Game.IsChatOpen() == true or IsRecalling() == true then return end
+if MyHeroReady() then
 	self:KillSteal()
 	local Mode = GetMode()
 	if Mode == "Combo" then
@@ -6669,6 +6688,7 @@ function Nidalee:Tick()
 	elseif Mode == "Flee" then
 		self:Flee()
 	end	
+end
 end
 
 function Nidalee:Qdmg(target)
@@ -7058,7 +7078,7 @@ function Rakan:LoadMenu()
 end
 
 function Rakan:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -7327,7 +7347,7 @@ function Ryze:LoadMenu()
 end
 
 function Ryze:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 	self:KS()
 	self:CC()
 
@@ -7685,7 +7705,7 @@ function Soraka:LoadMenu()
 end
 
 function Soraka:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
@@ -7971,7 +7991,7 @@ end
 
 
 function Sona:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			if self.Menu.Key.Combo:Value() then
@@ -8233,7 +8253,7 @@ function Sylas:LoadMenu()
 end
 
 function Sylas:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 	local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
@@ -10587,7 +10607,7 @@ function Tristana:LoadMenu()
 end
 
 function Tristana:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		if self.Menu.Combo.comboActive:Value() then
@@ -11023,7 +11043,7 @@ function Veigar:LoadMenu()
 end
 
 function Veigar:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		if self.Menu.Combo.comboActive:Value() then
@@ -11405,7 +11425,7 @@ function Warwick:LoadMenu()
 end
 
 function Warwick:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			if self.Menu.ComboMode.comboActive:Value() then
@@ -12254,7 +12274,7 @@ function Xerath:Tick()
             Control.SetCursorPos(castSpell.mouse)
             castSpell.state = 0
     end
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	if MyHeroReady() then
 
 	
 	if Xerath:GetMode() == "Combo" then   
@@ -13359,7 +13379,7 @@ function XinZhao:LoadMenu()
 end
 
 function XinZhao:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
@@ -13597,7 +13617,7 @@ function Yuumi:LoadMenu()
 end
 
 function Yuumi:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
@@ -13933,7 +13953,7 @@ function Zyra:LoadMenu()
 end
 
 function Zyra:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false then
+if MyHeroReady() then
 local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
