@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 6.4
+    local Version = 6.5
     
     local Files = {
         Lua = {
@@ -493,8 +493,6 @@ local function IsValid(unit)
     end
     return false;
 end
-
-
 
 local function Ready(spell)
     return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
@@ -1086,6 +1084,13 @@ local function GetItemSlot(unit, id)
   end
   return 0
 end
+
+local function MyHeroReady()
+    return myHero.dead == false and Game.IsChatOpen() == false and BaseCheck() and (ExtLibEvade == nil or ExtLibEvade.Evading == false)
+end
+
+
+
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -1242,7 +1247,7 @@ function Activator:LoadMenu()
 end
 
 function Activator:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false and BaseCheck() then  
+if MyHeroReady() then  
 	self:Auto()
 	self:MyHero()
     self:Ally()
@@ -1397,7 +1402,7 @@ if target == nil then return end
 		
 		local smiteDmg = 20+8*myHero.levelData.lvl;
 		local SData = myHero:GetSpellData(mySmiteSlot);
-		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 and SData.name == SmiteNames[3] then
+		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 then
 			if SData.level > 0 then
 				if (SData.ammo > 0) then
 					if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) and target.health <= smiteDmg then
@@ -1415,7 +1420,7 @@ if target == nil then return end
 		
 		
 		local SData = myHero:GetSpellData(mySmiteSlot);
-		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 and SData.name == SmiteNames[3] then
+		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 then
 			if SData.level > 0 then
 				if (SData.ammo > 0) then
 					if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) then
