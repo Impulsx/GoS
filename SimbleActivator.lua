@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.13
+    local Version = 0.14
     
     local Files =
     {
@@ -190,6 +190,10 @@ function CastSpellMM(spell,pos,range,delay)
 	end
 end
 
+local function MyHeroReady()
+    return myHero.dead == false and Game.IsChatOpen() == false and BaseCheck() and (ExtLibEvade == nil or ExtLibEvade.Evading == false) and IsRecalling() == false
+end
+
 function Activator:__init()
     self:LoadMenu()
 	self:OnLoad()
@@ -339,7 +343,8 @@ end
 
 
 function Activator:Tick()
-    self:Auto()
+if MyHeroReady() then    
+	self:Auto()
 	self:MyHero()
     self:Ally()
     self:Summoner()
@@ -350,6 +355,7 @@ function Activator:Tick()
 	if Mode == "Combo" then
 	self:Target()
 	end
+end
 end
 
 local MarkTable = {
@@ -469,12 +475,14 @@ if mySmiteSlot == 0 then return end
 	end 		
 for i, target in pairs(GetEnemyHeroes()) do
 	if target == nil then return end	
-	if IsValid(target) then	
+	
 		
 	local smiteDmg = 20+8*myHero.levelData.lvl;
 	local SData = myHero:GetSpellData(mySmiteSlot);
+	
+	if IsValid(target,800) and SData.name == "S5_SummonerSmiteDuel" or SData.name == "S5_SummonerSmitePlayerGanker" then	
 		
-		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 and SData.name == SmiteNames[3] then
+		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 then
 			if SData.level > 0 then
 				if (SData.ammo > 0) then
 
@@ -493,7 +501,7 @@ for i, target in pairs(GetEnemyHeroes()) do
 		
 		
 
-		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 and SData.name == SmiteNames[3] then
+		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 then
 			if SData.level > 0 then
 				if (SData.ammo > 0) then
 
