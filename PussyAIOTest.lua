@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 7.3
+    local Version = 7.4
     
     local Files = {
         Lua = {
@@ -1398,10 +1398,11 @@ if mySmiteSlot == 0 then return end
 		end 		
 local target = GetTarget(800)
 if target == nil then return end	
-	if IsValid(target,800) then	
+local smiteDmg = 20+8*myHero.levelData.lvl;
+local SData = myHero:GetSpellData(mySmiteSlot);	
+	if IsValid(target,800) and SData.name == "S5_SummonerSmiteDuel" or "S5_SummonerSmitePlayerGanker" then	
 		
-		local smiteDmg = 20+8*myHero.levelData.lvl;
-		local SData = myHero:GetSpellData(mySmiteSlot);
+
 		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 then
 			if SData.level > 0 then
 				if (SData.ammo > 0) then
@@ -4611,42 +4612,16 @@ local pred = GetGamsteronPrediction(target, QData, myHero)
 		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
 			Control.CastSpell(HK_Q)
 		end	
-		self:SafePos(target)
 	end
 end
 
-function LeeSin:SafePos(target)
-local QDmg = getdmg("Q", target, myHero)*2
-local EDmg = getdmg("E", target, myHero)
-local RDmg = getdmg("R", target, myHero)
-local Damage = (QDmg+EDmg+RDmg)	
-	if target.health > Damage and Ready(_W) and HasBuff(myHero, "BlindMonkQTwoDash") then
-		if GetAllyCount(800, myHero) == 0 and target.health > myHero.health then
-			for i, ally in pairs(GetAllyHeroes()) do	
-				if IsValid(ally) then
-					if EnemiesAround(ally, 500) == 0 and myHero.pos:DistanceTo(ally.pos) <= 700 then
-						Control.CastSpell(HK_W, ally)
-					end
-				end
-			end
-			for i = 1, Game.MinionCount() do 
-			local Minion = Game.Minion(i)
-				if IsValid(Minion, 800) and Minion.team == TEAM_ALLY then
-					if EnemiesAround(Minion, 500) == 0 and myHero.pos:DistanceTo(Minion.pos) <= 700 then
-						Control.CastSpell(HK_W, Minion)
-					end
-				end
-			end	
-		end	
-	end
-end	
 
 function LeeSin:AutoR()
 local target = GetTarget(1000)     	
 if target == nil then return end
 	if IsValid(target,1000) then
-		if self.Menu.AutoR.UseR:Value() and Ready(_R) then
-			if myHero.health/myHero.maxHealth <= self.Menu.AutoR.Heal:Value()/100 and myHero.pos:DistanceTo(target.pos) <= 375 then
+		if self.Menu.AutoR.UseR:Value() and Ready(_R) and myHero.health/myHero.maxHealth <= self.Menu.AutoR.Heal:Value()/100 then
+			if myHero.pos:DistanceTo(target.pos) <= 375 then
 				Control.CastSpell(HK_R, target)
 			end
 			local pred = GetGamsteronPrediction(target, QData, myHero)
@@ -4707,8 +4682,6 @@ if target == nil then return end
 				Control.CastSpell(HK_E)
 			end	
 		end
-		
-		self:SafePos(target)
 	end	
 end	
 
@@ -4737,14 +4710,14 @@ if target == nil then return end
 				Control.CastSpell(HK_E)
 			end	
 		end
-		
-		self:SafePos(target)
 	end	
 end	
 
 function LeeSin:Clear()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
+	local passiveBuff = GetBuffData(myHero,"blindmonkpassive_cosmetic")	
+		
 		if IsValid(minion, 1500) and minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then					
 			
 			if self.Menu.Clear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 1200 and myHero.pos:DistanceTo(minion.pos) >= 500 and Ready(_Q) then
@@ -4753,30 +4726,28 @@ function LeeSin:Clear()
 			if myHero.pos:DistanceTo(minion.pos) <= 1300 and HasBuff(minion, "BlindMonkQOne") and Ready(_Q) then
 				Control.CastSpell(HK_Q)
 			end
-			DelayAction(function()
-				if self.Menu.Clear.UseW:Value() and Ready(_W) and MinionsNear(myHero,500) >= 1 then 
-					if myHero.health/myHero.maxHealth <= self.Menu.Clear.Heal:Value()/100 then
-						Control.CastSpell(HK_W, myHero)
-					end
-					if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
-						DelayAction(function()
-						Control.CastSpell(HK_W)
-						end, 1.8)
-					end
-				end 
-			end, 1.8)
-			DelayAction(function()
-				if Ready(_E) and self.Menu.Clear.UseE:Value() then
-					if GetMinionCount(350, myHero) >= self.Menu.Clear.UseEM:Value() then
-						Control.CastSpell(HK_E)
-					end
-					if GetMinionCount(500, myHero) >= self.Menu.Clear.UseEM:Value() and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
-						DelayAction(function()
-						Control.CastSpell(HK_E)
-						end, 1.8)
-					end	
+
+			if  passiveBuff.count == 1 then return end
+			if self.Menu.Clear.UseW:Value() and Ready(_W) and MinionsNear(myHero,500) >= 1 then 
+				if myHero.health/myHero.maxHealth <= self.Menu.Clear.Heal:Value()/100 then
+					Control.CastSpell(HK_W, myHero)
 				end
-			end, 1)
+				if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
+						Control.CastSpell(HK_W)
+
+				end
+			end 
+
+
+			if Ready(_E) and self.Menu.Clear.UseE:Value() then
+				if GetMinionCount(350, myHero) >= self.Menu.Clear.UseEM:Value() then
+					Control.CastSpell(HK_E)
+				end
+				if GetMinionCount(500, myHero) >= self.Menu.Clear.UseEM:Value() and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
+					Control.CastSpell(HK_E)
+
+				end	
+			end
 		end
 	end
 end
@@ -4784,6 +4755,8 @@ end
 function LeeSin:JungleClear()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)	
+	local passiveBuff = GetBuffData(myHero,"blindmonkpassive_cosmetic")	
+		
 		if IsValid(minion, 1500) and minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
 			
 			if self.Menu.JClear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 1200 and Ready(_Q) then
@@ -4792,29 +4765,27 @@ function LeeSin:JungleClear()
 			if myHero.pos:DistanceTo(minion.pos) <= 1300 and myHero:GetSpellData(_Q).name == "BlindMonkQTwo" and Ready(_Q) then
 				Control.CastSpell(HK_Q)
 			end
-			DelayAction(function()
-				if self.Menu.JClear.UseW:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) <= 500 then 
-					Control.CastSpell(HK_W, myHero)
 			
-					if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
-						DelayAction(function()
-						Control.CastSpell(HK_W)
-						end, 1.8)
-					end
-				end 
-			end, 1.8)
-			DelayAction(function()
-				if Ready(_E) and self.Menu.JClear.UseE:Value() then
-					if GetMinionCount(350, myHero) >= 1 then
-						Control.CastSpell(HK_E)
-					end
-					if GetMinionCount(500, myHero) >= 1 and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
-						DelayAction(function()
-						Control.CastSpell(HK_E)
-						end, 1.8)
-					end	
+			if  passiveBuff.count == 1 then return end
+			if self.Menu.JClear.UseW:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) <= 500 then 
+				Control.CastSpell(HK_W, myHero)
+			
+				if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
+					Control.CastSpell(HK_W)
+
 				end
-			end, 1)
+			end 
+
+
+			if Ready(_E) and not Ready(_W) and self.Menu.JClear.UseE:Value() then
+				if GetMinionCount(350, myHero) >= 1 then
+					Control.CastSpell(HK_E)
+				end
+				if GetMinionCount(500, myHero) >= 1 and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
+					Control.CastSpell(HK_E)
+	
+				end	
+			end
 		end
 	end
 end
@@ -4838,14 +4809,14 @@ local minionlist = {}
 	for i, minion in pairs(minionlist) do
 	if minion == nil then return end	
 	if (myHero:GetSpellData(SUMMONER_1).name == "SummonerSmite" and Ready(SUMMONER_1) or myHero:GetSpellData(SUMMONER_2).name == "SummonerSmite" and Ready(SUMMONER_2)) then	
-		local Damage = (SmiteDamage[myHero.levelData.lvl] + getdmg("Q", minion, myHero))	
+	local Damage = (SmiteDamage[myHero.levelData.lvl] + getdmg("Q", minion, myHero))	
 		if self.Menu.Jsteal.Active:Value() then	
 			if self.Menu.Jsteal.Dragon:Value() and Ready(_Q) then
 				if JungleTable[minion.charName] and Damage > minion.health then
 					if minion.pos:DistanceTo(myHero.pos) < 1200 then
 						Control.CastSpell(HK_Q, minion.pos)
 					end
-					if minion.pos:DistanceTo(myHero.pos) < 1300 and HasBuff(minion, "BlindMonkQOne") then
+					if minion.pos:DistanceTo(myHero.pos) < 1300 and myHero:GetSpellData(_Q).name == "BlindMonkQTwo" then
 						Control.CastSpell(HK_Q)
 					end 
 				end
@@ -4856,7 +4827,7 @@ local minionlist = {}
 					if minion.pos:DistanceTo(myHero.pos) < 1200 then
 						Control.CastSpell(HK_Q, minion.pos)
 					end
-					if minion.pos:DistanceTo(myHero.pos) < 1300 and HasBuff(minion, "BlindMonkQOne") then
+					if minion.pos:DistanceTo(myHero.pos) < 1300 and myHero:GetSpellData(_Q).name == "BlindMonkQTwo" then
 						Control.CastSpell(HK_Q)
 					end 
 				end
@@ -4867,15 +4838,16 @@ local minionlist = {}
 					if minion.pos:DistanceTo(myHero.pos) < 1200 then
 						Control.CastSpell(HK_Q, minion.pos)
 					end
-					if minion.pos:DistanceTo(myHero.pos) < 1300 and HasBuff(minion, "BlindMonkQOne") then
+					if minion.pos:DistanceTo(myHero.pos) < 1300 and myHero:GetSpellData(_Q).name == "BlindMonkQTwo" then
 						Control.CastSpell(HK_Q)
 					end 
 				end
 			end
+		self:FleeW()	
 		end
 	end
 	end
-	self:FleeW()
+	
 end
 
 function LeeSin:FleeW()
@@ -12078,7 +12050,7 @@ function Warwick:Combo()
 		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, rRange, 0.1, 1800, 55, false)
         if self.Menu.ComboMode.UseR:Value() then
 			if myHero.pos:DistanceTo(target.pos) < rRange and hitRate and hitRate >= 1 then
-			if EnemiesAround(aimPosition, 500) > 1 then self:CastER(aimPosition) return end	
+			if EnemiesAround(target, 500) >= 2 then self:CastER(target) return end	
 				if aimPosition:To2D().onScreen then
 					Control.CastSpell(HK_R, aimPosition)
 					
@@ -12101,13 +12073,35 @@ function Warwick:Combo()
     end
 end
 
-function Warwick:CastER(aimPosition)
-	if aimPosition:To2D().onScreen then
-		Control.CastSpell(HK_R, aimPosition)
+function Warwick:CastER(target)
+local rRange = 2.5 * myHero.ms  
+	if HasBuff(myHero, "Primal Howl") then
+		if myHero.pos:DistanceTo(target) < 150 then
+			Control.CastSpell(HK_E)
+		end
+	end	
+	
+	if self:CanCast(_E) then 
+		if not HasBuff(myHero, "Primal Howl") then
+			Control.CastSpell(HK_E)
+		end
+	end
+	
+	
+	local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, rRange, 0.1, 1800, 55, false)
+	if hitRate and hitRate >= 1 then	
+		if aimPosition:To2D().onScreen then
+			Control.CastSpell(HK_R, aimPosition)
 					
-	elseif not aimPosition:To2D().onScreen then	
-	local castPos = myHero.pos:Extended(aimPosition.pos, 1000)
-		Control.CastSpell(HK_R, castPos)
+		elseif not aimPosition:To2D().onScreen then	
+		local castPos = myHero.pos:Extended(aimPosition.pos, 1000)
+			Control.CastSpell(HK_R, castPos)
+		end
+	end
+	if HasBuff(myHero, "Primal Howl") then
+		if myHero.pos:DistanceTo(target) < 150 then
+			Control.CastSpell(HK_E)
+		end
 	end	
 end
 
@@ -16272,4 +16266,3 @@ function HPred:GetDistance(p1, p2)
 	end
 	return math.sqrt(self:GetDistanceSqr(p1, p2))
 end
-
