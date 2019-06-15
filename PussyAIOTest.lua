@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
     
-    local Version = 7.4
+    local Version = 7.5
     
     local Files = {
         Lua = {
@@ -1400,7 +1400,7 @@ local target = GetTarget(800)
 if target == nil then return end	
 local smiteDmg = 20+8*myHero.levelData.lvl;
 local SData = myHero:GetSpellData(mySmiteSlot);	
-	if IsValid(target,800) and SData.name == "S5_SummonerSmiteDuel" or "S5_SummonerSmitePlayerGanker" then	
+	if IsValid(target,800) and SData.name == "S5_SummonerSmiteDuel" or SData.name == "S5_SummonerSmitePlayerGanker" then	
 		
 
 		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 then
