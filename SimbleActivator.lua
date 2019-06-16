@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.15
+    local Version = 0.16
     
     local Files =
     {
@@ -365,7 +365,7 @@ end
 
 
 function Activator:Tick()
-if MyHeroReady() then    
+  
 	self:Auto()
 	self:MyHero()
     self:Ally()
@@ -377,7 +377,7 @@ if MyHeroReady() then
 	if Mode == "Combo" then
 	self:Target()
 	end
-end
+
 end
 
 local MarkTable = {
@@ -856,7 +856,7 @@ if (myPotTicks + 1000 < GetTickCount()) and self.Menu.Healing.Enabled:Value() th
 			end
 		end
 	end	
-	if (currentlyDrinkingPotion == false) and myHero.health/myHero.maxHealth <= self.Menu.Healing.UsePotsPercent:Value()/100 then
+	if (currentlyDrinkingPotion == false) and myHero.health/myHero.maxHealth <= self.Menu.Healing.UsePotsPercent:Value()/100 and MyHeroReady() then
 		if HealthPotionSlot and self.Menu.Healing.UsePots:Value() then
 			Control.CastSpell(ItemHotKey[HealthPotionSlot])
 		end
