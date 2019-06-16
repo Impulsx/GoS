@@ -5,8 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
 
-    
-    local Version = 7.5
+    local Version = 7.6
     
     local Files = {
         Lua = {
@@ -8708,8 +8707,8 @@ function Sylas:LoadMenu()
 	---------------------------------------------------------------------------------------------------------------------------------
 	--UltSettings
 	self.Menu.Combo:MenuElement({type = MENU, id = "Set", name = "Ult Settings"})
-	--Tranformation Ults
-	self.Menu.Combo.Set:MenuElement({id = "Trans", name = "Use Tranform Ults[inWork]", value = false})								
+	--SkillShot+E Ults
+	self.Menu.Combo.Set:MenuElement({id = "UltE", name = "Auto E+E2+SkillShotUlt", key = string.byte("T")})								
 	--Heal+Shield Ults
 	self.Menu.Combo.Set:MenuElement({id = "Heal", name = "Use HEAL+Shield Ults", value = true})   								
 	self.Menu.Combo.Set:MenuElement({id = "HP", name = "MinHP Heal+Shield", value = 30, min = 0, max = 100, identifier = "%"})	
@@ -8770,6 +8769,7 @@ if MyHeroReady() then
 		self:HealShieldUlt()
 		self:AoeUlt()
 		self:KsUlt()
+		
 		end
 									--131 champs added  
 	elseif Mode == "Harass" then
@@ -8796,7 +8796,9 @@ if MyHeroReady() then
 	elseif Mode == "Flee" then
 		
 	end	
-	
+	if self.Menu.Combo.Set.UltE:Value() then
+	self:EUlt()
+	end
 	self:KillSteal()	
 
 	   				
@@ -8819,7 +8821,37 @@ if MyHeroReady() then
 end 
 end
  
-
+function Sylas:EUlt()
+local target = GetTarget(3500)
+if target == nil then return end
+	if IsValid(target,3500) and (myHero:GetSpellData(_R).name == "LuxMaliceCannon") then
+		
+		if myHero.pos:DistanceTo(target.pos) <= 800 then	
+			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
+			if hitRate and hitRate >= 1 and myHero:GetSpellData(_E).name == "SylasE2" then
+				Control.CastSpell(HK_E, aimPosition)
+			end
+		end
+		if myHero.pos:DistanceTo(target.pos) <= 3500 and IsImmobileTarget(target) then		
+			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 1, math.huge, 120, false)
+			if hitRate and hitRate >= 1 then
+				if aimPosition:To2D().onScreen then 		
+					Control.CastSpell(HK_R, aimPosition) 
+				
+				elseif not aimPosition:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(aimPosition, 1000)    
+					Control.CastSpell(HK_R, castPos)
+				end	
+			end
+		end			
+		
+		if  Ready(_E) then			
+			if myHero:GetSpellData(_E).name == "SylasE" and myHero.pos:DistanceTo(target.pos) < 1300 then
+				Control.CastSpell(HK_E, target.pos)
+			end
+		end
+	end
+end	
 
 function Sylas:Draw()
 local textPos = myHero.pos:To2D()
@@ -10848,30 +10880,23 @@ end
 
 
 function Sylas:Combo()
-	local target = GetTarget(1300)
-	if target == nil then return end
+local target = GetTarget(1300)
+if target == nil then return end
+local passiveBuff = GetBuffData(myHero,"SylasPassiveAttack")	
 	if IsValid(target,1300) then
-		if self.Menu.Combo.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 1200 and myHero.pos:DistanceTo(target.pos) > 400 then			
+		if myHero.pos:DistanceTo(target.pos) <= 800 and myHero:GetSpellData(_E).name == "SylasE2" then	
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
-			local EPos = myHero.pos:Shortened(target.pos, 400)
-			if hitRate and hitRate >= 2 then
-			Control.SetCursorPos(EPos)
-			Control.CastSpell(HK_E, aimPosition)
-			if myHero.pos:DistanceTo(target.pos) <= 800 then	
-				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
-				if hitRate and hitRate >= 2 then
-					Control.CastSpell(HK_E, aimPosition)
-				end	
-			end
-			end
-	
-		elseif self.Menu.Combo.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 400 then
-			Control.CastSpell(HK_E, target)	
-			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
-			if hitRate and hitRate >= 2 then
+			if hitRate and hitRate >= 1 then
 				Control.CastSpell(HK_E, aimPosition)
 			end	
-		end	
+		end
+		
+		if self.Menu.Combo.UseE:Value() and Ready(_E) then			
+			if myHero:GetSpellData(_E).name == "SylasE" and myHero.pos:DistanceTo(target.pos) < 1300 then
+				Control.CastSpell(HK_E, target.pos)
+			end
+		end
+		if passiveBuff.count == 1 and myHero.pos:DistanceTo(target.pos) < 400 then return end
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 775 then 	
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.radius, Q.collision)
 			if hitRate and hitRate >= 2 then
@@ -10888,28 +10913,26 @@ end
   		
 
 function Sylas:Harass()	
-	local target = GetTarget(1300)
-	if target == nil then return end
+local target = GetTarget(1300)
+if target == nil then return end
+local passiveBuff = GetBuffData(myHero,"SylasPassiveAttack")
+	
 	if IsValid(target,1300) and(myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 ) then
-		if self.Menu.Harass.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 1200 and myHero.pos:DistanceTo(target.pos) > 400 then			
-			local EPos = target.pos:Shortened((myHero.pos:DistanceTo(target.pos) - 400))
-			Control.SetCursorPos(EPos)
-			Control.KeyDown(HK_E)
-			Control.KeyUp(HK_E)
-			if myHero.pos:DistanceTo(target.pos) <= 800 then	
-				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
-				if hitRate and hitRate >= 2 then
-					Control.CastSpell(HK_E, aimPosition)
-				end
-			end
 		
-		elseif self.Menu.Harass.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 400 then
-			Control.CastSpell(HK_E, target)	
+		if myHero.pos:DistanceTo(target.pos) <= 800 and myHero:GetSpellData(_E).name == "SylasE2" then	
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
-			if hitRate and hitRate >= 2 then
+			if hitRate and hitRate >= 1 then
 				Control.CastSpell(HK_E, aimPosition)
+			end	
+		end	 	
+		
+		if self.Menu.Harass.UseE:Value() and Ready(_E) then			
+			if myHero:GetSpellData(_E).name == "SylasE" and myHero.pos:DistanceTo(target.pos) < 1300 then
+				Control.CastSpell(HK_E, target.pos)
 			end
-		end			
+		end
+		
+		if passiveBuff.count == 1 and myHero.pos:DistanceTo(target.pos) < 400 then return end	
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 775 then 	
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.radius, Q.collision)
 			if hitRate and hitRate >= 2 then
@@ -10927,23 +10950,22 @@ end
 function Sylas:Clear()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-
-
+	local passiveBuff = GetBuffData(myHero,"SylasPassiveAttack")
+		
 		if minion.team == TEAM_ENEMY and (myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 ) then			
+			if myHero.pos:DistanceTo(minion.pos) <= 800 and myHero:GetSpellData(_E).name == "SylasE2" then	
+				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, minion, E.range, E.delay, E.speed, E.radius, false)
+				if hitRate and hitRate >= 0 then
+					Control.CastSpell(HK_E, aimPosition)
+				end	
+			end			
+			
 			local count = GetMinionCount(225, minion)			
-			if IsValid(minion,1300) and Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 1200 and myHero.pos:DistanceTo(minion.pos) > 400 and self.Menu.Clear.UseE:Value() then
-				local EPos = minion.pos:Shortened((myHero.pos:DistanceTo(minion.pos) - 400))
-				Control.SetCursorPos(EPos)
-				Control.KeyDown(HK_E)
-				Control.KeyUp(HK_E)
-				if myHero.pos:DistanceTo(minion.pos) <= 800 then	
-					Control.CastSpell(HK_E, minion)
-				end
+			if IsValid(minion,1300) and Ready(_E) and self.Menu.Clear.UseE:Value() and myHero:GetSpellData(_E).name == "SylasE" and myHero.pos:DistanceTo(minion.pos) < 1300 then
+				Control.CastSpell(HK_E, minion)
+			end
 					
-			elseif IsValid(minion,400) and Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 400 and self.Menu.Clear.UseE:Value() then
-				Control.CastSpell(HK_E, minion)
-				Control.CastSpell(HK_E, minion)
-			end 			
+ 			if passiveBuff.count == 1 and myHero.pos:DistanceTo(minion.pos) < 400 then return end 
 			if IsValid(minion,775) and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 755 and self.Menu.Clear.UseQL:Value() and count >= self.Menu.Clear.UseQLM:Value() then
 				Control.CastSpell(HK_Q, minion)
 			end	
@@ -10958,21 +10980,22 @@ end
 function Sylas:JungleClear()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)	
-
+	local passiveBuff = GetBuffData(myHero,"SylasPassiveAttack")
+ 	
 		if minion.team == TEAM_JUNGLE and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then	
-			if IsValid(minion,1300) and Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 1200 and myHero.pos:DistanceTo(minion.pos) > 400 and self.Menu.JClear.UseE:Value() then
-				local EPos = minion.pos:Shortened((myHero.pos:DistanceTo(minion.pos) - 400))
-				Control.SetCursorPos(EPos)
-				Control.KeyDown(HK_E)
-				Control.KeyUp(HK_E)
-				if myHero.pos:DistanceTo(minion.pos) <= 800 then				
-					Control.CastSpell(HK_E, minion)
-				end
 			
-			elseif IsValid(minion,400) and Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 400 and self.Menu.JClear.UseE:Value() then
-				Control.CastSpell(HK_E, minion)
+			if myHero.pos:DistanceTo(minion.pos) <= 800 and myHero:GetSpellData(_E).name == "SylasE2" then	
+				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, minion, E.range, E.delay, E.speed, E.radius, false)
+				if hitRate and hitRate >= 0 then
+					Control.CastSpell(HK_E, aimPosition)
+				end	
+			end			
+						
+			if IsValid(minion,1300) and Ready(_E) and self.Menu.JClear.UseE:Value() and myHero:GetSpellData(_E).name == "SylasE" and myHero.pos:DistanceTo(minion.pos) < 1300 then
 				Control.CastSpell(HK_E, minion)
 			end			
+			
+			if passiveBuff.count == 1 and myHero.pos:DistanceTo(minion.pos) < 400 then return end
 			if IsValid(minion,775) and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 775 and self.Menu.JClear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion)
 			end
