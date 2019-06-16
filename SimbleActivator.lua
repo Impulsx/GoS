@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.14
+    local Version = 0.15
     
     local Files =
     {
@@ -189,6 +189,28 @@ function CastSpellMM(spell,pos,range,delay)
 		end
 	end
 end
+
+local function IsRecalling()
+	for i = 1, 63 do
+	local buff = myHero:GetBuff(i) 
+		if buff.count > 0 and buff.name == "recall" and Game.Timer() < buff.expireTime then
+			return true
+		end
+	end 
+	return false
+end
+
+local function BaseCheck()
+	for i = 1, Game.ObjectCount() do
+		local base = Game.Object(i)
+		if base.type == Obj_AI_SpawnPoint then
+			if base.isAlly and myHero.pos:DistanceTo(base.pos) >= 800 then
+				return true
+			end
+		end
+	end	
+	return false	
+end	
 
 local function MyHeroReady()
     return myHero.dead == false and Game.IsChatOpen() == false and BaseCheck() and (ExtLibEvade == nil or ExtLibEvade.Evading == false) and IsRecalling() == false
