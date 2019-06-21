@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
 
-    local Version = 7.9
+    local Version = 8.0
     
     local Files = {
         Lua = {
@@ -5285,8 +5285,9 @@ local minionlist = {}
 	
 	for i, minion in pairs(minionlist) do
 	if minion == nil then return end	
+	local RDamage = getdmg("R", minion, myHero)	
 		if self.Menu.Jsteal.Dragon:Value() and Ready(_R) then
-			local RDamage = self:DMGJng()
+			
 			if JungleTable[minion.charName] and RDamage > minion.health then
 				if minion.pos:To2D().onScreen then 		
 					Control.CastSpell(HK_R, minion.pos) 
@@ -5298,7 +5299,7 @@ local minionlist = {}
 			end
 		end
 		if self.Menu.Jsteal.Herald:Value() and Ready(_R) then
-			local RDamage = self:DMGJng()
+
 			if minion.charName == "SRU_RiftHerald" and RDamage > minion.health then
 				if minion.pos:To2D().onScreen then 		
 					Control.CastSpell(HK_R, minion.pos) 
@@ -5310,8 +5311,8 @@ local minionlist = {}
 			end
 		end
 		if self.Menu.Jsteal.Baron:Value() and Ready(_R) then
-			local RDamageBaron = self:DMGBaron()
-			if minion.charName == "SRU_Baron" and RDamageBaron > minion.health then
+			
+			if minion.charName == "SRU_Baron" and RDamage > minion.health then
 				if minion.pos:To2D().onScreen then 		
 					Control.CastSpell(HK_R, minion.pos) 
 				
@@ -6499,7 +6500,7 @@ function Mordekaiser:Clear()
 	local hp = minion.health
 	local QDmg = getdmg("Q", minion, myHero)
 	local EDmg = getdmg("E", minion, myHero)	
-		if minion.team == TEAM_ENEMY and IsValid(minion, 1000) then					
+		if GetMinionCount(1000, myHero) > 0 then					
 			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 675 and self.Menu.Clear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
 			end	
@@ -6513,7 +6514,7 @@ end
 function Mordekaiser:JClear()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-		if minion.team == TEAM_JUNGLE and IsValid(minion, 1000) then					
+		if minion.team == TEAM_JUNGLE then					
 			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 675 and self.Menu.JClear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
 			end	
