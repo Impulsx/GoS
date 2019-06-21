@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
 
-    local Version = 7.8
+    local Version = 7.9
     
     local Files = {
         Lua = {
@@ -519,7 +519,7 @@ local function GetTarget(range)
 	end
 	return target 
 end
-
+ 
 
 local function GetMode()
 	if Orb == 1 then
@@ -547,11 +547,13 @@ local function GetMode()
 			return "LastHit"
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
 			return "Flee"
-		end			
+		end	
+		
 	else
 		return GOS.GetMode()
 	end
-end	
+	return ""
+end
 
 local function SetAttack(bool)
 	if _G.EOWLoaded then
@@ -1775,17 +1777,10 @@ function Activator:Summoner()
     local MyHp = myHero.health/myHero.maxHealth
     local MyMp = GetPercentMP(myHero)
    
-	local Immobile = Cleans(myHero)
-    if self.Menu.summ.clean.self:Value() and Immobile then
-        if myHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) then
-            Control.CastSpell(HK_SUMMONER_1, myHero)
-        elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBoost" and Ready(SUMMONER_2) then
-            Control.CastSpell(HK_SUMMONER_2, myHero)
-        end
-    end    
+    
     
 	if target == nil then return end
-	if IsValid(target) then
+	if IsValid(target, 1000) then
         if self.Menu.summ.heal.self:Value() and MyHp <= self.Menu.summ.heal.selfhp:Value()/100 then
             if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and Ready(SUMMONER_1) then
                 Control.CastSpell(HK_SUMMONER_1, myHero)
@@ -1805,6 +1800,15 @@ function Activator:Summoner()
                 end
             end
         end
+		local Immobile = Cleans(myHero)
+		if self.Menu.summ.clean.self:Value() and Immobile then
+			if myHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) then
+				Control.CastSpell(HK_SUMMONER_1, myHero)
+			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBoost" and Ready(SUMMONER_2) then
+				Control.CastSpell(HK_SUMMONER_2, myHero)
+			end
+		end		
+		
         if self.Menu.summ.barr.self:Value() and MyHp <= self.Menu.summ.barr.selfhp:Value()/100 then
             if myHero:GetSpellData(SUMMONER_1).name == "SummonerBarrier" and Ready(SUMMONER_1) then
                 Control.CastSpell(HK_SUMMONER_1, myHero)
@@ -6279,11 +6283,10 @@ class "Mordekaiser"
 
 function Mordekaiser:__init()
 
-  if menu ~= 1 then return end
-  menu = 2   	
-  self:LoadMenu()                                            
-  Callback.Add("Tick", function() self:Tick() end)
-  Callback.Add("Draw", function() self:Draw() end) 
+	if menu ~= 1 then return end
+	menu = 2   	
+	self:LoadMenu()                                            
+ 
 	if _G.EOWLoaded then
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
@@ -6291,6 +6294,8 @@ function Mordekaiser:__init()
 	elseif _G.gsoSDK then
 		Orb = 4			
 	end
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)	
 end
 
 function Mordekaiser:LoadMenu()                     
@@ -6335,7 +6340,11 @@ function Mordekaiser:LoadMenu()
 	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
 	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	self.Menu.ks:MenuElement({id = "UseE", name = "[E]", value = true})			
-	self.Menu.ks:MenuElement({id = "UseR", name = "[R] FullDmg", value = true})
+	self.Menu.ks:MenuElement({id = "Targets", name = "Ult Settings", type = MENU})	
+	self.Menu.ks.Targets:MenuElement({id = "UseR", name = "[R] FullDmg", value = true})
+	for i, Hero in pairs(GetEnemyHeroes()) do
+		self.Menu.ks.Targets:MenuElement({id = Hero.charName, name = Hero.charName, value = true})		
+	end		
 	
 	--[[
 	--Prediction
@@ -6441,7 +6450,7 @@ function Mordekaiser:KillSteal()
 	
 			end
 		end
-		if self.Menu.ks.UseR:Value() and Ready(_R) and Ready(_E) and Ready(_Q) then
+		if self.Menu.ks.Targets.UseR:Value() and self.Menu.ks.Targets[target.charName] and self.Menu.ks.Targets[target.charName]:Value() and Ready(_R) and Ready(_E) and Ready(_Q) then
 			if (QDmg+EDmg)*3 >= hp and myHero.pos:DistanceTo(target.pos) <= 600 then
 				Control.CastSpell(HK_R, target.pos)
 	
