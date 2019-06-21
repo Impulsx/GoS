@@ -1,11 +1,11 @@
 local Heroes = {"Mordekaiser","LeeSin","Soraka","Lux","Yuumi","Rakan","Nidalee","Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
-local GsoPred = {"LeeSin","Soraka","Lux","Yuumi","Rakan","Nidalee","Ryze","Cassiopeia","Malzahar","Zyra","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
+local GsoPred = {"Mordekaiser","LeeSin","Soraka","Lux","Yuumi","Rakan","Nidalee","Ryze","Cassiopeia","Malzahar","Zyra","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
 
 if not table.contains(Heroes, myHero.charName) then return end
 
 
 
-    local Version = 8.1
+    local Version = 8.2
     
     local Files = {
         Lua = {
@@ -140,19 +140,15 @@ end
 local menu = 1
 local _OnWaypoint = {}
 local _OnVision = {}
-local TEAM_ALLY = myHero.team
-local TEAM_ENEMY = 300 - myHero.team
-local TEAM_JUNGLE = 300
+local TEAM_ALLY, TEAM_ENEMY, TEAM_JUNGLE = myHero.team, 300 - myHero.team, 300
 local Allies = {}; local Enemies = {}; local Turrets = {}; local Units = {}; local AllyHeroes = {}
 local intToMode = {[0] = "", [1] = "Combo", [2] = "Harass", [3] = "LastHit", [4] = "Clear"}
 local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
 local spellcast = {state = 1, mouse = mousePos}
 local ItemHotKey = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2,[ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6,}
 local Orb
-local barHeight = 8
-local barWidth = 103
-local barXOffset = 0
-local barYOffset = 0   
+local barHeight, barWidth, barXOffset, barYOffset = 8, 103, 0, 0
+ 
 
 local Icons = {
 ["Kassadin"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/PussyKassadinScriptLogo.png",
@@ -522,9 +518,7 @@ end
  
 
 local function GetMode()
-	if Orb == 1 then
-		return intToMode[EOW.CurrentMode]
-	elseif Orb == 2 then
+	if _G.SDK then
 		if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
 			return "Combo"
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
@@ -538,20 +532,6 @@ local function GetMode()
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
 			return "Flee"
 		end
-	elseif Orb == 4 then
-		if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
-			return "Combo"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
-			return "Harass"	
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] then
-			return "Clear"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
-			return "JungleClear"			
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] then
-			return "LastHit"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
-			return "Flee"
-		end	
 		
 	else
 		return GOS.GetMode()
@@ -6287,9 +6267,16 @@ class "Mordekaiser"
 
 
 function Mordekaiser:__init()
+	EData =
+	{
+	Type = _G.SPELLTYPE_LINE, Collision = false, Delay = 0.25, Radius = 180, Range = 700, Speed = 500
+	}
 
-	if menu ~= 1 then return end
-	menu = 2   	
+	QData =
+	{
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 400, Range = 675, Speed = 500, Collision = false
+	}
+  	
 	self:LoadMenu()                                            
  
 	if _G.EOWLoaded then
@@ -6302,6 +6289,8 @@ function Mordekaiser:__init()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)	
 end
+
+
 
 function Mordekaiser:LoadMenu()                     
 	--MainMenu
@@ -6351,11 +6340,11 @@ function Mordekaiser:LoadMenu()
 		self.Menu.ks.Targets:MenuElement({id = Hero.charName, name = Hero.charName, value = true})		
 	end		
 	
-	--[[
+	
 	--Prediction
 	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
 	self.Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})	
-	]]
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 
  
 	--Drawing 
@@ -6372,7 +6361,7 @@ function Mordekaiser:Tick()
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
-
+		
 		elseif Mode == "Harass" then
 			self:Harass()
 		elseif Mode == "Clear" then
@@ -6402,10 +6391,10 @@ function Mordekaiser:Draw()
     Draw.Circle(myHero, 900, 1, Draw.Color(225, 225, 125, 10))
 	end
 
-	--[[local textPos = myHero.pos:To2D()	
+	local textPos = myHero.pos:To2D()	
 	if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
-	end]]				
+	end				
 end	
 
 function Mordekaiser:AutoW()
@@ -6424,10 +6413,11 @@ end
 function Mordekaiser:AutoE()
 	local target = GetTarget(1000)     	
 	if target == nil then return end
+	local pred = GetGamsteronPrediction(target, EData, myHero)
 	if IsValid(target,1000) then 
 		if self.Menu.AutoE.UseE:Value() and Ready(_E) then
-			if IsUnderAllyTurret(myHero) and myHero.pos:DistanceTo(target.pos) < 900 then
-				Control.CastSpell(HK_E, target.pos)
+			if IsUnderAllyTurret(myHero) and myHero.pos:DistanceTo(target.pos) < 700 and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then
+				Control.CastSpell(HK_E, pred.CastPosition)
 			end
 		end
 	end
@@ -6444,14 +6434,16 @@ function Mordekaiser:KillSteal()
 	if IsValid(target,1000) then	
 		
 		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 675 then
-				Control.CastSpell(HK_Q, target.pos)
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 675 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 
 		if self.Menu.ks.UseE:Value() and Ready(_E) then
-			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 then
-				Control.CastSpell(HK_E, target.pos)
+			local pred = GetGamsteronPrediction(target, EData, myHero)
+			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 700 and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then
+				Control.CastSpell(HK_E, pred.CastPosition)
 	
 			end
 		end
@@ -6471,14 +6463,16 @@ local count = GetEnemyCount(200, target)
 	if IsValid(target,1000) then
 
 		if self.Menu.Combo.UseE:Value() and Ready(_E) then
-			if count >= self.Menu.Combo.count:Value() and myHero.pos:DistanceTo(target.pos) <= 900 then			
-				Control.CastSpell(HK_E, target.pos)
+			local pred = GetGamsteronPrediction(target, EData, myHero)
+			if count >= self.Menu.Combo.count:Value() and myHero.pos:DistanceTo(target.pos) <= 700 and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then			
+				Control.CastSpell(HK_E, pred.CastPosition)
 			end
 		end
 		
 		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
-			if myHero.pos:DistanceTo(target.pos) <= 675 then
-				Control.CastSpell(HK_Q, target.pos)
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 675 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
 		end
 	end
@@ -6491,12 +6485,15 @@ if target == nil then return end
 	if IsValid(target,800) then
 		
 		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
-			if myHero.pos:DistanceTo(target.pos) <= 675 then
-				Control.CastSpell(HK_Q, target.pos)
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 675 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 	end
 end	
+
+
 
 function Mordekaiser:Clear()
 	for i = 1, Game.MinionCount() do
@@ -6504,7 +6501,7 @@ function Mordekaiser:Clear()
 	local hp = minion.health
 	local QDmg = getdmg("Q", minion, myHero)
 	local EDmg = getdmg("E", minion, myHero)	
-		if GetMinionCount(1000, myHero) > 0 then					
+		if minion.team == TEAM_ENEMY and IsValid(minion,1000) then					
 			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 675 and self.Menu.Clear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
 			end	
@@ -6518,7 +6515,7 @@ end
 function Mordekaiser:JClear()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-		if minion.team == TEAM_JUNGLE then					
+		if minion.team == TEAM_JUNGLE and IsValid(minion,1000) then					
 			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 675 and self.Menu.JClear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
 			end	
