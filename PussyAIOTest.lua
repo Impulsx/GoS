@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
 
-    local Version = 8.2
+    local Version = 8.3
     
     local Files = {
         Lua = {
@@ -812,11 +812,12 @@ end
 
 
 
-local function BaseCheck()
+local function BaseCheck(unit)
 	for i = 1, Game.ObjectCount() do
 		local base = Game.Object(i)
 		if base.type == Obj_AI_SpawnPoint then
-			if base.isAlly and myHero.pos:DistanceTo(base.pos) >= 800 then
+		local range = 800	
+			if base.isAlly and base.pos:DistanceTo(unit.pos) < range then
 				return true
 			end
 		end
@@ -1733,7 +1734,7 @@ if (myPotTicks + 1000 < GetTickCount()) and self.Menu.Healing.Enabled:Value() th
 			end
 		end
 	end	
-	if (currentlyDrinkingPotion == false) and BaseCheck() and myHero.health/myHero.maxHealth <= self.Menu.Healing.UsePotsPercent:Value()/100 then
+	if (currentlyDrinkingPotion == false) and BaseCheck(myHero) == false and myHero.health/myHero.maxHealth <= self.Menu.Healing.UsePotsPercent:Value()/100 then
 		if HealthPotionSlot and self.Menu.Healing.UsePots:Value() then
 			Control.CastSpell(ItemHotKey[HealthPotionSlot])
 		end
@@ -5158,7 +5159,7 @@ end
 function Lux:AutoW()
 if IsRecalling() == true then return end	
 	for i, ally in pairs(GetAllyHeroes()) do
-		if self.Menu.AutoW.UseW:Value() and Ready(_W) and BaseCheck() then
+		if self.Menu.AutoW.UseW:Value() and Ready(_W) and BaseCheck(myHero) == false then
 			if myHero.health/myHero.maxHealth <= self.Menu.AutoW.Heal:Value()/100 then
 				Control.CastSpell(HK_W)
 			end
@@ -8579,7 +8580,7 @@ end
 function Soraka:AutoW()
 for i, ally in pairs(GetAllyHeroes()) do     	
 if ally == nil then return end	
-	if IsValid(ally, 700) and Ready(_W) and BaseCheck() then 
+	if IsValid(ally, 700) and Ready(_W) and BaseCheck(myHero) == false then 
 		if self.Menu.AutoW.UseW:Value() and myHero.pos:DistanceTo(ally.pos) <= 550 then
 			if ally.health/ally.maxHealth <= self.Menu.AutoW.UseWE:Value()/100 and myHero.mana/myHero.maxMana >= self.Menu.AutoW.Mana:Value()/100 then
 				Control.CastSpell(HK_W, ally)
