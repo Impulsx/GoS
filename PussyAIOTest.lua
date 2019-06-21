@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
 
-    local Version = 8.3
+    local Version = 8.4
     
     local Files = {
         Lua = {
@@ -63,7 +63,6 @@ end
 function OnLoad()
 	AutoUpdate()
 	Start()
-	LoadUnits()
 	Activator()
 	HPred()
 
@@ -619,21 +618,6 @@ local function GetPercentMP(unit)
     return 100 * unit.mana / unit.maxMana
 end
 
-local function EnableMovement()
-	SetMovement(true)
-end
-
-local function ReturnCursor(pos)
-	Control.SetCursorPos(pos)
-	DelayAction(EnableMovement,0.1)
-end
-
-local function LeftClick(pos)
-	Control.mouse_event(MOUSEEVENTF_LEFTDOWN)
-	Control.mouse_event(MOUSEEVENTF_LEFTUP)
-	DelayAction(ReturnCursor,0.05,{pos})
-end
-
 
 local function CastSpellMM(spell,pos,range,delay)
 	local range = range or math.huge
@@ -706,17 +690,6 @@ function GetDistance2D(p1,p2)
 	return math.sqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y))
 end
 
-function LoadUnits()
-	for i = 1, Game.HeroCount() do
-		local unit = Game.Hero(i); Units[i] = {unit = unit, spell = nil}
-		if unit.team ~= myHero.team then table.insert(Enemies, unit)
-		elseif unit.team == myHero.team and unit ~= myHero then table.insert(Allies, unit) end
-	end
-	for i = 1, Game.TurretCount() do
-		local turret = Game.Turret(i)
-		if turret and turret.isEnemy then table.insert(Turrets, turret) end
-	end
-end
 
 local function OnProcessSpell()
 	for i = 1, #Units do
@@ -800,9 +773,9 @@ local function GetEnemyHeroes()
     return _EnemyHeroes
 end 
 
-local function IsRecalling()
+local function IsRecalling(unit)
 	for i = 1, 63 do
-	local buff = myHero:GetBuff(i) 
+	local buff = unit:GetBuff(i) 
 		if buff.count > 0 and buff.name == "recall" and Game.Timer() < buff.expireTime then
 			return true
 		end
@@ -1085,7 +1058,7 @@ local function GetItemSlot(unit, id)
 end
 
 local function MyHeroReady()
-    return myHero.dead == false and Game.IsChatOpen() == false and (ExtLibEvade == nil or ExtLibEvade.Evading == false) and IsRecalling() == false
+    return myHero.dead == false and Game.IsChatOpen() == false and (ExtLibEvade == nil or ExtLibEvade.Evading == false) and IsRecalling(myHero) == false
 end
 
 
@@ -2862,7 +2835,7 @@ function Cassiopeia:Clear()
 		end
 		local Pos = GetPred(Minion, 1500, 0.25 + Game.Latency()/1000)
 		local Dist = GetDistanceSqr(Minion.pos, myHero.pos)	
-		if Ready(_W) and IsRecalling() == false and WValue and myHero.mana/myHero.maxMana > Cass.m.WW:Value()/100 then
+		if Ready(_W) and WValue and myHero.mana/myHero.maxMana > Cass.m.WW:Value()/100 then
 			if Dist < MaxWRange and Dist > MinWRange then	
 				if IsValid(Minion, 800) and GetDistanceSqr(Pos, myHero.pos) < MaxWRange and MinionsNear(myHero,800) >= Cass.w.Count:Value() then 
 					self:CastW(HK_W, Pos)
@@ -2883,7 +2856,7 @@ function Cassiopeia:JClear()
 	local WValue = Cass.j.W:Value()
 	local EValue = Cass.j.E:Value()
 	if Minion.team == TEAM_JUNGLE then	
-		if Ready(_Q) and IsRecalling() == false and QValue and myHero.mana/myHero.maxMana > Cass.m.QW:Value()/100 then
+		if Ready(_Q) and QValue and myHero.mana/myHero.maxMana > Cass.m.QW:Value()/100 then
 			if IsValid(Minion, 850) and GetDistanceSqr(Minion.pos, myHero.pos) < QRange then 
 				Control.CastSpell(HK_Q, Minion.pos)
 				
@@ -2892,7 +2865,7 @@ function Cassiopeia:JClear()
 		
 		local Pos = GetPred(Minion, 1500, 0.25 + Game.Latency()/1000)
 		local Dist = GetDistanceSqr(Minion.pos, myHero.pos)	
-		if Ready(_W) and IsRecalling() == false and WValue and myHero.mana/myHero.maxMana > Cass.m.WW:Value()/100 then
+		if Ready(_W) and WValue and myHero.mana/myHero.maxMana > Cass.m.WW:Value()/100 then
 			if Dist < MaxWRange and Dist > MinWRange then	
 				if IsValid(Minion, 800) and GetDistanceSqr(Pos, myHero.pos) < MaxWRange then 
 					self:CastW(HK_W, Pos)
@@ -2900,7 +2873,7 @@ function Cassiopeia:JClear()
 			end
 		end
 		
-		if Ready(_E) and IsRecalling() == false and EValue then
+		if Ready(_E) and EValue then
 			if IsValid(Minion, 750) and GetDistanceSqr(Minion.pos, myHero.pos) < ERange then 
 				if HasPoison(Minion) then
 					Block(true)
@@ -3019,7 +2992,7 @@ end
 	
 	
 function Cassiopeia:AutoE()
-	if Ready(_E) and IsRecalling() == false and myHero.mana/myHero.maxMana > Cass.m.EW:Value()/100 and Cass.w.E:Value() then
+	if Ready(_E) and myHero.mana/myHero.maxMana > Cass.m.EW:Value()/100 and Cass.w.E:Value() then
 		for i = 1, Game.MinionCount() do 
 		local Minion = Game.Minion(i)
 		local PDmg = self:PEdmgCreep()
@@ -4529,7 +4502,7 @@ function LeeSin:LoadMenu()
 end	
 
 function LeeSin:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false and IsRecalling() == false then
+	if myHero.dead == false and Game.IsChatOpen() == false and IsRecalling(myHero) == false then
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -4639,7 +4612,7 @@ end
 
 function LeeSin:AutoW()
 local target = GetTarget(800)     	
-if IsRecalling() or target == nil then return end	
+if IsRecalling(myHero) or target == nil then return end	
 	
 		if self.Menu.AutoW.UseW:Value() and Ready(_W) then
 			if myHero.health/myHero.maxHealth <= self.Menu.AutoW.Heal:Value()/100 then
@@ -5157,7 +5130,7 @@ if target == nil then return end
 end
 
 function Lux:AutoW()
-if IsRecalling() == true then return end	
+if IsRecalling(myHero) then return end	
 	for i, ally in pairs(GetAllyHeroes()) do
 		if self.Menu.AutoW.UseW:Value() and Ready(_W) and BaseCheck(myHero) == false then
 			if myHero.health/myHero.maxHealth <= self.Menu.AutoW.Heal:Value()/100 then
