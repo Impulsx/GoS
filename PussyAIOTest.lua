@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
 
-    local Version = 7.6
+    local Version = 7.7
     
     local Files = {
         Lua = {
@@ -1085,7 +1085,7 @@ local function GetItemSlot(unit, id)
 end
 
 local function MyHeroReady()
-    return myHero.dead == false and Game.IsChatOpen() == false and BaseCheck() and (ExtLibEvade == nil or ExtLibEvade.Evading == false) and IsRecalling() == false
+    return myHero.dead == false and Game.IsChatOpen() == false and (ExtLibEvade == nil or ExtLibEvade.Evading == false) and IsRecalling() == false
 end
 
 
@@ -1246,7 +1246,7 @@ function Activator:LoadMenu()
 end
 
 function Activator:Tick()
-if MyHeroReady() then  
+ if MyHeroReady() then  
 	self:Auto()
 	self:MyHero()
     self:Ally()
@@ -1263,6 +1263,7 @@ if MyHeroReady() then
 	
 end
 end
+
 
 local MarkTable = {
 	SRU_Baron = "MarkBaron",
@@ -1733,7 +1734,7 @@ if (myPotTicks + 1000 < GetTickCount()) and self.Menu.Healing.Enabled:Value() th
 			end
 		end
 	end	
-	if (currentlyDrinkingPotion == false) and myHero.health/myHero.maxHealth <= self.Menu.Healing.UsePotsPercent:Value()/100 then
+	if (currentlyDrinkingPotion == false) and BaseCheck() and myHero.health/myHero.maxHealth <= self.Menu.Healing.UsePotsPercent:Value()/100 then
 		if HealthPotionSlot and self.Menu.Healing.UsePots:Value() then
 			Control.CastSpell(ItemHotKey[HealthPotionSlot])
 		end
@@ -1758,11 +1759,20 @@ end
 function Activator:Summoner()
     if myHero.dead then return end
     target = GetTarget(2000)
-    if target == nil then return end
     local MyHp = myHero.health/myHero.maxHealth
     local MyMp = GetPercentMP(myHero)
+   
+	local Immobile = Cleans(myHero)
+    if self.Menu.summ.clean.self:Value() and Immobile then
+        if myHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) then
+            Control.CastSpell(HK_SUMMONER_1, myHero)
+        elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBoost" and Ready(SUMMONER_2) then
+            Control.CastSpell(HK_SUMMONER_2, myHero)
+        end
+    end    
     
-    if IsValid(target) then
+	if target == nil then return end
+	if IsValid(target) then
         if self.Menu.summ.heal.self:Value() and MyHp <= self.Menu.summ.heal.selfhp:Value()/100 then
             if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and Ready(SUMMONER_1) then
                 Control.CastSpell(HK_SUMMONER_1, myHero)
@@ -1786,14 +1796,6 @@ function Activator:Summoner()
             if myHero:GetSpellData(SUMMONER_1).name == "SummonerBarrier" and Ready(SUMMONER_1) then
                 Control.CastSpell(HK_SUMMONER_1, myHero)
             elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBarrier" and Ready(SUMMONER_2) then
-                Control.CastSpell(HK_SUMMONER_2, myHero)
-            end
-        end
-        local Immobile = Cleans(myHero)
-        if self.Menu.summ.clean.self:Value() and Immobile then
-            if myHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) then
-                Control.CastSpell(HK_SUMMONER_1, myHero)
-            elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBoost" and Ready(SUMMONER_2) then
                 Control.CastSpell(HK_SUMMONER_2, myHero)
             end
         end
@@ -5155,7 +5157,7 @@ end
 function Lux:AutoW()
 if IsRecalling() == true then return end	
 	for i, ally in pairs(GetAllyHeroes()) do
-		if self.Menu.AutoW.UseW:Value() and Ready(_W) then
+		if self.Menu.AutoW.UseW:Value() and Ready(_W) and BaseCheck() then
 			if myHero.health/myHero.maxHealth <= self.Menu.AutoW.Heal:Value()/100 then
 				Control.CastSpell(HK_W)
 			end
@@ -5238,8 +5240,6 @@ function Lux:JungleClear()
 end
 
 local JungleTable = {
-	SRU_Baron = "",
-	SRU_RiftHerald = "",
 	SRU_Dragon_Water = "",
 	SRU_Dragon_Fire = "",
 	SRU_Dragon_Earth = "",
@@ -5255,12 +5255,12 @@ function Lux:JungleSteal()
 
 local minionlist = {}
 	if _G.SDK then
-		minionlist = _G.SDK.ObjectManager:GetMonsters(1200)
+		minionlist = _G.SDK.ObjectManager:GetMonsters(3500)
 	elseif _G.GOS then
 		for i = 1, Game.MinionCount() do
 			local minion = Game.Minion(i)
 			
-			if minion.valid and minion.isEnemy and minion.pos:DistanceTo(myHero.pos) < 1200 then
+			if minion.valid and minion.isEnemy and minion.pos:DistanceTo(myHero.pos) < 3340 then
 				table.insert(minionlist, minion)
 			end
 		end
@@ -5268,31 +5268,40 @@ local minionlist = {}
 	
 	for i, minion in pairs(minionlist) do
 	if minion == nil then return end	
-		if self.Menu.Jsteal.Dragon:Value() and Ready(_R) and Ready(_Q) then
+		if self.Menu.Jsteal.Dragon:Value() and Ready(_R) then
 			local RDamage = self:DMGJng()
 			if JungleTable[minion.charName] and RDamage > minion.health then
-				Control.SetCursorPos(minion.pos)
-				Control.KeyDown(HK_Q)
-				Control.KeyUp(HK_Q)					
-				Control.CastSpell(HK_R, minion.pos)
+				if minion.pos:To2D().onScreen then 		
+					Control.CastSpell(HK_R, minion.pos) 
+				
+				elseif not minion.pos:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(minion.pos, 1000)    
+					Control.CastSpell(HK_R, castPos)
+				end
 			end
 		end
-		if self.Menu.Jsteal.Herald:Value() and Ready(_R) and Ready(_Q) then
+		if self.Menu.Jsteal.Herald:Value() and Ready(_R) then
 			local RDamage = self:DMGJng()
 			if minion.charName == "SRU_RiftHerald" and RDamage > minion.health then
-				Control.SetCursorPos(minion.pos)
-				Control.KeyDown(HK_Q)
-				Control.KeyUp(HK_Q)					
-				Control.CastSpell(HK_R, minion.pos)				
+				if minion.pos:To2D().onScreen then 		
+					Control.CastSpell(HK_R, minion.pos) 
+				
+				elseif not minion.pos:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(minion.pos, 1000)    
+					Control.CastSpell(HK_R, castPos)
+				end				
 			end
 		end
-		if self.Menu.Jsteal.Baron:Value() and Ready(_R) and Ready(_Q) then
+		if self.Menu.Jsteal.Baron:Value() and Ready(_R) then
 			local RDamageBaron = self:DMGBaron()
 			if minion.charName == "SRU_Baron" and RDamageBaron > minion.health then
-				Control.SetCursorPos(minion.pos)
-				Control.KeyDown(HK_Q)
-				Control.KeyUp(HK_Q)					
-				Control.CastSpell(HK_R, minion.pos)
+				if minion.pos:To2D().onScreen then 		
+					Control.CastSpell(HK_R, minion.pos) 
+				
+				elseif not minion.pos:To2D().onScreen then	
+				local castPos = myHero.pos:Extended(minion.pos, 1000)    
+					Control.CastSpell(HK_R, castPos)
+				end
 			end
 		end
 	end
@@ -8294,7 +8303,7 @@ end
 function Soraka:AutoW()
 for i, ally in pairs(GetAllyHeroes()) do     	
 if ally == nil then return end	
-	if IsValid(ally, 700) and Ready(_W) then 
+	if IsValid(ally, 700) and Ready(_W) and BaseCheck() then 
 		if self.Menu.AutoW.UseW:Value() and myHero.pos:DistanceTo(ally.pos) <= 550 then
 			if ally.health/ally.maxHealth <= self.Menu.AutoW.UseWE:Value()/100 and myHero.mana/myHero.maxMana >= self.Menu.AutoW.Mana:Value()/100 then
 				Control.CastSpell(HK_W, ally)
