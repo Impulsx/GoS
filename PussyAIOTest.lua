@@ -1,11 +1,11 @@
-local Heroes = {"LeeSin","Soraka","Lux","Yuumi","Rakan","Nidalee","Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
+local Heroes = {"Mordekaiser","LeeSin","Soraka","Lux","Yuumi","Rakan","Nidalee","Ryze","XinZhao","Kassadin","Veigar","Tristana","Warwick","Neeko","Cassiopeia","Malzahar","Zyra","Sylas","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
 local GsoPred = {"LeeSin","Soraka","Lux","Yuumi","Rakan","Nidalee","Ryze","Cassiopeia","Malzahar","Zyra","Kayle","Morgana","Ekko","Xerath","Sona","Ahri"}
 
 if not table.contains(Heroes, myHero.charName) then return end
 
 
 
-    local Version = 7.7
+    local Version = 7.8
     
     local Files = {
         Lua = {
@@ -1053,6 +1053,19 @@ local function IsUnderTurret(unit)
     return false
 end
 
+local function IsUnderAllyTurret(unit)
+    for i = 1, Game.TurretCount() do
+        local turret = Game.Turret(i)
+        local range = (turret.boundingRadius + 750 + unit.boundingRadius / 2)
+        if turret.isAlly and not turret.dead then
+            if turret.pos:DistanceTo(unit.pos) < range then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 local function GetAllyHeroes() 
 	AllyHeroes = {}
 	for i = 1, Game.HeroCount() do
@@ -2055,9 +2068,9 @@ if target == nil then return end
 			end
 		
 		elseif self.Menu.Combo.UseR.Type:Value() == 3 then
-			if GotBuff(myHero, AhriTumble) and myHero.pos:DistanceTo(target.pos) <= 1200 then
+			if GotBuff(myHero, "AhriTumble") and myHero.pos:DistanceTo(target.pos) <= 1200 then
 				Control.CastSpell(HK_R,target.pos)
-			if GotBuff(myHero, AhriTumble) then
+			if GotBuff(myHero, "AhriTumble") then
 				Control.CastSpell(HK_R,target.pos)
 			end	
 			end
@@ -4886,7 +4899,7 @@ function LeeSin:KillSteal()
 	local target = GetTarget(1500)     	
 	if target == nil then return end
 	local hp = target.health
-	local QDmg = getdmg("Q", target, myHero)*3
+	local QDmg = getdmg("Q", target, myHero)
 	local EDmg = getdmg("E", target, myHero)
 	local RDmg = getdmg("R", target, myHero)
 	local QRDmg = QDmg + RDmg
@@ -6258,6 +6271,258 @@ end
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+class "Mordekaiser"
+
+
+
+function Mordekaiser:__init()
+
+  if menu ~= 1 then return end
+  menu = 2   	
+  self:LoadMenu()                                            
+  Callback.Add("Tick", function() self:Tick() end)
+  Callback.Add("Draw", function() self:Draw() end) 
+	if _G.EOWLoaded then
+		Orb = 1
+	elseif _G.SDK and _G.SDK.Orbwalker then
+		Orb = 2
+	elseif _G.gsoSDK then
+		Orb = 4			
+	end
+end
+
+function Mordekaiser:LoadMenu()                     
+	--MainMenu
+	self.Menu = MenuElement({type = MENU, id = "Mordekaiser", name = "PussyMordekaiser"})
+
+	--AutoE
+	self.Menu:MenuElement({type = MENU, id = "AutoE", leftIcon = Icons["AutoE"]})
+	self.Menu.AutoE:MenuElement({id = "UseE", name = "Pull Enemys under Tower",value = true})
+
+	--AutoW
+	self.Menu:MenuElement({type = MENU, id = "AutoW", leftIcon = Icons["AutoW"]})
+	self.Menu.AutoW:MenuElement({id = "UseW", name = "AutoW", value = true})
+	self.Menu.AutoW:MenuElement({id = "UseWE", name = "Minimum Health", value = 50, min = 0, max = 100, identifier = "%"})	
+	
+	--ComboMenu  
+	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
+	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
+	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
+	self.Menu.Combo:MenuElement({id = "count", name = "[E]Minimum Targets", value = 2, min = 1, max = 5})	
+	
+	
+	--HarassMenu
+	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})	
+	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
+
+  
+	--LaneClear Menu
+	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})	
+	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	self.Menu.Clear:MenuElement({id = "UseE", name = "[E]", value = true})	
+
+	
+	--JungleClear
+	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})
+	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true}) 
+	self.Menu.JClear:MenuElement({id = "UseE", name = "[E]", value = true})	
+ 	
+    
+ 
+	--KillSteal
+	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
+	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})	
+	self.Menu.ks:MenuElement({id = "UseE", name = "[E]", value = true})			
+	self.Menu.ks:MenuElement({id = "UseR", name = "[R] FullDmg", value = true})
+	
+	--[[
+	--Prediction
+	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
+	self.Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})	
+	]]
+
+ 
+	--Drawing 
+	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
+	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q]Range", value = true})
+	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R]Range", value = true})
+	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E]Range", value = true})
+
+
+end
+
+function Mordekaiser:Tick()
+	if MyHeroReady() then
+	local Mode = GetMode()
+		if Mode == "Combo" then
+			self:Combo()
+
+		elseif Mode == "Harass" then
+			self:Harass()
+		elseif Mode == "Clear" then
+			self:Clear()
+			self:JClear()
+		elseif Mode == "Flee" then
+		
+		end	
+
+	self:KillSteal()
+	self:AutoE()
+	self:AutoW()
+
+	
+	end
+end 
+
+function Mordekaiser:Draw()
+  if myHero.dead then return end
+	if(self.Menu.Drawing.DrawR:Value()) and Ready(_R) then
+    Draw.Circle(myHero, 650, 1, Draw.Color(255, 225, 255, 10)) 
+	end                                                 
+	if(self.Menu.Drawing.DrawQ:Value()) and Ready(_Q) then
+    Draw.Circle(myHero, 675, 1, Draw.Color(225, 225, 0, 10))
+	end
+	if(self.Menu.Drawing.DrawE:Value()) and Ready(_E) then
+    Draw.Circle(myHero, 900, 1, Draw.Color(225, 225, 125, 10))
+	end
+
+	--[[local textPos = myHero.pos:To2D()	
+	if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+	end]]				
+end	
+
+function Mordekaiser:AutoW()
+	if self.Menu.AutoW.UseW:Value() and Ready(_W) and myHero.health/myHero.maxHealth <= self.Menu.AutoW.UseWE:Value()/100 then
+		if HasBuff(myHero, "MordekaiserW") then 
+			Control.CastSpell(HK_W)
+		end
+		if not HasBuff(myHero, "MordekaiserW") then 
+			Control.CastSpell(HK_W)
+		end			
+	end
+end
+
+
+
+function Mordekaiser:AutoE()
+	local target = GetTarget(1000)     	
+	if target == nil then return end
+	if IsValid(target,1000) then 
+		if self.Menu.AutoE.UseE:Value() and Ready(_E) then
+			if IsUnderAllyTurret(myHero) and myHero.pos:DistanceTo(target.pos) < 900 then
+				Control.CastSpell(HK_E, target.pos)
+			end
+		end
+	end
+end
+
+function Mordekaiser:KillSteal()	
+	local target = GetTarget(1000)     	
+	if target == nil then return end
+	local hp = target.health
+	local QDmg = getdmg("Q", target, myHero)
+	local EDmg = getdmg("E", target, myHero)
+
+
+	if IsValid(target,1000) then	
+		
+		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
+			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 675 then
+				Control.CastSpell(HK_Q, target.pos)
+			end
+		end
+
+		if self.Menu.ks.UseE:Value() and Ready(_E) then
+			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 900 then
+				Control.CastSpell(HK_E, target.pos)
+	
+			end
+		end
+		if self.Menu.ks.UseR:Value() and Ready(_R) and Ready(_E) and Ready(_Q) then
+			if (QDmg+EDmg)*3 >= hp and myHero.pos:DistanceTo(target.pos) <= 600 then
+				Control.CastSpell(HK_R, target.pos)
+	
+			end
+		end
+	end
+end	
+
+function Mordekaiser:Combo()
+local target = GetTarget(1000)
+if target == nil then return end
+local count = GetEnemyCount(200, target)	
+	if IsValid(target,1000) then
+
+		if self.Menu.Combo.UseE:Value() and Ready(_E) then
+			if count >= self.Menu.Combo.count:Value() and myHero.pos:DistanceTo(target.pos) <= 900 then			
+				Control.CastSpell(HK_E, target.pos)
+			end
+		end
+		
+		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
+			if myHero.pos:DistanceTo(target.pos) <= 675 then
+				Control.CastSpell(HK_Q, target.pos)
+			end	
+		end
+	end
+end
+
+
+function Mordekaiser:Harass()
+local target = GetTarget(800)
+if target == nil then return end
+	if IsValid(target,800) then
+		
+		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
+			if myHero.pos:DistanceTo(target.pos) <= 675 then
+				Control.CastSpell(HK_Q, target.pos)
+			end
+		end
+	end
+end	
+
+function Mordekaiser:Clear()
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+	local hp = minion.health
+	local QDmg = getdmg("Q", minion, myHero)
+	local EDmg = getdmg("E", minion, myHero)	
+		if minion.team == TEAM_ENEMY and IsValid(minion, 1000) then					
+			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 675 and self.Menu.Clear.UseQ:Value() then
+				Control.CastSpell(HK_Q, minion.pos)
+			end	
+			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.Clear.UseE:Value() then
+				Control.CastSpell(HK_E, minion.pos)
+			end			
+		end
+	end
+end
+
+function Mordekaiser:JClear()
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+		if minion.team == TEAM_JUNGLE and IsValid(minion, 1000) then					
+			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 675 and self.Menu.JClear.UseQ:Value() then
+				Control.CastSpell(HK_Q, minion.pos)
+			end	
+			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.JClear.UseE:Value() then
+				Control.CastSpell(HK_E, minion.pos)
+			end			
+		end
+	end
+end
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
 
 
 
@@ -14867,6 +15132,16 @@ function PassivePercentMod(source, target, amount, damageType)
   return amount
 end
 
+function MordeQDMG()
+    total = 0
+	local level = myHero.levelData.lvl
+    if level > 0 then
+	local damage = ({5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 51, 61, 71, 81, 91, 107, 123, 139})[level] 
+	total = damage 
+	end
+	return total
+end
+
 function WLvLDMG()
     total = 0
 	local Lvl = myHero.levelData.lvl
@@ -14918,6 +15193,11 @@ local DamageLibTable = {
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 100, 120})[level] + (0.4 * source.ap) + (0.02 * source.maxMana) end},
     {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({40, 50, 60})[level] + (0.1 * source.ap) + (0.01 * source.maxMana) end},
   },
+	["LeeSin"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({100, 150, 200, 250, 300})[level] + 2.0 * source.bonusDamage + 0.01 * (target.maxHealth - target.health) end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 120, 160, 200, 240})[level] + source.bonusDamage end},
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({150, 375, 600})[level] + 2 * source.bonusDamage end},
+  },  
   
 	["Lux"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 115, 160, 205, 250})[level] + 0.7 * source.ap end},
@@ -14938,6 +15218,11 @@ local DamageLibTable = {
 	{Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({8, 16, 24, 24, 40})[level] + 0.11 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 225, 300})[level] + 0.7 * source.ap end},
 
+  },
+	["Mordekaiser"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 95, 115, 135, 155})[level] + 0.6 * source.ap + MordeQDMG() end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 95, 110, 125, 140})[level] + 0.6 * source.ap end},
+	
   },  
 	["Neeko"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 115, 160, 205, 250})[level] + 0.5 * source.ap end},
