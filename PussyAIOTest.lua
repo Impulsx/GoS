@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
 
-    local Version = 8.6
+    local Version = 8.7
     
     local Files = {
         Lua = {
@@ -3933,7 +3933,7 @@ function LeeSin:Clear()
 			end
 
 			if  passiveBuff.count == 1 then return end
-			if MinionsNear(myHero,500) >= 1 self.Menu.Clear.UseW:Value() and Ready(_W) then 
+			if MinionsNear(myHero,500) >= 1 and self.Menu.Clear.UseW:Value() and Ready(_W) then 
 				if myHero.health/myHero.maxHealth <= self.Menu.Clear.Heal:Value()/100 then
 					Control.CastSpell(HK_W, myHero)
 				end
@@ -4298,7 +4298,7 @@ function Lux:AutoQ()
 local target = GetTarget(1300)     	
 if target == nil then return end	
 local pred = GetGamsteronPrediction(target, QData, myHero)	
-	if IsValid(target,1300) and IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1175 and and self.Menu.AutoQ.UseQ:Value() and Ready(_Q) then
+	if IsValid(target,1300) and IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1175  and self.Menu.AutoQ.UseQ:Value() and Ready(_Q) then
 		if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 			Control.CastSpell(HK_Q, pred.CastPosition)
 		end	
