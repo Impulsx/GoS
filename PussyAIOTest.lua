@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
 
-    local Version = 8.4
+    local Version = 8.5
     
     local Files = {
         Lua = {
@@ -63,7 +63,7 @@ end
 function OnLoad()
 	AutoUpdate()
 	Start()
-	Activator()
+	--Activator()
 	HPred()
 
 	
@@ -6372,7 +6372,7 @@ function Mordekaiser:Draw()
 end	
 
 function Mordekaiser:AutoW()
-	if self.Menu.AutoW.UseW:Value() and Ready(_W) and myHero.health/myHero.maxHealth <= self.Menu.AutoW.UseWE:Value()/100 then
+	if myHero.health/myHero.maxHealth <= self.Menu.AutoW.UseWE:Value()/100 and self.Menu.AutoW.UseW:Value() and Ready(_W) then
 		if HasBuff(myHero, "MordekaiserW") then 
 			Control.CastSpell(HK_W)
 		end
@@ -6389,8 +6389,8 @@ function Mordekaiser:AutoE()
 	if target == nil then return end
 	local pred = GetGamsteronPrediction(target, EData, myHero)
 	if IsValid(target,1000) then 
-		if self.Menu.AutoE.UseE:Value() and Ready(_E) then
-			if IsUnderAllyTurret(myHero) and myHero.pos:DistanceTo(target.pos) < 700 and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then
+		if myHero.pos:DistanceTo(target.pos) < 700 and self.Menu.AutoE.UseE:Value() and Ready(_E) then
+			if IsUnderAllyTurret(myHero) and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then
 				Control.CastSpell(HK_E, pred.CastPosition)
 			end
 		end
@@ -6401,28 +6401,30 @@ function Mordekaiser:KillSteal()
 	local target = GetTarget(1000)     	
 	if target == nil then return end
 	local hp = target.health
-	local QDmg = getdmg("Q", target, myHero)
-	local EDmg = getdmg("E", target, myHero)
+	
+	
 
 
 	if IsValid(target,1000) then	
 		
-		if self.Menu.ks.UseQ:Value() and Ready(_Q) then
+		if myHero.pos:DistanceTo(target.pos) <= 675 and self.Menu.ks.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 675 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+			local QDmg = getdmg("Q", target, myHero)
+			if QDmg >= hp and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 
-		if self.Menu.ks.UseE:Value() and Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) <= 700 and self.Menu.ks.UseE:Value() and Ready(_E) then
 			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if EDmg >= hp and myHero.pos:DistanceTo(target.pos) <= 700 and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then
+			local EDmg = getdmg("E", target, myHero)
+			if EDmg >= hp and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then
 				Control.CastSpell(HK_E, pred.CastPosition)
 	
 			end
 		end
-		if self.Menu.ks.Targets.UseR:Value() and self.Menu.ks.Targets[target.charName] and self.Menu.ks.Targets[target.charName]:Value() and Ready(_R) and Ready(_E) and Ready(_Q) then
-			if (QDmg+EDmg)*3 >= hp and myHero.pos:DistanceTo(target.pos) <= 600 then
+		if myHero.pos:DistanceTo(target.pos) <= 600 and self.Menu.ks.Targets.UseR:Value() and self.Menu.ks.Targets[target.charName] and self.Menu.ks.Targets[target.charName]:Value() and Ready(_R) and Ready(_E) and Ready(_Q) then
+			if (getdmg("Q", target, myHero)+getdmg("E", target, myHero))*3 >= hp then
 				Control.CastSpell(HK_R, target.pos)
 	
 			end
@@ -6436,16 +6438,16 @@ if target == nil then return end
 local count = GetEnemyCount(200, target)	
 	if IsValid(target,1000) then
 
-		if self.Menu.Combo.UseE:Value() and Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) <= 700 and self.Menu.Combo.UseE:Value() and Ready(_E) then
 			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if count >= self.Menu.Combo.count:Value() and myHero.pos:DistanceTo(target.pos) <= 700 and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then			
+			if count >= self.Menu.Combo.count:Value() and  pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then			
 				Control.CastSpell(HK_E, pred.CastPosition)
 			end
 		end
 		
-		if self.Menu.Combo.UseQ:Value() and Ready(_Q) then
+		if myHero.pos:DistanceTo(target.pos) <= 675 and self.Menu.Combo.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 675 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+			if  pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
 		end
@@ -6458,42 +6460,40 @@ local target = GetTarget(800)
 if target == nil then return end
 	if IsValid(target,800) then
 		
-		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
+		if myHero.pos:DistanceTo(target.pos) <= 675 and self.Menu.Harass.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 675 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+			if  pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 	end
 end	
 
-
-
 function Mordekaiser:Clear()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-	local hp = minion.health
-	local QDmg = getdmg("Q", minion, myHero)
-	local EDmg = getdmg("E", minion, myHero)	
-		if minion.team == TEAM_ENEMY and IsValid(minion,1000) then					
-			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 675 and self.Menu.Clear.UseQ:Value() then
+
+		if minion.team == TEAM_ENEMY and IsValid(minion,1000) then
+
+			if myHero.pos:DistanceTo(minion.pos) <= 675 and self.Menu.Clear.UseQ:Value() and Ready(_Q) then
 				Control.CastSpell(HK_Q, minion.pos)
 			end	
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.Clear.UseE:Value() then
+			if myHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.Clear.UseE:Value() and Ready(_E) then
 				Control.CastSpell(HK_E, minion.pos)
-			end			
+			end
 		end
 	end
 end
 
+
 function Mordekaiser:JClear()
 	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
+	local minion = Game.Minion(i)
 		if minion.team == TEAM_JUNGLE and IsValid(minion,1000) then					
-			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 675 and self.Menu.JClear.UseQ:Value() then
+			if myHero.pos:DistanceTo(minion.pos) <= 675 and Ready(_Q) and self.Menu.JClear.UseQ:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
 			end	
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 900 and self.Menu.JClear.UseE:Value() then
+			if myHero.pos:DistanceTo(minion.pos) <= 900 and Ready(_E) and self.Menu.JClear.UseE:Value() then
 				Control.CastSpell(HK_E, minion.pos)
 			end			
 		end
