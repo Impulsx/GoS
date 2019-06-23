@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
 
-    local Version = 8.9
+    local Version = 9.0
     
     local Files = {
         Lua = {
@@ -4432,11 +4432,11 @@ end
 function Lux:AutoW()
 if IsRecalling(myHero) then return end	
 	for i, ally in pairs(GetAllyHeroes()) do
-		if self.Menu.AutoW.UseW:Value() and Ready(_W) and BaseCheck(myHero) == false then
-			if myHero.health/myHero.maxHealth <= self.Menu.AutoW.Heal:Value()/100 then
+		if self.Menu.AutoW.UseW:Value() and Ready(_W) then
+			if myHero.health/myHero.maxHealth <= self.Menu.AutoW.Heal:Value()/100 and BaseCheck(myHero) == false then
 				Control.CastSpell(HK_W)
 			end
-			if IsValid(ally,1300) and myHero.pos:DistanceTo(ally.pos) <= 1075 and ally.health/ally.maxHealth <= self.Menu.AutoW.Heal:Value()/100 then
+			if IsValid(ally,1300) and myHero.pos:DistanceTo(ally.pos) <= 1075 and ally.health/ally.maxHealth <= self.Menu.AutoW.Heal:Value()/100 and BaseCheck(myHero) == false then
 				Control.CastSpell(HK_W, ally.pos)
 			end
 		end
@@ -14859,7 +14859,7 @@ function CalPhysicalDamage(source, target, amount)
   local ArmorPenFlat = (0.4 + target.levelData.lvl / 30) * source.armorPen
   local BonusArmorPen = source.bonusArmorPenPercent
 
-  if source.type == Obj_AImath.minion then
+  if source.type == Obj_AI_Minion then
     ArmorPenPercent = 1
     ArmorPenFlat = 0
     BonusArmorPen = 1
@@ -14874,7 +14874,7 @@ function CalPhysicalDamage(source, target, amount)
   end
 
   if source.type == Obj_AI_Turret then
-    if target.type == Obj_AImath.minion then
+    if target.type == Obj_AI_Minion then
       amount = amount * 1.25
       if string.ends(target.charName, "MinionSiege") then
         amount = amount * 0.7
