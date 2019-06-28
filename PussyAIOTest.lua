@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
 
-    local Version = 9.1
+    local Version = 9.2
     
     local Files = {
         Lua = {
@@ -133,6 +133,7 @@ local textPos = myHero.pos:To2D()
 		Draw.Text("Sylas       Tristana", 25, textPos.x + 200, textPos.y + 60, Draw.Color(255, 255, 200, 0))		
 		Draw.Text("Veigar          Warwick", 25, textPos.x + 200, textPos.y + 80, Draw.Color(255, 255, 200, 0))	
 		Draw.Text("Xerath       XinZhao", 25, textPos.x + 200, textPos.y + 100, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Yuumi       Zyra", 25, textPos.x + 200, textPos.y + 120, Draw.Color(255, 255, 200, 0))		
 	end
 end	
 
@@ -2078,10 +2079,10 @@ function Cassiopeia:Clear()
     local minion = Game.Minion(i)
         if minion.team == TEAM_ENEMY and IsValid(minion,max_range) then
             local mana_ok = myHero.mana/myHero.maxMana >= Cass.m.QW:Value() / 100
-            if Cass.w.Q:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_Q).range and Ready(_Q) then
+            if Cass.w.Q:Value() and mana_ok and GetDistanceSqr(minion.pos, myHero.pos) <= myHero:GetSpellData(_Q).range and Ready(_Q) then
                 Control.CastSpell(HK_Q, minion.pos)
             end
-            if Cass.w.W:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= MaxWRange and Ready(_W) then
+            if Cass.w.W:Value() and mana_ok and GetDistanceSqr(minion.pos, myHero.pos) <= MaxWRange and Ready(_W) then
                 local Pos = GetPred(minion, 1500, 0.25 + Game.Latency()/1000)
 				local Dist = GetDistanceSqr(minion.pos, myHero.pos)
 				if Dist < MaxWRange and Dist > MinWRange and MinionsNear(minion,500) >= Cass.w.Count:Value() then
@@ -11447,10 +11448,11 @@ function Veigar:AutoQFarm()
 	local minion = Game.Minion(i)
 			
 		if minion.team == TEAM_ENEMY and IsValid(minion,1000) and myHero.pos:DistanceTo(minion.pos) < Q.Range then
-			if self:CanCast(_Q) and self.Menu.Lasthit.AutoQFarm:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Mana.QMana:Value() / 100 ) then	
-				local Qdamage = self:QDMG()
+			local Qdamage = self:QDMG()
+			if self:CanCast(_Q) and self.Menu.Lasthit.AutoQFarm:Value() and Qdamage >= minion.health and (myHero.mana/myHero.maxMana >= self.Menu.Mana.QMana:Value() / 100 ) then	
+				
 				local castpos,HitChance, pos = TPred:GetBestCastPosition(minion, Q.Delay , Q.Width, Q.Range,Q.Speed, myHero.pos, not Q.ignorecol, Q.Type )
-				if Qdamage >= self:HpPred(minion,1) and (HitChance > 0 ) then
+				if (HitChance > 0 ) then
 					Control.CastSpell(HK_Q,minion.pos)
 				end
 			end
