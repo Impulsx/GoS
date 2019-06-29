@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
 
-    local Version = 9.2
+    local Version = 9.3
     
     local Files = {
         Lua = {
@@ -119,21 +119,37 @@ local textPos = myHero.pos:To2D()
 	
 	if NewVersion == Version and Game.Timer() < 20 then
 		
+		Draw.Text("Version: 9.3", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
 		
-		Draw.Text("Ahri        Cassiopeia", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Ekko          Kassadin", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Kayle    LeeSin", 25, textPos.x + 200, textPos.y - 60, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Lux     Malzahar", 25, textPos.x + 200, textPos.y - 40, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Morgana       Mordekaiser", 25, textPos.x + 200, textPos.y - 20, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Neeko    Nidalee", 25, textPos.x + 200, textPos.y - 1 , Draw.Color(255, 255, 200, 0))
-		Draw.Text("Rakan         Ryze", 25, textPos.x + 200, textPos.y + 20, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Soraka    Sona", 25, textPos.x + 200, textPos.y + 40, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Sylas       Tristana", 25, textPos.x + 200, textPos.y + 60, Draw.Color(255, 255, 200, 0))		
-		Draw.Text("Veigar          Warwick", 25, textPos.x + 200, textPos.y + 80, Draw.Color(255, 255, 200, 0))	
-		Draw.Text("Xerath       XinZhao", 25, textPos.x + 200, textPos.y + 100, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Yuumi       Zyra", 25, textPos.x + 200, textPos.y + 120, Draw.Color(255, 255, 200, 0))		
+		Draw.Text("Ahri", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Ekko", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Kayle", 25, textPos.x + 200, textPos.y - 60, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Lux", 25, textPos.x + 200, textPos.y - 40, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Morgana", 25, textPos.x + 200, textPos.y - 20, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Neeko", 25, textPos.x + 200, textPos.y - 1 , Draw.Color(255, 255, 200, 0))
+		Draw.Text("Rakan", 25, textPos.x + 200, textPos.y + 20, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Soraka", 25, textPos.x + 200, textPos.y + 40, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Sylas", 25, textPos.x + 200, textPos.y + 60, Draw.Color(255, 255, 200, 0))		
+		Draw.Text("Veigar", 25, textPos.x + 200, textPos.y + 80, Draw.Color(255, 255, 200, 0))	
+		Draw.Text("Xerath", 25, textPos.x + 200, textPos.y + 100, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Yuumi", 25, textPos.x + 200, textPos.y + 120, Draw.Color(255, 255, 200, 0))
+
+
+		Draw.Text("Cassiopeia", 25, textPos.x + 300, textPos.y - 100, Draw.Color(255, 255, 200, 0))	
+		Draw.Text("Kassadin", 25, textPos.x + 300, textPos.y - 80, Draw.Color(255, 255, 200, 0))
+		Draw.Text("LeeSin", 25, textPos.x + 300, textPos.y - 60, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Malzahar", 25, textPos.x + 300, textPos.y - 40, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Mordekaiser", 25, textPos.x + 300, textPos.y - 20, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Nidalee", 25, textPos.x + 300, textPos.y - 1 , Draw.Color(255, 255, 200, 0))
+		Draw.Text("Ryze", 25, textPos.x + 300, textPos.y + 20, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Sona", 25, textPos.x + 300, textPos.y + 40, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Tristana", 25, textPos.x + 300, textPos.y + 60, Draw.Color(255, 255, 200, 0))		
+		Draw.Text("Warwick", 25, textPos.x + 300, textPos.y + 80, Draw.Color(255, 255, 200, 0))	
+		Draw.Text("XinZhao", 25, textPos.x + 300, textPos.y + 100, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Zyra", 25, textPos.x + 300, textPos.y + 120, Draw.Color(255, 255, 200, 0))		
 	end
 end	
 
@@ -1976,7 +1992,7 @@ function Cassiopeia:Combo()
 	local Dist = GetDistanceSqr(myHero.pos, target.pos)
 	local QWReady = Ready(_Q) 
 	local RTarget, ShouldCast = self:RLogic()
-	if IsValid(target, 950) and GetDistanceSqr(myHero.pos, target.pos) <= 950 then	
+	if IsValid(target, 950)  then	
 		
         local result = false
         if not result and Cass.c.E:Value() and Ready(_E) and Dist < ERange then
@@ -2053,7 +2069,7 @@ function Cassiopeia:Harass()
 	local target = GetTarget(950)
 	if target == nil then return end
 	
-	if IsValid(target, 950) and GetDistanceSqr(myHero.pos, target.pos) <= 950 then
+	if IsValid(target, 950)  then
 		local EDmg = getdmg("E", target, myHero) * 2
 		local Dist = GetDistanceSqr(myHero.pos, target.pos)
 		local result = false
@@ -2079,10 +2095,11 @@ function Cassiopeia:Clear()
     local minion = Game.Minion(i)
         if minion.team == TEAM_ENEMY and IsValid(minion,max_range) then
             local mana_ok = myHero.mana/myHero.maxMana >= Cass.m.QW:Value() / 100
-            if Cass.w.Q:Value() and mana_ok and GetDistanceSqr(minion.pos, myHero.pos) <= myHero:GetSpellData(_Q).range and Ready(_Q) then
+            local Dist = GetDistanceSqr(myHero.pos, minion.pos)
+			if Cass.w.Q:Value() and mana_ok and Dist <= myHero:GetSpellData(_Q).range and Ready(_Q) then
                 Control.CastSpell(HK_Q, minion.pos)
             end
-            if Cass.w.W:Value() and mana_ok and GetDistanceSqr(minion.pos, myHero.pos) <= MaxWRange and Ready(_W) then
+            if Cass.w.W:Value() and mana_ok and Dist <= MaxWRange and Ready(_W) then
                 local Pos = GetPred(minion, 1500, 0.25 + Game.Latency()/1000)
 				local Dist = GetDistanceSqr(minion.pos, myHero.pos)
 				if Dist < MaxWRange and Dist > MinWRange and MinionsNear(minion,500) >= Cass.w.Count:Value() then
@@ -2099,7 +2116,8 @@ function Cassiopeia:JClear()
 	local Minion = Game.Minion(i)		 
 
 	if Minion.team == TEAM_JUNGLE then	
-		if IsValid(Minion, 850) and GetDistanceSqr(Minion.pos, myHero.pos) < QRange then	
+		local Dist = GetDistanceSqr(Minion.pos, myHero.pos)	
+		if IsValid(Minion, 850) and Dist < QRange then	
 			if Cass.j.Q:Value() and Ready(_Q) and myHero.mana/myHero.maxMana > Cass.m.QW:Value()/100 then
 				Control.CastSpell(HK_Q, Minion.pos)
 				
@@ -2107,8 +2125,8 @@ function Cassiopeia:JClear()
 		end
 		if IsValid(Minion, 800) then
 			local Pos = GetPred(Minion, 1500, 0.25 + Game.Latency()/1000)
-			if GetDistanceSqr(Pos, myHero.pos) < MaxWRange then
-				local Dist = GetDistanceSqr(Minion.pos, myHero.pos)	
+			if Dist < MaxWRange then
+				
 				if Dist < MaxWRange and Dist > MinWRange then	
 					if Cass.j.W:Value() and Ready(_W) and myHero.mana/myHero.maxMana > Cass.m.WW:Value()/100 then
 						self:CastW(HK_W, Pos)
@@ -2117,7 +2135,7 @@ function Cassiopeia:JClear()
 			end
 		end
 		
-		if IsValid(Minion, 750) and GetDistanceSqr(Minion.pos, myHero.pos) < ERange then	
+		if IsValid(Minion, 750) and Dist < ERange then	
 			if Cass.j.E:Value() and Ready(_E) then
 				if HasPoison(Minion) then
 					Block(true)
@@ -2143,8 +2161,8 @@ end
 function Cassiopeia:KsE()
 local target = GetTarget(750)
 if target == nil then return end
-	 
-	if IsValid(target, 750) and GetDistanceSqr(target.pos, myHero.pos) < ERange then	
+local Dist = GetDistanceSqr(myHero.pos, target.pos)	 
+	if IsValid(target, 750) and Dist < ERange then	
 		local EDmg = getdmg("E", target, myHero) * 2
 		local PEDmg = getdmg("E", target, myHero)
 		if Cass.ks.E:Value() and Ready(_E) then 
@@ -2162,8 +2180,8 @@ end
 function Cassiopeia:KsQ()
 local target = GetTarget(900)
 if target == nil then return end
-	
-	if IsValid(target, 900) and GetDistanceSqr(target.pos, myHero.pos) < QRange then	
+local Dist = GetDistanceSqr(myHero.pos, target.pos)	
+	if IsValid(target, 900) and Dist < QRange then	
 		if Cass.ks.Q:Value() and Ready(_Q) then 
 			local QDmg = getdmg("Q", target, myHero)
 			if QDmg > target.health then
@@ -2177,8 +2195,8 @@ end
 function Cassiopeia:KsW()
 local target = GetTarget(900)
 if target == nil then return end
-	
-	if IsValid(target, 900) and GetDistanceSqr(target.pos, myHero.pos) < 800 then
+local Dist = GetDistanceSqr(myHero.pos, target.pos)	
+	if IsValid(target, 900) and Dist < 800 then
 		if Cass.ks.W:Value() and Ready(_W) then 
 			local WDmg = getdmg("W", target, myHero)
 			if WDmg > target.health then
@@ -2193,9 +2211,9 @@ end
 	function Cassiopeia:Engage()
 		local target = GetTarget(1200)
 		if target == nil then return end
-		
+		local Dist = GetDistanceSqr(myHero.pos, target.pos)
 
-		if IsValid(target, 1200) and GetDistanceSqr(target.pos, myHero.pos) < ERange then
+		if IsValid(target, 1200) and Dist < ERange then
 			local fulldmg = getdmg("Q", target, myHero) + getdmg("W", target, myHero) + getdmg("E", target, myHero) + getdmg("R", target, myHero)
 			local Dist = GetDistanceSqr(myHero.pos, target.pos)
 			local RCheck = Ready(_R)
@@ -2218,7 +2236,7 @@ end
 			if Ready(_Q) and not Ready(_R) then 
 				if Dist < QRange then 
 				local pred = GetGamsteronPrediction(target, QData, myHero)
-					if GetDistanceSqr(target.pos, myHero.pos) < QRange and pred.Hitchance >= Cass.Pred.PredQ:Value() then
+					if Dist < QRange and pred.Hitchance >= Cass.Pred.PredQ:Value() then
 						Control.CastSpell(HK_Q, pred.CastPosition)
 					end
 				end
@@ -2231,7 +2249,7 @@ end
 			if Ready(_W) and not Ready(_R) then 
 				if Dist < MaxWRange and Dist > MinWRange then
 				local Pos = GetPred(target, 1500, 0.25 + Game.Latency()/1000)
-					if GetDistanceSqr(target.pos, myHero.pos) < MaxWRange then 
+					if Dist < MaxWRange then 
 						self:CastW(HK_W, Pos)
 					end
 				end
@@ -2246,7 +2264,8 @@ function Cassiopeia:AutoE()
     local minion = Game.Minion(i)
         if minion.team == TEAM_ENEMY and IsValid(minion,myHero:GetSpellData(_E).range) then	
 			local mana_ok = myHero.mana/myHero.maxMana >= Cass.m.EW:Value() / 100
-            if Cass.w.E:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_E).range and Ready(_E) then
+            local Dist = GetDistanceSqr(myHero.pos, minion.pos)
+			if Cass.w.E:Value() and mana_ok and Dist <= myHero:GetSpellData(_E).range and Ready(_E) then
 				local PDmg = self:PEdmgCreep()
 				local EDmg = self:EdmgCreep()
 				if HasPoison(minion) and PDmg + 20 >= minion.health then 
@@ -8404,8 +8423,19 @@ function Sylas:LoadSpells()
 end
 
 
-
-
+local UltSpells = {
+	["LuxMaliceCannon"] = {charName = "Lux"},
+	["EnchantedCrystalArrow"] = {charName = "Ashe"},
+	["DravenRCast"] = {charName = "Draven"},
+	["EzrealR"] = {charName = "Ezreal"},	
+	["JinxR"] = {charName = "Jinx"},
+	["LucianR"] = {charName = "Lucian"},
+	["NeekoR"] = {charName = "Neeko"},
+	["RivenFengShuiEngine"] = {charName = "Riven"},	
+	["SonaR"] = {charName = "Sona"},
+	["ThreshRPenta"] = {charName = "Thresh"},
+	["YasuoR"] = {charName = "Yasuo"},
+}
 
 
 
@@ -8440,7 +8470,19 @@ function Sylas:LoadMenu()
 	--UltSettings
 	self.Menu.Combo:MenuElement({type = MENU, id = "Set", name = "Ult Settings"})
 	--SkillShot+E Ults
-	self.Menu.Combo.Set:MenuElement({id = "UltE", name = "Auto E+E2+SkillShotUlt", key = string.byte("T")})								
+	self.Menu.Combo.Set:MenuElement({id = "UltE", name = "Auto E+E2+SkillShotUlt", key = string.byte("T")})	
+	self.Menu.Combo.Set:MenuElement({id = "BlockList", name = "E+E2+Ult List", type = MENU})
+	DelayAction(function()
+		for i, spell in pairs(UltSpells) do
+			if not UltSpells[i] then return end
+			for j, k in pairs(GetEnemyHeroes()) do
+				if spell.charName == k.charName and not self.Menu.Combo.Set.BlockList[i] then
+					if not self.Menu.Combo.Set.BlockList[i] then self.Menu.Combo.Set.BlockList:MenuElement({id = "Ult"..i, name = ""..spell.charName.."", value = true}) end
+				end
+			end
+		end
+	end, 0.01)
+	
 	--Heal+Shield Ults
 	self.Menu.Combo.Set:MenuElement({id = "Heal", name = "Use HEAL+Shield Ults", value = true})   								
 	self.Menu.Combo.Set:MenuElement({id = "HP", name = "MinHP Heal+Shield", value = 30, min = 0, max = 100, identifier = "%"})	
@@ -8552,35 +8594,31 @@ if MyHeroReady() then
 
 end 
 end
+
+	
+	
+	
  
 function Sylas:EUlt()
 local target = GetTarget(3500)
 if target == nil then return end
-	if IsValid(target,3500) and (myHero:GetSpellData(_R).name == "LuxMaliceCannon") then
+	if IsValid(target,3500) then
+	local Ult = {"LuxMaliceCannon","EnchantedCrystalArrow","DravenRCast","EzrealR","JinxR","LucianR","NeekoR","RivenFengShuiEngine","SonaR","ThreshRPenta","YasuoR"}	
+	if not table.contains(Ult, myHero:GetSpellData(_R).name) then return end	
 		
-		if myHero.pos:DistanceTo(target.pos) <= 800 then	
+		if myHero.pos:DistanceTo(target.pos) <= 800 and myHero:GetSpellData(_E).name == "SylasE2" then	
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.radius, E.collision)
-			if hitRate and hitRate >= 1 and myHero:GetSpellData(_E).name == "SylasE2" then
+			if hitRate and hitRate >= 1 then
 				Control.CastSpell(HK_E, aimPosition)
 			end
-		end
-		if myHero.pos:DistanceTo(target.pos) <= 3500 and IsImmobileTarget(target) then		
-			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 1, math.huge, 120, false)
-			if hitRate and hitRate >= 1 then
-				if aimPosition:To2D().onScreen then 		
-					Control.CastSpell(HK_R, aimPosition) 
-				
-				elseif not aimPosition:To2D().onScreen then	
-				local castPos = myHero.pos:Extended(aimPosition, 1000)    
-					Control.CastSpell(HK_R, castPos)
-				end	
-			end
-		end			
 		
-		if myHero.pos:DistanceTo(target.pos) < 1300 and Ready(_E) then			
-			if myHero:GetSpellData(_E).name == "SylasE" then
-				Control.CastSpell(HK_E, target.pos)
-			end
+		elseif myHero.pos:DistanceTo(target.pos) < 1300 and myHero:GetSpellData(_E).name == "SylasE" and Ready(_E) then			
+			Control.CastSpell(HK_E, target.pos)
+		end
+		
+		
+		if myHero:GetSpellData(_E).name == "SylasE2" then		
+			Control.CastSpell(HK_R, target.pos) 		
 		end
 	end
 end	
@@ -8589,7 +8627,7 @@ function Sylas:Draw()
 local textPos = myHero.pos:To2D()
 
 
- if myHero.dead then return end
+if myHero.dead then return end
 	if(self.Menu.Drawing.DrawR:Value()) and Ready(_R) then
     Draw.Circle(myHero, 1050, 1, Draw.Color(255, 225, 255, 10)) --1050
 	end                                                 
@@ -8624,6 +8662,11 @@ local textPos = myHero.pos:To2D()
 			Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))	
 		end		
 	end	
+	local Ult = {"LuxMaliceCannon","EnchantedCrystalArrow","DravenRCast","EzrealR","JinxR","LucianR","NeekoR","RivenFengShuiEngine","SonaR","ThreshRPenta","YasuoR"}	
+	if table.contains(Ult, myHero:GetSpellData(_R).name) then 
+		Draw.Text("E+E2+Ult[Press Key]", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 000, 255, 000))
+	end	
+		
 end
        
 
