@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
 
-    local Version = 9.3
+    local Version = 9.4
     
     local Files = {
         Lua = {
@@ -1666,7 +1666,7 @@ end
 
 local QData =
 {
-Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 200, Range = 850, Speed = math.huge, Collision = false
+Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 75, Range = 850, Speed = math.huge, Collision = false
 }
 
 local RData =
