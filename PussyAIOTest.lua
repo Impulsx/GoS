@@ -13,7 +13,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- Rakan:  	W 2vs2 or other teamfights works for me
 --			W added Clear/JungleClear
 
-    local Version = 9.5
+    local Version = 9.6
     
     local Files = {
         Lua = {
@@ -127,7 +127,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 9.5", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 9.6", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -3037,6 +3037,7 @@ function Kalista:__init()
 	{
 	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 40, Range = 1150, Speed = 2100, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
 	}
+
  
  if menu ~= 1 then return end
   menu = 2   	
@@ -3131,6 +3132,7 @@ function Kalista:Tick()
 	self:AutoE()
 	self:AutoR()
 	self:BoundHero()
+	self:KillMinion()
 	end
 end
 
@@ -3227,10 +3229,11 @@ if target == nil then return end
         for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
 			if minion.team == TEAM_ENEMY and IsValid(minion,1500) then
+			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 1150, 0.25, 2100, 40, false)
 			local QDmg = self:GetQDamage(minion)
-			local pointSegment, pointLine, isOnSegment = HPred:VectorPointProjectionOnLineSegment(myHero.pos, target.pos, minion.pos)
-				if isOnSegment and pointSegment:DistanceTo(minion.pos) < 50 and self:GetEstacks(minion) >= 1 and QDmg >= minion.health then 
-					Control.CastSpell(HK_Q, minion.pos)
+			local pointSegment, pointLine, isOnSegment = HPred:VectorPointProjectionOnLineSegment(myHero.pos, aimPosition, minion.pos)
+				if isOnSegment and (minion.pos.x - pointSegment.x)^2 + (minion.pos.z - pointSegment.y)^2 < (40 + minion.boundingRadius + 15) * (40 + minion.boundingRadius + 15) and self:GetEstacks(minion) >= 1 and QDmg >= minion.health and hitRate and hitRate >= 1 then 
+					Control.CastSpell(HK_Q, aimPosition)
 				end
 			end	
         end
@@ -3240,7 +3243,7 @@ end
 function Kalista:AutoE()
 local target = GetTarget(1000)     	
 if target == nil then return end
-	if IsValid(target,1000) and myHero.pos:DistanceTo(target.pos) > 550 and Ready(_E) then
+	if IsValid(target,1000) and myHero.pos:DistanceTo(target.pos) > 800 and Ready(_E) then
 		if self.Menu.AutoE.UseE:Value() and self:GetEstacks(target) >= self.Menu.AutoE.UseEM:Value() then
 			Control.CastSpell(HK_E)
 				
@@ -3310,6 +3313,8 @@ function Kalista:Clear()
     end
 end
 
+
+
 local JungleTable = {
 	SRU_Baron = "",
 	SRU_RiftHerald = "",
@@ -3334,6 +3339,25 @@ function Kalista:JungleClear()
 
             if myHero.pos:DistanceTo(minion.pos) <= 1500 and self.Menu.JClear.UseE:Value() then
 				if mana_ok and Ready(_E) then
+                    local EDmg = self:GetEDamage(minion,stacks)
+					local EDmg2 = self:GetEDamageBig(minion,stacks)
+                    if JungleTable[minion.charName] and EDmg2 >= minion.health then
+                        Control.CastSpell(HK_E)
+                    elseif EDmg >= minion.health then
+                        Control.CastSpell(HK_E)						
+                    end
+                end
+            end
+        end
+    end
+end
+
+function Kalista:KillMinion()
+    for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+        if minion.team == TEAM_ENEMY and IsValid(minion,1500) then
+            if myHero.pos:DistanceTo(minion.pos) <= 1500 then
+				if Ready(_E) then
                     local EDmg = self:GetEDamage(minion,stacks)
 					local EDmg2 = self:GetEDamageBig(minion,stacks)
                     if JungleTable[minion.charName] and EDmg2 >= minion.health then
