@@ -13,7 +13,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- Rakan:  	W 2vs2 or other teamfights works for me
 --			W added Clear/JungleClear
 
-    local Version = 9.6
+    local Version = 9.7
     
     local Files = {
         Lua = {
@@ -127,7 +127,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 9.6", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 9.7", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -3028,9 +3028,10 @@ end
 
 class "Kalista"
 
-
+local ChampTable = {["Blitzcrank"] = {charName = "Blitzcrank"}, ["Skarner"] = {charName = "Skarner"}, ["TahmKench"] = {charName = "TahmKench"}, ["Sion"] = {charName = "Sion"}}
 
 function Kalista:__init()
+	
 	BoundAlly = nil
 	stacks = 0
 	QData =
@@ -3053,6 +3054,8 @@ function Kalista:__init()
 	end
 end
 
+
+
 function Kalista:LoadMenu()                     
 	--MainMenu
 	self.Menu = MenuElement({type = MENU, id = "Kalista", name = "PussyKalista"})
@@ -3062,7 +3065,7 @@ function Kalista:LoadMenu()
 	self.Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto[Q]Immobile Target", value = true})
 	
 	self.Menu:MenuElement({type = MENU, id = "AutoQ2", leftIcon = Icons["QSet"]})
-	self.Menu.AutoQ2:MenuElement({id = "UseQ", name = "[Q]Transferring Stacks Minion to Enemy", value = false})	
+	self.Menu.AutoQ2:MenuElement({id = "UseQ", name = "[Q]Transferring Stacks Minion to Enemy", value = true})	
 
 	--AutoR 
 	self.Menu:MenuElement({type = MENU, id = "AutoR", leftIcon = Icons["AutoR"]})
@@ -3071,29 +3074,30 @@ function Kalista:LoadMenu()
 
 	--AutoE
 	self.Menu:MenuElement({type = MENU, id = "AutoE", leftIcon = Icons["AutoE"]})
-	self.Menu.AutoE:MenuElement({id = "UseE", name = "Auto[E]if Target Leave Range", value = true})
-	self.Menu.AutoE:MenuElement({id = "UseEM", name = "min[E]Stacks", value = 4, min = 1, max = 20, step = 1})	
+	self.Menu.AutoE:MenuElement({id = "E", name = "AutoE ToggleKey[AutoE Minions always]", key = 84, toggle = true})	
+	self.Menu.AutoE:MenuElement({id = "UseE", name = "Auto[E]if Enemy leave Range", value = true})
+	self.Menu.AutoE:MenuElement({id = "UseEM", name = "min[E]Stacks leaved Enemy", value = 7, min = 1, max = 20, step = 1})	
 		
 	--ComboMenu  
 	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
-	self.Menu.Combo:MenuElement({id = "UseEM", name = "min[E]Stacks", value = 7, min = 1, max = 20, step = 1})	
+	self.Menu.Combo:MenuElement({id = "UseEM", name = "min[E]Stacks", value = 10, min = 1, max = 20, step = 1})	
 	
 	--HarassMenu
 	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})	
 	self.Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})
-	self.Menu.Harass:MenuElement({id = "UseEM", name = "min[E]Stacks", value = 7, min = 1, max = 20, step = 1})	
+	self.Menu.Harass:MenuElement({id = "UseEM", name = "min[E]Stacks", value = 10, min = 1, max = 20, step = 1})	
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--LaneClear Menu
 	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})			
-	self.Menu.Clear:MenuElement({id = "UseE", name = "[E]", value = true}) 		
+	self.Menu.Clear:MenuElement({id = "UseE", name = "[E]LastHit", value = true}) 		
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
 	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})         	
-	self.Menu.JClear:MenuElement({id = "UseE", name = "[E]if killable", value = true})	
+	self.Menu.JClear:MenuElement({id = "UseE", name = "[E]LastHit", value = true})	
 	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
  
 	--KillSteal
@@ -3111,6 +3115,22 @@ function Kalista:LoadMenu()
 	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
 
+	DelayAction(function()
+	for i, Hero in pairs(GetAllyHeroes()) do
+	
+		if ChampTable[Hero.charName] then
+			self.Menu:MenuElement({type = MENU, id = "ally", name = "WomboCombo"})
+			self.Menu.ally:MenuElement({type = SPACE, id = "Tip", name = "Champs[Blitzcrank, Skarner, TahmKench, Sion]"})
+			self.Menu.ally:MenuElement({id = "Champ", name = Hero.charName, value = true})
+			self.Menu.ally:MenuElement({id = "MyHP", name = "Kalista min.Hp to UseR",  value = 40, min = 0, max = 100, step = 1})			
+		
+		end
+	end 
+	end, 0.3)	
+
+	
+
+	
 	
 end	
 
@@ -3133,19 +3153,58 @@ function Kalista:Tick()
 	self:AutoR()
 	self:BoundHero()
 	self:KillMinion()
+	self:WomboCombo()
 	end
+ 
+			
+
+				
 end
 
 function Kalista:BoundHero()
 	if BoundAlly then return end
+	
 	for i = 1, Game.HeroCount() do
 		local hero = Game.Hero(i)
 		if not hero.isMe and hero.isAlly and HasBuff(hero,"kalistacoopstrikeally")  then
-			print("Found")
+			--print("Found")
 			BoundAlly = hero
 		end
 	end	
 end
+
+
+
+function Kalista:WomboCombo()
+local target = GetTarget(1500)     	
+if target == nil then return end
+for i, Hero in pairs(GetAllyHeroes()) do
+	if BoundAlly and ChampTable[Hero.charName] and HasBuff(Hero,"kalistacoopstrikeally") then	
+	
+	if IsValid(BoundAlly,1300) and myHero.pos:DistanceTo(BoundAlly.pos) <= 1200 then
+		if Ready(_R) and self.Menu.ally.Champ:Value() and myHero.health/myHero.maxHealth >= self.Menu.ally.MyHP:Value()/100 then
+			
+			if BoundAlly.charName == "Blitzcrank" and GotBuff(target, "rocketgrab2") > 0 then
+				Control.CastSpell(HK_R)
+			
+			elseif BoundAlly.charName == "Skarner" and GotBuff(target, "SkarnerImpale") > 0 then
+				Control.CastSpell(HK_R)
+			
+			elseif BoundAlly.charName == "TahmKench" and GotBuff(target, "tahmkenchwdevoured") > 0 then
+				Control.CastSpell(HK_R)
+			
+			elseif BoundAlly.charName == "Sion" and (BoundAlly.activeSpell and BoundAlly.activeSpell.valid and BoundAlly.activeSpell.name == "SionR") then
+				DelayAction(function()
+				Control.CastSpell(HK_R) 
+				end, 0.3)
+			end
+		end
+	end
+	end
+end
+end
+
+
 
 function Kalista:GetEstacks(unit)
 
@@ -3164,15 +3223,8 @@ end
 function Kalista:GetEDamage(unit,stacks)
 	local level = myHero:GetSpellData(_E).level
 	local basedmg = ({20, 30, 40, 50, 60})[level] + 0.6* (myHero.totalDamage)
-	local stacksdmg = (stacks)*(({10, 14, 19, 25, 32})[level]+({0.2, 0.225, 0.25, 0.275, 0.3})[level] * myHero.totalDamage)
-	return CalcPhysicalDamage(myHero,basedmg + stacksdmg)
-end
-
-function Kalista:GetEDamageBig(unit,stacks)
-	local level = myHero:GetSpellData(_E).level
-	local basedmg = ({20, 30, 40, 50, 60})[level] + 0.6* (myHero.totalDamage)
-	local stacksdmg = ((({10, 14, 19, 25, 32})[level]+({0.2, 0.225, 0.25, 0.275, 0.3})[level] * myHero.totalDamage)) * (stacks)
-	return CalcPhysicalDamage(myHero,basedmg + stacksdmg)
+	local stacksdmg = (stacks )*(({10, 14, 19, 25, 32})[level]+({0.198, 0.237, 0.274, 0.312, 0.349})[level] * myHero.totalDamage)
+	return CalcPhysicalDamage(myHero, (basedmg + stacksdmg))
 end
 
 function Kalista:GetQDamage(unit)
@@ -3180,33 +3232,32 @@ function Kalista:GetQDamage(unit)
 	return CalcPhysicalDamage(myHero,basedmg)
 end
 
-function Kalista:GetKillMinionCount(range, pos)
-    local pos = pos.pos
-	local count = 0
-	for i = 1,Game.MinionCount() do
-	local hero = Game.Minion(i)
-	local Range = range * range
-		if hero.team ~= TEAM_ALLY and hero.dead == false and GetDistanceSqr(pos, hero.pos) < Range and self:GetEDamage(hero,stacks) >= hero.health then
-		count = count + 1
-		end
-	end
-	return count
-end
-
 function Kalista:Draw()
   if myHero.dead then return end
+	
 	if self.Menu.Drawing.DrawR:Value() and Ready(_R) then
     Draw.Circle(myHero, 1100, 1, Draw.Color(255, 225, 255, 10))
 	end                                                 
 	if self.Menu.Drawing.DrawQ:Value() and Ready(_Q) then
     Draw.Circle(myHero, 1150, 1, Draw.Color(225, 225, 0, 10))
 	end
+	
+	local textPos = myHero.pos:To2D()
+	if self.Menu.AutoE.E:Value() then 
+		Draw.Text("AutoE ON", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 000, 255, 000))
+	else
+		Draw.Text("AutoE OFF", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 220, 050, 000)) 
+	end
 
-
-	local textPos = myHero.pos:To2D()	
+		
 	if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 	end	
+	--[[for i, Hero in pairs(GetAllyHeroes()) do
+		if BoundAlly and ChampTable[Hero.charName] and HasBuff(Hero,"kalistacoopstrikeally") then
+			Draw.Text("WomboCombo possible", 20, textPos.x + 1, textPos.y - 400, Draw.Color(255, 255, 0, 0))
+		end
+	end]]
 end
 
 function Kalista:AutoQ()
@@ -3229,7 +3280,7 @@ if target == nil then return end
         for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
 			if minion.team == TEAM_ENEMY and IsValid(minion,1500) then
-			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 1150, 0.25, 2100, 40, false)
+			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 1150, 0.25, 2100, 40, false)	
 			local QDmg = self:GetQDamage(minion)
 			local pointSegment, pointLine, isOnSegment = HPred:VectorPointProjectionOnLineSegment(myHero.pos, aimPosition, minion.pos)
 				if isOnSegment and (minion.pos.x - pointSegment.x)^2 + (minion.pos.z - pointSegment.y)^2 < (40 + minion.boundingRadius + 15) * (40 + minion.boundingRadius + 15) and self:GetEstacks(minion) >= 1 and QDmg >= minion.health and hitRate and hitRate >= 1 then 
@@ -3298,16 +3349,18 @@ end
 function Kalista:Clear()
     for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-        if minion.team == TEAM_ENEMY and IsValid(minion,1500) then
+        if minion.team == TEAM_ENEMY and IsValid(minion,1000) then
             local mana_ok = (self.Menu.Clear.Mana == nil or (self.Menu.Clear.Mana ~= nil and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100))
 
-            if myHero.pos:DistanceTo(minion.pos) <= 1500 and self.Menu.Clear.UseE:Value() then
+            if myHero.pos:DistanceTo(minion.pos) <= 1000 and self.Menu.Clear.UseE:Value() then
 				if mana_ok and Ready(_E) then
-                    local EDmg = self:GetEDamage(minion,stacks)
-                    if EDmg >= minion.health then
+					if (minion.charName == "Siege" or minion.charName == "super") and self:GetEDamage(minion,stacks) >= minion.health then
+						Control.CastSpell(HK_E)
+					                    
+                    elseif self:GetEDamage(minion,stacks) >= minion.health then
                         Control.CastSpell(HK_E)
                     end
-                end
+				end
             end
         end
     end
@@ -3316,36 +3369,33 @@ end
 
 
 local JungleTable = {
-	SRU_Baron = "",
-	SRU_RiftHerald = "",
-	SRU_Dragon_Water = "",
-	SRU_Dragon_Fire = "",
-	SRU_Dragon_Earth = "",
-	SRU_Dragon_Air = "",
-	SRU_Dragon_Elder = "",
-	SRU_Blue = "",
-	SRU_Red = "",
-	Siege = "",
-	super = "",
+	"SRU_Baron",
+	"SRU_RiftHerald",
+	"SRU_Dragon_Water",
+	"SRU_Dragon_Fire",
+	"SRU_Dragon_Earth",
+	"SRU_Dragon_Air",
+	"SRU_Dragon_Elder",
+	"SRU_Blue",
+	"SRU_Red",
 }
+
 
 function Kalista:JungleClear()
 	
 	
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-        if minion.team == TEAM_JUNGLE and IsValid(minion,1500) then
-            local mana_ok = (self.Menu.JClear.Mana == nil or (self.Menu.JClear.Mana ~= nil and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100))
+        if minion.team == TEAM_JUNGLE and IsValid(minion,1000) then
+            local mana_ok = myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100
 
-            if myHero.pos:DistanceTo(minion.pos) <= 1500 and self.Menu.JClear.UseE:Value() then
-				if mana_ok and Ready(_E) then
-                    local EDmg = self:GetEDamage(minion,stacks)
-					local EDmg2 = self:GetEDamageBig(minion,stacks)
-                    if JungleTable[minion.charName] and EDmg2 >= minion.health then
+            if myHero.pos:DistanceTo(minion.pos) <= 1000 and self.Menu.JClear.UseE:Value() then
+				if mana_ok and Ready(_E) then  
+                    if JungleTable[minion.charName] and self:GetEDamage(minion,stacks) >= minion.health then
+						 Control.CastSpell(HK_E)
+					elseif self:GetEDamage(minion,stacks) >= minion.health then
                         Control.CastSpell(HK_E)
-                    elseif EDmg >= minion.health then
-                        Control.CastSpell(HK_E)						
-                    end
+					end	
                 end
             end
         end
@@ -3355,15 +3405,14 @@ end
 function Kalista:KillMinion()
     for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-        if minion.team == TEAM_ENEMY and IsValid(minion,1500) then
-            if myHero.pos:DistanceTo(minion.pos) <= 1500 then
-				if Ready(_E) then
-                    local EDmg = self:GetEDamage(minion,stacks)
-					local EDmg2 = self:GetEDamageBig(minion,stacks)
-                    if JungleTable[minion.charName] and EDmg2 >= minion.health then
+        if minion.team == TEAM_ENEMY and IsValid(minion,1000) then
+            if myHero.pos:DistanceTo(minion.pos) <= 1000 then
+				if self.Menu.AutoE.E:Value() and Ready(_E) then
+					if (minion.charName == "Siege" or minion.charName == "super") and self:GetEDamage(minion,stacks) >= minion.health then
+						Control.CastSpell(HK_E)
+					                    
+                    elseif self:GetEDamage(minion,stacks) >= minion.health then
                         Control.CastSpell(HK_E)
-                    elseif EDmg >= minion.health then
-                        Control.CastSpell(HK_E)						
                     end
                 end
             end
@@ -3378,17 +3427,17 @@ function Kalista:KillSteal()
 	
 	
 	if IsValid(target,1500) then	
-		local hp = target.health
+
 		if myHero.pos:DistanceTo(target.pos) <= 1150 and Ready(_Q) then
 			local QDmg = self:GetQDamage(target)
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= hp and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+			if QDmg >= target.health and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if myHero.pos:DistanceTo(target.pos) <= 1500 and Ready(_E) then
 			local EDmg = self:GetEDamage(target,stacks)
-			if EDmg >= hp then
+			if EDmg >= target.health then
 				Control.CastSpell(HK_E)
 			end
 		end
