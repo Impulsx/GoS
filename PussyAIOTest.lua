@@ -13,7 +13,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- Rakan:  	W 2vs2 or other teamfights works for me
 --			W added Clear/JungleClear
 
-    local Version = 9.7
+    local Version = 9.8
     
     local Files = {
         Lua = {
@@ -127,7 +127,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 9.7", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 9.8", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -135,15 +135,16 @@ local textPos = myHero.pos:To2D()
 		Draw.Text("Ahri", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Ekko", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
 		Draw.Text("Kayle", 25, textPos.x + 200, textPos.y - 60, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Lux", 25, textPos.x + 200, textPos.y - 40, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Morgana", 25, textPos.x + 200, textPos.y - 20, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Neeko", 25, textPos.x + 200, textPos.y - 1 , Draw.Color(255, 255, 200, 0))
-		Draw.Text("Rakan", 25, textPos.x + 200, textPos.y + 20, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Soraka", 25, textPos.x + 200, textPos.y + 40, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Sylas", 25, textPos.x + 200, textPos.y + 60, Draw.Color(255, 255, 200, 0))		
-		Draw.Text("Veigar", 25, textPos.x + 200, textPos.y + 80, Draw.Color(255, 255, 200, 0))	
-		Draw.Text("Xerath", 25, textPos.x + 200, textPos.y + 100, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Yuumi", 25, textPos.x + 200, textPos.y + 120, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Kalista", 25, textPos.x + 200, textPos.y - 40, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Lux", 25, textPos.x + 200, textPos.y - 20, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Morgana", 25, textPos.x + 200, textPos.y - 1, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Neeko", 25, textPos.x + 200, textPos.y + 20 , Draw.Color(255, 255, 200, 0))
+		Draw.Text("Rakan", 25, textPos.x + 200, textPos.y + 40, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Soraka", 25, textPos.x + 200, textPos.y + 60, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Sylas", 25, textPos.x + 200, textPos.y + 80, Draw.Color(255, 255, 200, 0))		
+		Draw.Text("Veigar", 25, textPos.x + 200, textPos.y + 100, Draw.Color(255, 255, 200, 0))	
+		Draw.Text("Xerath", 25, textPos.x + 200, textPos.y + 120, Draw.Color(255, 255, 200, 0))
+		Draw.Text("Yuumi", 25, textPos.x + 200, textPos.y + 140, Draw.Color(255, 255, 200, 0))
 
 
 		Draw.Text("Cassiopeia", 25, textPos.x + 300, textPos.y - 100, Draw.Color(255, 255, 200, 0))	
@@ -3178,10 +3179,10 @@ end
 function Kalista:WomboCombo()
 local target = GetTarget(1500)     	
 if target == nil then return end
-for i, Hero in pairs(GetAllyHeroes()) do
-	if BoundAlly and ChampTable[Hero.charName] and HasBuff(Hero,"kalistacoopstrikeally") then	
+
 	
-	if IsValid(BoundAlly,1300) and myHero.pos:DistanceTo(BoundAlly.pos) <= 1200 then
+	
+	if self.Menu.ally ~= nil and BoundAlly and IsValid(BoundAlly,1300) and myHero.pos:DistanceTo(BoundAlly.pos) <= 1200 then
 		if Ready(_R) and self.Menu.ally.Champ:Value() and myHero.health/myHero.maxHealth >= self.Menu.ally.MyHP:Value()/100 then
 			
 			if BoundAlly.charName == "Blitzcrank" and GotBuff(target, "rocketgrab2") > 0 then
@@ -3200,9 +3201,8 @@ for i, Hero in pairs(GetAllyHeroes()) do
 			end
 		end
 	end
-	end
 end
-end
+
 
 
 
@@ -3253,11 +3253,11 @@ function Kalista:Draw()
 	if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 	end	
-	--[[for i, Hero in pairs(GetAllyHeroes()) do
-		if BoundAlly and ChampTable[Hero.charName] and HasBuff(Hero,"kalistacoopstrikeally") then
+	for i, Hero in pairs(GetAllyHeroes()) do
+		if ChampTable[Hero.charName] then
 			Draw.Text("WomboCombo possible", 20, textPos.x + 1, textPos.y - 400, Draw.Color(255, 255, 0, 0))
 		end
-	end]]
+	end
 end
 
 function Kalista:AutoQ()
