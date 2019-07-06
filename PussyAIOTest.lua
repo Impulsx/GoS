@@ -13,7 +13,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- Rakan:  	W 2vs2 or other teamfights works for me
 --			W added Clear/JungleClear
 
-    local Version = 9.8
+    local Version = 9.9
     
     local Files = {
         Lua = {
@@ -127,7 +127,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 9.8", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 9.9", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -3116,12 +3116,13 @@ function Kalista:LoadMenu()
 	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
 
+
+	self.Menu:MenuElement({type = MENU, id = "ally", name = "WomboCombo"})
+	self.Menu.ally:MenuElement({type = SPACE, id = "Tip", name = "Champs[Blitzcrank, Skarner, TahmKench, Sion]"})
 	DelayAction(function()
 	for i, Hero in pairs(GetAllyHeroes()) do
 	
-		if ChampTable[Hero.charName] then
-			self.Menu:MenuElement({type = MENU, id = "ally", name = "WomboCombo"})
-			self.Menu.ally:MenuElement({type = SPACE, id = "Tip", name = "Champs[Blitzcrank, Skarner, TahmKench, Sion]"})
+		if ChampTable[Hero.charName] then			
 			self.Menu.ally:MenuElement({id = "Champ", name = Hero.charName, value = true})
 			self.Menu.ally:MenuElement({id = "MyHP", name = "Kalista min.Hp to UseR",  value = 40, min = 0, max = 100, step = 1})			
 		
@@ -3182,7 +3183,7 @@ if target == nil then return end
 
 	
 	
-	if self.Menu.ally ~= nil and BoundAlly and IsValid(BoundAlly,1300) and myHero.pos:DistanceTo(BoundAlly.pos) <= 1200 then
+	if self.Menu.ally.Champ ~= nil and BoundAlly and IsValid(BoundAlly,1300) and myHero.pos:DistanceTo(BoundAlly.pos) <= 1200 then
 		if Ready(_R) and self.Menu.ally.Champ:Value() and myHero.health/myHero.maxHealth >= self.Menu.ally.MyHP:Value()/100 then
 			
 			if BoundAlly.charName == "Blitzcrank" and GotBuff(target, "rocketgrab2") > 0 then
@@ -3224,6 +3225,13 @@ function Kalista:GetEDamage(unit,stacks)
 	local level = myHero:GetSpellData(_E).level
 	local basedmg = ({20, 30, 40, 50, 60})[level] + 0.6* (myHero.totalDamage)
 	local stacksdmg = (stacks )*(({10, 14, 19, 25, 32})[level]+({0.198, 0.237, 0.274, 0.312, 0.349})[level] * myHero.totalDamage)
+	return CalcPhysicalDamage(myHero, (basedmg + stacksdmg))
+end
+
+function Kalista:GetEDamageChamp(unit,stacks)
+	local level = myHero:GetSpellData(_E).level
+	local basedmg = ({20, 30, 40, 50, 60})[level] + 0.6* (myHero.totalDamage)
+	local stacksdmg = (stacks+1)*(({10, 14, 19, 25, 32})[level]+({0.198, 0.237, 0.274, 0.312, 0.349})[level] * myHero.totalDamage)
 	return CalcPhysicalDamage(myHero, (basedmg + stacksdmg))
 end
 
@@ -3436,7 +3444,7 @@ function Kalista:KillSteal()
 			end
 		end
 		if myHero.pos:DistanceTo(target.pos) <= 1500 and Ready(_E) then
-			local EDmg = self:GetEDamage(target,stacks)
+			local EDmg = self:GetEDamageChamp(target,stacks)
 			if EDmg >= target.health then
 				Control.CastSpell(HK_E)
 			end
