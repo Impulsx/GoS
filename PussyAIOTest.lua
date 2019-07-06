@@ -13,7 +13,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- Rakan:  	W 2vs2 or other teamfights works for me
 --			W added Clear/JungleClear
 
-    local Version = 9.9
+    local Version = 10.0
     
     local Files = {
         Lua = {
@@ -127,7 +127,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 9.9", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 10.0", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -3399,9 +3399,9 @@ function Kalista:JungleClear()
 
             if myHero.pos:DistanceTo(minion.pos) <= 1000 and self.Menu.JClear.UseE:Value() then
 				if mana_ok and Ready(_E) then  
-                    if JungleTable[minion.charName] and self:GetEDamage(minion,stacks) >= minion.health then
+                    if JungleTable[minion.charName] and self:GetEDamageChamp(minion,stacks) >= minion.health then
 						 Control.CastSpell(HK_E)
-					elseif self:GetEDamage(minion,stacks) >= minion.health then
+					elseif self:GetEDamageChamp(minion,stacks) >= minion.health then
                         Control.CastSpell(HK_E)
 					end	
                 end
