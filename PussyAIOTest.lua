@@ -7,7 +7,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- Veigar: GamsteronPrediction Q,W,E added and Clear W fixed
 -- LeeSin: Insec added ( Ward behind Enemy + W Ward + R Enemy + Q1 Enemy + Q2 Enemy )
 
-    local Version = 10.1
+    local Version = 10.2
     
     local Files = {
         Lua = {
@@ -121,7 +121,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 10.1", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 10.2", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -4171,6 +4171,11 @@ local QData =
 Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 65, Range = 1200, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
 }
 
+local WardData =
+{
+Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 65, Range = 625, Speed = 1750, Collision = false
+}
+
 local Position = mousePos
 local ultimocast = 0
 local _wards = {2055, 2049, 2050, 2301, 2302, 2303, 3340, 3361, 3362, 3711, 1408, 1409, 1410, 1411, 2043, 2055}
@@ -4319,8 +4324,9 @@ local pred = GetGamsteronPrediction(target, QData, myHero)
 			end			
 			
 			if WardsAround(target, 375) == 0 then 
-				if Item and Ready(Item) and myHero.pos:DistanceTo(target.pos) <= 550 then
-					local CastPos = target.pos:Shortened(myHero.pos, 50)
+				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 625, 0.25, 1450, 60, false)
+				if Item and Ready(Item) and myHero.pos:DistanceTo(target.pos) <= 575 and hitRate and hitRate >= 1 then
+					local CastPos = aimPosition:Shortened(myHero.pos, 100)
 					Control.CastSpell(ItemHotKey[Item], CastPos)
 				end
 			end
