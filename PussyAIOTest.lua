@@ -7,7 +7,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- Veigar: GamsteronPrediction Q,W,E added and Clear W fixed
 -- LeeSin: Insec added ( Ward behind Enemy + W Ward + R Enemy + Q1 Enemy + Q2 Enemy )
 
-    local Version = 10.2
+    local Version = 10.3
     
     local Files = {
         Lua = {
@@ -82,15 +82,7 @@ end
 	require "GamsteronPrediction"	
 	end
 
-	if myHero.charName == "Veigar" then
-		if not FileExist(COMMON_PATH .. "TPred.lua") then
-			DownloadFileAsync("https://raw.githubusercontent.com/Vasilyi/gamingonsteroids/master/Common/TPred.lua", COMMON_PATH .. "TPred.lua", function() end)
-			while not FileExist(COMMON_PATH .. "TPred.lua") do end
 
-
-		end
-	require('TPred')	
-	end
 	
 
 require "Collision"
@@ -112,16 +104,14 @@ if not isLoaded then
 end
 local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
 local textPos = myHero.pos:To2D()	
-	if myHero.charName == "Veigar" and not FileExist(COMMON_PATH .. "TPred.lua") then
-		Draw.Text("TPred installed Press 2xF6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
-	end
+
     if NewVersion > Version then
 		Draw.Text("New PussyAIO Vers. Press 2xF6", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 0, 0))
 	end
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 10.2", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 10.3", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -4162,10 +4152,10 @@ end
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class "LeeSin"
---require('GamsteronPrediction')
 
 
-require 'MapPositionGOS'
+
+--require 'MapPositionGOS'
 local QData =
 {
 Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 65, Range = 1200, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
@@ -4260,9 +4250,15 @@ function LeeSin:LoadMenu()
 	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
 	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 
-	self.Menu:MenuElement({id = "Modes", name = "Modes", type = MENU}) 
-	self.Menu.Modes:MenuElement({id = "Insec", name = "Insec", key = string.byte("T")})
-
+	--Insec
+	self.Menu:MenuElement({id = "Modes", name = "Insec Modes", type = MENU}) 
+	self.Menu.Modes:MenuElement({id = "Modes1", name = "Insec Mode 1", type = MENU})	
+	self.Menu.Modes.Modes1:MenuElement({id = "Insec", name = "Ward[Behind Enemy]+W+R+Q1+Q2", key = string.byte("T")})
+	self.Menu.Modes.Modes1:MenuElement({id = "Draw", name = "Draw Insec Line/Circle", value = true})
+	self.Menu.Modes.Modes1:MenuElement({id = "Type", name = "Draw Option", value = 1, drop = {"Always", "Pressed Insec Key"}})
+	
+	self.Menu.Modes:MenuElement({id = "Modes2", name = "Insec Mode 2", type = MENU})
+	self.Menu.Modes.Modes2:MenuElement({id = "Insec", name = "WardJump", key = string.byte("X")})
 	
 	--Drawing 
 	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
@@ -4286,61 +4282,92 @@ function LeeSin:Tick()
 		elseif Mode == "Clear" then
 			self:Clear()
 			self:JungleClear()
-		end	
-	self:JungleSteal()
-	self:KillSteal()
-	self:AutoQ()
-	self:AutoR()
-	self:AutoW()
+		elseif Mode == "Flee" then
+			self:WardJumpW()
+			self:WardJump()		
+		end
+		self:JungleSteal()
+		self:KillSteal()
+		self:AutoQ()
+		self:AutoR()
+		self:AutoW()
 	
-	if self.Menu.Modes.Insec:Value() then
-	self:Insec()
-	end
-
-	
+		if self.Menu.Modes.Modes1.Insec:Value() then
+			self:InsecW()
+			self:Insec()
+			
+		end
 	end
 end
 
+function LeeSin:WardJumpW()
+	for i = 1, Game.WardCount() do
+	local ward = Game.Ward(i)				
+		
+		if IsValid(ward, 700) and ward.isAlly and myHero.pos:DistanceTo(ward.pos) <= 625 and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
+			Control.CastSpell(HK_W, ward)
+					
+		end	
+	end
+end	
+
+function LeeSin:WardJump()
+	for v, spell in pairs(_wards) do
+	local Item = GetInventorySlotItem(spell)
+	local Data = myHero:GetSpellData(Item);
+		if Item and Data.ammo > 0 and self.Menu.Modes.Modes2.Insec:Value() then
+		local CastPos = myHero.pos:Shortened(mousePos, 625)
+			Control.CastSpell(ItemHotKey[Item], CastPos)
+		end
+	end
+end	
+
+
+function LeeSin:InsecW()
+local target = GetTarget(800)     	
+if target == nil then return end
+	for i = 1, Game.WardCount() do
+	local ward = Game.Ward(i)				
+		
+		if IsValid(ward, 800) and ward.isAlly and target.pos:DistanceTo(ward.pos) < 375 and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
+			if myHero.pos:DistanceTo(ward.pos) < 700 then	
+				Control.CastSpell(HK_W, ward)
+					
+						
+			end
+		end	
+	end
+end
 
 function LeeSin:Insec()
 local target = GetTarget(1300)     	
 if target == nil then return end	
-local pred = GetGamsteronPrediction(target, QData, myHero)	
+	
 	for v, spell in pairs(_wards) do
 	local Item = GetInventorySlotItem(spell)
 		if IsValid(target, 1300) then
-
-			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) then
+			
+			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) and HasBuff(target, "BlindMonkQOne") then
 				Control.CastSpell(HK_R, target.pos)
 			end
-			
-			
-			if HasBuff(target, "BlindMonkRKick") and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+						
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 375 and not HasBuff(target, "BlindMonkQOne") and Ready(_Q) and pred.Hitchance >= 2 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 			
-			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
+			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkRKick") and HasBuff(target, "BlindMonkQOne") then
 				Control.CastSpell(HK_Q)
-			end			
-			
-			if WardsAround(target, 375) == 0 then 
+			end				
+						
+			if WardsAround(target, 375) == 0 and Ready(_R) then 
+				local Data = myHero:GetSpellData(Item);
 				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 625, 0.25, 1450, 60, false)
-				if Item and Ready(Item) and myHero.pos:DistanceTo(target.pos) <= 575 and hitRate and hitRate >= 1 then
+				if Item and Data.ammo > 0 and myHero.pos:DistanceTo(target.pos) <= 525 and hitRate and hitRate >= 1 then
 					local CastPos = aimPosition:Shortened(myHero.pos, 100)
 					Control.CastSpell(ItemHotKey[Item], CastPos)
 				end
-			end
-			for i = 1, Game.WardCount() do
-			local ward = Game.Ward(i)				
-				if myHero.pos:DistanceTo(ward.pos) < 700 and ward.isAlly and Ready(_W) then
-					if target.pos:DistanceTo(ward.pos) < 375 then	
-						Control.CastSpell(HK_W, ward)
-					
-						
-					end
-				end	
-			end
-	
+			end	
 		end
 	end
 end
@@ -4388,6 +4415,40 @@ function LeeSin:Draw()
 	local textPos = myHero.pos:To2D()	
 	if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+	end	
+
+	if self.Menu.Modes.Modes1.Draw:Value() then
+		for v, spell in pairs(_wards) do
+		local Item = GetInventorySlotItem(spell)	
+		local Data = myHero:GetSpellData(Item);	
+			
+			if Item and Data.ammo > 0 and Ready(_Q) and Ready(_R) and Ready(_W) then
+				for i = 1, Game.HeroCount() do
+				local Hero = Game.Hero(i)
+				local textPos = Hero.pos:To2D()	
+					if IsValid(Hero, 1300) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then 
+						if self.Menu.Modes.Modes1.Type:Value() == 2 and self.Menu.Modes.Modes1.Insec:Value() then 	
+							local Vectori = Vector(myHero.pos - Hero.pos)
+							local LS = LineSegment(myHero.pos, Hero.pos)
+							LS:__draw()
+							LSS = Circle(Point(Hero), Hero.boundingRadius)
+							LSS:__draw()
+							Draw.Text("Insec Mode[1]", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
+							Draw.Circle(myHero, 525, 1, Draw.Color(225, 225, 0, 0))
+						end
+						if self.Menu.Modes.Modes1.Type:Value() == 1 then
+							local Vectori = Vector(myHero.pos - Hero.pos)
+							local LS = LineSegment(myHero.pos, Hero.pos)
+							LS:__draw()
+							LSS = Circle(Point(Hero), Hero.boundingRadius)
+							LSS:__draw()
+							Draw.Text("Insec Mode[1]", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
+							Draw.Circle(myHero, 525, 1, Draw.Color(225, 225, 0, 0))
+						end
+					end	
+				end		
+			end
+		end
 	end	
 end
 
@@ -11784,7 +11845,6 @@ class "Veigar"
 
 
 
---require('TPred')
 
 
 function Veigar:__init()
@@ -11903,13 +11963,7 @@ function Veigar:LoadMenu()
 	self.Menu:MenuElement({id = "Killsteal", leftIcon = Icons["ks"], type = MENU})
 	self.Menu.Killsteal:MenuElement({id = "UseQ", name = "Q", value = true})
 	self.Menu.Killsteal:MenuElement({id = "UseW", name = "W", value = false})
-
-	
-	self.Menu.Killsteal:MenuElement({id = "RR", name = "UseR on killalble target:", value = true, type = MENU})
-	for i, hero in pairs(GetEnemyHeroes()) do
-	self.Menu.Killsteal.RR:MenuElement({id = "UseR"..hero.charName, name = "UseR" ..hero.charName, value = true})
-	end
-
+	self.Menu.Killsteal:MenuElement({id = "RR", name = "R", value = true})
 
 	self.Menu:MenuElement({id = "isCC", leftIcon = Icons["AutoUseCC"], type = MENU})
 	self.Menu.isCC:MenuElement({id = "UseQ", name = "Q", value = true})
@@ -12114,7 +12168,7 @@ if target == nil then return end
 			end
 		end
 	end	
-	if IsValid(target,R.Range) and EnemyInRange(R.Range) and self.Menu.Killsteal.RR["UseR"..target.charName]:Value() and self:CanCast(_R) then   
+	if IsValid(target,R.Range) and EnemyInRange(R.Range) and self.Menu.Killsteal.RR:Value() and self:CanCast(_R) then   
 		local level = myHero:GetSpellData(_R).level	
 		local dmg = GetPercentHP(target) > 33.3 and ({175, 250, 325})[level] + 0.75 * myHero.ap or ({350, 500, 650})[level] + 1.50 * myHero.ap
 		local Rdamage = dmg +((0.015 * dmg) * (100 - ((target.health / target.maxHealth) * 100)))
@@ -14750,7 +14804,7 @@ end
 
 
 class "Zyra"
---require('GamsteronPrediction')
+
 
 
 
@@ -14758,7 +14812,7 @@ class "Zyra"
 local EData =
 {
 Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1100, Speed = 1150, 
-Collision = false, MaxCollision = 0, CollisionTypes = { _G.COLLISION_YASUOWALL }
+Collision = true, MaxCollision = 0, CollisionTypes = { _G.COLLISION_YASUOWALL }
 }
 
 local QData =
