@@ -7,8 +7,9 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- Veigar: 	GamsteronPrediction Q,W,E added and Clear W fixed
 -- LeeSin: 	Insec 1 added (Ward behind Enemy + W Ward + R Enemy + Q1 Enemy + Q2 Enemy) + Insec Drawings
 --			Insec 2 added (WardJump) 
+--			Insec 3 added (If Killable then Auto Q1 + E1 + R + Q2 + E2) + Draw InsecKill Text 
 
-    local Version = 10.4
+    local Version = 10.5
     
     local Files = {
         Lua = {
@@ -112,7 +113,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 10.4", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 10.5", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -4169,7 +4170,7 @@ Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 65, Range = 625, Speed = 1750
 
 local Position = mousePos
 local ultimocast = 0
-local _wards = {2055, 2049, 2050, 2301, 2302, 2303, 3340, 3361, 3362, 3711, 1408, 1409, 1410, 1411, 2043, 2055}
+local _wards = {2055, 2049, 2050, 2301, 2302, 2303, 3340, 3361, 3362, 3711, 1408, 1409, 1410, 1411, 2043}
 
 function LeeSin:__init()
 
@@ -4245,7 +4246,7 @@ function LeeSin:LoadMenu()
 	self.Menu.Jsteal:MenuElement({id = "Dragon", name = "Steal Dragon", value = true})
 	self.Menu.Jsteal:MenuElement({id = "Baron", name = "Steal Baron", value = true})
 	self.Menu.Jsteal:MenuElement({id = "Herald", name = "Steal Herald", value = true})	
-	self.Menu.Jsteal:MenuElement({id = "Active", name = "Activate Key", key = string.byte("T")})	
+	self.Menu.Jsteal:MenuElement({id = "Active", name = "Activate Key", key = string.byte("Z")})	
 
 	--Prediction
 	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
@@ -4254,12 +4255,16 @@ function LeeSin:LoadMenu()
 	--Insec
 	self.Menu:MenuElement({id = "Modes", name = "Insec Modes", type = MENU}) 
 	self.Menu.Modes:MenuElement({id = "Modes1", name = "Insec Mode 1", type = MENU})	
-	self.Menu.Modes.Modes1:MenuElement({id = "Insec", name = "Ward[Behind Enemy]+W+R+Q1+Q2", key = string.byte("T")})
+	self.Menu.Modes.Modes1:MenuElement({id = "Insec", name = "Ward[Behind Enemy]+W+Q1+R+Q2", key = string.byte("T")})
 	self.Menu.Modes.Modes1:MenuElement({id = "Draw", name = "Draw Insec Line/Circle", value = true})
 	self.Menu.Modes.Modes1:MenuElement({id = "Type", name = "Draw Option", value = 1, drop = {"Always", "Pressed Insec Key"}})
 	
 	self.Menu.Modes:MenuElement({id = "Modes2", name = "Insec Mode 2", type = MENU})
 	self.Menu.Modes.Modes2:MenuElement({id = "Insec", name = "WardJump", key = string.byte("A")})
+	
+	self.Menu.Modes:MenuElement({id = "Modes3", name = "Insec Mode 3", type = MENU})
+	self.Menu.Modes.Modes3:MenuElement({id = "Insec", name = "If Killable[Q1+E+R+Q2+E2]", value = true})
+	self.Menu.Modes.Modes3:MenuElement({id = "Draw", name = "Draw Killable Text", value = true})	
 	
 	--Drawing 
 	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
@@ -4287,17 +4292,53 @@ function LeeSin:Tick()
 			self:WardJumpW()
 			self:WardJump()		
 		end
-		self:JungleSteal()
-		self:KillSteal()
-		self:AutoQ()
-		self:AutoR()
-		self:AutoW()
+	self:JungleSteal()
+	self:KillSteal()
+	self:KillStealInsec()
+	self:AutoQ()
+	self:AutoR()
+	self:AutoW()
 	
-		if self.Menu.Modes.Modes1.Insec:Value() then
-			self:InsecW()
-			self:Insec()
+	if self.Menu.Modes.Modes1.Insec:Value() then
+		self:InsecW()
+		self:Insec()
 			
-		end
+	end
+	end
+end
+
+function LeeSin:KillStealInsec()
+local target = GetTarget(1300)     	
+if target == nil then return end	
+	
+	if IsValid(target, 1300) then
+		local hp = target.health
+		local QDmg = getdmg("Q", target, myHero)
+		local EDmg = getdmg("E", target, myHero)
+		local RDmg = getdmg("R", target, myHero)
+		local FullDmg = (QDmg + RDmg + EDmg)
+		if hp <= FullDmg and self.Menu.Modes.Modes3.Insec:Value() then
+			if myHero.pos:DistanceTo(target.pos) < 500 and myHero:GetSpellData(_E).name == "BlindMonkETwo" and HasBuff(target, "BlindMonkRKick") then
+				Control.CastSpell(HK_E)
+			end	
+			
+			if myHero.pos:DistanceTo(target.pos) < 350 and Ready(_E) and myHero:GetSpellData(_E).name == "BlindMonkEOne" and HasBuff(target, "BlindMonkQOne") then
+				Control.CastSpell(HK_E)
+			end			
+			
+			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
+				Control.CastSpell(HK_R, target.pos)
+			end
+						
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 350 and not HasBuff(target, "BlindMonkQOne") and Ready(_Q) and pred.Hitchance >= 2 then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end
+			
+			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkRKick") and HasBuff(target, "BlindMonkQOne") then
+				Control.CastSpell(HK_Q)
+			end				
+		end				
 	end
 end
 
@@ -4450,7 +4491,21 @@ function LeeSin:Draw()
 				end		
 			end
 		end
-	end	
+	end
+	local target = GetTarget(20000)
+	if target == nil then return end	
+	if target and self.Menu.Modes.Modes3.Draw:Value() and not target.dead then
+	local hp = target.health	
+	local QDmg = getdmg("Q", target, myHero)
+	local EDmg = getdmg("E", target, myHero)
+	local RDmg = getdmg("R", target, myHero)
+	local FullDmg = (QDmg + RDmg + EDmg)	
+		if Ready(_Q) and Ready(_E) and Ready(_R) and FullDmg > hp then
+			Draw.Text("Insec Kill", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
+			Draw.Text("Insec Kill", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))
+	
+		end	
+	end
 end
 
 function LeeSin:AutoQ()
