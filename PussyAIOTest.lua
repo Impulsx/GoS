@@ -4,10 +4,11 @@ local GsoPred = {"Veigar","Kalista","Mordekaiser","LeeSin","Soraka","Lux","Yuumi
 if not table.contains(Heroes, myHero.charName) then return end
 
 -- Cassiopeia: Clear Q and E fixed
--- Veigar: GamsteronPrediction Q,W,E added and Clear W fixed
--- LeeSin: Insec added ( Ward behind Enemy + W Ward + R Enemy + Q1 Enemy + Q2 Enemy )
+-- Veigar: 	GamsteronPrediction Q,W,E added and Clear W fixed
+-- LeeSin: 	Insec 1 added (Ward behind Enemy + W Ward + R Enemy + Q1 Enemy + Q2 Enemy) + Insec Drawings
+--			Insec 2 added (WardJump) 
 
-    local Version = 10.3
+    local Version = 10.4
     
     local Files = {
         Lua = {
@@ -111,7 +112,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 10.3", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 10.4", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -4258,7 +4259,7 @@ function LeeSin:LoadMenu()
 	self.Menu.Modes.Modes1:MenuElement({id = "Type", name = "Draw Option", value = 1, drop = {"Always", "Pressed Insec Key"}})
 	
 	self.Menu.Modes:MenuElement({id = "Modes2", name = "Insec Mode 2", type = MENU})
-	self.Menu.Modes.Modes2:MenuElement({id = "Insec", name = "WardJump", key = string.byte("X")})
+	self.Menu.Modes.Modes2:MenuElement({id = "Insec", name = "WardJump", key = string.byte("A")})
 	
 	--Drawing 
 	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
@@ -4315,8 +4316,8 @@ function LeeSin:WardJump()
 	for v, spell in pairs(_wards) do
 	local Item = GetInventorySlotItem(spell)
 	local Data = myHero:GetSpellData(Item);
-		if Item and Data.ammo > 0 and self.Menu.Modes.Modes2.Insec:Value() then
-		local CastPos = myHero.pos:Shortened(mousePos, 625)
+		if Item and Data.ammo > 0 and self.Menu.Modes.Modes2.Insec:Value() and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
+		local CastPos = myHero.pos:Extended(mousePos, 700)
 			Control.CastSpell(ItemHotKey[Item], CastPos)
 		end
 	end
