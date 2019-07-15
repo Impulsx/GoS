@@ -9,7 +9,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 --			Insec 2 added (WardJump) 
 --			Insec 3 added (If Killable then Auto Q1 + E1 + R + Q2 + E2) + Draw InsecKill Text 
 
-    local Version = 10.6
+    local Version = 10.7
     
     local Files = {
         Lua = {
@@ -113,7 +113,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 10.6", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 10.7", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -163,6 +163,7 @@ local barHeight, barWidth, barXOffset, barYOffset = 8, 103, 0, 0
  
 
 local Icons = {
+["InsecMode"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/Insec%20Mode.png",
 ["Kassadin"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/PussyKassadinScriptLogo.png",
 ["Combo"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ComboScriptLogo.png",
 ["BlockSpells"] = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/BlockSpellsScriptLogo.png",
@@ -958,6 +959,12 @@ local function GetPred(unit,speed,delay)
 			return unit:GetPrediction(speed,delay)
 		end
 	end
+end
+
+local function RightClick(pos)
+	Control.mouse_event(MOUSEEVENTF_RIGHTDOWN)
+	Control.mouse_event(MOUSEEVENTF_RIGHTUP)
+	DelayAction(ReturnCursor,0.05,{pos})
 end
 
 local function EnemyInRange(range)
@@ -4258,7 +4265,7 @@ function LeeSin:LoadMenu()
 	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 
 	--Insec
-	self.Menu:MenuElement({id = "Modes", name = "Insec Modes", type = MENU}) 
+	self.Menu:MenuElement({id = "Modes", leftIcon = Icons["InsecMode"], type = MENU}) 
 	self.Menu.Modes:MenuElement({id = "Modes1", name = "Insec Mode 1", type = MENU})	
 	self.Menu.Modes.Modes1:MenuElement({id = "Insec", name = "Ward[Behind Enemy]+W+Q1+R+Q2", key = string.byte("T")})
 	self.Menu.Modes.Modes1:MenuElement({id = "Draw", name = "Draw Insec Line/Circle", value = true})
@@ -4305,6 +4312,7 @@ function LeeSin:Tick()
 	self:AutoW()
 	
 	if self.Menu.Modes.Modes1.Insec:Value() then
+		RightClick(myHero.pos)
 		self:InsecW()
 		self:Insec()
 			
@@ -4749,7 +4757,7 @@ local JungleTable = {
 }
 
 
-
+local WardTicks = 0;
 local SmiteDamage = {390 , 410 , 430 , 450 , 480 , 510 , 540 , 570 , 600 , 640 , 680 , 720 , 760 , 800 , 850 , 900 , 950 , 1000};
 
 function LeeSin:JungleSteal()
@@ -4773,10 +4781,11 @@ for i, minion in pairs(minionlist) do
 		
 		if self.Menu.Jsteal.Active:Value() then
 			local count = GetEnemyCount(1000, myHero)
-			if IsValid(ward, 1000) and ward.isAlly and myHero.pos:DistanceTo(ward.pos) <= 700 and Ready(_W) and count >= 1 then
-				Control.CastSpell(HK_W, ward)
-					
-			end	
+			if IsValid(ward, 1400) and ward.isAlly and myHero.pos:DistanceTo(ward.pos) <= 1400 and Ready(_W) and count >= 1 then
+				SetAttack(true)
+				CastSpell(HK_W, ward.pos)
+				
+			end		
 		end	
 	end
 	
@@ -4791,8 +4800,13 @@ for i, minion in pairs(minionlist) do
 				for v, spell in pairs(_wards) do
 				local Item = GetInventorySlotItem(spell)
 				local Data = myHero:GetSpellData(Item);
-					if Item and Data.ammo > 0 and Damage > minion.health then
-						Control.CastSpell(ItemHotKey[Item], myHero.pos)
+				local count = GetEnemyCount(500, myHero)	
+					if WardTicks + 200 < GetTickCount() then 
+					local WardTicks = GetTickCount();
+					UsedWard = false;	
+						if UsedWard == false and Item and Data.ammo > 0 and Damage > minion.health and count == 0 then
+							Control.CastSpell(ItemHotKey[Item], myHero.pos)
+						end	
 					end
 				end
 			end
