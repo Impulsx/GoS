@@ -9,7 +9,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 --			Insec 2 added (WardJump) 
 --			Insec 3 added (If Killable then Auto Q1 + E1 + R + Q2 + E2) + Draw InsecKill Text 
 
-    local Version = 10.7
+    local Version = 10.8
     
     local Files = {
         Lua = {
@@ -113,7 +113,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 10.7", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 10.8", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -4359,8 +4359,8 @@ function LeeSin:WardJumpW()
 	for i = 1, Game.WardCount() do
 	local ward = Game.Ward(i)				
 		
-		if IsValid(ward, 700) and ward.isAlly and myHero.pos:DistanceTo(ward.pos) <= 625 and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
-			Control.CastSpell(HK_W, ward)
+		if IsValid(ward, 700) and ward.isAlly and myHero.pos:DistanceTo(ward.pos) <= 700 and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
+			CastSpell(HK_W, ward.pos)
 					
 		end	
 	end
@@ -4371,7 +4371,7 @@ function LeeSin:WardJump()
 	local Item = GetInventorySlotItem(spell)
 	local Data = myHero:GetSpellData(Item);
 		if Item and Data.ammo > 0 and self.Menu.Modes.Modes2.Insec:Value() and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
-		local CastPos = myHero.pos:Extended(mousePos, 700)
+		local CastPos = myHero.pos:Extended(mousePos, 600)
 			Control.CastSpell(ItemHotKey[Item], CastPos)
 		end
 	end
@@ -4386,7 +4386,7 @@ if target == nil then return end
 		
 		if IsValid(ward, 800) and ward.isAlly and target.pos:DistanceTo(ward.pos) < 375 and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
 			if myHero.pos:DistanceTo(ward.pos) < 700 then	
-				Control.CastSpell(HK_W, ward)
+				CastSpell(HK_W, ward.pos)
 					
 						
 			end
@@ -15037,7 +15037,7 @@ if target == nil then return end
 	if IsValid(target,1200) and myHero.pos:DistanceTo(target.pos) <= 1000 and self.Menu.AutoE.UseE:Value() and Ready(_E) then
 		local pred = GetGamsteronPrediction(target, EData, myHero)
 		if IsImmobileTarget(target) and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then
-			self:UseW()
+			
 			Control.CastSpell(HK_E, pred.CastPosition)
 		end	
 	end
@@ -15105,7 +15105,7 @@ function Zyra:KillSteal()
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			local QDmg = getdmg("Q", target, myHero)
 			if QDmg >= hp and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
-				self:UseW()
+				
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
@@ -15113,7 +15113,7 @@ function Zyra:KillSteal()
 			local pred = GetGamsteronPrediction(target, EData, myHero)
 			local EDmg = getdmg("E", target, myHero)
 			if EDmg >= hp and pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then			
-				self:UseW()
+				
 				Control.CastSpell(HK_E, pred.CastPosition)
 	
 			end
@@ -15125,7 +15125,7 @@ function Zyra:KillSteal()
 			local EDmg = getdmg("E", target, myHero)
 			local EQDmg = QDmg + EDmg
 			if EQDmg >= hp then
-				self:UseW()
+				
 				if Epred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then
 					Control.CastSpell(HK_E, Epred.CastPosition)
 				end	
@@ -15182,14 +15182,14 @@ if target == nil then return end
 		if myHero.pos:DistanceTo(target.pos) <= 800 and self.Menu.Harass.UseQ:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
-				self:UseW()
+				
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
 		if myHero.pos:DistanceTo(target.pos) <= 1000 and self.Menu.Harass.UseE:Value() and Ready(_E) then
 			local pred = GetGamsteronPrediction(target, EData, myHero)
 			if pred.Hitchance >= self.Menu.Pred.PredE:Value() + 1 then			
-				self:UseW()
+				
 				Control.CastSpell(HK_E, pred.CastPosition)
 	
 			end
