@@ -9,7 +9,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 --			Insec 2 added (WardJump) 
 --			Insec 3 added (If Killable then Auto Q1 + E1 + R + Q2 + E2) + Draw InsecKill Text 
 
-    local Version = 10.5
+    local Version = 10.6
     
     local Files = {
         Lua = {
@@ -113,7 +113,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 10.5", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 10.6", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -4170,9 +4170,13 @@ Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 65, Range = 625, Speed = 1750
 
 local Position = mousePos
 local ultimocast = 0
-local _wards = {2055, 2049, 2050, 2301, 2302, 2303, 3340, 3361, 3362, 3711, 1408, 1409, 1410, 1411, 2043}
-
+local _wards = {2055, 2049, 2050, 2301, 2302, 2303, 3340, 3361, 3362, 3711, 1408, 1409, 1410, 1411, 2043, 3350, 3205, 3207, 2045, 2044, 3154, 3160}
+				
 function LeeSin:__init()
+  mySmiteSlot = self:GetSmite(SUMMONER_1);
+  if mySmiteSlot == 0 then
+	mySmiteSlot = self:GetSmite(SUMMONER_2);
+  end	
 
   if menu ~= 1 then return end
   menu = 2   	
@@ -4243,6 +4247,7 @@ function LeeSin:LoadMenu()
 	
 	--JungleSteal
 	self.Menu:MenuElement({type = MENU, id = "Jsteal", leftIcon = Icons["junglesteal"]})
+	self.Menu.Jsteal:MenuElement({id = "Info", name = "Ward+Q1+Q2+W back Ward [need Smite Activator]", type = MENU})	
 	self.Menu.Jsteal:MenuElement({id = "Dragon", name = "Steal Dragon", value = true})
 	self.Menu.Jsteal:MenuElement({id = "Baron", name = "Steal Baron", value = true})
 	self.Menu.Jsteal:MenuElement({id = "Herald", name = "Steal Herald", value = true})	
@@ -4414,15 +4419,7 @@ if target == nil then return end
 	end
 end
 
-local JungleTable = {
-	SRU_Baron = "",
-	SRU_RiftHerald = "",
-	SRU_Dragon_Water = "",
-	SRU_Dragon_Fire = "",
-	SRU_Dragon_Earth = "",
-	SRU_Dragon_Air = "",
-	SRU_Dragon_Elder = "",
-}
+
 
 function LeeSin:NearestEnemy(entity)
 	local distance = 999999
@@ -4673,6 +4670,8 @@ function LeeSin:Clear()
     end
 end
 
+
+
 function LeeSin:JungleClear()
     local max_range = math.max(myHero.range + myHero.boundingRadius, myHero:GetSpellData(_Q).range, myHero:GetSpellData(_W).range, myHero:GetSpellData(_E).range, myHero:GetSpellData(_R).range)
     if max_range > 1500 then
@@ -4724,10 +4723,37 @@ function LeeSin:JungleClear()
     end
 end
 
+local SmiteNames = {'SummonerSmite','S5_SummonerSmiteDuel','S5_SummonerSmitePlayerGanker','S5_SummonerSmiteQuick','ItemSmiteAoE'};
+
+function LeeSin:GetSmite(smiteSlot)
+	local returnVal = 0;
+	local spellName = myHero:GetSpellData(smiteSlot).name;
+	for i = 1, 5 do
+		if spellName == SmiteNames[i] then
+			returnVal = smiteSlot
+		end
+	end
+	return returnVal;
+end
+
+
+
+local JungleTable = {
+["SRU_Baron"] = {charName = "SRU_Baron"}, 
+["SRU_RiftHerald"] = {charName = "SRU_RiftHerald"}, 
+["SRU_Dragon_Water"] = {charName = "SRU_Dragon_Water"}, 
+["SRU_Dragon_Earth"] = {charName = "SRU_Dragon_Earth"}, 
+["SRU_Dragon_Air"] = {charName = "SRU_Dragon_Air"},
+["SRU_Dragon_Elder"] = {charName = "SRU_Dragon_Elder"},
+["SRU_Dragon_Fire"] = {charName = "SRU_Dragon_Fire"}
+}
+
+
 
 local SmiteDamage = {390 , 410 , 430 , 450 , 480 , 510 , 540 , 570 , 600 , 640 , 680 , 720 , 760 , 800 , 850 , 900 , 950 , 1000};
 
 function LeeSin:JungleSteal()
+if mySmiteSlot == 0 then return end	
 local minionlist = {}
 	if _G.SDK then
 		minionlist = _G.SDK.ObjectManager:GetMonsters(1500)
@@ -4741,17 +4767,43 @@ local minionlist = {}
 		end
 	end
 	
-	for i, minion in pairs(minionlist) do
-	if minion == nil then return end	
-	if minion.pos:DistanceTo(myHero.pos) < 1300 and (myHero:GetSpellData(SUMMONER_1).name == "SummonerSmite" and Ready(SUMMONER_1) or myHero:GetSpellData(SUMMONER_2).name == "SummonerSmite" and Ready(SUMMONER_2)) then	
-	local Damage = (SmiteDamage[myHero.levelData.lvl] + getdmg("Q", minion, myHero))	
-		if self.Menu.Jsteal.Active:Value() then	
+for i, minion in pairs(minionlist) do
+	for i = 1, Game.WardCount() do
+	local ward = Game.Ward(i)				
+		
+		if self.Menu.Jsteal.Active:Value() then
+			local count = GetEnemyCount(1000, myHero)
+			if IsValid(ward, 1000) and ward.isAlly and myHero.pos:DistanceTo(ward.pos) <= 700 and Ready(_W) and count >= 1 then
+				Control.CastSpell(HK_W, ward)
+					
+			end	
+		end	
+	end
+	
+	
+	if minion.pos:DistanceTo(myHero.pos) < 1300 and self.Menu.Jsteal.Active:Value() then
+		local Damage = (SmiteDamage[myHero.levelData.lvl] + getdmg("Q", minion, myHero))
+		local SData = myHero:GetSpellData(mySmiteSlot);
+
+		if SData.level > 0 and SData.ammo > 0 then	
+			
+			if minion.pos:DistanceTo(myHero.pos) < 1200 and (JungleTable[minion.charName] or minion.charName == "SRU_RiftHerald" or minion.charName == "SRU_Baron") then
+				for v, spell in pairs(_wards) do
+				local Item = GetInventorySlotItem(spell)
+				local Data = myHero:GetSpellData(Item);
+					if Item and Data.ammo > 0 and Damage > minion.health then
+						Control.CastSpell(ItemHotKey[Item], myHero.pos)
+					end
+				end
+			end
+			
 			if self.Menu.Jsteal.Dragon:Value() then
 				if JungleTable[minion.charName] and minion.pos:DistanceTo(myHero.pos) < 1300 and Ready(_Q) then
 					if myHero:GetSpellData(_Q).name == "BlindMonkQTwo" and minion.pos:DistanceTo(myHero.pos) < 1300 then
-						Control.CastSpell(HK_Q)					
-					
-					elseif minion.pos:DistanceTo(myHero.pos) < 1200 and Damage > minion.health then
+						Control.CastSpell(HK_Q)
+						
+					end
+					if minion.pos:DistanceTo(myHero.pos) < 1200 and Damage > minion.health then
 						Control.CastSpell(HK_Q, minion.pos)
 					end
 				end
@@ -4760,9 +4812,10 @@ local minionlist = {}
 			if self.Menu.Jsteal.Herald:Value() then
 				if minion.charName == "SRU_RiftHerald" and minion.pos:DistanceTo(myHero.pos) < 1300 and Ready(_Q) then
 					if myHero:GetSpellData(_Q).name == "BlindMonkQTwo" and minion.pos:DistanceTo(myHero.pos) < 1300 then
-						Control.CastSpell(HK_Q)					
-					
-					elseif minion.pos:DistanceTo(myHero.pos) < 1200 and Damage > minion.health then
+						Control.CastSpell(HK_Q)
+						
+					end
+					if minion.pos:DistanceTo(myHero.pos) < 1200 and Damage > minion.health then
 						Control.CastSpell(HK_Q, minion.pos)
 					end
 				end
@@ -4771,50 +4824,18 @@ local minionlist = {}
 			if self.Menu.Jsteal.Baron:Value() then
 				if minion.charName == "SRU_Baron" and minion.pos:DistanceTo(myHero.pos) < 1300 and Ready(_Q) then
 					if myHero:GetSpellData(_Q).name == "BlindMonkQTwo" and minion.pos:DistanceTo(myHero.pos) < 1300 then
-						Control.CastSpell(HK_Q)					
-					
-					elseif minion.pos:DistanceTo(myHero.pos) < 1200 and Damage > minion.health then
+						Control.CastSpell(HK_Q)
+						
+					end
+					if minion.pos:DistanceTo(myHero.pos) < 1200 and Damage > minion.health then
 						Control.CastSpell(HK_Q, minion.pos)
 					end
 				end
 			end 
 		end	
-		self:FleeW()	
-	end
-	end
-	
-end
-
-function LeeSin:FleeW()
-local target = GetTarget(800)     	
-if target == nil then return end
-for i, ally in pairs(GetAllyHeroes()) do	
-		
-	if IsValid(target,800) then
-		if EnemiesAround(myHero, 800) == 1 then	
-			local QDmg = getdmg("Q", target, myHero)
-			local EDmg = getdmg("E", target, myHero)
-			local RDmg = getdmg("R", target, myHero)
-			local Damage = (QDmg+EDmg+RDmg)
-			if target.health > Damage and Ready(_W) then
-				if IsValid(ally) and myHero.pos:DistanceTo(ally.pos) <= 700 then
-						if EnemiesAround(ally, 500) == 0 then
-							Control.CastSpell(HK_W, ally)
-						end
-					end
-				end
-			end
-		end
-		if EnemiesAround(myHero, 800) >= 2 then
-			if IsValid(ally) and myHero.pos:DistanceTo(ally.pos) <= 700 then
-				if EnemiesAround(ally, 500) == 0 then
-					Control.CastSpell(HK_W, ally)
-				end
-			end
-		end
 	end
 end
-
+end
 
 
 function LeeSin:KillSteal()
