@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.16
+    local Version = 0.17
     
     local Files =
     {
@@ -81,7 +81,7 @@ local HealthPotionSlot = 0;
 local CookiePotionSlot = 0;
 local RefillablePotSlot = 0;
 local CorruptPotionSlot = 0;
-local HuntersPotionSlot = 0;
+
 
 function GetTarget(range) 
 	local target = nil 
@@ -240,21 +240,21 @@ function Activator:LoadMenu()
     self.Menu.ZS.self:MenuElement({id = "UseS", name = "Stopwatch", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e6/Stopwatch_item.png"})
  	self.Menu.ZS.self:MenuElement({id = "myHPS", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})   
 
-	self.Menu.ZS.self:MenuElement({id = "Sera", name = "Seraphs Embrace", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3040.png"})	
+	self.Menu.ZS.self:MenuElement({id = "Sera", name = "Seraphs Embrace", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3040.png"})	
 	self.Menu.ZS.self:MenuElement({id = "SeraHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 
     self.Menu.ZS.self:MenuElement({id = "Edge", name = "Edge of Night", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/6/69/Edge_of_Night_item.png"})	
 	self.Menu.ZS.self:MenuElement({id = "EdgeHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 
-    self.Menu.ZS.self:MenuElement({id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3190.png"})	
+    self.Menu.ZS.self:MenuElement({id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3190.png"})	
 	self.Menu.ZS.self:MenuElement({id = "IronHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 	
     self.Menu.ZS.self:MenuElement({id = "Red", name = "Redemption", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/94/Redemption_item.png"})
 	self.Menu.ZS.self:MenuElement({id = "RedHP", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})	
 
-	self.Menu.ZS.self:MenuElement({id = "Mira", name = "Mercurial Scimittar[AntiCC]", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3139.png"})    
-    self.Menu.ZS.self:MenuElement({id = "Quick", name = "Quicksilver Sash[AntiCC]", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3140.png"})    
-    self.Menu.ZS.self:MenuElement({id = "Mika", name = "Mikael's Crucible[AntiCC]", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3222.png"})    
+	self.Menu.ZS.self:MenuElement({id = "Mira", name = "Mercurial Scimittar[AntiCC]", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3139.png"})    
+    self.Menu.ZS.self:MenuElement({id = "Quick", name = "Quicksilver Sash[AntiCC]", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3140.png"})    
+    self.Menu.ZS.self:MenuElement({id = "Mika", name = "Mikael's Crucible[AntiCC]", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3222.png"})    
     self.Menu.ZS.self:MenuElement({id = "QSS", name = "AntiZed Ult", type = MENU})
     self.Menu.ZS.self.QSS:MenuElement({id = "UseSZ", name = "AutoUse Stopwatch or Zhonya on ZedUlt", value = true})	
 ------------------------------------------------------------------------------------------------------------------------------------------------------	
@@ -265,27 +265,27 @@ function Activator:LoadMenu()
     self.Menu.ZS.ally:MenuElement({id = "Red", name = "Redemption", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/94/Redemption_item.png"})
 	self.Menu.ZS.ally:MenuElement({id = "allyHP", name = "[AllyHP]", value = 30, min = 0, max = 100, step = 1, identifier = "%"}) 
  
-	self.Menu.ZS.ally:MenuElement({id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3190.png"})	
+	self.Menu.ZS.ally:MenuElement({id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3190.png"})	
 	self.Menu.ZS.ally:MenuElement({id = "IronHP", name = "[AllyHP]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})	
     
-    self.Menu.ZS.ally:MenuElement({id = "Mika", name = "Mikael's Crucible[AntiCC]", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3222.png"})    
+    self.Menu.ZS.ally:MenuElement({id = "Mika", name = "Mikael's Crucible[AntiCC]", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3222.png"})    
 -----------------------------------------------------------------------------------------------------------------------------------------------------------
 	--Target Items
 
     self.Menu:MenuElement({id = "Dmg", name = "TargetItems[ComboMode]", type = MENU})
 	
  	self.Menu.Dmg:MenuElement({id = "Spell", name = "Spellbinder", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/0f/Spellbinder_item.png"})    
-	self.Menu.Dmg:MenuElement({id = "Tia", name = "Tiamat", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3077.png"})    
+	self.Menu.Dmg:MenuElement({id = "Tia", name = "Tiamat", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3077.png"})    
     self.Menu.Dmg:MenuElement({id = "Rave", name = "Ravenous Hydra", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e8/Ravenous_Hydra_item.png"})    
     self.Menu.Dmg:MenuElement({id = "Tita", name = "Titanic Hydra", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/2/22/Titanic_Hydra_item.png"})    
-	self.Menu.Dmg:MenuElement({id = "Blade", name = "Blade of the Ruined King", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3153.png"})
- 	self.Menu.Dmg:MenuElement({id = "Bilg", name = "Bilgewater Cutlass", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3144.png"})
+	self.Menu.Dmg:MenuElement({id = "Blade", name = "Blade of the Ruined King", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3153.png"})
+ 	self.Menu.Dmg:MenuElement({id = "Bilg", name = "Bilgewater Cutlass", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3144.png"})
  	self.Menu.Dmg:MenuElement({id = "Glp", name = "Hextech GLP-800", value = true, leftIcon = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/c/c9/Hextech_GLP-800_item.png"})
  	self.Menu.Dmg:MenuElement({id = "Gun", name = "Hextech Gunblade", value = true, leftIcon = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/6/64/Hextech_Gunblade_item.png"})
  	self.Menu.Dmg:MenuElement({id = "Proto", name = "Hextech Protobelt-01", value = true, leftIcon = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/8/8d/Hextech_Protobelt-01_item.png"})
  	self.Menu.Dmg:MenuElement({id = "Omen", name = "Randuin's Omen", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/08/Randuin%27s_Omen_item.png"})	
  	self.Menu.Dmg:MenuElement({id = "Ocount", name = "Auto Randuin's Omen[Targets]", value = 3, min = 1, max = 5, step = 1})	
-	self.Menu.Dmg:MenuElement({id = "Glory", name = "Righteous Glory", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3800.png"})
+	self.Menu.Dmg:MenuElement({id = "Glory", name = "Righteous Glory", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3800.png"})
  	self.Menu.Dmg:MenuElement({id = "Gcount", name = "Auto Righteous Glory[Targets]", value = 3, min = 1, max = 5, step = 1})	
  	self.Menu.Dmg:MenuElement({id = "Twin", name = "Twin Shadows", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/4/4b/Twin_Shadows_item.png"})
 	self.Menu.Dmg:MenuElement({id = "minRange", name = "Twin Shadows[MinCastDistance]", value = 500, min = 100, max = 2000, step = 50})	
@@ -297,68 +297,67 @@ function Activator:LoadMenu()
     self.Menu:MenuElement({id = "Healing", name = "Potions", type = MENU})
     
 	self.Menu.Healing:MenuElement({id = "Enabled", name = "Potions Enabled", value = true})
-    self.Menu.Healing:MenuElement({id = "UsePots", name = "Health Potions", value = true, leftIcon = "http://puu.sh/rUYAW/7fe329aa43.png"})
-    self.Menu.Healing:MenuElement({id = "UseCookies", name = "Biscuit", value = true, leftIcon = "http://puu.sh/rUZL0/201b970f16.png"})
-    self.Menu.Healing:MenuElement({id = "UseRefill", name = "Refillable Potion", value = true, leftIcon = "http://puu.sh/rUZPt/da7fadf9d1.png"})
-    self.Menu.Healing:MenuElement({id = "UseCorrupt", name = "Corrupting Potion", value = true, leftIcon = "http://puu.sh/rUZUu/130c59cdc7.png"})
-    self.Menu.Healing:MenuElement({id = "UseHunters", name = "Hunter's Potion", value = true, leftIcon = "http://puu.sh/rUZZM/46b5036453.png"})
+    self.Menu.Healing:MenuElement({id = "UsePots", name = "Health Potions", value = true, leftIcon = "https://puu.sh/rUYAW/7fe329aa43.png"})
+    self.Menu.Healing:MenuElement({id = "UseCookies", name = "Biscuit", value = true, leftIcon = "https://puu.sh/rUZL0/201b970f16.png"})
+    self.Menu.Healing:MenuElement({id = "UseRefill", name = "Refillable Potion", value = true, leftIcon = "https://puu.sh/rUZPt/da7fadf9d1.png"})
+    self.Menu.Healing:MenuElement({id = "UseCorrupt", name = "Corrupting Potion", value = true, leftIcon = "https://puu.sh/rUZUu/130c59cdc7.png"})
     self.Menu.Healing:MenuElement({id = "UsePotsPercent", name = "Use if health is below:", value = 50, min = 5, max = 95, identifier = "%"})
     
     --Summoners
     self.Menu:MenuElement({id = "summ", name = "Summoner Spells", type = MENU})
-    self.Menu.summ:MenuElement({id = "heal", name = "SummonerHeal", type = MENU, leftIcon = "http://puu.sh/rXioi/2ac872033c.png"})
+    self.Menu.summ:MenuElement({id = "heal", name = "SummonerHeal", type = MENU, leftIcon = "https://puu.sh/rXioi/2ac872033c.png"})
     self.Menu.summ.heal:MenuElement({id = "self", name = "Heal Self", value = true})
     self.Menu.summ.heal:MenuElement({id = "ally", name = "Heal Ally", value = true})
     self.Menu.summ.heal:MenuElement({id = "selfhp", name = "Self HP:", value = 30, min = 5, max = 95, identifier = "%"})
     self.Menu.summ.heal:MenuElement({id = "allyhp", name = "Ally HP:", value = 30, min = 5, max = 95, identifier = "%"})
     
-    self.Menu.summ:MenuElement({id = "barr", name = "SummonerBarrier", type = MENU, leftIcon = "http://puu.sh/rXjQ1/af78cc6c34.png"})
+    self.Menu.summ:MenuElement({id = "barr", name = "SummonerBarrier", type = MENU, leftIcon = "https://puu.sh/rXjQ1/af78cc6c34.png"})
     self.Menu.summ.barr:MenuElement({id = "self", name = "Use Barrier", value = true})
     self.Menu.summ.barr:MenuElement({id = "selfhp", name = "Self HP:", value = 30, min = 5, max = 95, identifier = "%"})
     
-    self.Menu.summ:MenuElement({id = "ex", name = "SummonerExhaust", type = MENU, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/spell/SummonerExhaust.png"})
+    self.Menu.summ:MenuElement({id = "ex", name = "SummonerExhaust", type = MENU, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/spell/SummonerExhaust.png"})
     self.Menu.summ.ex:MenuElement({id = "target", name = "Use Exhaust", value = true})
     self.Menu.summ.ex:MenuElement({id = "hp", name = "Target HP:", value = 30, min = 5, max = 95, identifier = "%"})
     
-    self.Menu.summ:MenuElement({id = "clean", name = "SummonerCleanse", type = MENU, leftIcon = "http://puu.sh/rYrzP/5853206291.png"})
+    self.Menu.summ:MenuElement({id = "clean", name = "SummonerCleanse", type = MENU, leftIcon = "https://puu.sh/rYrzP/5853206291.png"})
     self.Menu.summ.clean:MenuElement({id = "self", name = "Use Cleanse", value = true})
     
-    self.Menu.summ:MenuElement({id = "ign", name = "SummonerIgnite", type = MENU, leftIcon = "http://ddragon.leagueoflegends.com/cdn/5.9.1/img/spell/SummonerDot.png"})
+    self.Menu.summ:MenuElement({id = "ign", name = "SummonerIgnite", type = MENU, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/spell/SummonerDot.png"})
  	self.Menu.summ.ign:MenuElement({id = "ST", name = "TargetHP or KillSteal", drop = {"TargetHP", "KillSteal"}, value = 1})   
     self.Menu.summ.ign:MenuElement({id = "hp", name = "TargetHP:", value = 30, min = 5, max = 95, identifier = "%"})
 	
-    self.Menu.summ:MenuElement({id = "SmiteMenu", name = "SummonerSmite", type = MENU, leftIcon = "http://puu.sh/rPsnZ/a05d0f19a8.png"})
+    self.Menu.summ:MenuElement({id = "SmiteMenu", name = "SummonerSmite", type = MENU, leftIcon = "https://puu.sh/rPsnZ/a05d0f19a8.png"})
 	self.Menu.summ.SmiteMenu:MenuElement({id = "Enabled", name = "Enabled[OfficialSmiteManager]", value = true})
 	
 	self.Menu.summ.SmiteMenu:MenuElement({type = MENU, id = "SmiteMarker", name = "Smite Marker Minions"})
 	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "Enabled", name = "Enabled", value = true})
-	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkBaron", name = "Mark Baron", value = true, leftIcon = "http://puu.sh/rPuVv/933a78e350.png"})
-	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkHerald", name = "Mark Herald", value = true, leftIcon = "http://puu.sh/rQs4A/47c27fa9ea.png"})
-	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkDragon", name = "Mark Dragon", value = true, leftIcon = "http://puu.sh/rPvdF/a00d754b30.png"})
-	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkBlue", name = "Mark Blue Buff", value = true, leftIcon = "http://puu.sh/rPvNd/f5c6cfb97c.png"})
-	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkRed", name = "Mark Red Buff", value = true, leftIcon = "http://puu.sh/rPvQs/fbfc120d17.png"})
-	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkGromp", name = "Mark Gromp", value = true, leftIcon = "http://puu.sh/rPvSY/2cf9ff7a8e.png"})
-	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkWolves", name = "Mark Wolves", value = true, leftIcon = "http://puu.sh/rPvWu/d9ae64a105.png"})
-	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkRazorbeaks", name = "Mark Razorbeaks", value = true, leftIcon = "http://puu.sh/rPvZ5/acf0e03cc7.png"})
-	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkKrugs", name = "Mark Krugs", value = true, leftIcon = "http://puu.sh/rPw6a/3096646ec4.png"})
-	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkCrab", name = "Mark Crab", value = true, leftIcon = "http://puu.sh/rPwaw/10f0766f4d.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkBaron", name = "Mark Baron", value = true, leftIcon = "https://puu.sh/rPuVv/933a78e350.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkHerald", name = "Mark Herald", value = true, leftIcon = "https://puu.sh/rQs4A/47c27fa9ea.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkDragon", name = "Mark Dragon", value = true, leftIcon = "https://puu.sh/rPvdF/a00d754b30.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkBlue", name = "Mark Blue Buff", value = true, leftIcon = "https://puu.sh/rPvNd/f5c6cfb97c.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkRed", name = "Mark Red Buff", value = true, leftIcon = "https://puu.sh/rPvQs/fbfc120d17.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkGromp", name = "Mark Gromp", value = true, leftIcon = "https://puu.sh/rPvSY/2cf9ff7a8e.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkWolves", name = "Mark Wolves", value = true, leftIcon = "https://puu.sh/rPvWu/d9ae64a105.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkRazorbeaks", name = "Mark Razorbeaks", value = true, leftIcon = "https://puu.sh/rPvZ5/acf0e03cc7.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkKrugs", name = "Mark Krugs", value = true, leftIcon = "https://puu.sh/rPw6a/3096646ec4.png"})
+	self.Menu.summ.SmiteMenu.SmiteMarker:MenuElement({id = "MarkCrab", name = "Mark Crab", value = true, leftIcon = "https://puu.sh/rPwaw/10f0766f4d.png"})
 	
 	self.Menu.summ.SmiteMenu:MenuElement({type = MENU, id = "AutoSmiter", name = "Auto Smite Minions"})
 	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "Enabled", name = "Toggle Enable Key", key = string.byte("M"), toggle = true})
 	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "DrawSTS", name = "Draw Smite Toggle State", value = true})
 	
-	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteBaron", name = "Smite Baron", value = true, leftIcon = "http://puu.sh/rPuVv/933a78e350.png"})
-	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteHerald", name = "Smite Herald", value = true, leftIcon = "http://puu.sh/rQs4A/47c27fa9ea.png"})
-	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteDragon", name = "Smite Dragon", value = true, leftIcon = "http://puu.sh/rPvdF/a00d754b30.png"})
-	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteBlue", name = "Smite Blue Buff", value = true, leftIcon = "http://puu.sh/rPvNd/f5c6cfb97c.png"})
-	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteRed", name = "Smite Red Buff", value = true, leftIcon = "http://puu.sh/rPvQs/fbfc120d17.png"})
-	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteGromp", name = "Smite Gromp", value = false, leftIcon = "http://puu.sh/rPvSY/2cf9ff7a8e.png"})
-	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteWolves", name = "Smite Wolves", value = false, leftIcon = "http://puu.sh/rPvWu/d9ae64a105.png"})
-	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteRazorbeaks", name = "Smite Razorbeaks", value = false, leftIcon = "http://puu.sh/rPvZ5/acf0e03cc7.png"})
-	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteKrugs", name = "Smite Krugs", value = false, leftIcon = "http://puu.sh/rPw6a/3096646ec4.png"})
-	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteCrab", name = "Smite Crab", value = false, leftIcon = "http://puu.sh/rPwaw/10f0766f4d.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteBaron", name = "Smite Baron", value = true, leftIcon = "https://puu.sh/rPuVv/933a78e350.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteHerald", name = "Smite Herald", value = true, leftIcon = "https://puu.sh/rQs4A/47c27fa9ea.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteDragon", name = "Smite Dragon", value = true, leftIcon = "https://puu.sh/rPvdF/a00d754b30.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteBlue", name = "Smite Blue Buff", value = true, leftIcon = "https://puu.sh/rPvNd/f5c6cfb97c.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteRed", name = "Smite Red Buff", value = true, leftIcon = "https://puu.sh/rPvQs/fbfc120d17.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteGromp", name = "Smite Gromp", value = false, leftIcon = "https://puu.sh/rPvSY/2cf9ff7a8e.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteWolves", name = "Smite Wolves", value = false, leftIcon = "https://puu.sh/rPvWu/d9ae64a105.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteRazorbeaks", name = "Smite Razorbeaks", value = false, leftIcon = "https://puu.sh/rPvZ5/acf0e03cc7.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteKrugs", name = "Smite Krugs", value = false, leftIcon = "https://puu.sh/rPw6a/3096646ec4.png"})
+	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteCrab", name = "Smite Crab", value = false, leftIcon = "https://puu.sh/rPwaw/10f0766f4d.png"})
 	
-	self.Menu.summ.SmiteMenu:MenuElement({type = MENU, id = "AutoSmiterH", name = "Auto Smite Heroes"})	
+	self.Menu.summ.SmiteMenu:MenuElement({type = MENU, id = "AutoSmiterH", name = "Auto Smite Heroes [Combo Mode]"})	
 	self.Menu.summ.SmiteMenu.AutoSmiterH:MenuElement({id = "Enabled", name = "Smite Logic", value = 2, drop = {"AutoSmite Always", "AutoSmite KillSteal"}})
 end
 	
@@ -474,7 +473,7 @@ if mySmiteSlot == 0 then return end
 		local SData = myHero:GetSpellData(mySmiteSlot);
 		for i = 1, Game.MinionCount() do
 			minion = Game.Minion(i);
-			if minion and minion.valid and (minion.team == 300) and minion.visible then
+			if minion and minion.valid and minion.team == 300 and minion.visible and not minion.dead then
 				if minion.health <= SmiteDamage[myHero.levelData.lvl] then
 					local minionName = minion.charName;
 					if self.Menu.summ.SmiteMenu.SmiteMarker.Enabled:Value() then
@@ -495,22 +494,24 @@ if mySmiteSlot == 0 then return end
 			end
 		end
 	end 		
-for i, target in pairs(GetEnemyHeroes()) do
+	for i, target in pairs(GetEnemyHeroes()) do
 	if target == nil then return end	
 	
 		
 	local smiteDmg = 20+8*myHero.levelData.lvl;
 	local SData = myHero:GetSpellData(mySmiteSlot);
+	local Mode = GetMode()
 	
-	if IsValid(target,800) and SData.name == "S5_SummonerSmiteDuel" or SData.name == "S5_SummonerSmitePlayerGanker" then	
+	if SData.name == "S5_SummonerSmiteDuel" or SData.name == "S5_SummonerSmitePlayerGanker" and Mode == "Combo" then	
 		
 		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 then
 			if SData.level > 0 then
 				if (SData.ammo > 0) then
 
-					if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) and target.health <= smiteDmg then
+					if IsValid(target) and (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) and target.health <= smiteDmg then
 						if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
 							Control.CastSpell(HK_SUMMONER_1,target)
+							
 						end	
 						if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
 							Control.CastSpell(HK_SUMMONER_2,target)
@@ -527,7 +528,7 @@ for i, target in pairs(GetEnemyHeroes()) do
 			if SData.level > 0 then
 				if (SData.ammo > 0) then
 
-					if (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) then
+					if IsValid(target) and (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) then
 						if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
 							Control.CastSpell(HK_SUMMONER_1,target)
 						end	
@@ -539,7 +540,7 @@ for i, target in pairs(GetEnemyHeroes()) do
 			end
 		end
 	end
-end	
+	end	
 end	
 
 
@@ -564,13 +565,19 @@ local CleanBuffs =
     [5] = true,
     [7] = true,
     [8] = true,
+	[9] = true,
+	[10] = true,
+	[11] = true,
+	[20] = true,
     [21] = true,
     [22] = true,
+	[24] = true,
     [25] = true,
-    [10] = true,
+	[28] = true,
     [31] = true,
-    [24] = true,
+    [34] = true 
 }
+
 function Cleans(unit)
     for i = 0, unit.buffCount do
         local buff = unit:GetBuff(i)
@@ -842,7 +849,6 @@ if (myPotTicks + 1000 < GetTickCount()) and self.Menu.Healing.Enabled:Value() th
 	local HealthPotionSlot = GetInventorySlotItem(2003);
 	local CookiePotionSlot = GetInventorySlotItem(2010);
 	local RefillablePotSlot = GetInventorySlotItem(2031);
-	local HuntersPotionSlot = GetInventorySlotItem(2032);
 	local CorruptPotionSlot = GetInventorySlotItem(2033);
 
 	for i = 0, 63 do
@@ -868,9 +874,6 @@ if (myPotTicks + 1000 < GetTickCount()) and self.Menu.Healing.Enabled:Value() th
 		end
 		if CorruptPotionSlot and self.Menu.Healing.UseCorrupt:Value() then
 			Control.CastSpell(ItemHotKey[CorruptPotionSlot])
-		end
-		if HuntersPotionSlot and self.Menu.Healing.UseHunters:Value() then
-			Control.CastSpell(ItemHotKey[HuntersPotionSlot])
 		end
 	end
 end
