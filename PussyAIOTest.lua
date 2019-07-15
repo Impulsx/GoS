@@ -9,7 +9,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 --			Insec 2 added (WardJump) 
 --			Insec 3 added (If Killable then Auto Q1 + E1 + R + Q2 + E2) + Draw InsecKill Text 
 
-    local Version = 11.1
+    local Version = 11.2
     
     local Files = {
         Lua = {
@@ -113,7 +113,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 11.1", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 11.2", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -4164,7 +4164,12 @@ class "LeeSin"
 
 
 
---require 'MapPositionGOS'
+--require 'MapPositionGOS' 
+--q1
+--flash behind
+--then
+--r
+--then q2
 local QData =
 {
 Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 65, Range = 1200, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
@@ -4384,7 +4389,7 @@ if target == nil then return end
 	local ward = Game.Ward(i)				
 		
 		if IsValid(ward, 800) and ward.isAlly and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
-			if myHero.pos:DistanceTo(ward.pos) < 700 and target.pos:DistanceTo(ward.pos) < 375 then	
+			if (myHero.pos:DistanceTo(ward.pos) < 700 and target.pos:DistanceTo(ward.pos) < 375) then	
 				CastSpell(HK_W, ward.pos)
 					
 						
