@@ -9,7 +9,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 --			Insec 2 added (WardJump) 
 --			Insec 3 added (If Killable then Auto Q1 + E1 + R + Q2 + E2) + Draw InsecKill Text 
 
-    local Version = 11.3
+    local Version = 11.4
     
     local Files = {
         Lua = {
@@ -113,7 +113,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 11.3", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 11.4", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -4291,11 +4291,7 @@ function LeeSin:LoadMenu()
 	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
 end	
 
-   --[[ local PKMenu = LeeSin.Menu
-    PKMenu:MenuElement({id = 'Keys', name = 'LeeSin Keys', type = MENU})
-    PKMenu.Keys:MenuElement({id = 'Insec1', name = 'Insec1', key = string.byte('T')})
-    SDK.Orbwalker:RegisterMenuKey(ORBWALKER_MODE_COMBO, PKMenu.Keys.Insec1)
-]]
+
 
 function LeeSin:Tick()
 	if MyHeroReady() then
@@ -4309,7 +4305,6 @@ function LeeSin:Tick()
 			self:Clear()
 			self:JungleClear()
 		elseif Mode == "Flee" then
-			self:WardJumpW()
 			self:WardJump()		
 		end
 	self:JungleSteal()
@@ -4353,7 +4348,25 @@ local JungleTable = {
 
 local WardTicks = 0;
 local SmiteDamage = {390 , 410 , 430 , 450 , 480 , 510 , 540 , 570 , 600 , 640 , 680 , 720 , 760 , 800 , 850 , 900 , 950 , 1000};
+local LastCast = 0
 
+function LeeSin:Cast(spell,pos)
+	Control.SetCursorPos(pos)
+	Control.KeyDown(spell)
+	Control.KeyUp(spell)
+end
+
+function LeeSin:IsValid(unit)
+	return unit == nil or not unit.valid or not unit.visible or unit.dead or not unit.isTargetable
+end
+
+function LeeSin:GetInventorySlotItem(itemID, target)
+	local target = myHero
+	for _, j in pairs({ ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6, ITEM_7 }) do
+		if target:GetItemData(j).itemID == itemID and (target:GetSpellData(j).ammo > 0 or target:GetItemData(j).ammo > 0) then return j end
+	end
+	return nil
+end
 
 function LeeSin:KillStealInsec()
 local target = GetTarget(1300)     	
@@ -4390,31 +4403,87 @@ if target == nil then return end
 	end
 end
 
-function LeeSin:WardJumpW()
-	for i = 1, Game.WardCount() do
-	local ward = Game.Ward(i)				
-		
-		if IsValid(ward, 700) and ward.isAlly and myHero.pos:DistanceTo(ward.pos) <= 700 and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
-			CastSpell(HK_W, ward.pos)
-					
-		end	
-	end
-end	
 
-function LeeSin:WardJump()
-	for v, spell in pairs(_wards) do
-	local Item = GetInventorySlotItem(spell)
-	local Data = myHero:GetSpellData(Item);
-		if WardTicks + 200 < GetTickCount() then 
-			local WardTicks = GetTickCount();
-			UsedWard = false;
-			if UsedWard == false and Item and Data.ammo > 0 and self.Menu.Modes.Modes2.Insec:Value() and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
-			local CastPos = myHero.pos:Extended(mousePos, 600)
-				Control.CastSpell(ItemHotKey[Item], CastPos)
-			end	
+function LeeSin:WardJump(key, param)
+	local mouseRadius = 200
+	if self.Menu.Modes.Modes2.Insec:Value() and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
+		local wardslot = nil
+		for t, VisionItem in pairs(_wards) do
+			if not wardslot then
+				wardslot = GetInventorySlotItem(VisionItem)
+			end
+		end
+		if wardslot then
+			local ward,dis = self:WardM()
+			if ward~=nil and dis~=nil and dis<mouseRadius then
+				if myHero.pos:DistanceTo(ward.pos) <=600 then
+					self:Cast(HK_W, ward.pos)
+				end
+			elseif GetTickCount() > LastCast + 200 then
+				LastCast = GetTickCount()
+				local Data = myHero:GetSpellData(wardslot);
+				if Data.ammo > 0 then
+					if myHero.pos:DistanceTo(mousePos) < 600 then
+						self:Cast(ItemHotKey[wardslot], mousePos)
+						self:Cast(HK_W, mousePos)
+					else
+						newpos = myHero.pos:Extended(mousePos,600)
+						self:Cast(ItemHotKey[wardslot], newpos)
+						self:Cast(HK_W, newpos)
+					end	
+				end
+			end
 		end
 	end
-end	
+end
+
+function LeeSin:WardM()
+	local closer, near = math.huge, nil
+	for i = 1, Game.WardCount() do
+		local ward = Game.Ward(i)
+		if ward~=nil then
+			if (ward.isAlly and not ward.isMe) then
+				if not self:IsValid(ward) and myHero.pos:DistanceTo(ward.pos) < 700 then
+					local CurrentDistance = ward.pos:DistanceTo(mousePos)
+					if CurrentDistance < closer then
+						closer = CurrentDistance
+						near = ward
+					end
+				end
+			end
+		end
+	end
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
+		if minion~=nil then
+			if (minion.isAlly) then
+				if not self:IsValid(minion) and myHero.pos:DistanceTo(minion.pos) < 700 then
+					local CurrentDistance = minion.pos:DistanceTo(mousePos)
+					if CurrentDistance < closer then
+						closer = CurrentDistance
+						near = minion
+					end
+				end
+			end
+		end
+	end
+	
+	for i = 1, Game.HeroCount() do
+		local hero = Game.Hero(i)
+		if hero~=nil then
+			if (hero.isAlly and not hero.isMe) then
+				if not self:IsValid(hero) and myHero.pos:DistanceTo(hero.pos) < 700 then
+					local CurrentDistance = hero.pos:DistanceTo(mousePos)
+					if CurrentDistance < closer then
+						closer = CurrentDistance
+						near = hero
+					end
+				end
+			end
+		end
+	end
+	return near, closer
+end
 
 
 function LeeSin:InsecW()
@@ -4486,7 +4555,6 @@ if target == nil then return end
 end
 
 
-
 function LeeSin:NearestEnemy(entity)
 	local distance = 999999
 	local enemy = nil
@@ -4523,6 +4591,8 @@ function LeeSin:Draw()
 	end	
 
 	if self.Menu.Modes.Modes1.Draw:Value() then
+		
+		
 		for v, spell in pairs(_wards) do
 		local Item = GetInventorySlotItem(spell)	
 		local Data = myHero:GetSpellData(Item);	
@@ -4791,7 +4861,11 @@ function LeeSin:JungleClear()
         end
     end
 end
-
+--[[
+local function ClosestToMouse(p1, p2, unit) 
+	if unit.pos:DistanceTo(p1.pos) > unit.pos:DistanceTo(p2.pos) then return p1 else return p2 end
+end
+]]
 function LeeSin:JungleSteal()
 if mySmiteSlot == 0 then return end	
 local minionlist = {}
