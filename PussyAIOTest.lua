@@ -9,7 +9,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 --			Insec 2 added (WardJump) 
 --			Insec 3 added (If Killable then Auto Q1 + E1 + R + Q2 + E2) + Draw InsecKill Text 
 
-    local Version = 11.4
+    local Version = 11.5
     
     local Files = {
         Lua = {
@@ -113,7 +113,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 11.4", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 11.5", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -4164,7 +4164,7 @@ class "LeeSin"
 
 
 
---require 'MapPositionGOS' 
+
 --q1
 --flash behind
 --then
@@ -4180,8 +4180,8 @@ local WardData =
 Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 65, Range = 625, Speed = 1750, Collision = false
 }
 
-local Position = mousePos
-local ultimocast = 0
+require 'MapPositionGOS'
+
 local _wards = {2055, 2049, 2050, 2301, 2302, 2303, 3340, 3361, 3362, 3711, 1408, 1409, 1410, 1411, 2043, 3350, 3205, 3207, 2045, 2044, 3154, 3160}
 				
 function LeeSin:__init()
@@ -4272,7 +4272,10 @@ function LeeSin:LoadMenu()
 	--Insec
 	self.Menu:MenuElement({id = "Modes", leftIcon = Icons["InsecMode"], type = MENU}) 
 	self.Menu.Modes:MenuElement({id = "Modes1", name = "Insec Mode 1", type = MENU})	
-	self.Menu.Modes.Modes1:MenuElement({id = "Insec", name = "Ward[Behind Enemy]+W+Q1+R+Q2", key = string.byte("T")})
+	self.Menu.Modes.Modes1:MenuElement({name = " ", drop = {"Near Insec = Ward[Behind Enemy]+W+R+Q1+Q2"}})
+	self.Menu.Modes.Modes1:MenuElement({name = " ", drop = {"Far Insec = Q1+Q2+Ward[Behind Enemy]+W+R"}})
+	self.Menu.Modes.Modes1:MenuElement({id = "Logic", name = "Insec Logic", value = 1, drop = {"Near Insec", "Far Insec"}})
+	self.Menu.Modes.Modes1:MenuElement({id = "Insec", name = "Insec Key", key = string.byte("T")})
 	self.Menu.Modes.Modes1:MenuElement({id = "Draw", name = "Draw Insec Line/Circle", value = true})
 	self.Menu.Modes.Modes1:MenuElement({id = "Type", name = "Draw Option", value = 1, drop = {"Always", "Pressed Insec Key"}})
 	
@@ -4315,9 +4318,11 @@ function LeeSin:Tick()
 	self:AutoW()
 	
 	if self.Menu.Modes.Modes1.Insec:Value() then
-		self:InsecW()
-		self:Insec()
-			
+		if self.Menu.Modes.Modes1.Logic:Value() == 1 then
+			self:Insec1()
+		else	
+			self:Insec2()
+		end	
 	end
 	end
 end
@@ -4486,23 +4491,7 @@ function LeeSin:WardM()
 end
 
 
-function LeeSin:InsecW()
-local target = GetTarget(800)     	
-if target == nil then return end
-	for i = 1, Game.WardCount() do
-	local ward = Game.Ward(i)				
-		
-		if IsValid(ward, 800) and ward.isAlly and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
-			if (myHero.pos:DistanceTo(ward.pos) < 700 and target.pos:DistanceTo(ward.pos) < 400) then	
-				CastSpell(HK_W, ward.pos)
-					
-						
-			end
-		end	
-	end
-end
-
-function LeeSin:Insec()
+function LeeSin:Insec1()
 local target = GetTarget(1300)     	
 if target == nil then return end	
 	
@@ -4511,49 +4500,124 @@ if target == nil then return end
 		if IsValid(target, 1300) then
 			
 			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) and myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
-				CastSpell(HK_R, target.pos)
+				self:Cast(HK_R, target.pos)
 			end
 						
 			--local pred = GetGamsteronPrediction(target, QData, myHero)
 			if myHero.pos:DistanceTo(target.pos) <= 1200 and HasBuff(target, "BlindMonkRKick") and Ready(_Q) then
-				Control.CastSpell(HK_Q, target.pos)
+				self:Cast(HK_Q, target.pos)
 			end
 			
 			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
 				Control.CastSpell(HK_Q)
 			end				
-						
+	
+		for i, tower in pairs(GetAllyTurret()) do			
 			if WardsAround(target, 400) == 0 and Ready(_R) then 
 				local Data = myHero:GetSpellData(Item);
-				if WardTicks + 200 < GetTickCount() then 
-					local WardTicks = GetTickCount();
-					UsedWard = false;	
-					for i, ally in pairs(GetAllyHeroes()) do	
-						if IsValid(ally, 1300) and ally.pos:DistanceTo(target.pos) <= 1200 and UsedWard == false and Item and Data.ammo > 0 and myHero.pos:DistanceTo(target.pos) <= 625 then
-							local CastPos = target.pos + (target.pos-ally.pos):Normalized() * (375 - 100)
-							Control.CastSpell(ItemHotKey[Item], CastPos)
-						end	
-					end	
-				end
-			end	
-			if WardsAround(target, 400) == 0 and Ready(_R) then 
-				local Data = myHero:GetSpellData(Item);
-				if WardTicks + 200 < GetTickCount() then 
-					local WardTicks = GetTickCount();
-					UsedWard = false;	
-					for i, tower in pairs(GetAllyTurret()) do
+	
+					
 						
-						if tower.pos:DistanceTo(target.pos) <= 1600 and UsedWard == false and Item and Data.ammo > 0 and myHero.pos:DistanceTo(target.pos) <= 625 then
-							local CastPos = target.pos + (target.pos-tower.pos):Normalized() * (375 - 100)
-							Control.CastSpell(ItemHotKey[Item], CastPos)
-						end	
+				if tower.pos:DistanceTo(target.pos) <= 1600 and Item and Data.ammo > 0 and myHero.pos:DistanceTo(target.pos) <= 650 then
+					local CastPos = target.pos + (target.pos-tower.pos):Normalized() * (150)
+					self:InsecStart(CastPos)
+				
+				end	
+			end
+					
+			for i, ally in pairs(GetAllyHeroes()) do
+				if WardsAround(target, 400) == 0 and Ready(_R) then 
+					local Data = myHero:GetSpellData(Item);
+	
+						
+					if not IsValid(tower, 1600) and IsValid(ally, 1300) and ally.pos:DistanceTo(target.pos) <= 1200 and Item and Data.ammo > 0 and myHero.pos:DistanceTo(target.pos) <= 650 then
+						local CastPos = target.pos + (target.pos-ally.pos):Normalized() * (150)
+						self:InsecStart(CastPos)
+							
 					end	
 				end
-			end			
+			end				
 		end
+		end	
 	end
 end
 
+function LeeSin:Insec2()
+local target = GetTarget(1300)     	
+if target == nil then return end	
+	
+	for v, spell in pairs(_wards) do
+	local Item = GetInventorySlotItem(spell)
+		if IsValid(target, 1300) then
+			
+			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) and myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
+				self:Cast(HK_R, target.pos)
+			end
+						
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 1200 and Ready(_Q) then
+				self:Cast(HK_Q, pred.CastPosition)
+			end
+			
+			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
+				Control.CastSpell(HK_Q)
+			end				
+	
+		for i, tower in pairs(GetAllyTurret()) do			
+			if WardsAround(target, 400) == 0 and Ready(_R) then 
+				local Data = myHero:GetSpellData(Item);
+	
+					
+						
+				if tower.pos:DistanceTo(target.pos) <= 1600 and Item and Data.ammo > 0 and myHero.pos:DistanceTo(target.pos) <= 250 then
+					local CastPos = target.pos + (target.pos-tower.pos):Normalized() * (300)
+					self:InsecStart(CastPos)
+									
+				end	
+			end
+					
+			for i, ally in pairs(GetAllyHeroes()) do
+				if WardsAround(target, 400) == 0 and Ready(_R) then 
+					local Data = myHero:GetSpellData(Item);
+	
+						
+					if not IsValid(tower, 1600) and IsValid(ally, 1300) and ally.pos:DistanceTo(target.pos) <= 1500 and Item and Data.ammo > 0 and myHero.pos:DistanceTo(target.pos) <= 250 then
+						local CastPos = target.pos + (target.pos-ally.pos):Normalized() * (300)
+						self:InsecStart(CastPos)
+							
+					end	
+				end
+			end				
+		end
+		end	
+	end
+end
+
+function LeeSin:InsecStart(CastPos)
+local target = GetTarget(1300)     	
+if target == nil then return end
+local wardslot = nil
+	for t, VisionItem in pairs(_wards) do
+		if not wardslot then
+			wardslot = GetInventorySlotItem(VisionItem)
+elseif GetTickCount() > LastCast + 200 then
+			LastCast = GetTickCount()
+			if myHero.pos:DistanceTo(mousePos) < 1300 then		
+				if target and Ready(_R) and wardslot then
+
+
+					if Vector(myHero.pos):DistanceTo(CastPos)<=625 then
+						if Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
+							Control.SetCursorPos(CastPos)
+							self:Cast(ItemHotKey[wardslot], CastPos)
+							self:Cast(HK_W, CastPos)		
+						end
+					end
+				end
+			end
+		end
+	end
+end
 
 function LeeSin:NearestEnemy(entity)
 	local distance = 999999
@@ -4601,30 +4665,46 @@ function LeeSin:Draw()
 				for i = 1, Game.HeroCount() do
 				local Hero = Game.Hero(i)
 				local textPos = Hero.pos:To2D()	
-					 
-					if self.Menu.Modes.Modes1.Type:Value() == 2 and self.Menu.Modes.Modes1.Insec:Value() then 	
-						if IsValid(Hero, 1300) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then	
-							local Vectori = Vector(myHero.pos - Hero.pos)
-							local LS = LineSegment(myHero.pos, Hero.pos)
-							LS:__draw()
-							LSS = Circle(Point(Hero), Hero.boundingRadius)
-							LSS:__draw()
-							Draw.Text("Insec Mode[1]", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
-							Draw.Circle(myHero, 625, 1, Draw.Color(225, 225, 0, 0))
-						end
-					end	
-					if self.Menu.Modes.Modes1.Type:Value() == 1 then
-						if IsValid(Hero, 1300) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then	
-							local Vectori = Vector(myHero.pos - Hero.pos)
-							local LS = LineSegment(myHero.pos, Hero.pos)
-							LS:__draw()
-							LSS = Circle(Point(Hero), Hero.boundingRadius)
-							LSS:__draw()
-							Draw.Text("Insec Mode[1]", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
-							Draw.Circle(myHero, 625, 1, Draw.Color(225, 225, 0, 0))
-						end
-					end	
-				end		
+					if self.Menu.Modes.Modes1.Logic:Value() == 1 then	 
+						if self.Menu.Modes.Modes1.Type:Value() == 2 and self.Menu.Modes.Modes1.Insec:Value() then 	
+							if IsValid(Hero, 1300) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then	
+								local Vectori = Vector(myHero.pos - Hero.pos)
+								local LS = LineSegment(myHero.pos, Hero.pos)
+								LS:__draw()
+								LSS = Circle(Point(Hero), Hero.boundingRadius)
+								LSS:__draw()
+								Draw.Text("Insec Mode", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
+								Draw.Circle(myHero, 475, 1, Draw.Color(225, 225, 0, 0))
+							end
+						end	
+						if self.Menu.Modes.Modes1.Type:Value() == 1 then
+							if IsValid(Hero, 1300) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then	
+								local Vectori = Vector(myHero.pos - Hero.pos)
+								local LS = LineSegment(myHero.pos, Hero.pos)
+								LS:__draw()
+								LSS = Circle(Point(Hero), Hero.boundingRadius)
+								LSS:__draw()
+								Draw.Text("Insec Mode", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
+								Draw.Circle(myHero, 475, 1, Draw.Color(225, 225, 0, 0))
+							end
+						end	
+					end
+					
+					if self.Menu.Modes.Modes1.Logic:Value() == 2 then
+						if self.Menu.Modes.Modes1.Type:Value() == 2 and self.Menu.Modes.Modes1.Insec:Value() then 	
+							if IsValid(Hero, 1300) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then								
+								Draw.Text("Insec Mode", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
+								Draw.Circle(myHero, 1200, 1, Draw.Color(225, 225, 0, 0))
+							end
+						end	
+						if self.Menu.Modes.Modes1.Type:Value() == 1 then
+							if IsValid(Hero, 1300) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then	
+								Draw.Text("Insec Mode", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
+								Draw.Circle(myHero, 1200, 1, Draw.Color(225, 225, 0, 0))
+							end
+						end	
+					end					
+				end
 			end
 		end
 	end
