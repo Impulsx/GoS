@@ -9,7 +9,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 --			Insec 2 added (WardJump) 
 --			Insec 3 added (If Killable then Auto Q1 + E1 + R + Q2 + E2) + Draw InsecKill Text 
 
-    local Version = 11.2
+    local Version = 11.3
     
     local Files = {
         Lua = {
@@ -113,7 +113,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 11.2", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 11.3", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -4289,10 +4289,13 @@ function LeeSin:LoadMenu()
 	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
-
-	
-	
 end	
+
+   --[[ local PKMenu = LeeSin.Menu
+    PKMenu:MenuElement({id = 'Keys', name = 'LeeSin Keys', type = MENU})
+    PKMenu.Keys:MenuElement({id = 'Insec1', name = 'Insec1', key = string.byte('T')})
+    SDK.Orbwalker:RegisterMenuKey(ORBWALKER_MODE_COMBO, PKMenu.Keys.Insec1)
+]]
 
 function LeeSin:Tick()
 	if MyHeroReady() then
@@ -4323,6 +4326,34 @@ function LeeSin:Tick()
 	end
 	end
 end
+
+local SmiteNames = {'SummonerSmite','S5_SummonerSmiteDuel','S5_SummonerSmitePlayerGanker','S5_SummonerSmiteQuick','ItemSmiteAoE'};
+
+function LeeSin:GetSmite(smiteSlot)
+	local returnVal = 0;
+	local spellName = myHero:GetSpellData(smiteSlot).name;
+	for i = 1, 5 do
+		if spellName == SmiteNames[i] then
+			returnVal = smiteSlot
+		end
+	end
+	return returnVal;
+end
+
+local JungleTable = {
+["SRU_Baron"] = {charName = "SRU_Baron"}, 
+["SRU_RiftHerald"] = {charName = "SRU_RiftHerald"}, 
+["SRU_Dragon_Water"] = {charName = "SRU_Dragon_Water"}, 
+["SRU_Dragon_Earth"] = {charName = "SRU_Dragon_Earth"}, 
+["SRU_Dragon_Air"] = {charName = "SRU_Dragon_Air"},
+["SRU_Dragon_Elder"] = {charName = "SRU_Dragon_Elder"},
+["SRU_Dragon_Fire"] = {charName = "SRU_Dragon_Fire"}
+}
+
+
+local WardTicks = 0;
+local SmiteDamage = {390 , 410 , 430 , 450 , 480 , 510 , 540 , 570 , 600 , 640 , 680 , 720 , 760 , 800 , 850 , 900 , 950 , 1000};
+
 
 function LeeSin:KillStealInsec()
 local target = GetTarget(1300)     	
@@ -4374,9 +4405,13 @@ function LeeSin:WardJump()
 	for v, spell in pairs(_wards) do
 	local Item = GetInventorySlotItem(spell)
 	local Data = myHero:GetSpellData(Item);
-		if Item and Data.ammo > 0 and self.Menu.Modes.Modes2.Insec:Value() and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
-		local CastPos = myHero.pos:Extended(mousePos, 600)
-			Control.CastSpell(ItemHotKey[Item], CastPos)
+		if WardTicks + 200 < GetTickCount() then 
+			local WardTicks = GetTickCount();
+			UsedWard = false;
+			if UsedWard == false and Item and Data.ammo > 0 and self.Menu.Modes.Modes2.Insec:Value() and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
+			local CastPos = myHero.pos:Extended(mousePos, 600)
+				Control.CastSpell(ItemHotKey[Item], CastPos)
+			end	
 		end
 	end
 end	
@@ -4389,7 +4424,7 @@ if target == nil then return end
 	local ward = Game.Ward(i)				
 		
 		if IsValid(ward, 800) and ward.isAlly and Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
-			if (myHero.pos:DistanceTo(ward.pos) < 700 and target.pos:DistanceTo(ward.pos) < 375) then	
+			if (myHero.pos:DistanceTo(ward.pos) < 700 and target.pos:DistanceTo(ward.pos) < 400) then	
 				CastSpell(HK_W, ward.pos)
 					
 						
@@ -4406,27 +4441,46 @@ if target == nil then return end
 	local Item = GetInventorySlotItem(spell)
 		if IsValid(target, 1300) then
 			
-			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) and HasBuff(target, "BlindMonkQOne") then
-				Control.CastSpell(HK_R, target.pos)
+			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) and myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
+				CastSpell(HK_R, target.pos)
 			end
 						
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 375 and not HasBuff(target, "BlindMonkQOne") and Ready(_Q) and pred.Hitchance >= 2 then
-				Control.CastSpell(HK_Q, pred.CastPosition)
+			--local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 1200 and HasBuff(target, "BlindMonkRKick") and Ready(_Q) then
+				Control.CastSpell(HK_Q, target.pos)
 			end
 			
-			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkRKick") and HasBuff(target, "BlindMonkQOne") then
+			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
 				Control.CastSpell(HK_Q)
 			end				
 						
-			if WardsAround(target, 375) == 0 and Ready(_R) then 
+			if WardsAround(target, 400) == 0 and Ready(_R) then 
 				local Data = myHero:GetSpellData(Item);
-				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 625, 0.25, 1450, 60, false)
-				if Item and Data.ammo > 0 and myHero.pos:DistanceTo(target.pos) <= 525 and hitRate and hitRate >= 1 then
-					local CastPos = aimPosition:Shortened(myHero.pos, 100)
-					Control.CastSpell(ItemHotKey[Item], CastPos)
+				if WardTicks + 200 < GetTickCount() then 
+					local WardTicks = GetTickCount();
+					UsedWard = false;	
+					for i, ally in pairs(GetAllyHeroes()) do	
+						if IsValid(ally, 1300) and ally.pos:DistanceTo(target.pos) <= 1200 and UsedWard == false and Item and Data.ammo > 0 and myHero.pos:DistanceTo(target.pos) <= 625 then
+							local CastPos = target.pos + (target.pos-ally.pos):Normalized() * (375 - 100)
+							Control.CastSpell(ItemHotKey[Item], CastPos)
+						end	
+					end	
 				end
 			end	
+			if WardsAround(target, 400) == 0 and Ready(_R) then 
+				local Data = myHero:GetSpellData(Item);
+				if WardTicks + 200 < GetTickCount() then 
+					local WardTicks = GetTickCount();
+					UsedWard = false;	
+					for i, tower in pairs(GetAllyTurret()) do
+						
+						if tower.pos:DistanceTo(target.pos) <= 1600 and UsedWard == false and Item and Data.ammo > 0 and myHero.pos:DistanceTo(target.pos) <= 625 then
+							local CastPos = target.pos + (target.pos-tower.pos):Normalized() * (375 - 100)
+							Control.CastSpell(ItemHotKey[Item], CastPos)
+						end	
+					end	
+				end
+			end			
 		end
 	end
 end
@@ -4477,24 +4531,27 @@ function LeeSin:Draw()
 				for i = 1, Game.HeroCount() do
 				local Hero = Game.Hero(i)
 				local textPos = Hero.pos:To2D()	
-					if IsValid(Hero, 1300) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then 
-						if self.Menu.Modes.Modes1.Type:Value() == 2 and self.Menu.Modes.Modes1.Insec:Value() then 	
+					 
+					if self.Menu.Modes.Modes1.Type:Value() == 2 and self.Menu.Modes.Modes1.Insec:Value() then 	
+						if IsValid(Hero, 1300) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then	
 							local Vectori = Vector(myHero.pos - Hero.pos)
 							local LS = LineSegment(myHero.pos, Hero.pos)
 							LS:__draw()
 							LSS = Circle(Point(Hero), Hero.boundingRadius)
 							LSS:__draw()
 							Draw.Text("Insec Mode[1]", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
-							Draw.Circle(myHero, 525, 1, Draw.Color(225, 225, 0, 0))
+							Draw.Circle(myHero, 625, 1, Draw.Color(225, 225, 0, 0))
 						end
-						if self.Menu.Modes.Modes1.Type:Value() == 1 then
+					end	
+					if self.Menu.Modes.Modes1.Type:Value() == 1 then
+						if IsValid(Hero, 1300) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then	
 							local Vectori = Vector(myHero.pos - Hero.pos)
 							local LS = LineSegment(myHero.pos, Hero.pos)
 							LS:__draw()
 							LSS = Circle(Point(Hero), Hero.boundingRadius)
 							LSS:__draw()
 							Draw.Text("Insec Mode[1]", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
-							Draw.Circle(myHero, 525, 1, Draw.Color(225, 225, 0, 0))
+							Draw.Circle(myHero, 625, 1, Draw.Color(225, 225, 0, 0))
 						end
 					end	
 				end		
@@ -4734,35 +4791,6 @@ function LeeSin:JungleClear()
         end
     end
 end
-
-local SmiteNames = {'SummonerSmite','S5_SummonerSmiteDuel','S5_SummonerSmitePlayerGanker','S5_SummonerSmiteQuick','ItemSmiteAoE'};
-
-function LeeSin:GetSmite(smiteSlot)
-	local returnVal = 0;
-	local spellName = myHero:GetSpellData(smiteSlot).name;
-	for i = 1, 5 do
-		if spellName == SmiteNames[i] then
-			returnVal = smiteSlot
-		end
-	end
-	return returnVal;
-end
-
-
-
-local JungleTable = {
-["SRU_Baron"] = {charName = "SRU_Baron"}, 
-["SRU_RiftHerald"] = {charName = "SRU_RiftHerald"}, 
-["SRU_Dragon_Water"] = {charName = "SRU_Dragon_Water"}, 
-["SRU_Dragon_Earth"] = {charName = "SRU_Dragon_Earth"}, 
-["SRU_Dragon_Air"] = {charName = "SRU_Dragon_Air"},
-["SRU_Dragon_Elder"] = {charName = "SRU_Dragon_Elder"},
-["SRU_Dragon_Fire"] = {charName = "SRU_Dragon_Fire"}
-}
-
-
-local WardTicks = 0;
-local SmiteDamage = {390 , 410 , 430 , 450 , 480 , 510 , 540 , 570 , 600 , 640 , 680 , 720 , 760 , 800 , 850 , 900 , 950 , 1000};
 
 function LeeSin:JungleSteal()
 if mySmiteSlot == 0 then return end	
