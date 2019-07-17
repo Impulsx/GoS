@@ -19,7 +19,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 --			//Combo Gapclose added // (WardJump) min/max Range Slider
 
 
-    local Version = 11.6
+    local Version = 11.7
     
     local Files = {
         Lua = {
@@ -123,7 +123,7 @@ local textPos = myHero.pos:To2D()
 	
 	if Game.Timer() > 20 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 11.6", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Version: 11.7", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
 		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
 		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
@@ -4402,8 +4402,8 @@ function LeeSin:Activator()
 if myHero.dead then return end
 local target = GetTarget(500)     	
 if target == nil then return end	
-local Tia, Rave = GetInventorySlotItem(3077), GetInventorySlotItem(3074)   
-	if IsValid(target, 500) and self.Menu.Modes.Modes1.Insec:Value() and self.Menu.Modes.Modes1.Item:Value() then
+local Tia, Rave, Tita = GetInventorySlotItem(3077), GetInventorySlotItem(3074), GetInventorySlotItem(3748)   
+	if IsValid(target, 500) and self.Menu.Modes.Modes1.Insec:Value() and self.Menu.Modes.Modes1.Item:Value() and not self.Menu.Modes.Modes1.Burst:Value() then
         
 		if Tia and myHero.pos:DistanceTo(target.pos) <= 400 then
             Control.CastSpell(ItemHotKey[Tia])
@@ -4412,6 +4412,10 @@ local Tia, Rave = GetInventorySlotItem(3077), GetInventorySlotItem(3074)
 		if Rave and myHero.pos:DistanceTo(target.pos) <= 400 then
             Control.CastSpell(ItemHotKey[Rave])
         end
+		
+		if Tita and myHero.pos:DistanceTo(target.pos) <= 400 then
+            Control.CastSpell(ItemHotKey[Tita])
+        end		
 	end
 end	
 
