@@ -68,7 +68,7 @@ function TryLoad()
 		if table.contains(Adc, myHero.charName) then
 			if not FileExist(COMMON_PATH .. "PussyADC.lua") then
 				print("Champion.lib installed Press 2x F6")
-				DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-External/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "PussyADC.lua", function() end)
+				DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyADC.lua", COMMON_PATH .. "PussyADC.lua", function() end)
 				while not FileExist(COMMON_PATH .. "PussyADC.lua") do end
 			end	
 		require "PussyADC"
@@ -76,7 +76,7 @@ function TryLoad()
 		elseif table.contains(Support, myHero.charName) then
 			if not FileExist(COMMON_PATH .. "PussySUPP.lua") then
 				print("Champion.lib installed Press 2x F6")
-				DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-External/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "PussySUPP.lua", function() end)
+				DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussySUPP.lua", COMMON_PATH .. "PussySUPP.lua", function() end)
 				while not FileExist(COMMON_PATH .. "PussySUPP.lua") do end
 			end	
 		require "PussySUPP"	
@@ -84,7 +84,7 @@ function TryLoad()
 		elseif table.contains(Mid, myHero.charName) then
 			if not FileExist(COMMON_PATH .. "PussyMID.lua") then
 				print("Champion.lib installed Press 2x F6")
-				DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-External/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "PussyMID.lua", function() end)
+				DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyMID.lua", COMMON_PATH .. "PussyMID.lua", function() end)
 				while not FileExist(COMMON_PATH .. "PussyMID.lua") do end
 			end	
 		require "PussyMID"	
@@ -92,7 +92,7 @@ function TryLoad()
 		elseif table.contains(Top, myHero.charName) then
 			if not FileExist(COMMON_PATH .. "PussyTOP.lua") then
 				print("Champion.lib installed Press 2x F6")
-				DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-External/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "PussyTOP.lua", function() end)
+				DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyTOP.lua", COMMON_PATH .. "PussyTOP.lua", function() end)
 				while not FileExist(COMMON_PATH .. "PussyTOP.lua") do end
 			end	
 		require "PussyTOP"
@@ -101,7 +101,7 @@ function TryLoad()
 			table.contains(Jungle, myHero.charName) then
 			if not FileExist(COMMON_PATH .. "PussyJUNGLE.lua") then
 				print("Champion.lib installed Press 2x F6")
-				DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-External/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "PussyJUNGLE.lua", function() end)
+				DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyJUNGLE.lua", COMMON_PATH .. "PussyJUNGLE.lua", function() end)
 				while not FileExist(COMMON_PATH .. "PussyJUNGLE.lua") do end
 			end	
 		require "PussyJUNGLE"		
@@ -128,7 +128,7 @@ end
 
 if table.contains(Heroes, myHero.charName) then
 	if not FileExist(COMMON_PATH .. "PussyManager.lua") then
-		DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-EXT/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "PussyManager.lua", function() end)
+		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyManager.lua", COMMON_PATH .. "PussyManager.lua", function() end)
 		while not FileExist(COMMON_PATH .. "PussyManager.lua") do end
 								
 
