@@ -14,12 +14,12 @@ end
         Lua = {
             Path = COMMON_PATH,
             Name = "PussyMID.lua",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIOTest.lua"
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyMID.lua"
         },
         Version = {
             Path = COMMON_PATH,
             Name = "PussyMID.version",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIOTest.version"
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyMID.version"
         }	
     }
     
