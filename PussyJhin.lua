@@ -64,7 +64,7 @@ do
     
     AutoUpdate()
 
-end]]
+end
 
 
 
@@ -310,7 +310,7 @@ function Jhin:LoadMenu()
 	--LaneClear Menu
 	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})
 	self.Menu.Clear:MenuElement({type = MENU, id = "Last", name = "LastHit"})
-	self.Menu.Clear.Last:MenuElement({id = "UseW", name = "LastHit[W]Cannon/if out of AA range", value = 1, drop = {"Automatically", "ClearKey"}})	
+	self.Menu.Clear.Last:MenuElement({id = "UseW", name = "LastHit[W]Cannon[out of AA range]", value = 1, drop = {"Automatically", "ClearKey"}})	
 	self.Menu.Clear:MenuElement({id = "UseE", name = "[E]", value = true})
 	self.Menu.Clear:MenuElement({id = "UseEM", name = "Use[E] min Minions", value = 3, min = 1, max = 6, step = 1}) 
 	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q]if min 1 Minion killable", value = true})
@@ -411,13 +411,11 @@ function Jhin:Draw()
 	local target = GetTarget(20000)
 	if target == nil then return end	
 	if target and self.Menu.Combo.Ulti.Draw:Value() and not target.dead then
-	local Dmg = (getdmg("R", target, myHero, 1)*3) + getdmg("R", target, myHero, 2)
+	local Dmg = getdmg("R", target, myHero, 2)
 	local hp = target.health	
 		if Ready(_R) and Dmg > hp then
 			Draw.Text("Ult Kill", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
 			Draw.Text("Ult Kill", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))
-			LSS = Circle(Point(target), target.boundingRadius)
-			LSS:__draw()
 		end	
 	end
 end
@@ -431,6 +429,7 @@ function Jhin:DarkHarvest()
 	end
 	return false
 end
+
 
 function Jhin:AutoW()
 	local target = GetTarget(3000)     	
@@ -738,7 +737,7 @@ local DamageLibTable = {
 	{Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 85, 120, 155, 190})[level] + 0.5 * source.totalDamage end},
     {Slot = "W", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({37, 63, 90, 116, 142})[level] + 0.37 * source.totalDamage end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 125, 200})[level] + 0.2 * source.totalDamage * (1 + (100 - GetPercentHP(target)) * 1.025) end},
-    {Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({50, 125, 200})[level] + 0.2 * source.totalDamage * (1 + (100 - GetPercentHP(target)) * 1.025) * 2 end}	
+    {Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({200, 500, 800})[level] + 0.8 * source.totalDamage * (1 + (100 - GetPercentHP(target)) * 1.025) end}	
 
   }
 }
