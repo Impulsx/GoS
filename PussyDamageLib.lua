@@ -5,13 +5,13 @@ local Version = 0.01
         Lua = {
             Path = COMMON_PATH,
             Name = "PussyDamageLib.lua",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIO.lua"
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyDamageLib.lua"
 
         },
         Version = {
             Path = COMMON_PATH,
             Name = "PussyDamageLib.version",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyAIO.version"
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyDamageLib.version"
         }	
     }
     
