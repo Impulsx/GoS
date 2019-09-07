@@ -41,6 +41,10 @@ local Version = 0.01
             print(Files.Version.Name .. ": No Updates Found")
         end	
 	end
+	
+function OnLoad()
+	AutoUpdate()	
+end	
 
 local DamageReductionTable = {
   ["Braum"] = {buff = "BraumShieldRaise", amount = function(target) return 1 - ({0.3, 0.325, 0.35, 0.375, 0.4})[target:GetSpellData(_E).level] end},
