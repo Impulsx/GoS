@@ -30,7 +30,7 @@ require('PussyDamageLib')
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.01
+    local Version = 0.02
     
     local Files = {
         Lua = {
@@ -88,6 +88,8 @@ local wClock = 0
 local clock = os.clock
 local Latency = Game.Latency
 local ping = Latency() * 0.001
+local _OnVision = {}
+local sqrt = math.sqrt
 
 function OnLoad()
 	if table.contains(Heroes, myHero.charName) then
@@ -188,16 +190,6 @@ local function AllyMinionUnderTower()
 	return false
 end
 
-local function HasBuff(unit, buffname)
-	for i = 0, unit.buffCount do
-		local buff = unit:GetBuff(i)
-		if buff.name == buffname and buff.count > 0 then 
-			return true
-		end
-	end
-	return false
-end
-
 local function GotBuff(unit, buffname)
   for i = 0, unit.buffCount do
     local buff = unit:GetBuff(i)
@@ -216,43 +208,6 @@ local function IsRecalling(unit)
 		end
 	end 
 	return false
-end
-
-local function GetTargetMS(target)
-	local ms = target.pathing.isDashing and target.pathing.dashSpeed or target.ms
-	return ms
-end
-
-local function GetPathNodes(unit)
-	local nodes = {}
-	table.insert(nodes, unit.pos)
-	if unit.pathing.hasMovePath then
-		for i = unit.pathing.pathIndex, unit.pathing.pathCount do
-			path = unit:GetPath(i)
-			table.insert(nodes, path)
-		end
-	end		
-	return nodes
-end
-
-local function PredictUnitPosition(unit, delay)
-	local predictedPosition = unit.pos
-	local timeRemaining = delay
-	local pathNodes = GetPathNodes(unit)
-	for i = 1, #pathNodes -1 do
-		local nodeDistance = GetDistance(pathNodes[i], pathNodes[i +1])
-		local nodeTraversalTime = nodeDistance / GetTargetMS(unit)
-			
-		if timeRemaining > nodeTraversalTime then
-			timeRemaining =  timeRemaining - nodeTraversalTime
-			predictedPosition = pathNodes[i + 1]
-		else
-			local directionVector = (pathNodes[i+1] - pathNodes[i]):Normalized()
-			predictedPosition = pathNodes[i] + directionVector *  GetTargetMS(unit) * timeRemaining
-			break;
-		end
-	end
-	return predictedPosition
 end
 
 local function VectorPointProjectionOnLineSegment(v1, v2, v)
@@ -329,21 +284,16 @@ local function SetMovement(bool)
 	end
 end
 
-local function GetLineTargetCount(source, aimPos, delay, speed, width)
-	local targetCount = 0
-	for i = 1, Game.HeroCount() do
-		local t = Game.Hero(i)
-		if t and IsValid(t) and t.isEnemy then
-			
-			local predictedPos = PredictUnitPosition(t, delay+ GetDistance(source, t.pos) / speed)
-			local proj1, pointLine, isOnSegment = VectorPointProjectionOnLineSegment(source, aimPos, predictedPos)
-			if proj1 and isOnSegment and (GetDistanceSqr(predictedPos, proj1) <= (t.boundingRadius + width) * (t.boundingRadius + width)) then
-				targetCount = targetCount + 1
-			end
-		end
-	end
-	return targetCount
-end
+local function GetEnemyHeroes()
+    local _EnemyHeroes = {}
+    for i = 1, Game.HeroCount() do
+        local unit = Game.Hero(i)
+        if unit.isEnemy then
+            table.insert(_EnemyHeroes, unit)
+        end
+    end
+    return _EnemyHeroes
+end 
 
 local function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
@@ -353,6 +303,71 @@ local function IsImmobileTarget(unit)
 		end
 	end
 	return false	
+end
+
+function GetDistance2D(p1,p2)
+    return sqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y))
+end
+
+local function OnVision(unit)
+	_OnVision[unit.networkID] = _OnVision[unit.networkID] == nil and {state = unit.visible, tick = GetTickCount(), pos = unit.pos} or _OnVision[unit.networkID]
+	if _OnVision[unit.networkID].state == true and not unit.visible then
+		_OnVision[unit.networkID].state = false
+		_OnVision[unit.networkID].tick = GetTickCount()
+	end
+	if _OnVision[unit.networkID].state == false and unit.visible then
+		_OnVision[unit.networkID].state = true
+		_OnVision[unit.networkID].tick = GetTickCount()
+	end
+	return _OnVision[unit.networkID]
+end
+
+local _OnWaypoint = {}
+local function OnWaypoint(unit)
+	if _OnWaypoint[unit.networkID] == nil then _OnWaypoint[unit.networkID] = {pos = unit.posTo , speed = unit.ms, time = Game.Timer()} end
+	if _OnWaypoint[unit.networkID].pos ~= unit.posTo then 
+		_OnWaypoint[unit.networkID] = {startPos = unit.pos, pos = unit.posTo , speed = unit.ms, time = Game.Timer()}
+			DelayAction(function()
+				local time = (Game.Timer() - _OnWaypoint[unit.networkID].time)
+				local speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(Game.Timer() - _OnWaypoint[unit.networkID].time)
+				if speed > 1250 and time > 0 and unit.posTo == _OnWaypoint[unit.networkID].pos and GetDistance(unit.pos,_OnWaypoint[unit.networkID].pos) > 200 then
+					_OnWaypoint[unit.networkID].speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(Game.Timer() - _OnWaypoint[unit.networkID].time)
+				end
+			end,0.05)
+	end
+	return _OnWaypoint[unit.networkID]
+end
+
+local function GetPred(unit,speed,delay)
+	local speed = speed or math.huge
+	local delay = delay or 0.25
+	local unitSpeed = unit.ms
+	if OnWaypoint(unit).speed > unitSpeed then unitSpeed = OnWaypoint(unit).speed end
+	if OnVision(unit).state == false then
+		local unitPos = unit.pos + Vector(unit.pos,unit.posTo):Normalized() * ((GetTickCount() - OnVision(unit).tick)/1000 * unitSpeed)
+		local predPos = unitPos + Vector(unit.pos,unit.posTo):Normalized() * (unitSpeed * (delay + (GetDistance(myHero.pos,unitPos)/speed)))
+		if GetDistance(unit.pos,predPos) > GetDistance(unit.pos,unit.posTo) then predPos = unit.posTo end
+		return predPos
+	else
+		if unitSpeed > unit.ms then
+			local predPos = unit.pos + Vector(OnWaypoint(unit).startPos,unit.posTo):Normalized() * (unitSpeed * (delay + (GetDistance(myHero.pos,unit.pos)/speed)))
+			if GetDistance(unit.pos,predPos) > GetDistance(unit.pos,unit.posTo) then predPos = unit.posTo end
+			return predPos
+		elseif IsImmobileTarget(unit) then
+			return unit.pos
+		else
+			return unit:GetPrediction(speed,delay)
+		end
+	end
+end
+
+keybindings = { [ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6}
+local function GetInventorySlotItem(itemID)
+    assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
+    for _, j in pairs({ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6, ITEM_7}) do
+        if myHero:GetItemData(j).itemID == itemID and myHero:GetSpellData(j).currentCd == 0 then return j end
+    end
+    return nil
 end
 
 local function MyHeroReady()
@@ -403,26 +418,26 @@ function Irelia:LoadMenu()
 
 	--AutoE 
 	self.Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})
-	self.Menu.AutoE:MenuElement({id = "UseE", name = "Auto[E]", value = true})
-	self.Menu.AutoE:MenuElement({id = "CountE", name = "Auto[E] min stunable Enemys", value = 2, min = 1, max = 5, step = 1})	
+	self.Menu.AutoE:MenuElement({id = "UseE", name = "2-5 Enemys stunable", value = true})	
 	
 	--AutoQ
 	self.Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ LastHit"})
 	self.Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto LastHit Minion", value = true})
+	self.Menu.AutoQ:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
 	self.Menu.AutoQ:MenuElement({id = "Q", name = "Auto Q Toggle Key", key = 84, toggle = true})
-	self.Menu.AutoQ:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
+	self.Menu.AutoQ:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
 			
 	--ComboMenu  
 	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	self.Menu.Combo:MenuElement({name = " ", drop = {"E1, W, R, Q, E2, Q + (Q when kill / almost kill)"}})	
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	self.Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})	
 	self.Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})
 
-	
 	--HarassMenu
 	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
-	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Logic", value = 1, drop = {"Marked + dash back Minion", "Everytime"}})	
+	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Logic", value = 1, drop = {"Marked + Dash back Minion", "Everytime"}})	
 	self.Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = true})
 	self.Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})
   
@@ -431,7 +446,8 @@ function Irelia:LoadMenu()
 	self.Menu.Clear:MenuElement({type = MENU, id = "Last", name = "LastHit"})
 	self.Menu.Clear.Last:MenuElement({id = "UseQ", name = "LastHit[Q]", value = true})	
 	self.Menu.Clear:MenuElement({id = "UseW", name = "[W]", value = true})
-	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
+	self.Menu.Clear:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
+	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
 	
 	--KillSteal
 	self.Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
@@ -458,25 +474,30 @@ end
 
 function Irelia:Tick()
 	if MyHeroReady() then
-	local Mode = GetMode()
-		if Mode == "Combo" then
-			self:Combo()
-		elseif Mode == "Harass" then
-			self:Harass()
-		elseif Mode == "Clear" then
-			self:Clear()
-		end
+		local Mode = GetMode()
+			if Mode == "Combo" then
+				self:Combo()
+			elseif Mode == "Harass" then
+				self:Harass()
+			elseif Mode == "Clear" then
+				self:Clear()
+			end
 
-
-	self:KillSteal()
-	self:AutoE()
-	if self.Menu.AutoQ.Q:Value() and Mode ~= "Combo" then
-		self:AutoQ()
-	end
 		
+		self:KillSteal()
+		self:CastE2()
+		if self.Menu.AutoQ.Q:Value() and Mode ~= "Combo" then
+			self:AutoQ()
+		end
 	end
 end
 
+function Irelia:UseHydraminion(minion)
+local hydraitem = GetInventorySlotItem(3748) or GetInventorySlotItem(3077) or GetInventorySlotItem(3074)
+	if hydraitem and myHero.attackData.state == STATE_WINDDOWN and myHero.pos:DistanceTo(minion.pos) <= 300 then
+		Control.CastSpell(keybindings[hydraitem])
+	end
+end
 
 function Irelia:Draw()
   if myHero.dead then return end
@@ -517,22 +538,6 @@ function Irelia:Draw()
 		end	
 	end
 end
-
-
-function Irelia:AutoE()
-	local target = GetTarget(1000)     	
-	if target == nil or myHero.attackData.state == 2 then return end
-	if IsValid(target) then
-		local targetCount = GetLineTargetCount(myHero.pos, target.pos, 0.75 + ping, 2000, 50, false)
-		if self.Menu.AutoE.UseE:Value() and Ready(_E) then
-			if myHero.pos:DistanceTo(target.pos) <= 500 and targetCount >= self.Menu.AutoE.CountE:Value() then
-				self:CastE(target)
-			end
-		end
-	end
-end
-
-	
 
 function Irelia:Combo()
 local target = GetTarget(1100)     	
@@ -619,7 +624,9 @@ function Irelia:AutoQ()
     local minion = Game.Minion(i)
 	if myHero.attackData.state == 2 then return end
 		if minion.team == TEAM_ENEMY and IsValid(minion) then
-
+			if self.Menu.AutoQ.UseItem:Value() then
+				self:UseHydraminion(minion)
+			end	
             
 			if self.Menu.AutoQ.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.AutoQ.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
                 local QDmg = getdmg("Q", minion, myHero, 2)
@@ -646,6 +653,10 @@ function Irelia:Clear()
             end           
            
 			if self.Menu.AutoQ.Q:Value() then return end
+			if self.Menu.Clear.UseItem:Value() then
+				self:UseHydraminion(minion)
+			end				
+			
 			if self.Menu.Clear.Last.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
 				local QDmg = getdmg("Q", minion, myHero, 2)
 				if QDmg > minion.health and not IsUnderTurret(minion) then
@@ -748,6 +759,70 @@ function Irelia:CastW(target)
     end 
 end
 
+function Irelia:GetBestECastPositions(units)
+    local units = GetEnemyHeroes()
+    local startPos, endPos, count = nil, nil, 0
+    local candidates, unitPositions = {}, {}
+    for i, unit in ipairs(units) do
+        local cp = GetPred(unit,2000,0.75 + ping)
+        if cp then candidates[i], unitPositions[i] = cp, cp end
+    end
+    local maxCount = #units
+    for i = 1, maxCount do
+        for j = 1, maxCount do
+            if candidates[j] ~= candidates[i] then
+                table.insert(candidates, Vector(candidates[j] + candidates[i]) / 2)
+            end
+        end
+    end
+    for i, unit2 in pairs(units) do
+        local cp = GetPred(unit2,2000,0.75 + ping)
+        if cp then
+            if myHero.pos:DistanceTo(cp.pos) < 775 then
+                for i, pos2 in ipairs(candidates) do
+                    if pos2:DistanceTo(cp.pos) < 775 then 
+                        
+                        local ePos = Vector(cp):Extended(pos2, 775)
+                        local number = 0
+                        for i = 1, #unitPositions do
+                            local unitPos = unitPositions[i]   
+                            local pointLine, pointSegment, onSegment = VectorPointProjectionOnLineSegment(cp, ePos, unitPos)
+                            if pointSegment and GetDistance(pointSegment, unitPos) < 1550 then number = number + 1 end 
+                             
+                        end
+                        if number >= 2 then startPos, endPos, count = cp, ePos, number end
+
+                    end
+                end
+            end
+        end
+    end
+    return startPos, endPos, count
+end
+
+function Irelia:CastE2()
+local target = GetTarget(1100)
+local startPos, endPos, count = self:GetBestECastPositions(target)
+if IsValid(target) and self.Menu.AutoE.UseE:Value() and Ready(_E) then
+    local targetCount = GetEnemyCount(725, myHero)
+	if startPos and endPos and targetCount >= 2 then
+	
+		if myHero:GetSpellData(_E).name == "IreliaE" then
+			if myHero:GetSpellData(_E).name == "IreliaE2" then return end
+				SetMovement(false)
+				CastSpell(HK_E, startPos)
+				SetMovement(true)
+		end
+
+		if myHero:GetSpellData(_E).name == "IreliaE2" then
+			SetMovement(false)
+			CastSpell(HK_E, endPos)
+			SetMovement(true)
+       
+		end
+	end
+end
+end	
 
 function Irelia:CastE(target)
 
