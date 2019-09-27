@@ -40,7 +40,7 @@ require('PussyDamageLib')
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.01
+    local Version = 0.1
     
     local Files = {
         Lua = {
