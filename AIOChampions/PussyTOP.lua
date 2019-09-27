@@ -1,10 +1,12 @@
 local Heroes = {"Mordekaiser","Kayle","Irelia"}
-if table.contains(Heroes, myHero.charName) then
-	_G[myHero.charName]()
-end	
+
 
 function OnLoad()
-	HPred()
+if table.contains(Heroes, myHero.charName) then
+	_G[myHero.charName]()
+end		
+HPred()
+	
 end
 
 ----------------------------------------------------
@@ -76,7 +78,7 @@ do
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
             print("New PussyTop Version Press 2x F6")
         else
-            print(Files.Version.Name .. ": No Updates Found")
+            print("PussyTop loaded")
         end
     
     end
@@ -85,6 +87,36 @@ do
 
 end
 
+local Allies = {}; local Enemies = {}; local Turrets = {}; local Units = {}; local AllyHeroes = {}
+local intToMode = {[0] = "", [1] = "Combo", [2] = "Harass", [3] = "LastHit", [4] = "Clear"}
+local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
+local spellcast = {state = 1, mouse = mousePos}
+local ItemHotKey = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2,[ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6, [ITEM_7] = HK_ITEM_7,}
+local Orb
+local barHeight, barWidth, barXOffset, barYOffset = 8, 103, 0, 0
+local TEAM_ALLY = myHero.team
+local TEAM_ENEMY = 300 - myHero.team
+local TEAM_JUNGLE = 300
+local charging = false
+local wClock = 0
+local clock = os.clock
+local Latency = Game.Latency
+local ping = Latency() * 0.001
+local Orb
+
+local function GetTarget(range) 
+	local target = nil 
+	if Orb == 1 then
+		target = EOW:GetTarget(range)
+	elseif Orb == 2 then 
+		target = _G.SDK.TargetSelector:GetTarget(range)
+	elseif Orb == 3 then
+		target = GOS:GetTarget(range)
+	elseif Orb == 4 then
+		target = _G.gsoSDK.TS:GetTarget()		
+	end
+	return target 
+end
 
 class "Kayle"
 
@@ -242,8 +274,7 @@ function Kayle:KillStealE()
 	local target = GetTarget(600)     	
 	if target == nil then return end
 
-	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 550 then
-		local level = myHero.levelData.lvl
+	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= myHero.range then
 		local hp = target.health
 		local EDmg = getdmg("E", target, myHero)
 
@@ -296,7 +327,7 @@ if target == nil then return end
 			end	
 		end
 		
-		if myHero.pos:DistanceTo(target.pos) <= 550 and self.Menu.Combo.UseE:Value() and Ready(_E) then					
+		if myHero.pos:DistanceTo(target.pos) <= myHero.range and self.Menu.Combo.UseE:Value() and Ready(_E) then					
 			Control.CastSpell(HK_E)
 	
 		end
@@ -331,7 +362,7 @@ if target == nil then return end
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
-		if myHero.pos:DistanceTo(target.pos) <= 550 and self.Menu.Harass.UseE:Value() and Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) <= myHero.range and self.Menu.Harass.UseE:Value() and Ready(_E) then
 			Control.CastSpell(HK_E)
 	
 			
@@ -340,59 +371,39 @@ if target == nil then return end
 end	
 
 function Kayle:Clear()
-    local max_range = math.max(myHero.range + myHero.boundingRadius, myHero:GetSpellData(_Q).range, myHero:GetSpellData(_W).range, myHero:GetSpellData(_E).range, myHero:GetSpellData(_R).range)
-    if max_range > 1500 then
-        max_range = 1500
-    end
     for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
         if minion.team == TEAM_ENEMY and IsValid(minion) then
-            local mana_ok = (self.Menu.Clear.Mana == nil or (self.Menu.Clear.Mana ~= nil and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100))
-            if self.Menu.Clear.UseQ ~= nil and self.Menu.Clear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_Q).range and Ready(_Q) then
-				local pred = GetGamsteronPrediction(minion, QData, myHero)	
+            local mana_ok = myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100
+            if self.Menu.Clear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= 900 and Ready(_Q) then	
 				local QDmg = getdmg("Q", minion, myHero)	
-				if QDmg > minion.health and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
-					Control.CastSpell(HK_Q, pred.CastPosition)
+				if QDmg > minion.health  then
+					Control.CastSpell(HK_Q, minion.pos)
 				end	
             end
-            if self.Menu.Clear.UseW ~= nil and self.Menu.Clear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_W).range and Ready(_W) then
-                Control.CastSpell(HK_W, minion.pos)
-            end
-            if self.Menu.Clear.UseE ~= nil and self.Menu.Clear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_E).range and Ready(_E) then
-                local EDmg = getdmg("E", minion, myHero, 1)
 
+            if self.Menu.Clear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero.range and Ready(_E) and not Ready(_Q) then
+                local EDmg = getdmg("E", minion, myHero)
 				if  EDmg > minion.health then
 					Control.CastSpell(HK_E)
 
 				end
-            end
-            if self.Menu.Clear.UseR ~= nil and self.Menu.Clear.UseR:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_R).range and Ready(_R) then
-                Control.CastSpell(HK_R, minion.pos)
             end
         end
     end
 end
 
 function Kayle:JungleClear()
-    local max_range = math.max(myHero.range + myHero.boundingRadius, myHero:GetSpellData(_Q).range, myHero:GetSpellData(_W).range, myHero:GetSpellData(_E).range, myHero:GetSpellData(_R).range)
-    if max_range > 1500 then
-        max_range = 1500
-    end
     for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
         if minion.team == TEAM_JUNGLE and IsValid(minion) then
-            local mana_ok = (self.Menu.JClear.Mana == nil or (self.Menu.JClear.Mana ~= nil and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100))
-            if self.Menu.JClear.UseQ ~= nil and self.Menu.JClear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_Q).range and Ready(_Q) then
+            local mana_ok =  myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100
+            if self.Menu.JClear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= 900 and Ready(_Q) then
                 Control.CastSpell(HK_Q, minion.pos)
             end
-            if self.Menu.JClear.UseW ~= nil and self.Menu.JClear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_W).range and Ready(_W) then
-                Control.CastSpell(HK_W, minion.pos)
-            end
-            if self.Menu.JClear.UseE ~= nil and self.Menu.JClear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_E).range and Ready(_E) then
+
+            if self.Menu.JClear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero.range and Ready(_E) then
                 Control.CastSpell(HK_E)
-            end
-            if self.Menu.JClear.UseR ~= nil and self.Menu.JClear.UseR:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_R).range and Ready(_R) then
-                Control.CastSpell(HK_R, minion.pos)
             end
         end
     end
@@ -520,7 +531,7 @@ function Mordekaiser:Draw()
     Draw.Circle(myHero, 650, 1, Draw.Color(255, 225, 255, 10)) 
 	end                                                 
 	if(self.Menu.Drawing.DrawQ:Value()) and Ready(_Q) then
-    Draw.Circle(myHero, 675, 1, Draw.Color(225, 225, 0, 10))
+    Draw.Circle(myHero, 625, 1, Draw.Color(225, 225, 0, 10))
 	end
 	if(self.Menu.Drawing.DrawE:Value()) and Ready(_E) then
     Draw.Circle(myHero, 900, 1, Draw.Color(225, 225, 125, 10))
@@ -546,30 +557,22 @@ end
 
 
 function Mordekaiser:AutoE()
-	local max_range = math.max(myHero.range + myHero.boundingRadius, myHero:GetSpellData(_Q).range, myHero:GetSpellData(_W).range, myHero:GetSpellData(_E).range, myHero:GetSpellData(_R).range)
-    if max_range > 1500 then
-        max_range = 1500
-    end
-	local target = GetTarget(max_range)
+	local target = GetTarget(1000)
 	if target == nil then return end
 	if IsValid(target) then
 		
-        if self.Menu.AutoE.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= myHero:GetSpellData(_E).range and IsUnderAllyTurret(myHero) and Ready(_E) then
+        if self.Menu.AutoE.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 900 and IsUnderAllyTurret(myHero) and Ready(_E) then
 			Control.CastSpell(HK_E, target.pos)
         end		
 	end
 end
 
 function Mordekaiser:KillSteal()	
-	local max_range = math.max(myHero.range + myHero.boundingRadius, myHero:GetSpellData(_Q).range, myHero:GetSpellData(_W).range, myHero:GetSpellData(_E).range, myHero:GetSpellData(_R).range)
-    if max_range > 1500 then
-        max_range = 1500
-    end
-	local target = GetTarget(max_range)
+	local target = GetTarget(1000)
 	if target == nil then return end
 	if IsValid(target) then
         
-		if self.Menu.ks.UseQ ~= nil and self.Menu.ks.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= myHero:GetSpellData(_Q).range and Ready(_Q) then
+		if self.Menu.ks.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 625 and Ready(_Q) then
 			local QDmg = getdmg("Q", target, myHero)
 			if QDmg >= target.health then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
@@ -578,10 +581,8 @@ function Mordekaiser:KillSteal()
 				end
 			end	
         end
-        if self.Menu.ks.UseW ~= nil and self.Menu.ks.UseW:Value() and myHero.pos:DistanceTo(target.pos) <= myHero:GetSpellData(_W).range and Ready(_W) then
-            Control.CastSpell(HK_W, target.pos)
-        end
-        if self.Menu.ks.UseE ~= nil and self.Menu.ks.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= myHero:GetSpellData(_E).range and Ready(_E) then
+
+        if self.Menu.ks.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 900 and Ready(_E) then
             local EDmg = getdmg("E", target, myHero)
 			if EDmg >= target.health then
 				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 700, 0.5, 500, 180, false)
@@ -590,7 +591,7 @@ function Mordekaiser:KillSteal()
 				end	
 			end	
         end
-        if self.Menu.ks.Targets.UseR:Value() and self.Menu.ks.Targets[target.charName] and self.Menu.ks.Targets[target.charName]:Value() and myHero.pos:DistanceTo(target.pos) <= myHero:GetSpellData(_R).range and Ready(_R) then
+        if self.Menu.ks.Targets.UseR:Value() and self.Menu.ks.Targets[target.charName] and self.Menu.ks.Targets[target.charName]:Value() and myHero.pos:DistanceTo(target.pos) <= 650 and Ready(_R) then
 			if (getdmg("Q", target, myHero)+getdmg("E", target, myHero))*2 >= target.health then
 				Control.CastSpell(HK_R, target.pos)
 			end	
@@ -599,24 +600,18 @@ function Mordekaiser:KillSteal()
 end	
 
 function Mordekaiser:Combo()
-	local max_range = math.max(myHero.range + myHero.boundingRadius, myHero:GetSpellData(_Q).range, myHero:GetSpellData(_W).range, myHero:GetSpellData(_E).range, myHero:GetSpellData(_R).range)
-    if max_range > 1500 then
-        max_range = 1500
-    end
-	local target = GetTarget(max_range)
+	local target = GetTarget(1000)
 	if target == nil then return end
 	if IsValid(target) then
         
-		if self.Menu.Combo.UseQ ~= nil and self.Menu.Combo.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= myHero:GetSpellData(_Q).range and Ready(_Q) then
+		if self.Menu.Combo.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 625 and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then	
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
         end
-        if self.Menu.Combo.UseW ~= nil and self.Menu.Combo.UseW:Value() and myHero.pos:DistanceTo(target.pos) <= myHero:GetSpellData(_W).range and Ready(_W) then
-            Control.CastSpell(HK_W, target.pos)
-        end
-        if self.Menu.Combo.UseE ~= nil and self.Menu.Combo.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= myHero:GetSpellData(_E).range and Ready(_E) then
+
+        if self.Menu.Combo.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 900 and Ready(_E) then
             local count = GetEnemyCount(200, target)
 			if count >= self.Menu.Combo.count:Value() then
 				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 700, 0.5, 500, 180, false)
@@ -625,93 +620,62 @@ function Mordekaiser:Combo()
 				end	
 			end	
         end
-        if self.Menu.Combo.UseR ~= nil and self.Menu.Combo.UseR:Value() and myHero.pos:DistanceTo(target.pos) <= myHero:GetSpellData(_R).range and Ready(_R) then
-            Control.CastSpell(HK_R, target.pos)
-		end
 	end
 end
 
 
 function Mordekaiser:Harass()
-    local max_range = math.max(myHero.range + myHero.boundingRadius, myHero:GetSpellData(_Q).range, myHero:GetSpellData(_W).range, myHero:GetSpellData(_E).range, myHero:GetSpellData(_R).range)
-    if max_range > 1500 then
-        max_range = 1500
-    end
-	local target = GetTarget(max_range)
+
+	local target = GetTarget(1000)
 	if target == nil then return end
 	if IsValid(target) then
-        local mana_ok = (self.Menu.Harass.Mana == nil or (self.Menu.Harass.Mana ~= nil and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100))
         
-		if self.Menu.Harass.UseQ ~= nil and self.Menu.Harass.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(target.pos) <= myHero:GetSpellData(_Q).range and Ready(_Q) then
+        
+		if self.Menu.Harass.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 625 and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then	
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
-        end
-        if self.Menu.Harass.UseW ~= nil and self.Menu.Harass.UseW:Value() and mana_ok and myHero.pos:DistanceTo(target.pos) <= myHero:GetSpellData(_W).range and Ready(_W) then
-            Control.CastSpell(HK_W, target.pos)
-        end
-        if self.Menu.Harass.UseE ~= nil and self.Menu.Harass.UseE:Value() and mana_ok and myHero.pos:DistanceTo(target.pos) <= myHero:GetSpellData(_E).range and Ready(_E) then
-            Control.CastSpell(HK_E, target.pos)
-        end
-        if self.Menu.Harass.UseR ~= nil and self.Menu.Harass.UseR:Value() and mana_ok and myHero.pos:DistanceTo(target.pos) <= myHero:GetSpellData(_R).range and Ready(_R) then
-            Control.CastSpell(HK_R, target.pos)
-        end		
+        end	
 	end
 end	
 
 
 function Mordekaiser:Clear()
-    local max_range = math.max(myHero.range + myHero.boundingRadius, myHero:GetSpellData(_Q).range, myHero:GetSpellData(_W).range, myHero:GetSpellData(_E).range, myHero:GetSpellData(_R).range)
-    if max_range > 1500 then
-        max_range = 1500
-    end
     for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
         if minion.team == TEAM_ENEMY and IsValid(minion) then
-            local mana_ok = (self.Menu.Clear.Mana == nil or (self.Menu.Clear.Mana ~= nil and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100))
-            if self.Menu.Clear.UseQ ~= nil and self.Menu.Clear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_Q).range and Ready(_Q) then
+           
+           
+			if self.Menu.Clear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 625 and Ready(_Q) then
 				Control.CastSpell(HK_Q, minion.pos)
             end
-            if self.Menu.Clear.UseW ~= nil and self.Menu.Clear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_W).range and Ready(_W) then
-                Control.CastSpell(HK_W, minion.pos)
-            end
-            if self.Menu.Clear.UseE ~= nil and self.Menu.Clear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_E).range and Ready(_E) then
+
+            if self.Menu.Clear.UseE:Value() and myHero.pos:DistanceTo(minion.pos) <= 900 and Ready(_E) then
 				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, minion, 700, 0.5, 500, 180, false)
 				if hitRate and hitRate >= 1 then	
 					Control.CastSpell(HK_E, aimPosition)	
 				end	
-            end
-            if self.Menu.Clear.UseR ~= nil and self.Menu.Clear.UseR:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_R).range and Ready(_R) then
-                Control.CastSpell(HK_R, minion.pos)
             end
         end
     end
 end
 
 function Mordekaiser:JClear()
-    local max_range = math.max(myHero.range + myHero.boundingRadius, myHero:GetSpellData(_Q).range, myHero:GetSpellData(_W).range, myHero:GetSpellData(_E).range, myHero:GetSpellData(_R).range)
-    if max_range > 1500 then
-        max_range = 1500
-    end
     for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
         if minion.team == TEAM_JUNGLE and IsValid(minion) then
-            local mana_ok = (self.Menu.JClear.Mana == nil or (self.Menu.JClear.Mana ~= nil and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100))
-            if self.Menu.JClear.UseQ ~= nil and self.Menu.JClear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_Q).range and Ready(_Q) then
+            
+           
+			if self.Menu.JClear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 625 and Ready(_Q) then
 				Control.CastSpell(HK_Q, minion.pos)
             end
-            if self.Menu.JClear.UseW ~= nil and self.Menu.JClear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_W).range and Ready(_W) then
-                Control.CastSpell(HK_W, minion.pos)
-            end
-            if self.Menu.JClear.UseE ~= nil and self.Menu.JClear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_E).range and Ready(_E) then
+
+            if self.Menu.JClear.UseE:Value() and myHero.pos:DistanceTo(minion.pos) <= 900 and Ready(_E) then
 				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, minion, 700, 0.5, 500, 180, false)
 				if hitRate and hitRate >= 1 then	
 					Control.CastSpell(HK_E, aimPosition)	
 				end	
-            end
-            if self.Menu.JClear.UseR ~= nil and self.Menu.JClear.UseR:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_R).range and Ready(_R) then
-                Control.CastSpell(HK_R, minion.pos)
             end
         end
     end
