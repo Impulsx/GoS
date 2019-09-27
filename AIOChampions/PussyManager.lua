@@ -1,9 +1,7 @@
 
-function OnLoad()
-	AutoUpdate()
-
-end
-
+-- [ AutoUpdate ]
+do
+    
     local Version = 0.01
     
     local Files = {
@@ -16,9 +14,11 @@ end
             Path = COMMON_PATH,
             Name = "PussyManager.version",
             Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyManager.version"
-        }	
+        }
     }
     
+    local function AutoUpdate()
+        
         local function DownloadFile(url, path, fileName)
             DownloadFileAsync(url, path .. fileName, function() end)
             while not FileExist(path .. fileName) do end
@@ -29,11 +29,7 @@ end
             local result = file:read()
             file:close()
             return result
-        end 
-
-	local function AutoUpdate()
-        
-
+        end
         
         DownloadFile(Files.Version.Url, Files.Version.Path, Files.Version.Name)
         local textPos = myHero.pos:To2D()
@@ -42,9 +38,16 @@ end
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
             print("New PussyLib Version Press 2x F6")
         else
-            print(Files.Version.Name .. ": No Updates Found")
-        end	
-	end
+            print("PussyLib loaded")
+        end
+    
+    end
+    
+    AutoUpdate()
+
+end
+
+
 
 
 
@@ -349,6 +352,17 @@ function GotBuff(unit, buffname)
   return 0
 end
 
+function VectorPointProjectionOnLineSegment(v1, v2, v)
+	assert(v1 and v2 and v, "VectorPointProjectionOnLineSegment: wrong argument types (3 <Vector> expected)")
+	local cx, cy, ax, ay, bx, by = v.x, (v.z or v.y), v1.x, (v1.z or v1.y), v2.x, (v2.z or v2.y)
+	local rL = ((cx - ax) * (bx - ax) + (cy - ay) * (by - ay)) / ((bx - ax) * (bx - ax) + (by - ay) * (by - ay))
+	local pointLine = { x = ax + rL * (bx - ax), y = ay + rL * (by - ay) }
+	local rS = rL < 0 and 0 or (rL > 1 and 1 or rL)
+	local isOnSegment = rS == rL
+	local pointSegment = isOnSegment and pointLine or { x = ax + rS * (bx - ax), y = ay + rS * (by - ay) }
+	return pointSegment, pointLine, isOnSegment
+end
+
 function GetBuffData(unit, buffname)
   for i = 0, unit.buffCount do
     local buff = unit:GetBuff(i)
@@ -386,19 +400,7 @@ function GetInventorySlotItem(itemID)
     return nil
 end
 
-function GetTarget(range) 
-	local target = nil 
-	if Orb == 1 then
-		target = EOW:GetTarget(range)
-	elseif Orb == 2 then 
-		target = _G.SDK.TargetSelector:GetTarget(range)
-	elseif Orb == 3 then
-		target = GOS:GetTarget(range)
-	elseif Orb == 4 then
-		target = _G.gsoSDK.TS:GetTarget()		
-	end
-	return target 
-end
+
 
 
 function GetMode()
