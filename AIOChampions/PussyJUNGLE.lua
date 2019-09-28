@@ -1254,10 +1254,7 @@ class "Nidalee"
 
 
 function Nidalee:__init()
-	
-	if menu ~= 1 then return end
-	menu = 2
-	
+
 	self:LoadSpells()
 	self:LoadMenu()
 	Callback.Add("Tick", function() self:Tick() end)
@@ -1302,7 +1299,7 @@ function Nidalee:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "Nidalee", name = "PussyNidalee"})
 	
 	--Combo
-	self.Menu:MenuElement({type = MENU, id = "ComboMode", leftIcon = Icons["Combo"]})
+	self.Menu:MenuElement({type = MENU, id = "ComboMode", name = "Combo"})
 	self.Menu.ComboMode:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
 	self.Menu.ComboMode:MenuElement({id = "UseW", name = "W: Bushwhack", value = true})
 	self.Menu.ComboMode:MenuElement({id = "UseE", name = "E: Primal Surge", value = true})
@@ -1313,11 +1310,11 @@ function Nidalee:LoadMenu()
 	self.Menu.ComboMode:MenuElement({id = "DrawDamage", name = "Draw damage on HPbar", value = true})
 		
 	--Harass
-	self.Menu:MenuElement({type = MENU, id = "HarassMode", leftIcon = Icons["Harass"]})
+	self.Menu:MenuElement({type = MENU, id = "HarassMode", name = "Harass"})
 	self.Menu.HarassMode:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
 
 	--Lane/JungleClear
-	self.Menu:MenuElement({type = MENU, id = "ClearMode", leftIcon = Icons["Clear"]})
+	self.Menu:MenuElement({type = MENU, id = "ClearMode", name = "Clear"})
 	self.Menu.ClearMode:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
 	self.Menu.ClearMode:MenuElement({id = "UseW", name = "W: Bushwhack", value = true})
 	self.Menu.ClearMode:MenuElement({id = "UseE", name = "E: Primal Surge", value = true})
@@ -1327,21 +1324,21 @@ function Nidalee:LoadMenu()
 	self.Menu.ClearMode:MenuElement({id = "UseR", name = "R: Aspect of the Cougar", value = true})
 	
 	--KillSteal
-	self.Menu:MenuElement({type = MENU, id = "KS", leftIcon = Icons["ks"]})
+	self.Menu:MenuElement({type = MENU, id = "KS", name = "KillSteal"})
 	self.Menu.KS:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
 
 	--Flee
-	self.Menu:MenuElement({type = MENU, id = "Fl", leftIcon = Icons["Flee"]})
+	self.Menu:MenuElement({type = MENU, id = "Fl", name = "Flee"})
 	self.Menu.Fl:MenuElement({id = "UseW", name = "W: Pounce", value = true, key = string.byte("A")})	
 	
-	self.Menu:MenuElement({type = MENU, id = "DrawQ", leftIcon = Icons["Drawings"]})
+	self.Menu:MenuElement({type = MENU, id = "DrawQ", name = "Drawings"})
 	self.Menu.DrawQ:MenuElement({id = "Q", name = "Draw Q", value = true})
 
 	--Prediction
-	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
-	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q Human]", value = 2, drop = {"Normal", "High", "Immobile"}})	
-	self.Menu.Pred:MenuElement({id = "PredW1", name = "Hitchance[W Human]", value = 2, drop = {"Normal", "High", "Immobile"}})	
-	self.Menu.Pred:MenuElement({id = "PredW2", name = "Hitchance[W Cougar]", value = 2, drop = {"Normal", "High", "Immobile"}})
+	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
+	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q Human]", value = 1, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredW1", name = "Hitchance[W Human]", value = 1, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.Pred:MenuElement({id = "PredW2", name = "Hitchance[W Cougar]", value = 1, drop = {"Normal", "High", "Immobile"}})
 end
 
 function Nidalee:Tick()
@@ -1377,17 +1374,6 @@ function Nidalee:Qdmg(target)
     return CalcMagicalDamage(target, result)
 end
 
-function Nidalee:Wdmg(target)
-	local level = myHero:GetSpellData(_R).level
-	local base = ({60, 110, 160, 210})[level] + 0.3 * myHero.ap
-	return CalcMagicalDamage(target, base)
-end
-
-function Nidalee:Edmg(target)
-	local level = myHero:GetSpellData(_R).level
-	local base = ({70, 130, 190, 250})[level] + 0.45 * myHero.ap
-	return CalcMagicalDamage(target, base)
-end
 
 function Nidalee:Draw()
     if Ready(_Q) and self.Menu.DrawQ.Q:Value() then Draw.Circle(myHero.pos, 1500, 1,  Draw.Color(255, 000, 222, 255)) end
@@ -1396,8 +1382,8 @@ function Nidalee:Draw()
 			local barPos = target.hpBar
 			if not target.dead and target.pos2D.onScreen and barPos.onScreen and target.visible then
 				local QDamage = (Ready(_Q) and self:Qdmg(target) or 0)
-				local WDamage = (Ready(_W) and self:Wdmg(target) or 0)
-				local EDamage = (Ready(_E) and self:Edmg(target) or 0)
+				local WDamage = (Ready(_W) and getdmg("W", target, myHero, 2) or 0)
+				local EDamage = (Ready(_E) and getdmg("E", target, myHero) or 0)
 				local damage = QDamage + WDamage + EDamage
 				if damage > target.health then
 					Draw.Text("killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
@@ -1458,7 +1444,7 @@ end
 function Nidalee:Combo()
 local target = GetTarget(1600)
 if target == nil then return end
-if IsValid(target, 1600) then	
+if IsValid(target) then	
 	if Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 1500 then 
 		local pred = GetGamsteronPrediction(target, QData, myHero)
 		if self.Menu.ComboMode.UseQ:Value() then
@@ -1479,7 +1465,7 @@ if IsValid(target, 1600) then
 	if Ready(_W) and myHero.pos:DistanceTo(target.pos) < 800 then 
 		local pred = GetGamsteronPrediction(target, W1Data, myHero)
 		if self.Menu.ComboMode.UseW:Value() and myHero:GetSpellData(_W).name == "Bushwhack" then
-			if pred.Hitchance >= self.Menu.Pred.PredW1:Value() then
+			if pred.Hitchance >= self.Menu.Pred.PredW1:Value() + 1 then
 				CastSpell(HK_W, pred.CastPosition)
 			end
 		end
@@ -1494,7 +1480,7 @@ if IsValid(target, 1600) then
     if myHero.pos:DistanceTo(target.pos) < 700 and Ready(_W) then 
 		local pred = GetGamsteronPrediction(target, W2Data, myHero)
 		if self.Menu.ComboMode.UseWW:Value() and myHero:GetSpellData(_W).name == "Pounce" then
-			if pred.Hitchance >= self.Menu.Pred.PredW2:Value() then
+			if pred.Hitchance >= self.Menu.Pred.PredW2:Value() + 1 then
 				CastSpell(HK_W, pred.CastPosition)
 			end
 		end
@@ -1540,7 +1526,7 @@ end
 function Nidalee:Harass()
 local target = GetTarget(1600)
 if target == nil then return end
-if IsValid(target, 1600) then   
+if IsValid(target) then   
 	if Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 1500 then 
 		local pred = GetGamsteronPrediction(target, QData, myHero)
 		if self.Menu.HarassMode.UseQ:Value() then
@@ -1558,7 +1544,7 @@ LastR = Game.Timer()
 function Nidalee:Jungle()
 for i = 1, Game.MinionCount() do
 local minion = Game.Minion(i)
-    if minion.team == TEAM_JUNGLE or minion.team == TEAM_ENEMY and IsValid(minion,1600) then
+    if minion.team == TEAM_JUNGLE or minion.team == TEAM_ENEMY and myHero.pos:DistanceTo(minion.pos) < 1500 and IsValid(minion) then
 		if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 1500 then 
 			if self.Menu.ClearMode.UseQ:Value() then
             	if myHero:GetSpellData(_Q).name == "JavelinToss" then
@@ -1639,7 +1625,7 @@ end
 function Nidalee:KillSteal()
 local target = GetTarget(1600)
 if target == nil then return end
-	if IsValid(target,1600) and myHero.pos:DistanceTo(target.pos) <= 1500 then 
+	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1500 then 
 		
 		if self.Menu.KS.UseQ:Value() and Ready(_Q) and self:Qdmg(target) >= target.health then
             local pred = GetGamsteronPrediction(target, QData, myHero)
@@ -1654,9 +1640,7 @@ end
 
 
 
-
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
