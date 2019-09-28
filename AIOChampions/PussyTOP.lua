@@ -736,7 +736,8 @@ function Irelia:LoadMenu()
 			
 	--ComboMenu  
 	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
-	self.Menu.Combo:MenuElement({name = " ", drop = {"E1, W, R, Q, E2, Q + (Q when kill / almost kill)"}})	
+	self.Menu.Combo:MenuElement({name = " ", drop = {"E1, W, R, Q, E2, Q + (Q when kill / almost kill)"}})
+	self.Menu.Combo:MenuElement({id = "QLogic", name = "Last[Q]Almost Kill or Kill", key = string.byte("I"), toggle = true})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	self.Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})	
@@ -827,13 +828,22 @@ function Irelia:Draw()
 	if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 	end	
-	if self.Menu.AutoQ.UseQ:Value() then
+	local Mode = GetMode()
+	if self.Menu.AutoQ.UseQ:Value() and Mode ~= "Combo" then
 		if self.Menu.AutoQ.Q:Value() then 
 			Draw.Text("Auto[Q]Minion ON", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 000, 255, 000))
 		else
 			Draw.Text("Auto[Q]Minion OFF", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 220, 050, 000)) 
 		end	
 	end	
+
+	if Mode == "Combo" then	
+		if self.Menu.Combo.QLogic:Value() then
+			Draw.Text("[Q]Almost Kill", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 000, 255, 000))
+		else
+			Draw.Text("[Q]Kill", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 220, 050, 000)) 
+		end	
+	end		
 	
 	local target = GetTarget(1000)
 	if target == nil then return end	
@@ -847,7 +857,7 @@ function Irelia:Draw()
 		end	
 	end
 end
-
+ 
 function Irelia:Combo()
 local target = GetTarget(1100)     	
 if target == nil then return end
@@ -881,14 +891,25 @@ if target == nil then return end
 			end
 		end	
 		
+		if self.Menu.Combo.QLogic:Value() then 
 		local dmg = getdmg("Q", target, myHero) 
-		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
-			if dmg >= target.health then
+			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
+				if dmg >= target.health then
+					Control.CastSpell(HK_Q, target.pos)
+				end
+			end			
+			
+			if myHero.pos:DistanceTo(target.pos) >= 300 and myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and (dmg*2) >= target.health then
 				Control.CastSpell(HK_Q, target.pos)
+			end		
+		
+		else
+			local dmg = getdmg("Q", target, myHero) 
+			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
+				if dmg >= target.health then
+					Control.CastSpell(HK_Q, target.pos)
+				end
 			end
-		end	
-		if myHero.pos:DistanceTo(target.pos) >= 300 and myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and (dmg*2) >= target.health then
-			Control.CastSpell(HK_Q, target.pos)
 		end
 		self:Gapclose(target)
 		self:StackPassive(target)
@@ -1198,7 +1219,6 @@ function Irelia:CastR(target)
 		Control.CastSpell(HK_R, pred.CastPosition)
 	end
 end	
-
 
 -------------------------------------------------------------------------------------------------------------------------------
 
