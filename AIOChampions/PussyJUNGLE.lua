@@ -1,28 +1,64 @@
-local Jungle = {"LeeSin","Nidalee","XinZhao","Warwick"}
-if table.contains(Jungle, myHero.charName) then
-	_G[myHero.charName]()
-end	
+local Heroes = {"LeeSin","Nidalee","XinZhao","Warwick","Sylas"}
+
 
 function OnLoad()
-	AutoUpdate()
-
+if table.contains(Heroes, myHero.charName) then
+	_G[myHero.charName]()
+end		
+HPred()
+	
 end
 
-    local Version = 0.1
+----------------------------------------------------
+--|                    Checks                    |--
+----------------------------------------------------
+if not FileExist(COMMON_PATH .. "PussyManager.lua") then
+	print("PussyLib installed Press 2x F6")
+	DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyManager.lua", COMMON_PATH .. "PussyManager.lua", function() end)
+	while not FileExist(COMMON_PATH .. "PussyManager.lua") do end
+end
+    
+require('PussyManager')
+
+
+if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+	print("GsoPred. installed Press 2x F6")
+	DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-EXT/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
+	while not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") do end
+end
+    
+require('GamsteronPrediction')
+
+
+if not FileExist(COMMON_PATH .. "PussyDamageLib.lua") then
+	print("PussyDamageLib. installed Press 2x F6")
+	DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/PussyDamageLib.lua", COMMON_PATH .. "PussyDamageLib.lua", function() end)
+	while not FileExist(COMMON_PATH .. "PussyDamageLib.lua") do end
+end
+    
+require('PussyDamageLib')
+
+
+-- [ AutoUpdate ]
+do
+    
+    local Version = 0.01
     
     local Files = {
         Lua = {
-            Path = COMMON_PATH,
+            Path = SCRIPT_PATH,
             Name = "PussyJUNGLE.lua",
             Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyJUNGLE.lua"
         },
         Version = {
-            Path = COMMON_PATH,
+            Path = SCRIPT_PATH,
             Name = "PussyJUNGLE.version",
             Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/PussyJUNGLE.version"
-        }	
+        }
     }
     
+    local function AutoUpdate()
+        
         local function DownloadFile(url, path, fileName)
             DownloadFileAsync(url, path .. fileName, function() end)
             while not FileExist(path .. fileName) do end
@@ -33,11 +69,7 @@ end
             local result = file:read()
             file:close()
             return result
-        end 
-
-	local function AutoUpdate()
-        
-
+        end
         
         DownloadFile(Files.Version.Url, Files.Version.Path, Files.Version.Name)
         local textPos = myHero.pos:To2D()
@@ -46,9 +78,40 @@ end
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
             print("New PussyJungle Version Press 2x F6")
         else
-            print(Files.Version.Name .. ": No Updates Found")
-        end	
+            print("PussyJungle loaded")
+        end
+    
+    end
+    
+    AutoUpdate()
+
+end
+
+local Allies = {}; local Enemies = {}; local Turrets = {}; local Units = {}; local AllyHeroes = {}
+local intToMode = {[0] = "", [1] = "Combo", [2] = "Harass", [3] = "LastHit", [4] = "Clear"}
+local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
+local spellcast = {state = 1, mouse = mousePos}
+local ItemHotKey = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2,[ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6, [ITEM_7] = HK_ITEM_7,}
+local Orb
+local barHeight, barWidth, barXOffset, barYOffset = 8, 103, 0, 0
+local TEAM_ALLY = myHero.team
+local TEAM_ENEMY = 300 - myHero.team
+local TEAM_JUNGLE = 300
+local Orb
+
+local function GetTarget(range) 
+	local target = nil 
+	if Orb == 1 then
+		target = EOW:GetTarget(range)
+	elseif Orb == 2 then 
+		target = _G.SDK.TargetSelector:GetTarget(range)
+	elseif Orb == 3 then
+		target = GOS:GetTarget(range)
+	elseif Orb == 4 then
+		target = _G.gsoSDK.TS:GetTarget()		
 	end
+	return target 
+end
 
 
 
@@ -65,7 +128,7 @@ Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 65, Range = 1200, Speed = 1750,
 
 
 
---require 'MapPositionGOS'
+require 'MapPositionGOS'
 
 local _wards = {2055, 2049, 2050, 2301, 2302, 2303, 3340, 3361, 3362, 3711, 1408, 1409, 1410, 1411, 2043, 3350, 3205, 3207, 2045, 2044, 3154, 3160}
 				
@@ -73,10 +136,7 @@ function LeeSin:__init()
   mySmiteSlot = self:GetSmite(SUMMONER_1);
   if mySmiteSlot == 0 then
 	mySmiteSlot = self:GetSmite(SUMMONER_2);
-  end	
-
-  if menu ~= 1 then return end
-  menu = 2   	
+  end	  	
   self:LoadMenu()                                            
   Callback.Add("Tick", function() self:Tick() end)
   Callback.Add("Draw", function() self:Draw() end) 
@@ -94,21 +154,21 @@ function LeeSin:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "LeeSin", name = "PussyLeeSin"})
 
 	--AutoQ
-	self.Menu:MenuElement({type = MENU, id = "AutoQ", leftIcon = Icons["AutoQImmo"]})
+	self.Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQImmobile"})
 	self.Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto[Q] + Auto[W]SavePos", value = true})
 
 	--AutoW 
-	self.Menu:MenuElement({type = MENU, id = "AutoW", leftIcon = Icons["AutoW"]})
+	self.Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})
 	self.Menu.AutoW:MenuElement({id = "UseW", name = "Safe Ally/Self", value = true})
 	self.Menu.AutoW:MenuElement({id = "Heal", name = "min Hp Self or Ally", value = 30, min = 0, max = 100, identifier = "%"})	
 
 	--AutoR
-	self.Menu:MenuElement({type = MENU, id = "AutoR", leftIcon = Icons["AutoRSafeLife"]})
+	self.Menu:MenuElement({type = MENU, id = "AutoR", name = "AutoRSafeLife"})
 	self.Menu.AutoR:MenuElement({id = "UseR", name = "Auto[R] safe your Life", value = true})
 	self.Menu.AutoR:MenuElement({id = "Heal", name = "min Hp", value = 20, min = 0, max = 100, identifier = "%"})	
 		
 	--ComboMenu  
-	self.Menu:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
+	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
 	self.Menu.Combo:MenuElement({id = "Gap", name = "Gapclose[WardJump]", value = true})
@@ -118,13 +178,13 @@ function LeeSin:LoadMenu()
 	self.Menu.Combo.Set:MenuElement({id = "maxRange", name = "MaxCastDistance if not Ready[Q]", value = 1000, min = 1000, max = 1500, step = 50})	
 	
 	--HarassMenu
-	self.Menu:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})	
+	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	self.Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})	
 	self.Menu.Harass:MenuElement({id = "Mana", name = "Min Energy to Harass", value = 40, min = 0, max = 100, identifier = "%"})
    
 	--LaneClear Menu
-	self.Menu:MenuElement({type = MENU, id = "Clear", leftIcon = Icons["Clear"]})			
+	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})			
 	self.Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	self.Menu.Clear:MenuElement({id = "UseW", name = "[W]", value = true})
 	self.Menu.Clear:MenuElement({id = "Heal", name = "min selfHp Use[W]", value = 70, min = 0, max = 100, identifier = "%"})	
@@ -133,14 +193,14 @@ function LeeSin:LoadMenu()
 	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Energy to Clear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
-	self.Menu:MenuElement({type = MENU, id = "JClear", leftIcon = Icons["JClear"]})         	
+	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JungleClear"})         	
 	self.Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	self.Menu.JClear:MenuElement({id = "UseW", name = "[W]", value = true})	
 	self.Menu.JClear:MenuElement({id = "UseE", name = "[E]", value = true})	
 	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Energy to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
  
 	--KillSteal
-	self.Menu:MenuElement({type = MENU, id = "ks", leftIcon = Icons["ks"]})
+	self.Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
 	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	self.Menu.ks:MenuElement({id = "UseE", name = "[E]", value = true})				
 	self.Menu.ks:MenuElement({id = "UseR", name = "[R]", value = true})	
@@ -148,7 +208,7 @@ function LeeSin:LoadMenu()
 	
 	
 	--JungleSteal
-	self.Menu:MenuElement({type = MENU, id = "Jsteal", leftIcon = Icons["junglesteal"]})
+	self.Menu:MenuElement({type = MENU, id = "Jsteal", name = "Junglesteal"})
 	self.Menu.Jsteal:MenuElement({name = " ", drop = {"Ward+Q1+Q2+W back Ward [You need Smite Activator]"}})
 	self.Menu.Jsteal:MenuElement({id = "Dragon", name = "Steal Dragon", value = true})
 	self.Menu.Jsteal:MenuElement({id = "Baron", name = "Steal Baron", value = true})
@@ -156,11 +216,11 @@ function LeeSin:LoadMenu()
 	self.Menu.Jsteal:MenuElement({id = "Active", name = "Activate Key", key = string.byte("Z")})	
 
 	--Prediction
-	self.Menu:MenuElement({type = MENU, id = "Pred", leftIcon = Icons["Pred"]})
+	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
 	self.Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 
 	--Insec
-	self.Menu:MenuElement({id = "Modes", leftIcon = Icons["InsecMode"], type = MENU}) 
+	self.Menu:MenuElement({id = "Modes", name = "InsecModes", type = MENU}) 
 	self.Menu.Modes:MenuElement({id = "Modes1", name = "Insec Mode 1", type = MENU})	
 	self.Menu.Modes.Modes1:MenuElement({name = " ", drop = {"Fast Near Insec = Ward+W+R+Q1+Q2"}})
 	self.Menu.Modes.Modes1:MenuElement({name = " ", drop = {"Burst Near Insec = Ward+W+E1+R+Q1+Q2+E2"}})	
@@ -181,7 +241,7 @@ function LeeSin:LoadMenu()
 	self.Menu.Modes.Modes3:MenuElement({id = "Draw", name = "Draw Killable Text", value = true})	
 	
 	--Drawing 
-	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
+	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
 	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})
@@ -305,7 +365,7 @@ function LeeSin:KillStealInsec()
 local target = GetTarget(1300)     	
 if target == nil then return end	
 	
-	if IsValid(target, 1300) then
+	if IsValid(target) then
 		local hp = target.health
 		local QDmg = getdmg("Q", target, myHero)
 		local EDmg = getdmg("E", target, myHero)
@@ -325,7 +385,7 @@ if target == nil then return end
 			end
 						
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 350 and not HasBuff(target, "BlindMonkQOne") and Ready(_Q) and pred.Hitchance >= 2 then
+			if myHero.pos:DistanceTo(target.pos) <= 350 and not HasBuff(target, "BlindMonkQOne") and Ready(_Q) and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 			
@@ -451,7 +511,7 @@ if target == nil then return end
 	
 	for v, spell in pairs(_wards) do
 	local Item = GetInventorySlotItem(spell)
-		if IsValid(target, 1300) then
+		if IsValid(target) then
 			
 			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) and myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
 				self:Cast(HK_R, target.pos)
@@ -502,7 +562,7 @@ if target == nil then return end
 	
 	for v, spell in pairs(_wards) do
 	local Item = GetInventorySlotItem(spell)
-		if IsValid(target, 1300) then
+		if IsValid(target) then
 			
 			if myHero.pos:DistanceTo(target.pos) < 500 and HasBuff(myHero, "BlindMonkQTwoDash") and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
 				Control.CastSpell(HK_E)
@@ -561,14 +621,14 @@ if target == nil then return end
 	
 	for v, spell in pairs(_wards) do
 	local Item = GetInventorySlotItem(spell)
-		if IsValid(target, 1300) then
+		if IsValid(target) then
 			
 			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) and myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
 				self:Cast(HK_R, target.pos)
 			end
 						
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 1200 and Ready(_Q) then
+			if myHero.pos:DistanceTo(target.pos) <= 1200 and Ready(_Q) and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				self:Cast(HK_Q, pred.CastPosition)
 			end
 			
@@ -612,7 +672,7 @@ if target == nil then return end
 	
 	for v, spell in pairs(_wards) do
 	local Item = GetInventorySlotItem(spell)
-		if IsValid(target, 1300) then
+		if IsValid(target) then
 			
 			if myHero.pos:DistanceTo(target.pos) < 500 and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
 				Control.CastSpell(HK_E)
@@ -627,7 +687,7 @@ if target == nil then return end
 			end
 						
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 1200 and Ready(_Q) then
+			if myHero.pos:DistanceTo(target.pos) <= 1200 and Ready(_Q) and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 				self:Cast(HK_Q, pred.CastPosition)
 			end
 			
@@ -753,7 +813,7 @@ function LeeSin:Draw()
 					if self.Menu.Modes.Modes1.Logic:Value() then	 
 						
 						if self.Menu.Modes.Modes1.Type:Value() == 2 and self.Menu.Modes.Modes1.Insec:Value() then 	
-							if IsValid(Hero, 1300) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then	
+							if IsValid(Hero) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then	
 								local Vectori = Vector(myHero.pos - Hero.pos)
 								local LS = LineSegment(myHero.pos, Hero.pos)
 								LS:__draw()
@@ -764,7 +824,7 @@ function LeeSin:Draw()
 							end
 						end	
 						if self.Menu.Modes.Modes1.Type:Value() == 1 then
-							if IsValid(Hero, 1300) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then	
+							if IsValid(Hero) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then	
 								local Vectori = Vector(myHero.pos - Hero.pos)
 								local LS = LineSegment(myHero.pos, Hero.pos)
 								LS:__draw()
@@ -779,7 +839,7 @@ function LeeSin:Draw()
 					if not self.Menu.Modes.Modes1.Logic:Value() then
 						
 						if self.Menu.Modes.Modes1.Type:Value() == 2 and self.Menu.Modes.Modes1.Insec:Value() then 	
-							if IsValid(Hero, 1500) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1500 then								
+							if IsValid(Hero) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1500 then								
 								local Vectori = Vector(myHero.pos - Hero.pos)
 								local LS = LineSegment(myHero.pos, Hero.pos)
 								LS:__draw()
@@ -790,7 +850,7 @@ function LeeSin:Draw()
 							end
 						end	
 						if self.Menu.Modes.Modes1.Type:Value() == 1 then
-							if IsValid(Hero, 1500) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1500 then	
+							if IsValid(Hero) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1500 then	
 								local Vectori = Vector(myHero.pos - Hero.pos)
 								local LS = LineSegment(myHero.pos, Hero.pos)
 								LS:__draw()
@@ -825,7 +885,7 @@ function LeeSin:AutoQ()
 local target = GetTarget(1500)     	
 if target == nil or IsUnderTurret(target) then return end	
 	
-	if IsValid(target,1500) and myHero.pos:DistanceTo(target.pos) <= 1200 and self.Menu.AutoQ.UseQ:Value() and Ready(_Q) then
+	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1200 and self.Menu.AutoQ.UseQ:Value() and Ready(_Q) then
 		local pred = GetGamsteronPrediction(target, QData, myHero)
 		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1200 and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
 			Control.CastSpell(HK_Q, pred.CastPosition)
@@ -840,7 +900,7 @@ end
 function LeeSin:AutoR()
 local target = GetTarget(1000)     	
 if target == nil then return end
-	if IsValid(target,1000) and myHero.pos:DistanceTo(target.pos) <= 1000 then
+	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1000 then
 		if myHero.health/myHero.maxHealth <= self.Menu.AutoR.Heal:Value()/100 and self.Menu.AutoR.UseR:Value() and Ready(_R) then
 			if myHero.pos:DistanceTo(target.pos) <= 375 then
 				Control.CastSpell(HK_R, target)
@@ -856,9 +916,7 @@ if target == nil then return end
 	end	
 end
 
-function LeeSin:AutoW()
-local target = GetTarget(800)     	
-if target == nil then return end	
+function LeeSin:AutoW()	
 	
 	if self.Menu.AutoW.UseW:Value() and Ready(_W) then
 		if myHero.health/myHero.maxHealth <= self.Menu.AutoW.Heal:Value()/100 then
@@ -868,7 +926,7 @@ if target == nil then return end
 			end
 		end
 		for i, ally in pairs(GetAllyHeroes()) do
-			if IsValid(ally,1000) and myHero.pos:DistanceTo(ally.pos) <= 700 and ally.health/ally.maxHealth <= self.Menu.AutoW.Heal:Value()/100 then
+			if myHero.pos:DistanceTo(ally.pos) <= 700 and IsValid(ally) and ally.health/ally.maxHealth <= self.Menu.AutoW.Heal:Value()/100 then
 				Control.CastSpell(HK_W, ally)
 				if HasBuff(ally, "blindmonkwoneshield") then
 					Control.CastSpell(HK_W)
@@ -882,7 +940,7 @@ end
 function LeeSin:Combo()
 local target = GetTarget(1500)     	
 if target == nil then return end
-	if IsValid(target,1500) then
+	if IsValid(target) then
 		
 		if self.Menu.Combo.UseQ:Value() then
 			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
@@ -909,7 +967,7 @@ end
 function LeeSin:Harass()
 local target = GetTarget(1500)
 if target == nil then return end
-	if IsValid(target,1500) then
+	if IsValid(target) then
 		local Mana = myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 	
 		if self.Menu.Harass.UseQ:Value() then
 			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
@@ -935,21 +993,17 @@ if target == nil then return end
 end	
 
 function LeeSin:Clear()
-    local max_range = math.max(myHero.range + myHero.boundingRadius, myHero:GetSpellData(_Q).range, myHero:GetSpellData(_W).range, myHero:GetSpellData(_E).range, myHero:GetSpellData(_R).range)
-    if max_range > 1500 then
-        max_range = 1500
-    end
     for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-        if minion.team == TEAM_ENEMY and IsValid(minion,max_range) then
-            local mana_ok = (self.Menu.Clear.Mana == nil or (self.Menu.Clear.Mana ~= nil and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100))
+        if minion.team == TEAM_ENEMY and myHero.pos:DistanceTo(minion.pos) <= 1400 and IsValid(minion) then
+            local mana_ok = myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100
 			
-			if self.Menu.Clear.UseQ ~= nil and self.Menu.Clear.UseQ:Value() then
+			if self.Menu.Clear.UseQ:Value() then
 			
 				if HasBuff(minion, "BlindMonkQOne") and myHero.pos:DistanceTo(minion.pos) <= 1300 then
 					Control.CastSpell(HK_Q)
 				
-				elseif mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_Q).range and myHero.pos:DistanceTo(minion.pos) >= 500 and Ready(_Q) then
+				elseif mana_ok and myHero.pos:DistanceTo(minion.pos) <= 1200 and myHero.pos:DistanceTo(minion.pos) >= 500 and Ready(_Q) then
 					Control.CastSpell(HK_Q, minion.pos)
 				end
 			end
@@ -957,7 +1011,7 @@ function LeeSin:Clear()
 			local passiveBuff = GetBuffData(myHero,"blindmonkpassive_cosmetic")
 			if  passiveBuff.count == 1 then return end
             
-			if self.Menu.Clear.UseW ~= nil and self.Menu.Clear.UseW:Value() then
+			if self.Menu.Clear.UseW:Value() then
 			
 				if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
 					Control.CastSpell(HK_W)
@@ -969,7 +1023,7 @@ function LeeSin:Clear()
 				end
 			end
             
-			if self.Menu.Clear.UseE ~= nil and self.Menu.Clear.UseE:Value() then
+			if self.Menu.Clear.UseE:Value() then
 			
 				if myHero:GetSpellData(_E).name == "BlindMonkETwo" and GetMinionCount(500, myHero) >= self.Menu.Clear.UseEM:Value() then
 					Control.CastSpell(HK_E)
@@ -978,10 +1032,6 @@ function LeeSin:Clear()
 					Control.CastSpell(HK_E)
 				end
 			end
-            
-			if self.Menu.Clear.UseR ~= nil and self.Menu.Clear.UseR:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_R).range and Ready(_R) then
-                Control.CastSpell(HK_R, minion.pos)
-            end
         end
     end
 end
@@ -989,21 +1039,17 @@ end
 
 
 function LeeSin:JungleClear()
-    local max_range = math.max(myHero.range + myHero.boundingRadius, myHero:GetSpellData(_Q).range, myHero:GetSpellData(_W).range, myHero:GetSpellData(_E).range, myHero:GetSpellData(_R).range)
-    if max_range > 1500 then
-        max_range = 1500
-    end
     for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-        if minion.team == TEAM_JUNGLE and IsValid(minion,max_range) then
-            local mana_ok = (self.Menu.JClear.Mana == nil or (self.Menu.JClear.Mana ~= nil and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100))
+        if minion.team == TEAM_JUNGLE and myHero.pos:DistanceTo(minion.pos) <= 1400 and IsValid(minion) then
+            local mana_ok = myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100
             
-			if self.Menu.JClear.UseQ ~= nil and self.Menu.JClear.UseQ:Value() then
+			if self.Menu.JClear.UseQ:Value() then
 			
 				if myHero:GetSpellData(_Q).name == "BlindMonkQTwo" and myHero.pos:DistanceTo(minion.pos) <= 1300 then
 					Control.CastSpell(HK_Q)
 			
-				elseif mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_Q).range and Ready(_Q) then
+				elseif mana_ok and myHero.pos:DistanceTo(minion.pos) <= 1200 and Ready(_Q) then
 					Control.CastSpell(HK_Q, minion.pos)
 				end
 			end
@@ -1012,17 +1058,17 @@ function LeeSin:JungleClear()
 			local passiveBuff = GetBuffData(myHero,"blindmonkpassive_cosmetic")
 			if  passiveBuff.count == 1 then return end
            
-			if self.Menu.JClear.UseW ~= nil and self.Menu.JClear.UseW:Value() then
+			if self.Menu.JClear.UseW:Value() then
 			
 				if myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
 					Control.CastSpell(HK_W)		    
 			
-				elseif mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_W).range and Ready(_W) then
+				elseif mana_ok and myHero.pos:DistanceTo(minion.pos) <= 500 and Ready(_W) then
 					Control.CastSpell(HK_W, myHero)
 				end
 			end
             
-			if self.Menu.JClear.UseE ~= nil and self.Menu.JClear.UseE:Value() then
+			if self.Menu.JClear.UseE:Value() then
 			
 				if myHero:GetSpellData(_E).name == "BlindMonkETwo" and GetMinionCount(500, myHero) >= 1 then
 					Control.CastSpell(HK_E)
@@ -1031,10 +1077,6 @@ function LeeSin:JungleClear()
 					Control.CastSpell(HK_E)
 				end
 			end
-            
-			if self.Menu.JClear.UseR ~= nil and self.Menu.JClear.UseR:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= myHero:GetSpellData(_R).range and Ready(_R) then
-                Control.CastSpell(HK_R, minion.pos)
-            end
         end
     end
 end
@@ -1061,7 +1103,7 @@ local minionlist = {}
 		for i = 1, Game.MinionCount() do
 			local minion = Game.Minion(i)
 			
-			if minion.valid and minion.isEnemy and minion.pos:DistanceTo(myHero.pos) < 1500 then
+			if minion.team == TEAM_JUNGLE and minion.pos:DistanceTo(myHero.pos) < 1500 and IsValid(minion) then
 				table.insert(minionlist, minion)
 			end
 		end
@@ -1151,7 +1193,7 @@ function LeeSin:KillSteal()
 	
 	
 
-	if IsValid(target,1500) and myHero.pos:DistanceTo(target.pos) <= 1300 then
+	if myHero.pos:DistanceTo(target.pos) <= 1300 and IsValid(target) then
 		local hp = target.health
 		local QDmg = getdmg("Q", target, myHero)
 		local EDmg = getdmg("E", target, myHero)
