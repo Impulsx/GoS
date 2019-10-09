@@ -1,4 +1,4 @@
-local Version = 0.04
+local Version = 0.05
 
 
     local Files = {
@@ -38,7 +38,7 @@ local Version = 0.04
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
             print("New PussyDmgLib Version Press 2x F6")
         else
-            print(Files.Version.Name .. ": No Updates Found")
+            print("PussyDmgLib loaded")
         end	
 	end
 	
@@ -49,13 +49,13 @@ end
 local DamageReductionTable = {
   ["Braum"] = {buff = "BraumShieldRaise", amount = function(target) return 1 - ({0.3, 0.325, 0.35, 0.375, 0.4})[target:GetSpellData(_E).level] end},
   ["Urgot"] = {buff = "urgotswapdef", amount = function(target) return 1 - ({0.3, 0.4, 0.5})[target:GetSpellData(_R).level] end},
-  ["Alistar"] = {buff = "Ferocious Howl", amount = function(target) return ({0.5, 0.4, 0.3})[target:GetSpellData(_R).level] end},
-  ["Amumu"] = {buff = "Tantrum", amount = function(target) return ({2, 4, 6, 8, 10})[target:GetSpellData(_E).level] end, damageType = 1},
+  ["Alistar"] = {buff = "Ferocious Howl", amount = function(target) return ({0.55, 0.65, 0.75})[target:GetSpellData(_R).level] end},
+  ["Amumu"] = {buff = "Tantrum", amount = function(target) return ({2, 4, 6, 8, 10})[target:GetSpellData(_E).level] + 0.03*target.bonusMagicResist + 0.03*target.bonusArmor end, damageType = 1},
   ["Galio"] = {buff = "GalioIdolOfDurand", amount = function(target) return 0.5 end},
-  ["Garen"] = {buff = "GarenW", amount = function(target) return 0.7 end},
-  ["Gragas"] = {buff = "GragasWSelf", amount = function(target) return ({0.1, 0.12, 0.14, 0.16, 0.18})[target:GetSpellData(_W).level] end},
-  ["Annie"] = {buff = "MoltenShield", amount = function(target) return 1 - ({0.16,0.22,0.28,0.34,0.4})[target:GetSpellData(_E).level] end},
-  ["Malzahar"] = {buff = "malzaharpassiveshield", amount = function(target) return 0.1 end}
+  ["Garen"] = {buff = "GarenW", amount = function(target) return 0.3 end},
+  ["Gragas"] = {buff = "GragasWSelf", amount = function(target) return ({0.1, 0.12, 0.14, 0.16, 0.18})[target:GetSpellData(_W).level] + 0.04 * target.ap / 100 end},
+  ["Annie"] = {buff = "MoltenShield", amount = function(target) return 1 - ({0.10,0.13,0.16,0.19,0.22})[target:GetSpellData(_E).level] end},
+  ["Malzahar"] = {buff = "malzaharpassiveshield", amount = function(target) return 0.9 end}
 }
 
 function GetPercentHP(unit)
@@ -423,8 +423,8 @@ local DamageLibTable = {
 
   ["Garen"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 60, 90, 120, 150})[level] + 0.4 * source.totalDamage end},
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({14, 18, 22, 26, 30})[level] + ({36, 37, 38, 39, 40})[level] / 100 * source.totalDamage end},
-    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({175, 350, 525})[level] + ({28.57, 33.33, 40})[level] / 100 * (target.maxHealth - target.health) end},
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({8, 12, 16, 20, 24})[level] + (0.471 + 0.471 * source.levelData.lvl) + ({32, 34, 36, 38, 40})[level] / 100 * source.totalDamage end},
+    {Slot = "R", Stage = 1, DamageType = 3, Damage = function(source, target, level) return ({150, 300, 450})[level] + ({20, 25, 30})[level] / 100 * (target.maxHealth - target.health) end},
   },
 
   ["Gnar"] = {
@@ -633,7 +633,7 @@ local DamageLibTable = {
 
   ["Lissandra"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 100, 130, 160, 190})[level] + 0.7 * source.ap end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 105, 140, 175, 210})[level] + 0.5 * source.ap end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 105, 140, 175, 210})[level] + 0.7 * source.ap end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 105, 140, 175, 210})[level] + 0.6 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.75 * source.ap end},
   },
@@ -774,7 +774,7 @@ local DamageLibTable = {
   },  
 
   ["Pantheon"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({75, 115, 155, 195, 235})[level] + source.bonusDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({75, 110, 145, 180, 215})[level] + source.bonusDamage end},
     {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 80, 100, 120, 140})[level] + source.ap end},
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({55, 105, 155, 205, 255})[level] + 1.5 * source.bonusDamage end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({300, 500, 700})[level] + source.ap end},
@@ -796,8 +796,8 @@ local DamageLibTable = {
   }, 
 
   ["Qiyana"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.9 * source.bonusDamage end},
-    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({128, 160, 192, 224, 256})[level] + 1.44 * source.bonusDamage end},--Terrain Damage	
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + 0.9 * source.bonusDamage end},
+    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({96, 136, 176, 216, 256})[level] + 1.44 * source.bonusDamage end},--Terrain Damage	
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 95, 130, 165, 200})[level] + 0.7 * source.bonusDamage end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({100, 170, 240})[level] + 1.7 * source.bonusDamage + 0.1 * target.maxHealth end},
   },  
@@ -879,8 +879,8 @@ local DamageLibTable = {
 
   ["Shaco"] = {
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({35, 50, 65, 80, 95})[level] + 0.2 * source.ap end},
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({55, 80, 105, 130, 155})[level] + ({60, 75, 90, 105, 120})[level] / 100 * source.bonusDamage + 0.75 * source.ap + 0.5 * (target.maxHealth - target.health) end},
-    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({200, 300, 400})[level] + source.ap end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (GetPercentHP(target) < 30 and ({105, 142, 180, 217, 255})[level] + 0.9 * source.ap + 1.2 * source.bonusDamage or ({70, 95, 120, 145, 170})[level] + 0.6 * source.ap + 0.8 * source.bonusDamage) end},
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 225, 300})[level] + 0.7 * source.ap end},
   },
 
   ["Shen"] = {
@@ -1071,7 +1071,7 @@ local DamageLibTable = {
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 110, 150, 190, 230})[level] + 0.6 * source.ap end},
     {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({90, 170, 250, 330, 410})[level] + 1.3 * source.ap end},--Total Damage
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({100, 175, 250})[level] + 0.5 * source.ap end},
-    {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({130, 210, 290})[level] + 0.85 * source.ap end},--Per Tick
+    {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({65, 105, 145})[level] + 0.45 * source.ap end},--Per Tick
   },
 
   ["Vladimir"] = {
