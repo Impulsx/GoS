@@ -1,4 +1,4 @@
-local Heroes = {"LeeSin","Nidalee","XinZhao","Warwick","Sylas"}
+local Heroes = {"LeeSin","Nidalee","XinZhao","Warwick"}
 
 
 function OnLoad()
@@ -100,17 +100,27 @@ local TEAM_JUNGLE = 300
 local Orb
 
 local function GetTarget(range) 
-	local target = nil 
 	if Orb == 1 then
-		target = EOW:GetTarget(range)
-	elseif Orb == 2 then 
-		target = _G.SDK.TargetSelector:GetTarget(range)
-	elseif Orb == 3 then
-		target = GOS:GetTarget(range)
-	elseif Orb == 4 then
-		target = _G.gsoSDK.TS:GetTarget()		
+		if myHero.ap > myHero.totalDamage then
+			return EOW:GetTarget(range, EOW.ap_dec, myHero.pos)
+		else
+			return EOW:GetTarget(range, EOW.ad_dec, myHero.pos)
+		end
+	elseif Orb == 2 and SDK.TargetSelector then
+		if myHero.ap > myHero.totalDamage then
+			return SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL)
+		else
+			return SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL)
+		end
+	elseif _G.GOS then
+		if myHero.ap > myHero.totalDamage then
+			return GOS:GetTarget(range, "AP")
+		else
+			return GOS:GetTarget(range, "AD")
+        end
+    elseif _G.gsoSDK then
+		return _G.gsoSDK.TS:GetTarget()
 	end
-	return target 
 end
 
 
@@ -128,25 +138,27 @@ Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 65, Range = 1200, Speed = 1750,
 
 
 
-require 'MapPositionGOS'
+
 
 local _wards = {2055, 2049, 2050, 2301, 2302, 2303, 3340, 3361, 3362, 3711, 1408, 1409, 1410, 1411, 2043, 3350, 3205, 3207, 2045, 2044, 3154, 3160}
 				
 function LeeSin:__init()
-  mySmiteSlot = self:GetSmite(SUMMONER_1);
-  if mySmiteSlot == 0 then
-	mySmiteSlot = self:GetSmite(SUMMONER_2);
-  end	  	
-  self:LoadMenu()                                            
-  Callback.Add("Tick", function() self:Tick() end)
-  Callback.Add("Draw", function() self:Draw() end) 
+	mySmiteSlot = self:GetSmite(SUMMONER_1);
+	if mySmiteSlot == 0 then
+		mySmiteSlot = self:GetSmite(SUMMONER_2);
+	end	  	
+	self:LoadMenu()                                            
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end) 
 	if _G.EOWLoaded then
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
 		Orb = 2
+	elseif _G.GOS then
+		Orb = 3
 	elseif _G.gsoSDK then
-		Orb = 4			
-	end
+		Orb = 4
+	end	
 end
 
 function LeeSin:LoadMenu()                     
@@ -251,7 +263,7 @@ end
 
 
 function LeeSin:Tick()
-	if MyHeroReady() then
+	if MyHeroNotReady() then return end
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			self:Combo()
@@ -290,7 +302,6 @@ function LeeSin:Tick()
 				
 			end				
 		end	
-	end
 	end
 end
 
@@ -1036,8 +1047,6 @@ function LeeSin:Clear()
     end
 end
 
-
-
 function LeeSin:JungleClear()
     for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
@@ -1186,7 +1195,6 @@ for i, minion in pairs(minionlist) do
 end
 end
 
-
 function LeeSin:KillSteal()
 	local target = GetTarget(1500)     	
 	if target == nil then return end
@@ -1263,10 +1271,11 @@ function Nidalee:__init()
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
 		Orb = 2
+	elseif _G.GOS then
+		Orb = 3
 	elseif _G.gsoSDK then
 		Orb = 4
-	end
-
+	end	
 end
 
 function Nidalee:LoadSpells()
@@ -1281,7 +1290,7 @@ end
 
 local QData =
 {
-Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 40, Range = 1500, Speed = 1300, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
+Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 0, Range = 1500, Speed = 1300, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
 }
 
 local W1Data =
@@ -1342,7 +1351,7 @@ function Nidalee:LoadMenu()
 end
 
 function Nidalee:Tick()
-if MyHeroReady() then
+if MyHeroNotReady() then return end
 	self:KillSteal()
 	local Mode = GetMode()
 	if Mode == "Combo" then
@@ -1355,6 +1364,17 @@ if MyHeroReady() then
 		self:Flee()
 	end	
 end
+
+
+function Nidalee:CalcMagicalDamage(target, damage)
+	local targetMR = target.magicResist * myHero.magicPenPercent - myHero.magicPen
+	local damageReduction = 100 / ( 100 + targetMR)
+	if targetMR < 0 then
+		damageReduction = 2 - (100 / (100 - targetMR))
+	end		
+	damage = damage * damageReduction
+	
+	return damage
 end
 
 function Nidalee:Qdmg(target)
@@ -1371,37 +1391,40 @@ function Nidalee:Qdmg(target)
         end
     end
     
-    return CalcMagicalDamage(target, result)
+    return self:CalcMagicalDamage(target, result)
 end
 
-
 function Nidalee:Draw()
-    if Ready(_Q) and self.Menu.DrawQ.Q:Value() then Draw.Circle(myHero.pos, 1500, 1,  Draw.Color(255, 000, 222, 255)) end
+    
 	if self.Menu.ComboMode.DrawDamage:Value() then
-		for i, target in pairs(GetEnemyHeroes()) do
-			local barPos = target.hpBar
-			if not target.dead and target.pos2D.onScreen and barPos.onScreen and target.visible then
-				local QDamage = (Ready(_Q) and self:Qdmg(target) or 0)
-				local WDamage = (Ready(_W) and getdmg("W", target, myHero, 2) or 0)
-				local EDamage = (Ready(_E) and getdmg("E", target, myHero) or 0)
-				local damage = QDamage + WDamage + EDamage
-				if damage > target.health then
-					Draw.Text("killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
+		local target = GetTarget(1600)
+		if target == nil then return end
+			
+			if IsValid(target) then
+				local QDamage = self:Qdmg(target) 
+				local WDamage = getdmg("WM", target, myHero, 2) 
+				local EDamage = getdmg("E", target, myHero) 
+				
+				if (QDamage + WDamage + EDamage) > target.health then
+					Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
 					
 				else
-					local percentHealthAfterDamage = math.max(0, target.health - damage) / target.maxHealth
+					local barPos = target.hpBar
+					local percentHealthAfterDamage = math.max(0, target.health - (QDamage + WDamage + EDamage)) / target.maxHealth
 					local xPosEnd = barPos.x + barXOffset + barWidth * target.health/target.maxHealth
 					local xPosStart = barPos.x + barXOffset + percentHealthAfterDamage * 100
-					Draw.Line(xPosStart, barPos.y + barYOffset, xPosEnd, barPos.y + barYOffset, 10, Draw.Color(0xFF00FF00))
+					Draw.Line(xPosStart, barPos.y + barYOffset, xPosEnd, barPos.y + barYOffset, 10, Draw.Color(200, 255, 255, 255))
 				end
 			end
-		end	
+			
 	end
+	if Ready(_Q) and self.Menu.DrawQ.Q:Value() then Draw.Circle(myHero.pos, 1500, 1,  Draw.Color(255, 000, 222, 255)) end
 	local textPos = myHero.pos:To2D()	
 	if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 	end	
 end
+
 
 function ForceCat()
     local RRTarget = GetTarget(1000)
@@ -1448,8 +1471,10 @@ if IsValid(target) then
 	if Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 1500 then 
 		local pred = GetGamsteronPrediction(target, QData, myHero)
 		if self.Menu.ComboMode.UseQ:Value() then
-            if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+            if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= self.Menu.Pred.PredQ:Value()+1 then
 				CastSpell(HK_Q, pred.CastPosition)
+			elseif myHero:GetSpellData(_Q).name == "Takedown" and Ready(_R) then
+				Control.CastSpell(HK_R)				
             end
 		end
 	end
@@ -1530,7 +1555,7 @@ if IsValid(target) then
 	if Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 1500 then 
 		local pred = GetGamsteronPrediction(target, QData, myHero)
 		if self.Menu.HarassMode.UseQ:Value() then
-            if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+            if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= self.Menu.Pred.PredQ:Value()+1 then
 				CastSpell(HK_Q, pred.CastPosition)
 			elseif myHero:GetSpellData(_Q).name == "Takedown" and Ready(_R) then
 				Control.CastSpell(HK_R)	
@@ -1629,7 +1654,7 @@ if target == nil then return end
 		
 		if self.Menu.KS.UseQ:Value() and Ready(_Q) and self:Qdmg(target) >= target.health then
             local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= self.Menu.Pred.PredQ:Value() + 1 then
+			if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= self.Menu.Pred.PredQ:Value()+1 then
 				CastSpell(HK_Q, pred.CastPosition)
             elseif myHero:GetSpellData(_Q).name == "Takedown" and Ready(_R) then
 				Control.CastSpell(HK_R)
@@ -1649,7 +1674,6 @@ class "Warwick"
 
 function Warwick:__init()
 	
-	self:LoadSpells()
 	self:LoadMenu()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
@@ -1657,74 +1681,16 @@ function Warwick:__init()
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
 		Orb = 2
+	elseif _G.GOS then
+		Orb = 3
 	elseif _G.gsoSDK then
-		Orb = 4			
-	end
-end
-
-
-local barHeight = 8
-local barWidth = 103
-local barXOffset = 0
-local barYOffset = 0
-
-
-
-		
-function Warwick:IsReady(spell)
-	return Game.CanUseSpell(spell) == 0
-end
-
-function Warwick:CheckMana(spellSlot)
-	return myHero:GetSpellData(spellSlot).mana < myHero.mana
-end
-
-function Warwick:CanCast(spellSlot)
-	return self:IsReady(spellSlot) and self:CheckMana(spellSlot)
-end
-
-function Warwick:QDmg()
-	total = 0
-	local qLvl = myHero:GetSpellData(_Q).level
-    if qLvl > 0 then
-	local qdamage = 1.2 * myHero.totalDamage + 0.9 * myHero.ap + (({6, 6.5, 7, 7.5, 8})[qLvl] / 100  * target.maxHealth)
-	total = qdamage
-	end
-	return total
-
-end
-
-function Warwick:RDmg()
-	total = 0
-	local rLvl = myHero:GetSpellData(_R).level
-    if rLvl > 0 then
-	local rdamage = (({175,350,525})[rLvl] + 1.67 * myHero.totalDamage)
-	total = rdamage
-	end
-	return total
-
-end
-
-function Warwick:HpPred(unit, delay)
-	if _G.GOS then
-	hp =  GOS:HP_Pred(unit,delay)
-	else
-	hp = unit.health
-	end
-	return hp
-end
-
-function Warwick:LoadSpells()
-	Q = { range = myHero:GetSpellData(_Q).range, delay = myHero:GetSpellData(_Q).delay, speed = myHero:GetSpellData(_Q).speed, width = myHero:GetSpellData(_Q).width }
-	W = { range = myHero:GetSpellData(_W).range, delay = myHero:GetSpellData(_W).delay, speed = myHero:GetSpellData(_W).speed, width = myHero:GetSpellData(_W).width }
-	E = { range = myHero:GetSpellData(_E).range, delay = myHero:GetSpellData(_E).delay, speed = myHero:GetSpellData(_E).speed, width = myHero:GetSpellData(_E).width }
-	R = { range = myHero:GetSpellData(_R).range, delay = myHero:GetSpellData(_R).delay, speed = myHero:GetSpellData(_R).speed, width = myHero:GetSpellData(_R).width }
-
+		Orb = 4
+	end	
 end
 
 function Warwick:LoadMenu()
 	self.Menu = MenuElement({type = MENU, id = "PussyWarwick", name = "PussyWarwick"})
-	self.Menu:MenuElement({id = "ComboMode", leftIcon = Icons["Combo"], type = MENU})
+	self.Menu:MenuElement({id = "ComboMode", name = "Combo", type = MENU})
 	self.Menu.ComboMode:MenuElement({id = "UseQ", name = "Q: Jaws of the Beast", value = true})
 	self.Menu.ComboMode:MenuElement({id = "UseW", name = "W: Blood Hunt", value = true})
 	self.Menu.ComboMode:MenuElement({id = "UseE", name = "E: Primal Howl", value = true})
@@ -1735,26 +1701,22 @@ function Warwick:LoadMenu()
 	self.Menu.ComboMode:MenuElement({id = "DrawDamage", name = "Draw Killable", value = true})
 	self.Menu.ComboMode:MenuElement({id = "DrawRange", name = "Draw RRange", value = true})	
 		
-	self.Menu:MenuElement({id = "HarassMode", leftIcon = Icons["Harass"], type = MENU})
+	self.Menu:MenuElement({id = "HarassMode", name = "Harass", type = MENU})
 	self.Menu.HarassMode:MenuElement({id = "UseQ", name = "Q: Jaws of the Beast", value = true})
 	self.Menu.HarassMode:MenuElement({id = "UseW", name = "W: Blood Hunt", value = true})
 	self.Menu.HarassMode:MenuElement({id = "UseE", name = "E: Primal Howl", value = true})
 	self.Menu.HarassMode:MenuElement({id = "harassActive", name = "Harass key", key = string.byte("C")})
 
-	self.Menu:MenuElement({id = "ClearMode", leftIcon = Icons["Clear"], type = MENU})
+	self.Menu:MenuElement({id = "ClearMode", name = "Clear", type = MENU})
 	self.Menu.ClearMode:MenuElement({id = "UseQ", name = "Q: Jaws of the Beast", value = true})
 	self.Menu.ClearMode:MenuElement({id = "UseW", name = "W: Blood Hunt", value = true})
 	self.Menu.ClearMode:MenuElement({id = "UseE", name = "E: Primal Howl", value = true})
 	self.Menu.ClearMode:MenuElement({id = "clearActive", name = "Clear key", key = string.byte("V")})
-		
-	
-	self.Menu:MenuElement({id = "CustomSpellCast", name = "Use custom spellcast", tooltip = "Can fix some casting problems with wrong directions and so", value = true})
-	self.Menu:MenuElement({id = "delay", name = "Custom spellcast delay", value = 100, min = 0, max = 200, step = 5,tooltip = "increase this one if spells is going completely wrong direction", identifier = ""})
-	
+
 end
 
 function Warwick:Tick()
-if MyHeroReady() then
+if MyHeroNotReady() then return end
 	local Mode = GetMode()
 		if Mode == "Combo" then
 			if self.Menu.ComboMode.comboActive:Value() then
@@ -1767,7 +1729,7 @@ if MyHeroReady() then
 			end
 		elseif Mode == "Clear" then
 			if self.Menu.ClearMode.clearActive:Value() then
-				self:Jungle()
+				self:Clear()
 			end
 		elseif Mode == "Flee" then
 		
@@ -1776,7 +1738,6 @@ if MyHeroReady() then
 	if self.Menu.ComboMode.DrawDamage:Value() then
 	self:Draw()
 	end
-end	
 end	
 
 function Warwick:Draw()
@@ -1790,7 +1751,7 @@ local textPos = myHero.pos:To2D()
 				local QDamage = (self:CanCast(_Q) and self:QDmg() or 0)
 				local RDamage = (self:CanCast(_R) and self:RDmg() or 0)
 				local damage = QDamage + RDamage
-				if damage > self:HpPred(hero,1) + hero.hpRegen * 1 then
+				if damage > hero.health then
 					Draw.Text("killable", 24, hero.pos2D.x, hero.pos2D.y,Draw.Color(0xFF00FF00))
 					
 				else
@@ -1809,23 +1770,23 @@ local textPos = myHero.pos:To2D()
 	end
 end
 
-function UseHydra()
-	local HTarget = GetTarget(300)
+function Warwick:UseHydra()
+	local HTarget = GetTarget(400)
 	if HTarget then 
 		local hydraitem = GetInventorySlotItem(3748) or GetInventorySlotItem(3077) or GetInventorySlotItem(3074)
-		if hydraitem and myHero.attackData.state == STATE_WINDDOWN then
-			Control.CastSpell(keybindings[hydraitem],HTarget.pos)
+		if hydraitem then
+			Control.CastSpell(keybindings[hydraitem])
             Control.Attack(HTarget)
 		end
 	end
 end
    
-function UseHydraminion()
+function Warwick:UseHydraminion()
     for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
-        if minion and minion.team == 300 or minion.team ~= myHero.team then 
+        if myHero.pos:DistanceTo(minion.pos) <= 400 and (minion.team == TEAM_ENEMY or minion.team == TEAM_JUNGLE) then 
 			local hydraitem = GetInventorySlotItem(3748) or GetInventorySlotItem(3077) or GetInventorySlotItem(3074)
-			if hydraitem and myHero.attackData.state == STATE_WINDDOWN then
+			if hydraitem then
 				Control.CastSpell(keybindings[hydraitem])
                 Control.Attack(minion)
 			end
@@ -1834,41 +1795,41 @@ function UseHydraminion()
 end
 
 function Warwick:Combo()
-    if self.Menu.ComboMode.UseHYDRA:Value() and HasBuff(myHero, "Blood Hunt") and EnemyInRange(300) then
-        if myHero.attackData.state == STATE_WINDDOWN then
-            UseHydra()
-        end
+    if self.Menu.ComboMode.UseHYDRA:Value() and HasBuff(myHero, "Blood Hunt") and EnemyInRange(400) then
+		self:UseHydra()
     end
 
-    if self:CanCast(_E) then 
+    if Ready(_E) then 
 		local ETarget = GetTarget(375)
-		if self.Menu.ComboMode.UseE:Value() and self.Menu.ComboMode.Key:Value() == false and ETarget and HasBuff(myHero, "Primal Howl") then
-			if EnemyInRange(375) and myHero.pos:DistanceTo(ETarget.pos) < 375 then
+		if ETarget == nil then return end
+		if self.Menu.ComboMode.UseE:Value() and not self.Menu.ComboMode.Key:Value() and IsValid(ETarget) and HasBuff(myHero, "Primal Howl") then
+			if myHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
 		end
-        if self.Menu.ComboMode.UseE:Value() and self.Menu.ComboMode.Key:Value() == true and ETarget and not HasBuff(myHero, "Primal Howl") then
-			if EnemyInRange(375) and self:CanCast(_E) and myHero.pos:DistanceTo(ETarget.pos) < 375 then
+        if self.Menu.ComboMode.UseE:Value() and not self.Menu.ComboMode.Key:Value() and IsValid(ETarget) and not HasBuff(myHero, "Primal Howl") then
+			if myHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
 		end
 	end
 
-	if self:CanCast(_Q) and EnemyInRange(350) then 
+	if Ready(_Q) then 
 		local QTarget = GetTarget(350)
-		if self.Menu.ComboMode.UseQ:Value() and QTarget then
-            if EnemyInRange(350) and myHero.pos:DistanceTo(QTarget.pos) < 350 and myHero.pos:DistanceTo(QTarget.pos) > 125 then
+		if QTarget == nil then return end
+		if self.Menu.ComboMode.UseQ:Value() and IsValid(QTarget) then
+            if myHero.pos:DistanceTo(QTarget.pos) < 350 and myHero.pos:DistanceTo(QTarget.pos) > 125 then
 				Control.CastSpell(HK_Q, QTarget)
             end
 		end
 	end
 
-    if self:CanCast(_R) then 
+    if Ready(_R) then 
         local rRange = 2.5 * myHero.ms
 		local target = GetTarget(rRange)
 		if target == nil then return end
 		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, rRange, 0.1, 1800, 55, false)
-        if self.Menu.ComboMode.UseR:Value() then
+        if self.Menu.ComboMode.UseR:Value() and IsValid(target) then
 			if myHero.pos:DistanceTo(target.pos) < rRange and hitRate and hitRate >= 1 then
 			if EnemiesAround(target, 500) >= 2 then self:CastER(target) return end	
 				if aimPosition:To2D().onScreen then
@@ -1881,27 +1842,17 @@ function Warwick:Combo()
 			end	
         end
     end
-	
-
-    if EnemyInRange(600) and not self:CanCast(_Q) then 
-        local BTarget = GetTarget(600)
-        if BTarget then
-            if myHero.pos:DistanceTo(BTarget.pos) < 600 then
-			    UseHydra()
-            end
-        end
-    end
 end
 
 function Warwick:CastER(target)
 local rRange = 2.5 * myHero.ms  
 	if HasBuff(myHero, "Primal Howl") then
-		if myHero.pos:DistanceTo(target) < 150 then
+		if myHero.pos:DistanceTo(target.pos) < 150 then
 			Control.CastSpell(HK_E)
 		end
 	end	
 	
-	if self:CanCast(_E) then 
+	if Ready(_E) then 
 		if not HasBuff(myHero, "Primal Howl") then
 			Control.CastSpell(HK_E)
 		end
@@ -1919,46 +1870,44 @@ local rRange = 2.5 * myHero.ms
 		end
 	end
 	if HasBuff(myHero, "Primal Howl") then
-		if myHero.pos:DistanceTo(target) < 150 then
+		if myHero.pos:DistanceTo(target.pos) < 150 then
 			Control.CastSpell(HK_E)
 		end
 	end	
 end
 
-
 function Warwick:Harass()
-    if self.Menu.ComboMode.UseHYDRA:Value() and HasBuff(myHero, "Blood Hunt") and EnemyInRange(300) then
-        if myHero.attackData.state == STATE_WINDDOWN then
-            UseHydra()
-        end
+    if self.Menu.ComboMode.UseHYDRA:Value() and HasBuff(myHero, "Blood Hunt") and EnemyInRange(400) then
+        self:UseHydra()
     end
-    if self:CanCast(_E) then 
+	
+    if Ready(_E) then 
 		local ETarget = GetTarget(375)
-		if self.Menu.HarassMode.UseE:Value() and self.Menu.ComboMode.Key:Value() == false and ETarget and HasBuff(myHero, "Primal Howl") then
-			if EnemyInRange(375) and myHero.pos:DistanceTo(ETarget.pos) < 375 then
+		if self.Menu.HarassMode.UseE:Value() and not self.Menu.ComboMode.Key:Value() and IsValid(ETarget) and HasBuff(myHero, "Primal Howl") then
+			if myHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
 		end
-        if self.Menu.HarassMode.UseE:Value() and self.Menu.ComboMode.Key:Value() == true and ETarget and not HasBuff(myHero, "Primal Howl") then
-			if EnemyInRange(375) and self:CanCast(_E) and myHero.pos:DistanceTo(ETarget.pos) < 375 then
+        if self.Menu.HarassMode.UseE:Value() and self.Menu.ComboMode.Key:Value() and IsValid(ETarget) and not HasBuff(myHero, "Primal Howl") then
+			if myHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
 		end
 	end
 
-	if self:CanCast(_Q) then 
+	if Ready(_Q) then 
 		local QTarget = GetTarget(350)
-		if self.Menu.HarassMode.UseQ:Value() and QTarget then
-            if EnemyInRange(350) and myHero.pos:DistanceTo(QTarget.pos) < 350 and myHero.pos:DistanceTo(QTarget.pos) > 125 then
+		if self.Menu.HarassMode.UseQ:Value() and IsValid(QTarget) then
+            if myHero.pos:DistanceTo(QTarget.pos) < 350 and myHero.pos:DistanceTo(QTarget.pos) > 125 then
 				Control.CastSpell(HK_Q, QTarget)
             end
 		end
 	end
 
-	if self:CanCast(_W) then 
+	if Ready(_W) then 
 		local WTarget = GetTarget(125)
-		if self.Menu.HarassMode.UseW:Value() and WTarget then
-			if EnemyInRange(125) and myHero.attackData.state == STATE_WINDDOWN then
+		if self.Menu.HarassMode.UseW:Value() and IsValid(WTarget) then
+			if myHero.pos:DistanceTo(WTarget.pos) < 125 then
 				Control.CastSpell(HK_W)
                 Control.Attack(WTarget)
 			end
@@ -1966,39 +1915,39 @@ function Warwick:Harass()
 	end
 end
 
-function Warwick:Jungle()
+function Warwick:Clear()
 	for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
-    if minion.team == TEAM_ENEMY or minion.team == TEAM_JUNGLE and myHero.pos:DistanceTo(minion.pos) < 375 then
-		if self:CanCast(_E) and minion then 
-			if self.Menu.ClearMode.UseE:Value() and self.Menu.ComboMode.Key:Value()  == false and HasBuff(myHero, "Primal Howl") then
+    if (minion.team == TEAM_ENEMY or minion.team == TEAM_JUNGLE) and myHero.pos:DistanceTo(minion.pos) < 375 and IsValid(minion) then
+		if Ready(_E) then 
+			if self.Menu.ClearMode.UseE:Value() and not self.Menu.ComboMode.Key:Value() and HasBuff(myHero, "Primal Howl") then
 				if myHero.pos:DistanceTo(minion.pos) < 375 then
 					Control.CastSpell(HK_E)
 				end
 			end
-			if self.Menu.ClearMode.UseE:Value() and self.Menu.ComboMode.Key:Value()  == true and not HasBuff(myHero, "Primal Howl") then
-				if myHero.pos:DistanceTo(minion.pos) < 375 and self:CanCast(_E) then
+			if self.Menu.ClearMode.UseE:Value() and self.Menu.ComboMode.Key:Value() and not HasBuff(myHero, "Primal Howl") then
+				if myHero.pos:DistanceTo(minion.pos) < 375 then
 					Control.CastSpell(HK_E)
 				end
 			end
 		end	
 
-		if self.Menu.ComboMode.UseHYDRA:Value() and not HasBuff(myHero, "Blood Hunt") and minion then
-			if myHero.attackData.state == STATE_WINDDOWN and not self:CanCast(_W) and myHero.pos:DistanceTo(minion.pos) < 300 then
-				UseHydraminion()
+		if not HasBuff(myHero, "Blood Hunt") then
+			if not Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 400 then
+				self:UseHydraminion()
 			end
 		end
-		if self:CanCast(_Q) and minion then 
-			if self.Menu.ClearMode.UseQ:Value() and IsValid(minion, 350) then
+		if Ready(_Q) then 
+			if self.Menu.ClearMode.UseQ:Value() then
 				if myHero.pos:DistanceTo(minion.pos) < 350 and myHero.pos:DistanceTo(minion.pos) > 125 then
 				Control.CastSpell(HK_Q, minion)
 				end
 			end
 		end
 
-		if self:CanCast(_W) and minion then 
-			if self.Menu.ClearMode.UseW:Value() and IsValid(minion, 175) then
-				if myHero.pos:DistanceTo(minion.pos) < 175 and myHero.attackData.state == STATE_WINDDOWN then
+		if Ready(_W) then 
+			if self.Menu.ClearMode.UseW:Value() then
+				if myHero.pos:DistanceTo(minion.pos) < 175 then
 					Control.CastSpell(HK_W)
 					Control.Attack(minion)
 				end
@@ -2020,56 +1969,8 @@ end
 class "XinZhao"
 
 
-
-
-
-
-
-function XinZhao:GetValidEnemy(range)
-    for i = 1,Game.HeroCount() do
-        local enemy = Game.Hero(i)
-        if  enemy.team ~= myHero.team and enemy.valid and enemy.pos:DistanceTo(myHero.pos) < E.range then
-            return true
-        end
-    end
-    return false
-end
-
-function XinZhao:GetValidMinion(range)
-    for i = 1,Game.MinionCount() do
-        local minion = Game.Minion(i)
-        if  minion.team ~= myHero.team and minion.valid and minion.pos:DistanceTo(myHero.pos) < E.range then
-            return true
-        end
-    end
-    return false
-end
-
-function XinZhao:isReady(spell)
-return Game.CanUseSpell(spell) == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spellSlot).mana < myHero.mana
-end
-
-function XinZhao:EDMG(unit)
-	total = 0
-	local eLvl = myHero:GetSpellData(_E).level
-    if eLvl > 0 then
-	local edamage = (({50,75,100,125,150})[eLvl] + 0.6 * myHero.ap)
-	total = edamage
-	end
-	return total
-end
-
-function XinZhao:HpPred(unit, delay)
-	if _G.GOS then
-		hp =  GOS:HP_Pred(unit,delay)
-	else
-		hp = unit.health
-	end
-	return hp
-end
-
 function XinZhao:__init()
-	self:LoadSpells()
+
 	self:LoadMenu()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
@@ -2077,19 +1978,12 @@ function XinZhao:__init()
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
 		Orb = 2
+	elseif _G.GOS then
+		Orb = 3
 	elseif _G.gsoSDK then
-		Orb = 4			
+		Orb = 4
 	end	
 end
-
-function XinZhao:LoadSpells()
-	Q = {range = 375}
-	W = {range = 900, Delay = 0.30, Width = 70, Speed = 1600, Collision = false, aoe = false}
-	E = {range = 650}
-	R = {range = 500}
-end
-
-
 
 function XinZhao:LoadMenu()
 	--Main Menu
@@ -2098,7 +1992,7 @@ function XinZhao:LoadMenu()
 	--Main Menu-- PussyXinZhao
 	self.Menu:MenuElement({type = MENU, id = "Mode", name = "PussyXinZhao"})
 	--Main Menu-- PussyXinZhao -- Combo
-	self.Menu.Mode:MenuElement({type = MENU, id = "Combo", leftIcon = Icons["Combo"]})
+	self.Menu.Mode:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	self.Menu.Mode.Combo:MenuElement({id = "Q", name = "Use Q", value = true})
 	self.Menu.Mode.Combo:MenuElement({id = "W", name = "UseW if Target Flee", value = true})
 	self.Menu.Mode.Combo:MenuElement({id = "E", name = "Use E", value = true})
@@ -2107,35 +2001,37 @@ function XinZhao:LoadMenu()
 	self.Menu.Mode.Combo:MenuElement({id = "myRHP", name = "R when XinZhao HP%", value = 30, min = 0, max = 100, step = 1})
 	
 	--Main Menu-- PussyXinZhao -- Harass
-	self.Menu.Mode:MenuElement({type = MENU, id = "Harass", leftIcon = Icons["Harass"]})
+	self.Menu.Mode:MenuElement({type = MENU, id = "Harass", name = "Harass"})
 	self.Menu.Mode.Harass:MenuElement({id = "W", name = "Use W", value = true})
 	self.Menu.Mode.Harass:MenuElement({type = MENU, id = "MM", name = "Mana Manager"})
 	self.Menu.Mode.Harass.MM:MenuElement({id = "WMana", name = "Min Mana to W in Harass(%)", value = 40, min = 0, max = 100, step = 1})
 	--Main Menu-- PussyXinZhao -- LaneClear
-	self.Menu.Mode:MenuElement({type = MENU, id = "LaneClear", leftIcon = Icons["Clear"]})
+	self.Menu.Mode:MenuElement({type = MENU, id = "LaneClear", name = "Clear"})
 	self.Menu.Mode.LaneClear:MenuElement({id = "W", name = "Use W", value = true})
 	self.Menu.Mode.LaneClear:MenuElement({id = "WMinion", name = "Use W when X minions", value = 3,min = 1, max = 4, step = 1})
 	self.Menu.Mode.LaneClear:MenuElement({id = "Q", name = "Use Q", value = true})
 	self.Menu.Mode.LaneClear:MenuElement({id = "E", name = "Use E", value = true})
 	--Main Menu-- PussyXinZhao -- JungleClear
-	self.Menu.Mode:MenuElement({type = MENU, id = "JungleClear", leftIcon = Icons["JClear"]})
+	self.Menu.Mode:MenuElement({type = MENU, id = "JungleClear", name = "Jungle Clear"})
 	self.Menu.Mode.JungleClear:MenuElement({id = "Q", name = "Use Q", value = true})
 	self.Menu.Mode.JungleClear:MenuElement({id = "W", name = "Use W", value = true})
 	self.Menu.Mode.JungleClear:MenuElement({id = "E", name = "Use E", value = true})
 	
 	--Main Menu-- PussyXinZhao -- KillSteal
-	self.Menu.Mode:MenuElement({type = MENU, id = "KS", leftIcon = Icons["ks"]})
+	self.Menu.Mode:MenuElement({type = MENU, id = "KS", name = "KillSteal"})
 	self.Menu.Mode.KS:MenuElement({id = "E", name = "UseE KS", value = true})	
 	
 	--Main Menu-- PussyXinZhao -- Spell Range 
-	self.Menu:MenuElement({type = MENU, id = "Drawing", leftIcon = Icons["Drawings"]})
+	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	self.Menu.Drawing:MenuElement({id = "W", name = "Draw W Range", value = true})
 	self.Menu.Drawing:MenuElement({id = "E", name = "Draw E Range", value = true})
+	self.Menu.Drawing:MenuElement({id = "R", name = "Draw R Range", value = true})	
 	self.Menu.Drawing:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
 	self.Menu.Drawing:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 255, 255, 255)})
 end
 
 function XinZhao:Tick()
-if MyHeroReady() then
+if MyHeroNotReady() then return end
 local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
@@ -2149,125 +2045,100 @@ local Mode = GetMode()
 		
 	self:KS()
 end
-end
 
 function XinZhao:KS()
-	local target =  (_G.SDK and _G.SDK.TargetSelector:GetTarget(800, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(800,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
+	local target = GetTarget(800)     	
+	if target == nil then return end
 	
-	if IsValid(target,650) and myHero.pos:DistanceTo(target.pos) <= 650 then
-		local edamage = self:EDMG(target)
-		if self.Menu.Mode.KS.E:Value() and self:isReady(_E) and not myHero.isChanneling and edamage > self:HpPred(target,1) + target.hpRegen * 1  then
+	if myHero.pos:DistanceTo(target.pos) <= 650 and IsValid(target) then
+		local edamage = getdmg("E", target, myHero)
+		if self.Menu.Mode.KS.E:Value() and Ready(_E) and not myHero.isChanneling and edamage > target.health then
 			Control.CastSpell(HK_E,target)
 		end
 	end			
 end
 
 function XinZhao:Combo()
-
-	if self:GetValidEnemy(800) == false then return end
-	
-	if (not _G.SDK and not _G.GOS and not _G.EOWLoaded) then return end
-	
-	local target =  (_G.SDK and _G.SDK.TargetSelector:GetTarget(800, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(800,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
+	local target = GetTarget(900)     	
+	if target == nil then return end
 		
-			if IsValid(target,650) and myHero.pos:DistanceTo(target.pos) <= 650 and self.Menu.Mode.Combo.E:Value() and self:isReady(_E) and not myHero.isChanneling  then
-			Control.CastSpell(HK_E,target)
-	    	if IsValid(target,900) and myHero.pos:DistanceTo(target.pos) > 400 and self.Menu.Mode.Combo.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
-			Control.CastSpell(HK_W,target)
-	    	end
-	    	if IsValid(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
-			Control.CastSpell(HK_Q)
-	    	end 
-	    	if IsValid(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
-			Control.CastSpell(HK_R)
-	    	end
-	    end		
-		if IsValid(target,900) and myHero.pos:DistanceTo(target.pos) > 400 and self.Menu.Mode.Combo.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
+	if myHero.pos:DistanceTo(target.pos) <= 600 and IsValid(target) and self.Menu.Mode.Combo.E:Value() and Ready(_E) and not myHero.isChanneling then
+		Control.CastSpell(HK_E,target)
+	end
+		
+	if myHero.pos:DistanceTo(target.pos) > 400 and myHero.pos:DistanceTo(target.pos) < 900 and IsValid(target) and self.Menu.Mode.Combo.W:Value() and Ready(_W) and not myHero.isChanneling  then
 		Control.CastSpell(HK_W,target)
-	    	if IsValid(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
+    end
+	    
+	if myHero.pos:DistanceTo(target.pos) < 300 and IsValid(target) and self.Menu.Mode.Combo.Q:Value() and Ready(_Q) then
 		Control.CastSpell(HK_Q)
-	    	end
-	    	if IsValid(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
+	end 
+	    	
+	if myHero.pos:DistanceTo(target.pos) < 450 and IsValid(target) and self.Menu.Mode.Combo.R:Value() and Ready(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
 		Control.CastSpell(HK_R)
-	    	end
-	    end	
-	    if IsValid(target,375) and self.Menu.Mode.Combo.Q:Value() and self:isReady(_Q) and myHero.attackData.state == STATE_WINDUP  then
-		Control.CastSpell(HK_Q)
-	    	if IsValid(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
-		Control.CastSpell(HK_R)
-	    	end
-	    end   
-		if IsValid(target,R.range) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and target.health/target.maxHealth <= self.Menu.Mode.Combo.RHP:Value()/100 and not myHero.isChanneling  then
-		Control.CastSpell(HK_R)
-	    end
-		if IsValid(target,500) and self.Menu.Mode.Combo.R:Value() and self:isReady(_R) and not myHero.isChanneling and
-		myHero.health/myHero.maxHealth <= self.Menu.Mode.Combo.myRHP:Value()/100 then
-		Control.CastSpell(HK_R)
-		end
+	end
 		
-
+	if IsValid(target) and self.Menu.Mode.Combo.R:Value() and Ready(_R) and myHero.health/myHero.maxHealth <= self.Menu.Mode.Combo.myRHP:Value()/100 and not myHero.isChanneling then
+		Control.CastSpell(HK_R)
+	end		
 end	
 
-
 function XinZhao:Harass()
-
-	if self:GetValidEnemy(800) == false then return end
-	
-	if (not _G.SDK and not _G.GOS and not _G.EOWLoaded) then return end
-	
-	local target =  (_G.SDK and _G.SDK.TargetSelector:GetTarget(800, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(800,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
+	local target = GetTarget(900)     	
+	if target == nil then return end
 		
-	if target.pos:DistanceTo(myHero.pos) <= W.range and (myHero.mana/myHero.maxMana >= self.Menu.Mode.Harass.MM.WMana:Value() / 100) and self.Menu.Mode.Harass.W:Value() and self:isReady(_W) and not myHero.isChanneling  then
+	if target.pos:DistanceTo(myHero.pos) < 900 and (myHero.mana/myHero.maxMana >= self.Menu.Mode.Harass.MM.WMana:Value() / 100) and self.Menu.Mode.Harass.W:Value() and Ready(_W) and not myHero.isChanneling  then
 		Control.CastSpell(HK_W,target)
 	end
 end
 
-
-
 function XinZhao:Clear()
-
-	if self:GetValidMinion(600) == false then return end
 	for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
-			if minion.team == TEAM_ENEMY then
-				if minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.LaneClear.E:Value() and self:isReady(_E) then
-					Control.CastSpell(HK_E,minion)
-					break
+		if minion.pos:DistanceTo(myHero.pos) <= 900 and minion.team == TEAM_ENEMY and IsValid(minion) then
+			if minion.pos:DistanceTo(myHero.pos) <= 600 and self.Menu.Mode.LaneClear.E:Value() and Ready(_E) then
+				Control.CastSpell(HK_E, minion)
+				
+			end	
+			if self.Menu.Mode.LaneClear.W:Value() and Ready(_W) and minion.pos:DistanceTo(myHero.pos) <= 900 then
+				if GetMinionCount(900, minion) >= self.Menu.Mode.LaneClear.WMinion:Value() then
+					Control.CastSpell(HK_W, minion.pos)
+					
 				end	
-				if IsValid(minion,W.range) and self.Menu.Mode.LaneClear.W:Value() and self:isReady(_W) then
-					if GetMinionCount(W.range, minion) >= self.Menu.Mode.LaneClear.WMinion:Value() then
-						Control.CastSpell(HK_W,minion)
-						break
-					end	
-				end
-				if IsValid(minion,Q.range) and self.Menu.Mode.LaneClear.Q:Value() and self:isReady(_Q) then
-					Control.CastSpell(HK_Q)
-					break
-				end
 			end
-			if minion.team == TEAM_JUNGLE then
-				if  minion.pos:DistanceTo(myHero.pos) <= E.range and self.Menu.Mode.JungleClear.E:Value() and self:isReady(_E) then
-					Control.CastSpell(HK_E,minion)
-					break
-				end
-				if IsValid(minion,Q.range) and self.Menu.Mode.JungleClear.Q:Value() and self:isReady(_Q) then
+			if minion.pos:DistanceTo(myHero.pos) <= 300 and self.Menu.Mode.LaneClear.Q:Value() and Ready(_Q) then
 				Control.CastSpell(HK_Q)
-				break
-				end 
-				if IsValid(minion,W.range) and self.Menu.Mode.JungleClear.W:Value() and self:isReady(_W) then
-					Control.CastSpell(HK_W,minion)
-					break
-				end	
+				
 			end
 		end
+		if minion.pos:DistanceTo(myHero.pos) <= 900 and minion.team == TEAM_JUNGLE and IsValid(minion) then
+			if minion.pos:DistanceTo(myHero.pos) <= 600 and self.Menu.Mode.JungleClear.E:Value() and Ready(_E) then
+				Control.CastSpell(HK_E, minion)
+				
+			end
+			if minion.pos:DistanceTo(myHero.pos) <= 300 and self.Menu.Mode.JungleClear.Q:Value() and Ready(_Q) then
+				Control.CastSpell(HK_Q)
+				
+			end 
+			if minion.pos:DistanceTo(myHero.pos) <= 900 and self.Menu.Mode.JungleClear.W:Value() and Ready(_W) then
+				Control.CastSpell(HK_W, minion.pos)
+				
+			end	
+		end
 	end
+end
 
-	
 function XinZhao:Draw()
 if myHero.dead then return end
-	if self.Menu.Drawing.E:Value() then 
-		Draw.Circle(myHero.pos, 650, self.Menu.Drawing.Width:Value(), self.Menu.Drawing.Color:Value())	
+	if self.Menu.Drawing.W:Value() then 
+		Draw.Circle(myHero.pos, 900, self.Menu.Drawing.Width:Value(), self.Menu.Drawing.Color:Value())	
 	end	
+	if self.Menu.Drawing.E:Value() then 
+		Draw.Circle(myHero.pos, 600, self.Menu.Drawing.Width:Value(), self.Menu.Drawing.Color:Value())	
+	end	
+	if self.Menu.Drawing.R:Value() then 
+		Draw.Circle(myHero.pos, 450, self.Menu.Drawing.Width:Value(), self.Menu.Drawing.Color:Value())	
+	end		
 end	
 
 
