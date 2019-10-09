@@ -105,17 +105,27 @@ local ping = Latency() * 0.001
 local Orb
 
 local function GetTarget(range) 
-	local target = nil 
 	if Orb == 1 then
-		target = EOW:GetTarget(range)
-	elseif Orb == 2 then 
-		target = _G.SDK.TargetSelector:GetTarget(range)
-	elseif Orb == 3 then
-		target = GOS:GetTarget(range)
-	elseif Orb == 4 then
-		target = _G.gsoSDK.TS:GetTarget()		
+		if myHero.ap > myHero.totalDamage then
+			return EOW:GetTarget(range, EOW.ap_dec, myHero.pos)
+		else
+			return EOW:GetTarget(range, EOW.ad_dec, myHero.pos)
+		end
+	elseif Orb == 2 and SDK.TargetSelector then
+		if myHero.ap > myHero.totalDamage then
+			return SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL)
+		else
+			return SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL)
+		end
+	elseif _G.GOS then
+		if myHero.ap > myHero.totalDamage then
+			return GOS:GetTarget(range, "AP")
+		else
+			return GOS:GetTarget(range, "AD")
+        end
+    elseif _G.gsoSDK then
+		return _G.gsoSDK.TS:GetTarget()
 	end
-	return target 
 end
 
 class "Kayle"
@@ -145,9 +155,11 @@ function Kayle:__init()
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
 		Orb = 2
+	elseif _G.GOS then
+		Orb = 3
 	elseif _G.gsoSDK then
-		Orb = 4			
-	end
+		Orb = 4
+	end	
 end
 
 function Kayle:LoadMenu()                     
@@ -210,25 +222,21 @@ function Kayle:LoadMenu()
 end
 
 function Kayle:Tick()
-	if MyHeroReady() then
-	local Mode = GetMode()
-		if Mode == "Combo" then
-			self:Combo()
-		elseif Mode == "Harass" then
-			self:Harass()
-		elseif Mode == "Clear" then
-			self:Clear()
-			self:JungleClear()
+if MyHeroNotReady() then return end
+local Mode = GetMode()
+	if Mode == "Combo" then
+		self:Combo()
+	elseif Mode == "Harass" then
+		self:Harass()
+	elseif Mode == "Clear" then
+		self:Clear()
+		self:JungleClear()
 		
-		end
-		self:KillSteal()
-		self:KillStealE()
-		self:AutoW()
 	end
-end	
-	
-
-
+	self:KillSteal()
+	self:KillStealE()
+	self:AutoW()
+end
 
 function Kayle:Draw()
   if myHero.dead then return end
@@ -269,7 +277,6 @@ if target == nil then return end
 		end	
 	end	
 
-				
 function Kayle:KillStealE()	
 	local target = GetTarget(600)     	
 	if target == nil then return end
@@ -431,14 +438,14 @@ function Mordekaiser:__init()
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
 		Orb = 2
+	elseif _G.GOS then
+		Orb = 3
 	elseif _G.gsoSDK then
-		Orb = 4			
-	end
+		Orb = 4
+	end	
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)	
 end
-
-
 
 function Mordekaiser:LoadMenu()                     
 	--MainMenu
@@ -504,26 +511,25 @@ function Mordekaiser:LoadMenu()
 end
 
 function Mordekaiser:Tick()
-	if MyHeroReady() then
-	local Mode = GetMode()
-		if Mode == "Combo" then
-			self:Combo()
+if MyHeroNotReady() then return end
+local Mode = GetMode()
+	if Mode == "Combo" then
+		self:Combo()
+	
+	elseif Mode == "Harass" then
+		self:Harass()
+	elseif Mode == "Clear" then
+		self:Clear()
+		self:JClear()			
 		
-		elseif Mode == "Harass" then
-			self:Harass()
-		elseif Mode == "Clear" then
-			self:Clear()
-			self:JClear()			
-		
-		end	
+	end	
 
 	self:KillSteal()
 	self:AutoE()
 	self:AutoW()
 
 	
-	end
-end 
+end
 
 function Mordekaiser:Draw()
   if myHero.dead then return end
@@ -553,8 +559,6 @@ function Mordekaiser:AutoW()
 		end			
 	end
 end
-
-
 
 function Mordekaiser:AutoE()
 	local target = GetTarget(1000)
@@ -623,7 +627,6 @@ function Mordekaiser:Combo()
 	end
 end
 
-
 function Mordekaiser:Harass()
 
 	local target = GetTarget(1000)
@@ -639,7 +642,6 @@ function Mordekaiser:Harass()
         end	
 	end
 end	
-
 
 function Mordekaiser:Clear()
     for i = 1, Game.MinionCount() do
@@ -703,16 +705,18 @@ Type = _G.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 160, Range = 1000, Speed
 
 function Irelia:__init()
    	
-  self:LoadMenu()                                            
-  Callback.Add("Tick", function() self:Tick() end)
-  Callback.Add("Draw", function() self:Draw() end) 
+	self:LoadMenu()                                            
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end) 
 	if _G.EOWLoaded then
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
 		Orb = 2
+	elseif _G.GOS then
+		Orb = 3
 	elseif _G.gsoSDK then
-		Orb = 4			
-	end
+		Orb = 4
+	end	
 end
 
 function Irelia:LoadMenu()                     
@@ -781,24 +785,22 @@ function Irelia:LoadMenu()
 end	
 
 function Irelia:Tick()
-	if MyHeroReady() then
-		local Mode = GetMode()
-			if Mode == "Combo" then
-				self:Combo()
-			elseif Mode == "Harass" then
-				self:Harass()
-			elseif Mode == "Clear" then
-				self:Clear()
-			elseif Mode == "Flee" then
-				self:Flee()		
-			end
+if MyHeroNotReady() then return end
+local Mode = GetMode()
+	if Mode == "Combo" then
+		self:Combo()
+	elseif Mode == "Harass" then
+		self:Harass()
+	elseif Mode == "Clear" then
+		self:Clear()
+	elseif Mode == "Flee" then
+		self:Flee()		
+	end
 
-		
-		self:KillSteal()
-		self:CastE2()
-		if self.Menu.AutoQ.Q:Value() and Mode ~= "Combo" then
-			self:AutoQ()
-		end
+	self:KillSteal()
+	self:CastE2()
+	if self.Menu.AutoQ.Q:Value() and Mode ~= "Combo" then
+		self:AutoQ()
 	end
 end
 
