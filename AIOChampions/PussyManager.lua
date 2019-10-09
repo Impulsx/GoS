@@ -400,13 +400,19 @@ function GetInventorySlotItem(itemID)
     return nil
 end
 
-
-
-
 function GetMode()
-	if Orb == 1 then
-		return intToMode[EOW.CurrentMode]
-	elseif Orb == 2 then
+    
+    if Orb == 1 then
+        if combo == 1 then
+            return 'Combo'
+        elseif harass == 2 then
+            return 'Harass'
+        elseif lastHit == 3 then
+            return 'Lasthit'
+        elseif laneClear == 4 then
+            return 'Clear'
+        end
+    elseif Orb == 2 then
 		if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
 			return "Combo"
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
@@ -418,21 +424,11 @@ function GetMode()
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
 			return "Flee"
 		end
-	elseif Orb == 4 then
-		if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
-			return "Combo"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
-			return "Harass"	
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] or _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
-			return "Clear"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] then
-			return "LastHit"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
-			return "Flee"
-		end			
-	else
-		return GOS.GetMode()
-	end
+    elseif Orb == 3 then
+        return GOS:GetMode()
+    elseif Orb == 4 then
+        return _G.gsoSDK.Orbwalker:GetMode()
+    end
 end
 
 function SetAttack(bool)
@@ -984,8 +980,8 @@ function GetItemSlot(unit, id)
   return 0
 end
 
-function MyHeroReady()
-    return myHero.dead == false and Game.IsChatOpen() == false and (ExtLibEvade == nil or ExtLibEvade.Evading == false) and IsRecalling(myHero) == false
+function MyHeroNotReady()
+    return myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero)
 end
 
 
