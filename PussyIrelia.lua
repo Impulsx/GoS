@@ -30,7 +30,7 @@ require('PussyDamageLib')
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.05
+    local Version = 0.06
     
     local Files = {
         Lua = {
@@ -99,6 +99,7 @@ local foundAUnit = false
 local GameTimer = Game.Timer
 local Allies, Enemies, Turrets, Units = {}, {}, {}, {}
 local Orb
+local _movementHistory = {}
 
 local DangerousSpells = {
 	["CaitlynAceintheHole"] = {charName = "Caitlyn", slot = _R, type = "targeted", displayName = "Ace in the Hole", range = 3500},
@@ -252,6 +253,19 @@ local function IsUnderTurret(unit)
     return false
 end
 
+local function GetMinionCount(range, pos)
+    local pos = pos.pos
+	local count = 0
+	for i = 1,Game.MinionCount() do
+	local hero = Game.Minion(i)
+	local Range = range * range
+		if hero.team ~= TEAM_ALLY and hero.dead == false and GetDistanceSqr(pos, hero.pos) < Range then
+		count = count + 1
+		end
+	end
+	return count
+end
+
 local function AllyMinionUnderTower()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
@@ -273,13 +287,13 @@ local function GotBuff(unit, buffname)
 end
 
 local function IsRecalling(unit)
-	for i = 1, 63 do
-	local buff = unit:GetBuff(i) 
-		if buff.count > 0 and buff.name == "recall" and Game.Timer() < buff.expireTime then
-			return true
-		end
-	end 
-	return false
+    for i = 0, unit.buffCount do
+        local buff = unit:GetBuff(i)
+        if buff and buff.name == 'recall' and buff.duration > 0 then
+            return true, GameTimer() - buff.startTime
+        end
+    end
+    return false
 end
 
 
@@ -293,17 +307,15 @@ function VectorPointProjectionOnLineSegment(v1, v2, v)
 	return pointSegment, pointLine, isOnSegment
 end
 
-function GetDistanceSqr(p1, p2)
-	if not p1 then return math.huge end
-	p2 = p2 or myHero
-	local dx = p1.x - p2.x
-	local dz = (p1.z or p1.y) - (p2.z or p2.y)
-	return dx*dx + dz*dz
+function GetDistance(pos1, pos2)
+	return math.sqrt(GetDistanceSqr(pos1, pos2))
 end
 
-function GetDistance(p1, p2)
-	p2 = p2 or myHero
-	return math.sqrt(GetDistanceSqr(p1, p2))
+function GetDistanceSqr(pos1, pos2)
+	local pos2 = pos2 or myHero.pos
+	local dx = pos1.x - pos2.x
+	local dz = (pos1.z or pos1.y) - (pos2.z or pos2.y)
+	return dx * dx + dz * dz
 end
 
 local function CastSpell(spell,pos,range,delay)
@@ -402,7 +414,7 @@ function OnWaypoint(unit)
 	return _OnWaypoint[unit.networkID]
 end
 
-local function GetPred(unit,speed,delay)
+function GetPred(unit,speed,delay)
 	local speed = speed or math.huge
 	local delay = delay or 0.25
 	local unitSpeed = unit.ms
@@ -459,9 +471,6 @@ function OnProcessSpell()
 	return nil, nil
 end
 
-
-
-
 keybindings = { [ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6}
 local function GetInventorySlotItem(itemID)
     assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
@@ -471,8 +480,16 @@ local function GetInventorySlotItem(itemID)
     return nil
 end
 
-local function MyHeroReady()
-    return myHero.dead == false and Game.IsChatOpen() == false and (ExtLibEvade == nil or ExtLibEvade.Evading == false) and IsRecalling(myHero) == false
+local function CheckTitan(itemID)
+    assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
+    for _, j in pairs({ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6, ITEM_7}) do
+        if myHero:GetItemData(j).itemID == itemID then return j end
+    end
+    return nil
+end
+
+local function MyHeroNotReady()
+    return myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero)
 end
 
 
@@ -483,7 +500,7 @@ end
 ----------------------------------------------------
 
 class "Irelia"
-
+--[[
 local WData =
 {
 Type = _G.SPELLTYPE_LINE, Delay = 0.6 + ping, Radius = 100, Range = 825, Speed = 1400, Collision = false
@@ -492,16 +509,15 @@ Type = _G.SPELLTYPE_LINE, Delay = 0.6 + ping, Radius = 100, Range = 825, Speed =
 local EData =
 {
 Type = _G.SPELLTYPE_LINE, Delay = 0.75 + ping, Radius = 50, Range = 775, Speed = 2000, Collision = false
-}
+}]]
 
 local RData =
 {
-Type = _G.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 160, Range = 1000, Speed = 2000, Collision = false
+Type = _G.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 160, Range = 950, Speed = 2000, Collision = false
 }
 
 function Irelia:__init()
 	self.DetectedMissiles = {}; self.DetectedSpells = {}; self.Target = nil; self.Timer = 0 	
-	self.stacks = 0
 	self:LoadMenu()                                            
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end) 
@@ -519,128 +535,139 @@ end
 
 function Irelia:LoadMenu()                     
 	
-	--MainMenu
-	self.Menu = MenuElement({type = MENU, id = "Irelia", name = "PussyIrelia"})
+--MainMenu
+self.Menu = MenuElement({type = MENU, id = "Irelia", name = "PussyIrelia"})
+	
+self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
+	
+	--ComboMenu  
+	self.Menu.ComboSet:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
+	self.Menu.ComboSet.Combo:MenuElement({name = " ", drop = {"E1, W, R, Q, E2, Q + (Q when kill / almost kill)"}})
+	self.Menu.ComboSet.Combo:MenuElement({id = "QLogic", name = "Last[Q]Almost Kill or Kill", key = string.byte("Z"), toggle = true})
+	self.Menu.ComboSet.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
+	self.Menu.ComboSet.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
+	self.Menu.ComboSet.Combo:MenuElement({id = "UseE", name = "[E]", value = true})	
+	self.Menu.ComboSet.Combo:MenuElement({id = "UseR", name = "[R]Single Target", value = true})
+	self.Menu.ComboSet.Combo:MenuElement({id = "UseRCount", name = "Auto[R] Multiple Enemys", value = true})	
+	self.Menu.ComboSet.Combo:MenuElement({id = "RCount", name = "Multiple Enemys", value = 2, min = 2, max = 5, step = 1})
+	self.Menu.ComboSet.Combo:MenuElement({id = "Gap", name = "Gapclose [Q]", value = true})
+	self.Menu.ComboSet.Combo:MenuElement({id = "Stack", name = "Stack Passive near Target/Minion", value = true})	
+	self.Menu.ComboSet.Combo:MenuElement({id = "Draw", name = "Draw QLogic Text", value = true})	
+	
+	--BurstModeMenu
+	self.Menu.ComboSet:MenuElement({type = MENU, id = "Burst", name = "Burst Mode"})	
+	self.Menu.ComboSet.Burst:MenuElement({name = " ", drop = {"If Burst Active then Combo Inactive"}})	
+	self.Menu.ComboSet.Burst:MenuElement({id = "Start", name = "Use Burst Mode", key = string.byte("U"), toggle = true})
+	self.Menu.ComboSet.Burst:MenuElement({id = "Lvl", name = "Irelia Level to Start Burst", value = 6, min = 6, max = 18, step = 1})
+	self.Menu.ComboSet.Burst:MenuElement({id = "Draw", name = "Draw Text", value = true})	
+
+
+self.Menu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
+
+	--LaneClear Menu
+	self.Menu.ClearSet:MenuElement({type = MENU, id = "Clear", name = "Clear Mode"})
+	self.Menu.ClearSet.Clear:MenuElement({type = MENU, id = "Last", name = "LastHit"})
+	self.Menu.ClearSet.Clear.Last:MenuElement({name = " ", drop = {"Is only active, if AutoQ Off)"}})	
+	self.Menu.ClearSet.Clear.Last:MenuElement({id = "UseQ", name = "LastHit[Q]", value = true})	
+	self.Menu.ClearSet.Clear:MenuElement({id = "UseW", name = "[W]", value = true})
+	self.Menu.ClearSet.Clear:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
+	self.Menu.ClearSet.Clear:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
+	
+	--JungleClear Menu
+	self.Menu.ClearSet:MenuElement({type = MENU, id = "JClear", name = "JungleClear Mode"})
+	self.Menu.ClearSet.JClear:MenuElement({id = "UseQ", name = "LastHit[Q]", value = true})	
+	self.Menu.ClearSet.JClear:MenuElement({id = "UseW", name = "[W]", value = true})
+	self.Menu.ClearSet.JClear:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
+	self.Menu.ClearSet.JClear:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
+
+	--LastHitMode Menu
+	self.Menu.ClearSet:MenuElement({type = MENU, id = "LastHit", name = "LastHit Mode"})
+	self.Menu.ClearSet.LastHit:MenuElement({name = " ", drop = {"Is only active, if AutoQ Off)"}})	
+	self.Menu.ClearSet.LastHit:MenuElement({id = "UseQ", name = "LastHit[Q]", value = true})	
+	self.Menu.ClearSet.LastHit:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
+	self.Menu.ClearSet.LastHit:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})	
+	self.Menu.ClearSet.LastHit:MenuElement({id = "Active", name = "LastHit Key", key = string.byte("X")})
+
+	--AutoQ
+	self.Menu.ClearSet:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ Mode"})
+	self.Menu.ClearSet.AutoQ:MenuElement({id = "UseQ", name = "Auto LastHit Minion", value = true})
+	self.Menu.ClearSet.AutoQ:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
+	self.Menu.ClearSet.AutoQ:MenuElement({id = "Q", name = "Auto Q Toggle Key", key = string.byte("T"), toggle = true})
+	self.Menu.ClearSet.AutoQ:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
+	self.Menu.ClearSet.AutoQ:MenuElement({id = "Draw", name = "Draw On/Off Text", value = true})	
+
+
+	--HarassMenu
+self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})	
+	
+	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Logic", value = 1, drop = {"Marked + Dash back Minion", "Everytime"}})	
+	self.Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = true})
+	self.Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})
+
+
+	--KillSteal
+self.Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal Settings"})
+	
+	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	self.Menu.ks:MenuElement({id = "UseW", name = "[W]", value = true})	
+	self.Menu.ks:MenuElement({id = "UseR", name = "[R]", value = true})		
+
+	
+self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})		
 
 	--Flee
-	self.Menu:MenuElement({type = MENU, id = "Flee", name = "Flee"})
-	self.Menu.Flee:MenuElement({id = "Q", name = "Flee[Q]", value = true})	
+	self.Menu.MiscSet:MenuElement({type = MENU, id = "Flee", name = "Flee Mode"})
+	self.Menu.MiscSet.Flee:MenuElement({id = "Q", name = "Flee[Q]", value = true})	
 
 	--AutoE 
-	self.Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})
-	self.Menu.AutoE:MenuElement({id = "UseE", name = "2-5 Enemys stunable", value = true})	
+	self.Menu.MiscSet:MenuElement({type = MENU, id = "AutoE", name = "AutoE Mode"})
+	self.Menu.MiscSet.AutoE:MenuElement({id = "UseE", name = "2-5 Enemys stunable", value = true})	
 	
-	--AutoQ
-	self.Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ LastHit"})
-	self.Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto LastHit Minion", value = true})
-	self.Menu.AutoQ:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
-	self.Menu.AutoQ:MenuElement({id = "Q", name = "Auto Q Toggle Key", key = string.byte("T"), toggle = true})
-	self.Menu.AutoQ:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
-	self.Menu.AutoQ:MenuElement({id = "Draw", name = "Draw On/Off Text", value = true})	
-
-  	--AutoW Dangerous Spells
-	self.Menu:MenuElement({id = "WSet", name = "AutoW [Test]", type = MENU})
-	self.Menu.WSet:MenuElement({name = " ", drop = {"Supported Spells"}})
-	self.Menu.WSet:MenuElement({name = " ", drop = {"[DravenR,JinxR,JayceQ,LeeSinR,CaitlynR,UrgotR]"}})	
-	self.Menu.WSet:MenuElement({id = "UseW", name = "Auto[W] Dangerous Spells", value = true})
-	self.Menu.WSet:MenuElement({id = "BlockList", name = "Block List", type = MENU})	
+	--AutoW Dangerous Spells
+	self.Menu.MiscSet:MenuElement({id = "WSet", name = "AutoW Mode [Test]", type = MENU})
+	self.Menu.MiscSet.WSet:MenuElement({name = " ", drop = {"Supported Spells"}})
+	self.Menu.MiscSet.WSet:MenuElement({name = " ", drop = {"[DravenR,JinxR,JayceQ,LeeSinR,CaitlynR,UrgotR]"}})	
+	self.Menu.MiscSet.WSet:MenuElement({id = "UseW", name = "Auto[W] Dangerous Spells", value = true})
+	self.Menu.MiscSet.WSet:MenuElement({id = "BlockList", name = "Block List", type = MENU})	
 	self.Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
 	DelayAction(function()	
 		for i, spell in pairs(DangerousSpells) do
 			if not DangerousSpells[i] then return end
 			for j, k in pairs(EnemyHeroes()) do
-				if spell.charName == k.charName and not self.Menu.WSet.BlockList[i] then
-					if not self.Menu.WSet.BlockList[i] then self.Menu.WSet.BlockList:MenuElement({id = "Dodge"..i, name = ""..spell.charName.." "..self.Slot[spell.slot].." | "..spell.displayName, value = true}) end
+				if spell.charName == k.charName and not self.Menu.MiscSet.WSet.BlockList[i] then
+					if not self.Menu.MiscSet.WSet.BlockList[i] then self.Menu.MiscSet.WSet.BlockList:MenuElement({id = "Dodge"..i, name = ""..spell.charName.." "..self.Slot[spell.slot].." | "..spell.displayName, value = true}) end
 				end
 			end
 		end
 	end, 0.01)		
 			
-	--ComboMenu  
-	self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
-	self.Menu.Combo:MenuElement({name = " ", drop = {"E1, W, R, Q, E2, Q + (Q when kill / almost kill)"}})
-	self.Menu.Combo:MenuElement({id = "QLogic", name = "Last[Q]Almost Kill or Kill", key = string.byte("Z"), toggle = true})
-	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
-	self.Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
-	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})	
-	self.Menu.Combo:MenuElement({id = "UseR", name = "[R]Single Target", value = true})
-	self.Menu.Combo:MenuElement({id = "UseRCount", name = "Auto[R] Multiple Enemys", value = true})	
-	self.Menu.Combo:MenuElement({id = "RCount", name = "Multiple Enemys", value = 2, min = 2, max = 5, step = 1})
-	self.Menu.Combo:MenuElement({id = "Gap", name = "Gapclose [Q]", value = true})
-	self.Menu.Combo:MenuElement({id = "Stack", name = "Stack Passive near Target/Minion", value = true})	
-	self.Menu.Combo:MenuElement({id = "Draw", name = "Draw QLogic Text", value = true})	
-	
-	--BurstModeMenu
-	self.Menu:MenuElement({type = MENU, id = "Burst", name = "BurstMode"})	
-	self.Menu.Burst:MenuElement({name = " ", drop = {"If Burst Active then Combo Inactive"}})	
-	self.Menu.Burst:MenuElement({id = "Start", name = "Use Burst Mode", key = string.byte("U"), toggle = true})
-	self.Menu.Burst:MenuElement({id = "Lvl", name = "Irelia Level to Start Burst", value = 6, min = 6, max = 18, step = 1})
-	self.Menu.Burst:MenuElement({id = "Draw", name = "Draw Text", value = true})	
-
-	--HarassMenu
-	self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
-	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Logic", value = 1, drop = {"Marked + Dash back Minion", "Everytime"}})	
-	self.Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = true})
-	self.Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})
-  
-	--LaneClear Menu
-	self.Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})
-	self.Menu.Clear:MenuElement({type = MENU, id = "Last", name = "LastHit"})
-	self.Menu.Clear.Last:MenuElement({name = " ", drop = {"Is only active, if AutoQ Off)"}})	
-	self.Menu.Clear.Last:MenuElement({id = "UseQ", name = "LastHit[Q]", value = true})	
-	self.Menu.Clear:MenuElement({id = "UseW", name = "[W]", value = true})
-	self.Menu.Clear:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
-	self.Menu.Clear:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
-	
-	--JungleClear Menu
-	self.Menu:MenuElement({type = MENU, id = "JClear", name = "JungleClear"})
-	self.Menu.JClear:MenuElement({id = "UseQ", name = "LastHit[Q]", value = true})	
-	self.Menu.JClear:MenuElement({id = "UseW", name = "[W]", value = true})
-	self.Menu.JClear:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
-	self.Menu.JClear:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})	
-	
-	--LastHitMode Menu
-	self.Menu:MenuElement({type = MENU, id = "LastHit", name = "LastHitMode"})
-	self.Menu.LastHit:MenuElement({name = " ", drop = {"Is only active, if AutoQ Off)"}})	
-	self.Menu.LastHit:MenuElement({id = "UseQ", name = "LastHit[Q]", value = true})	
-	self.Menu.LastHit:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
-	self.Menu.LastHit:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})	
-	self.Menu.LastHit:MenuElement({id = "Active", name = "LastHit Key", key = string.byte("X")})	
-	
-	--KillSteal
-	self.Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
-	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})
-	self.Menu.ks:MenuElement({id = "UseW", name = "[W]", value = true})	
-	self.Menu.ks:MenuElement({id = "UseR", name = "[R]", value = true})	
-	
 	--Prediction
-	self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
-	self.Menu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 1, drop = {"Normal", "High", "Immobile"}})
-	self.Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})
-	self.Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.MiscSet:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
+	self.Menu.MiscSet.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 1, drop = {"Normal", "High", "Immobile"}})
+	self.Menu.MiscSet.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})
+	self.Menu.MiscSet.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})	
  
 	--Drawing 
-	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
-	self.Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
-	self.Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
-	self.Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})
-	self.Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
-	self.Menu.Drawing:MenuElement({id = "Draw", name = "Draw [Kill him] Text", value = true})	
-
-	
+	self.Menu.MiscSet:MenuElement({type = MENU, id = "Drawing", name = "Drawings Mode"})
+	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
+	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
+	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})
+	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
+	self.Menu.MiscSet.Drawing:MenuElement({type = MENU, id = "XY", name = "Text Pos Settings"})	
+	self.Menu.MiscSet.Drawing.XY:MenuElement({id = "x", name = "Pos: [X]", value = 0, min = 0, max = 1500, step = 10})
+	self.Menu.MiscSet.Drawing.XY:MenuElement({id = "y", name = "Pos: [Y]", value = 0, min = 0, max = 860, step = 10})	
 	
 end	
 
 function Irelia:Tick()
-	
-if MyHeroReady() then
+if MyHeroNotReady() then return end
 
 local Mode = GetMode()
 		if Mode == "Combo" then
-			if self.Menu.Burst.Start:Value() and myHero.levelData.lvl <= self.Menu.Burst.Lvl:Value() then
+			if self.Menu.ComboSet.Burst.Start:Value() and myHero.levelData.lvl <= self.Menu.ComboSet.Burst.Lvl:Value() then
 				self:Combo()
 			end
-			if not self.Menu.Burst.Start:Value() then
+			if not self.Menu.ComboSet.Burst.Start:Value() then
 				self:Combo()
 			end	
 		elseif Mode == "Harass" then
@@ -651,27 +678,31 @@ local Mode = GetMode()
 		elseif Mode == "Flee" then
 			self:Flee()
 		elseif Mode == "LastHit" then
-				if self.Menu.LastHit.Active:Value() then
+				if self.Menu.ClearSet.LastHit.Active:Value() then
 				self:LastHit()	
 			end
 		end
-	if self.Menu.WSet.UseW:Value() and Ready(_W) then
+	
+	self:KillSteal()
+	self:CastE2()
+
+	if self.Menu.ClearSet.AutoQ.Q:Value() and Mode ~= "Combo" then
+		self:AutoQ()
+	end	
+
+	if self.Menu.MiscSet.WSet.UseW:Value() and Ready(_W) then
 		self:OnProcessSpell()
 		for i, spell in pairs(self.DetectedSpells) do
 			self:UseW(i, spell)
 		end
 	end
-		
-	self:KillSteal()
-	self:CastE2()
-	if self.Menu.AutoQ.Q:Value() and Mode ~= "Combo" then
-		self:AutoQ()
-	end	
 	
 	local target = GetTarget(1100)     	
 	if target == nil then return end	
-	if Mode == "Combo" and IsValid(target) and self.Menu.Burst.Start:Value() and myHero.levelData.lvl >= self.Menu.Burst.Lvl:Value() then
-	local QDmg = getdmg("Q", target, myHero)	
+	if Mode == "Combo" and IsValid(target) and self.Menu.ComboSet.Burst.Start:Value() and myHero.levelData.lvl >= self.Menu.ComboSet.Burst.Lvl:Value() then
+	local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	
+	local time = 600 / (1500+myHero.ms) 
+	local hp = _G.SDK.HealthPrediction:GetPrediction(target, time)	
 		if myHero.pos:DistanceTo(target.pos) <= 775 and myHero:GetSpellData(_E).name == "IreliaE2" then
 			local aimpos = GetPred(target,math.huge,0.25+ Game.Latency()/1000)
 			if aimpos then
@@ -686,22 +717,22 @@ local Mode = GetMode()
 			Control.CastSpell(HK_E, myHero.pos)
 		end
 		
-		if myHero.pos:DistanceTo(target.pos) <= 625 and Ready(_Q) and GotBuff(target, "ireliamark") == 1 then
-			Control.CastSpell(HK_Q, target.pos)
+		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and GotBuff(target, "ireliamark") == 1 then
+			CastSpell(HK_Q, target.pos, 600, 0.3)
 		end		
 
 		if myHero.pos:DistanceTo(target.pos) <= 400 and Ready(_W) and not Ready(_E) then					
-				Control.CastSpell(HK_W, target)
+			Control.CastSpell(HK_W, target)
 		end
 		
-		if myHero.pos:DistanceTo(target.pos) <= 1000 and Ready(_R) and not Ready(_W) and Ready(_Q) and QDmg < target.health then
+		if myHero.pos:DistanceTo(target.pos) <= 950 and myHero.pos:DistanceTo(target.pos) > 300 and Ready(_R) and Ready(_Q) and QDmg*2 < target.health then
 			self:CastR(target)
 		end	
 
-		if myHero.pos:DistanceTo(target.pos) <= 625 and Ready(_Q) then
+		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
 			 
-			if QDmg >= target.health then
-				Control.CastSpell(HK_Q, target.pos)	
+			if hp > 0 and QDmg > target.health then
+				CastSpell(HK_Q, target.pos, 600, 0.3)	
 			end
 		end	
 		
@@ -721,14 +752,66 @@ local Mode = GetMode()
 				end	
 			end
 		end
-		self:UseHydraminion(target)
 		self:Gapclose(target)
-		self:StackPassive(target)	
-	end	
+		self:UseHydraminion(target)
+		if myHero:GetSpellData(_E).name == "IreliaE2" then return end
+		self:StackPassive(target)
 	
-	end
+	end	
 end
 
+function Irelia:CalcExtraDmg(unit)
+	total = 0
+	
+	local Trinity = GetInventorySlotItem(3078)
+	local Sheen = GetInventorySlotItem(1027)	
+	local hydra = CheckTitan(3748)	
+	local Passive = GotBuff(myHero, "ireliapassivestacksmax")
+	local TrinDmg = CalcPhysicalDamage(myHero, unit, 2 * (myHero.totalDamage - myHero.bonusDamage))
+	local PassiveDmg = CalcMagicalDamage(myHero, unit, (12 + 3 * myHero.levelData.lvl) + (0.25 * myHero.bonusDamage))	
+	local SheenDmg = CalcPhysicalDamage(myHero, unit, myHero.totalDamage - myHero.bonusDamage)
+	local hydraDmg = CalcPhysicalDamage(myHero, unit, 5 + 0.01 * myHero.maxHealth)
+	
+	if Trinity == nil and Sheen == nil and Passive == 0 then
+		total = 0
+	end
+	if Trinity == nil and Sheen == nil and Passive == 1 then
+		total = PassiveDmg
+	end
+		
+	if Trinity == nil and Sheen == nil and hydra == nil then return total end
+	
+	if Trinity == nil and Sheen and hydra == nil and Passive == 0 then
+		total = SheenDmg
+	end
+	if Trinity and Sheen == nil and hydra == nil and Passive == 0 then
+		total = TrinDmg
+	end
+	if Trinity == nil and Sheen == nil and hydra and Passive == 0 then
+		total = hydraDmg
+	end	
+	
+	
+	if Trinity == nil and Sheen and hydra == nil and Passive == 1 then
+		total = SheenDmg + PassiveDmg
+	end	
+	if Trinity and Sheen == nil and hydra == nil and Passive == 1 then
+		total = TrinDmg + PassiveDmg
+	end
+	if Trinity == nil and Sheen == nil and hydra and Passive == 1 then
+		total = hydraDmg + PassiveDmg
+	end	
+	
+	
+	if Trinity == nil and Sheen and hydra and Passive == 1 then
+		total = SheenDmg + PassiveDmg + hydraDmg
+	end	
+	if Trinity and Sheen == nil and hydra and Passive == 1 then
+		total = TrinDmg + PassiveDmg + hydraDmg
+	end	
+	return total
+		
+end
 
 function Irelia:UseW(i, s)
 	local startPos = s.startPos; local endPos = s.endPos; local travelTime = 0
@@ -758,7 +841,7 @@ end
 function Irelia:OnProcessSpell()
 	local unit, spell = OnProcessSpell()
 	if unit and spell and DangerousSpells[spell.name] then
-		if GetDistance(unit.pos, myHero.pos) > 3500 or not self.Menu.WSet.BlockList["Dodge"..spell.name]:Value() then return end
+		if GetDistance(unit.pos, myHero.pos) > 3500 or not self.Menu.MiscSet.WSet.BlockList["Dodge"..spell.name]:Value() then return end
 		local Detected = DangerousSpells[spell.name]
 		local type = Detected.type
 		if type == "targeted" then
@@ -790,16 +873,16 @@ end
 function Irelia:Draw()
   if myHero.dead then return end
 	
-	if self.Menu.Drawing.DrawR:Value() and Ready(_R) then
-    Draw.Circle(myHero, 900, 1, Draw.Color(255, 225, 255, 10))
+	if self.Menu.MiscSet.Drawing.DrawR:Value() and Ready(_R) then
+    Draw.Circle(myHero, 950, 1, Draw.Color(255, 225, 255, 10))
 	end                                                 
-	if self.Menu.Drawing.DrawQ:Value() and Ready(_Q) then
+	if self.Menu.MiscSet.Drawing.DrawQ:Value() and Ready(_Q) then
     Draw.Circle(myHero, 600, 1, Draw.Color(225, 225, 0, 10))
 	end
-	if self.Menu.Drawing.DrawE:Value() and Ready(_E) then
+	if self.Menu.MiscSet.Drawing.DrawE:Value() and Ready(_E) then
     Draw.Circle(myHero, 775, 1, Draw.Color(225, 225, 125, 10))
 	end
-	if self.Menu.Drawing.DrawW:Value() and Ready(_W) then
+	if self.Menu.MiscSet.Drawing.DrawW:Value() and Ready(_W) then
     Draw.Circle(myHero, 825, 1, Draw.Color(225, 225, 125, 10))
 	end
 	local textPos = myHero.dir	
@@ -807,46 +890,36 @@ function Irelia:Draw()
 		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 	end	
 	
-	if self.Menu.Burst.Draw:Value() then
-		Draw.Text("Burst Mode: ", 15, textPos.x + 1026, textPos.y + 30, Draw.Color(255, 225, 255, 0))
-		if self.Menu.Burst.Start:Value() then
-			if myHero.levelData.lvl >= self.Menu.Burst.Lvl:Value() then
-				Draw.Text("Active", 15, textPos.x + 1100, textPos.y + 30, Draw.Color(255, 0, 255, 0))
+	if self.Menu.ComboSet.Burst.Draw:Value() then
+		Draw.Text("Burst Mode: ", 15, self.Menu.MiscSet.Drawing.XY.x:Value(), self.Menu.MiscSet.Drawing.XY.y:Value()+30, Draw.Color(255, 225, 255, 0))
+		if self.Menu.ComboSet.Burst.Start:Value() then
+			if myHero.levelData.lvl >= self.Menu.ComboSet.Burst.Lvl:Value() then
+				Draw.Text("Active", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+74, self.Menu.MiscSet.Drawing.XY.y:Value()+30, Draw.Color(255, 0, 255, 0))
 			else
-				Draw.Text("Level too low", 15, textPos.x + 1100, textPos.y + 30, Draw.Color(255, 255, 0, 0)) 
+				Draw.Text("Level too low", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+74, self.Menu.MiscSet.Drawing.XY.y:Value()+30, Draw.Color(255, 255, 0, 0)) 
 			end
 		else
-			Draw.Text("OFF", 15, textPos.x + 1100, textPos.y + 30, Draw.Color(255, 255, 0, 0)) 
+			Draw.Text("OFF", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+74, self.Menu.MiscSet.Drawing.XY.y:Value()+30, Draw.Color(255, 255, 0, 0)) 
 		end
 	end
 
-	if self.Menu.AutoQ.UseQ:Value() and self.Menu.AutoQ.Draw:Value() then 
-		Draw.Text("Auto[Q] Minion: ", 15, textPos.x + 1004, textPos.y + 15, Draw.Color(255, 225, 255, 0))
-		if self.Menu.AutoQ.Q:Value() then 
-			Draw.Text("ON", 15, textPos.x + 1100, textPos.y + 15, Draw.Color(255, 0, 255, 0))
+	if self.Menu.ClearSet.AutoQ.UseQ:Value() and self.Menu.ClearSet.AutoQ.Draw:Value() then 
+		Draw.Text("Auto[Q] Minion: ", 15, self.Menu.MiscSet.Drawing.XY.x:Value(), self.Menu.MiscSet.Drawing.XY.y:Value()+15, Draw.Color(255, 225, 255, 0))
+		if self.Menu.ClearSet.AutoQ.Q:Value() then 
+			Draw.Text("ON", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+96, self.Menu.MiscSet.Drawing.XY.y:Value()+15, Draw.Color(255, 0, 255, 0))
 		else
-			Draw.Text("OFF", 15, textPos.x + 1100, textPos.y + 15, Draw.Color(255, 255, 0, 0)) 
+			Draw.Text("OFF", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+96, self.Menu.MiscSet.Drawing.XY.y:Value()+15, Draw.Color(255, 255, 0, 0)) 
 		end	
 	end	
 
-	if self.Menu.Combo.Draw:Value() then
-		Draw.Text(" Last Combo[Q]: ", 15, textPos.x + 1000, textPos.y + 0, Draw.Color(255, 225, 255, 0))
-		if self.Menu.Combo.QLogic:Value() then
-			Draw.Text("Almost Kill", 15, textPos.x + 1100, textPos.y + 0, Draw.Color(255, 0, 255, 0))
+	if self.Menu.ComboSet.Combo.Draw:Value() then
+		Draw.Text(" Last[Q] Combo Mode: ", 15, self.Menu.MiscSet.Drawing.XY.x:Value()-3, self.Menu.MiscSet.Drawing.XY.y:Value(), Draw.Color(255, 225, 255, 0))
+		if self.Menu.ComboSet.Combo.QLogic:Value() then
+			Draw.Text("Almost Kill", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+132, self.Menu.MiscSet.Drawing.XY.y:Value(), Draw.Color(255, 0, 255, 0))
 		else
-			Draw.Text("Kill", 15, textPos.x + 1100, textPos.y + 0, Draw.Color(255, 0, 255, 0)) 
+			Draw.Text("Kill", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+132, self.Menu.MiscSet.Drawing.XY.y:Value(), Draw.Color(255, 0, 255, 0)) 
 		end	
 	end		
-	
-	local target = GetTarget(1000)
-	if target == nil then return end	
-	if target and self.Menu.Drawing.Draw:Value() and myHero.pos:DistanceTo(target.pos) <= 1000 and not target.dead then
-	local Dmg = ((getdmg("Q", target, myHero)*3) + getdmg("W", target, myHero) + getdmg("E", target, myHero) + getdmg("R", target, myHero)) 
-	local hp = target.health	
-		if myHero:GetSpellData(_Q).level > 0 and myHero:GetSpellData(_W).level > 0 and myHero:GetSpellData(_E).level > 0 and myHero:GetSpellData(_R).level > 0 and Dmg > hp then
-			Draw.Text("KILL HIM", 20, target.pos2D.x, target.pos2D.y, Draw.Color(255, 255, 0, 0))
-		end	
-	end
 end
 
 function Irelia:Combo()
@@ -855,15 +928,15 @@ if target == nil then return end
 	if IsValid(target) then
 		local count = GetEnemyCount(600, target)
 		countR = false
-		if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= 1000 and self.Menu.Combo.UseRCount:Value() then
-			if count >= self.Menu.Combo.RCount:Value() then					
+		if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= 950 and self.Menu.ComboSet.Combo.UseRCount:Value() then
+			if count >= self.Menu.ComboSet.Combo.RCount:Value() then					
 				countR = true
 				self:CastR(target)
 
 			end
 		end			
 		
-		if self.Menu.Combo.UseE:Value() and Ready(_E) then
+		if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) then
 			if myHero.pos:DistanceTo(target.pos) <= 725 then					
 				self:CastE(target)
 
@@ -871,49 +944,54 @@ if target == nil then return end
 		end	
 			
 		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and GotBuff(target, "ireliamark") == 1 then
-			Control.CastSpell(HK_Q, target.pos)
+			CastSpell(HK_Q, target.pos, 600, 0.3)	
+			
 		end
 		
-		if self.Menu.Combo.UseW:Value() and Ready(_W) then
+		if self.Menu.ComboSet.Combo.UseW:Value() and Ready(_W) then
 			if myHero.pos:DistanceTo(target.pos) <= 825 then					
 				Control.CastSpell(HK_W, target)
 
 			end
 		end	
 		
-		if self.Menu.Combo.UseR:Value() and Ready(_R) and not Ready(_W) then
-			if myHero.pos:DistanceTo(target.pos) <= 1000 and not countR then					
+		if self.Menu.ComboSet.Combo.UseR:Value() and Ready(_R) and not Ready(_W) then
+			if myHero.pos:DistanceTo(target.pos) <= 950 and not countR then					
 				self:CastR(target)
 
 			end
 		end			
 		
-		if self.Menu.Combo.QLogic:Value() then 
-		local dmg = getdmg("Q", target, myHero) 
+		if self.Menu.ComboSet.Combo.QLogic:Value() then 
+		local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	
+		local time = 600 / (1500+myHero.ms) 
+		local hp = _G.SDK.HealthPrediction:GetPrediction(target, time)
 			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
-				if dmg >= target.health then
-					Control.CastSpell(HK_Q, target.pos)
+				if hp > 0 and QDmg > target.health then
+					CastSpell(HK_Q, target.pos, 600, 0.3)	
 				end
 			end			
 			
-			if myHero.pos:DistanceTo(target.pos) >= 300 and myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and (dmg*2) >= target.health then
-				Control.CastSpell(HK_Q, target.pos)
+			if myHero.pos:DistanceTo(target.pos) >= 300 and myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and (QDmg*2) >= target.health then
+				CastSpell(HK_Q, target.pos, 600, 0.3)
 			end		
 		
 		else
-			local dmg = getdmg("Q", target, myHero) 
+			local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	
+			local time = 600 / (1500+myHero.ms) 
+			local hp = _G.SDK.HealthPrediction:GetPrediction(target, time) 
 			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
-				if dmg >= target.health then
-					Control.CastSpell(HK_Q, target.pos)
+				if hp > 0 and QDmg > target.health then
+					CastSpell(HK_Q, target.pos, 600, 0.3)	
 				end
 			end
 		end
 		
-		if self.Menu.Combo.Gap:Value() then
+		if self.Menu.ComboSet.Combo.Gap:Value() then
 			self:Gapclose(target)
 		end	
-		
-		if self.Menu.Combo.Stack:Value() then
+		if myHero:GetSpellData(_E).name == "IreliaE2" then return end
+		if self.Menu.ComboSet.Combo.Stack:Value() then
 			self:StackPassive(target)
 		end	
 	end	
@@ -921,18 +999,18 @@ end
 
 function Irelia:Harass()
 local target = GetTarget(1100)     	
-if target == nil then return end
+if target == nil then return end 
 	if IsValid(target) then
 				
 		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
 			if self.Menu.Harass.UseQ:Value() ~= 2 and GotBuff(target, "ireliamark") == 1 then
-				Control.CastSpell(HK_Q, target.pos)
+				CastSpell(HK_Q, target.pos, 600, 0.3)
 				DelayAction(function()
 				self:CastQMinion(target)
 				end,0.5)
 			end	
 			if self.Menu.Harass.UseQ:Value() ~= 1 then
-				Control.CastSpell(HK_Q, target.pos)
+				CastSpell(HK_Q, target.pos, 600, 0.3)
 			end	
 		end
 		
@@ -951,45 +1029,57 @@ if target == nil then return end
 	end	
 end
 
+
+
 function Irelia:LastHit()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
 
 		if minion.team == TEAM_ENEMY and IsValid(minion) then
-			if self.Menu.LastHit.UseItem:Value() then
+			if self.Menu.ClearSet.LastHit.UseItem:Value() then
 				self:UseHydraminion(minion)
 			end	
             
-			if self.Menu.LastHit.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.LastHit.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
-                local QDmg = getdmg("Q", minion, myHero, 2)
-				if QDmg > minion.health and not IsUnderTurret(minion) then
-					Control.CastSpell(HK_Q, minion.pos)
-				end
-				if QDmg > minion.health and IsUnderTurret(minion) and AllyMinionUnderTower() then
-					Control.CastSpell(HK_Q, minion.pos)
-				end
+			if self.Menu.ClearSet.LastHit.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.LastHit.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
+			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
+			local time = 600 / (1500+myHero.ms) 
+			local hp = _G.SDK.HealthPrediction:GetPrediction(minion, time)
+
+				if hp > 0 and QDmg > minion.health and not IsUnderTurret(minion) then	
+					CastSpell(HK_Q, minion.pos, 600, 0.3)
+				end	
+
+				if hp > 0 and QDmg > minion.health and IsUnderTurret(minion) and AllyMinionUnderTower() then
+					CastSpell(HK_Q, minion.pos, 600, 0.3)
+
+				end	
             end
 		end
 	end
-end
-	
+end	
+
 function Irelia:AutoQ()
 	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
+    local minion = Game.Minion(i) 
 
-		if minion.team == TEAM_ENEMY and IsValid(minion) then
-			if self.Menu.AutoQ.UseItem:Value() then
+		if minion.team == TEAM_ENEMY then
+			if self.Menu.ClearSet.AutoQ.UseItem:Value() then
 				self:UseHydraminion(minion)
 			end	
             
-			if self.Menu.AutoQ.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.AutoQ.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
-                local QDmg = getdmg("Q", minion, myHero, 2)
-				if QDmg > minion.health and not IsUnderTurret(minion) then
-					Control.CastSpell(HK_Q, minion.pos)
-				end
-				if QDmg > minion.health and IsUnderTurret(minion) and AllyMinionUnderTower() then
-					Control.CastSpell(HK_Q, minion.pos)
-				end
+			if self.Menu.ClearSet.AutoQ.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.AutoQ.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
+			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
+			local time = 600 / (1500+myHero.ms) 
+			local hp = _G.SDK.HealthPrediction:GetPrediction(minion, time)
+
+				if hp > 0 and QDmg > minion.health and not IsUnderTurret(minion) then	
+					CastSpell(HK_Q, minion.pos, 600, 0.3)
+				end	
+
+				if hp > 0 and QDmg > minion.health and IsUnderTurret(minion) and AllyMinionUnderTower() then
+					CastSpell(HK_Q, minion.pos, 600, 0.3)
+
+				end	
             end
 		end
 	end
@@ -1000,11 +1090,14 @@ if GotBuff(myHero, "ireliapassivestacksmax") == 1 then return end
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
 
-		if minion.team == TEAM_ENEMY and IsValid(minion) then
+		if minion.team == TEAM_ENEMY then
 			if target.pos:DistanceTo(minion.pos) <= 400 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
-				local QDmg = getdmg("Q", minion, myHero, 2)
-				if QDmg > minion.health then
-					Control.CastSpell(HK_Q, minion.pos)
+			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
+			local time = 600 / (1500+myHero.ms) 
+			local hp = _G.SDK.HealthPrediction:GetPrediction(minion, time)
+				if hp > 0 and QDmg > minion.health then
+					CastSpell(HK_Q, minion.pos, 600, 0.3)
+
 				end
 			end
 			self:UseHydraminion(minion)
@@ -1018,19 +1111,21 @@ function Irelia:JungleClear()
 
 		if minion.team == TEAM_JUNGLE and IsValid(minion) then
  			
-			if myHero.pos:DistanceTo(minion.pos) <= 825 and self.Menu.JClear.UseW:Value() and Ready(_W) and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 then
+			if myHero.pos:DistanceTo(minion.pos) <= 825 and self.Menu.ClearSet.JClear.UseW:Value() and Ready(_W) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 then
 				Control.CastSpell(HK_W, minion.pos)
                     
             end           
            
-			if self.Menu.JClear.UseItem:Value() then
+			if self.Menu.ClearSet.JClear.UseItem:Value() then
 				self:UseHydraminion(minion)
 			end				
 			
-			if myHero.pos:DistanceTo(minion.pos) <= 600 and self.Menu.JClear.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.JClear.Mana:Value() / 100 and Ready(_Q) then
-				local QDmg = getdmg("Q", minion, myHero)
-				if QDmg > minion.health then
-					Control.CastSpell(HK_Q, minion.pos)
+			if myHero.pos:DistanceTo(minion.pos) <= 600 and self.Menu.ClearSet.JClear.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 and Ready(_Q) then
+			local QDmg = getdmg("Q", minion, myHero) + self:CalcExtraDmg(minion)
+			local time = 600 / (1500+myHero.ms) 
+			local hp = _G.SDK.HealthPrediction:GetPrediction(minion, time)
+				if hp > 0 and QDmg > minion.health then
+					CastSpell(HK_Q, minion.pos, 600, 0.3)
 				end				
 			end
         end
@@ -1043,23 +1138,29 @@ function Irelia:Clear()
 
 		if minion.team == TEAM_ENEMY and IsValid(minion) then
  			
-			if myHero.pos:DistanceTo(minion.pos) <= 825 and self.Menu.Clear.UseW:Value() and Ready(_W) and not Ready(_Q) and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 then
+			if myHero.pos:DistanceTo(minion.pos) <= 825 and self.Menu.ClearSet.Clear.UseW:Value() and Ready(_W) and not Ready(_Q) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.Clear.Mana:Value() / 100 then
 				Control.CastSpell(HK_W, minion.pos)
                     
-            end           
+            end 
+
            
-			if self.Menu.AutoQ.Q:Value() then return end
-			if self.Menu.Clear.UseItem:Value() then
+			if self.Menu.ClearSet.AutoQ.Q:Value() then return end
+			if self.Menu.ClearSet.Clear.UseItem:Value() then
 				self:UseHydraminion(minion)
 			end				
 			
-			if myHero.pos:DistanceTo(minion.pos) <= 600 and self.Menu.Clear.Last.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.Clear.Mana:Value() / 100 and Ready(_Q) then
-				local QDmg = getdmg("Q", minion, myHero, 2)
-				if QDmg > minion.health and not IsUnderTurret(minion) then
-					Control.CastSpell(HK_Q, minion.pos)
+			if myHero.pos:DistanceTo(minion.pos) <= 600 and self.Menu.ClearSet.Clear.Last.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.Clear.Mana:Value() / 100 and Ready(_Q) then
+			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
+			local time = 600 / (1500+myHero.ms) 
+			local hp = _G.SDK.HealthPrediction:GetPrediction(minion, time)
+
+				if hp > 0 and QDmg > minion.health and not IsUnderTurret(minion) then	
+					CastSpell(HK_Q, minion.pos, 600, 0.3)
 				end	
-				if QDmg > minion.health and IsUnderTurret(minion) and AllyMinionUnderTower() then
-					Control.CastSpell(HK_Q, minion.pos)
+
+				if hp > 0 and QDmg > minion.health and IsUnderTurret(minion) and AllyMinionUnderTower() then
+					CastSpell(HK_Q, minion.pos, 600, 0.3)
+
 				end				
 			end
         end
@@ -1073,10 +1174,11 @@ function Irelia:KillSteal()
 	
 	if IsValid(target) then	
 		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and self.Menu.ks.UseQ:Value() then
-			local QDmg = getdmg("Q", target, myHero)
-			local hp = target.health
-			if QDmg >= hp then
-				Control.CastSpell(HK_Q, target.pos)
+			local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	
+			local time = 600 / (1500+myHero.ms) 
+			local hp = _G.SDK.HealthPrediction:GetPrediction(target, time) 
+			if hp > 0 and QDmg > target.health then
+				CastSpell(HK_Q, target.pos, 600, 0.3)
 				DelayAction(function()
 				self:CastQMinion(target)
 				end,0.5)
@@ -1089,7 +1191,7 @@ function Irelia:KillSteal()
 				self:CastW(target)
 			end
 		end	
-		if myHero.pos:DistanceTo(target.pos) <= 1000 and Ready(_R) and self.Menu.ks.UseR:Value() then
+		if myHero.pos:DistanceTo(target.pos) <= 950 and Ready(_R) and self.Menu.ks.UseR:Value() then
 			local RDmg = getdmg("R", target, myHero)
 			local hp = target.health
 			if RDmg >= hp then
@@ -1103,12 +1205,14 @@ function Irelia:CastQMinion(target)
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
 
-		if minion.team == TEAM_ENEMY and IsValid(minion) then
+		if minion.team == TEAM_ENEMY then
 			local Dmg = getdmg("Q", target, myHero) or getdmg("W", target, myHero) or getdmg("E", target, myHero) or getdmg("R", target, myHero)
-			local QDmg = getdmg("Q", minion, myHero, 2)
-			local hp = target.health
-			if myHero.pos:DistanceTo(minion.pos) <= 600 and myHero.pos:DistanceTo(minion.pos) > myHero.pos:DistanceTo(target.pos) and not IsUnderTurret(minion) and hp > Dmg and QDmg >= minion.health then
-				Control.CastSpell(HK_Q, minion.pos)
+			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
+			local time = 600 / (1500+myHero.ms) 
+			local hp = _G.SDK.HealthPrediction:GetPrediction(minion, time)
+			if myHero.pos:DistanceTo(minion.pos) <= 600 and myHero.pos:DistanceTo(minion.pos) > myHero.pos:DistanceTo(target.pos) and not IsUnderTurret(minion) and target.health > Dmg and hp > 0 and QDmg > minion.health then
+				CastSpell(HK_Q, minion.pos, 600, 0.3)
+				
 			end
 		end
 	end
@@ -1118,36 +1222,38 @@ function Irelia:Gapclose(target)
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
 	
-		if Ready(_Q) and minion.team == TEAM_ENEMY and IsValid(minion) then
-			if myHero.pos:DistanceTo(minion.pos) <= 600 and myHero.pos:DistanceTo(target.pos) > myHero.pos:DistanceTo(minion.pos) and target.pos:DistanceTo(minion.pos) <= 600 then
-				local QDmg = getdmg("Q", minion, myHero, 2)
-				if QDmg >= minion.health then
-					Control.CastSpell(HK_Q, minion.pos)
-				end
-			end	
+		if Ready(_Q) and minion.team == TEAM_ENEMY then
+			if GetDistanceSqr(minion.pos, myHero.pos) <= 600*600 and GetDistanceSqr(target.pos, myHero.pos) > GetDistanceSqr(minion.pos, target.pos) and GetDistanceSqr(target.pos, minion.pos) <= 600*600 then
+			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
+			local time = 600 / (1500+myHero.ms) 
+			local hp = _G.SDK.HealthPrediction:GetPrediction(minion, time)
+				if hp > 0 and QDmg > minion.health then
+					CastSpell(HK_Q, minion.pos, 600, 0.3)
+				end		
+			end
 		end
 	end	
 end	
-	
 
 function Irelia:CastW(target)
-    if target then
-        if not charging and GotBuff(myHero, "ireliawdefense") == 0 then
+    if target and GetDistanceSqr(target.pos, myHero.pos) < 825 * 825 then
+	local aim = GetPred(target,1400,0.6)
+   
+		if not charging and GotBuff(myHero, "ireliawdefense") == 0 then
             Control.KeyDown(HK_W)
             wClock = clock()
             settime = clock()
             charging = true
         end
-		local pred = GetGamsteronPrediction(target, WData, myHero)
-		if pred.Hitchance >= self.Menu.Pred.PredR:Value() + 1 then
-			if GotBuff(myHero, "ireliawdefense") == 1 and (target.pos:DistanceTo() > 600) then
-				Control.CastSpell(HK_W, pred.CastPosition)
-				charging = false
-			elseif GotBuff(myHero, "ireliawdefense") == 1 and clock() - wClock >= 0.5 and target.pos:DistanceTo() < 825 then
-				Control.CastSpell(HK_W, pred.CastPosition)
-				charging = false
-			end		
-        end
+		
+		if GotBuff(myHero, "ireliawdefense") == 1 and (target.pos:DistanceTo(myHero.pos) > 600) then
+			Control.CastSpell(HK_W, aim)
+			charging = false
+		elseif GotBuff(myHero, "ireliawdefense") == 1 and clock() - wClock >= 0.5 and target.pos:DistanceTo(myHero.pos) < 825 then
+			Control.CastSpell(HK_W, aim)
+			charging = false
+		end		
+        
         
         
     end
@@ -1160,15 +1266,17 @@ end
 function Irelia:Flee()
     local target = GetTarget(1100)     	
 	if target == nil then return end
-	if self.Menu.Flee.Q:Value() then
+	if self.Menu.MiscSet.Flee.Q:Value() then
 		if target.pos:DistanceTo(myHero.pos) < 1000 then
 			if Ready(_Q) then
 				for i = 1, Game.MinionCount() do
 				local minion = Game.Minion(i)
-					if minion.team == TEAM_ENEMY and IsValid(minion) then
-						local QDmg = getdmg("Q", minion, myHero, 2)
-						if minion.pos:DistanceTo(myHero.pos) <= 600 and target.pos:DistanceTo(myHero.pos) < minion.pos:DistanceTo(target.pos) and QDmg > minion.health then
-							Control.CastSpell(HK_Q, minion.pos)
+					if minion.team == TEAM_ENEMY then
+					local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
+					local time = 600 / (1500+myHero.ms) 
+					local hp = _G.SDK.HealthPrediction:GetPrediction(minion, time)
+						if minion.pos:DistanceTo(myHero.pos) <= 600 and target.pos:DistanceTo(myHero.pos) < minion.pos:DistanceTo(target.pos) and hp > 0 and QDmg > minion.health then
+							CastSpell(HK_Q, minion.pos, 600, 0.3)
 						end
 					end	
                 end
@@ -1234,7 +1342,7 @@ end
 
 function Irelia:CastE2()
 local target = GetTarget(1100)
-	if IsValid(target) and self.Menu.AutoE.UseE:Value() and Ready(_E) then
+	if IsValid(target) and self.Menu.MiscSet.AutoE.UseE:Value() and Ready(_E) then
 		local startPos, endPos, count = self:GetBestECastPositions(target)
 		if startPos and endPos then 
 			local cast1, cast2 = self:LineCircleIntersection(startPos, endPos, myHero.pos, 725)
@@ -1254,14 +1362,14 @@ local target = GetTarget(1100)
 	end	
 end	
 
-function Irelia:CastE(target)
+function Irelia:CastE(unit)
 
     if myHero:GetSpellData(_E).name == "IreliaE" then
 		Control.CastSpell(HK_E, myHero.pos)
     end
 	
     if myHero:GetSpellData(_E).name == "IreliaE2" then
-        local aimpos = GetPred(target,math.huge,0.25+ Game.Latency()/1000)
+        local aimpos = GetPred(unit,math.huge,0.25+ Game.Latency()/1000)
 		if aimpos then
 		Epos = aimpos + (myHero.pos - aimpos): Normalized() * -150
 			DisableMovement(true)
@@ -1271,10 +1379,9 @@ function Irelia:CastE(target)
 	end
 end
 
-
 function Irelia:CastR(target)
 	local pred = GetGamsteronPrediction(target, RData, myHero)
-	if pred.Hitchance >= self.Menu.Pred.PredR:Value() + 1 then
+	if pred.Hitchance >= self.Menu.MiscSet.Pred.PredR:Value() + 1 then
 		Control.CastSpell(HK_R, pred.CastPosition)
 	end
 end	
