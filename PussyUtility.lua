@@ -1,7 +1,7 @@
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.01
+    local Version = 0.02
     
     local Files = {
         Lua = {
@@ -46,7 +46,7 @@ do
 
 end
 
-local gankAlert = MenuElement({id = "gaMenu", name = "PussyAwareness", type = MENU })
+local gankAlert = MenuElement({id = "gaMenu", name = "PussyUtility", type = MENU })
 	gankAlert:MenuElement({id = "gui", name = "Interface", type = MENU })
 		gankAlert.gui:MenuElement({id = "drawGUI", name = "Draw Interface", value = true})
 		gankAlert.gui:MenuElement({id = "side", name = "Cd Tracker Left or Right Side", value = 2, drop = {"Left", "Right"}})		
