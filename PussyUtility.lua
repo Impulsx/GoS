@@ -265,7 +265,7 @@ DelayAction(function()
 			champSpriteSmall[hero.charName] = Sprite("Champions\\"..hero.charName..".png", 1)
 			champSpriteMini[hero.charName] = Sprite("Champions\\"..hero.charName..".png", .5)
 			champSpriteMiniC[hero.charName] = Sprite("Champions\\"..hero.charName..".png", .5)
-			invChamp[hero.networkID] = {champ = hero, lastTick = GetTickCount(), lastWP = Vector(0,0,0), lastPos = hero.pos or eBasePos, where = "will be added.", status = hero.visible, n = add, ApDmg = hero.ap, AdDmg = hero.bonusDamage }
+			invChamp[hero.networkID] = {champ = hero, lastTick = GetTickCount(), lastWP = Vector(0,0,0), lastPos = hero.pos or eBasePos, where = "will be added.", status = hero.visible, n = add, ApDmg = hero.ap, AdDmg = hero.totalDamage }
 			iCanSeeYou[hero.networkID] = {tick = 0, champ = hero, number = add, draw = false}
 			isRecalling[hero.networkID] = {status = false, tick = 0, proc = nil, spendTime = 0}
 			OnGainVision[hero.networkID] = {status = not hero.visible, tick = 0}
@@ -285,7 +285,7 @@ for i = 1, Game.HeroCount() do
 		champSpriteSmall[hero.charName] = Sprite("Champions\\"..hero.charName..".png", 1)
 		champSpriteMini[hero.charName] = Sprite("Champions\\"..hero.charName..".png", .5)
 		champSpriteMiniC[hero.charName] = Sprite("Champions\\"..hero.charName..".png", .5)
-		invChamp[hero.networkID] = {champ = hero, lastTick = GetTickCount(), lastWP = Vector(0,0,0), lastPos = hero.pos or eBasePos, where = "will be added.", status = hero.visible, n = add, ApDmg = hero.ap, AdDmg = hero.bonusDamage }
+		invChamp[hero.networkID] = {champ = hero, lastTick = GetTickCount(), lastWP = Vector(0,0,0), lastPos = hero.pos or eBasePos, where = "will be added.", status = hero.visible, n = add, ApDmg = hero.ap, AdDmg = hero.totalDamage }
 		iCanSeeYou[hero.networkID] = {tick = 0, champ = hero, number = add, draw = false}																	
 		isRecalling[hero.networkID] = {status = false, tick = 0, proc = nil, spendTime = 0}
 		OnGainVision[hero.networkID] = {status = not hero.visible, tick = 0}
@@ -293,6 +293,7 @@ for i = 1, Game.HeroCount() do
 		newExp[hero.networkID] = 0
 		table.insert(enemies, hero)
 		eT[hero.networkID] = {champ = hero, fow = 0, saw = 0,}
+
 	end
 end
 
@@ -594,6 +595,8 @@ end
 if gankAlert.gui.drawGUI:Value() then
 
 	for i,v in pairs(invChamp) do
+	
+		
 		if gankAlert.gui.side:Value() ~= 1 then
 			if v.ApDmg > v.AdDmg then
 				APGank:Draw(gankAlert.gui.x:Value() + 72,gankAlert.gui.y:Value() + 75*(v.n-1) + 47)
