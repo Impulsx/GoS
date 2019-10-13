@@ -113,6 +113,9 @@ end
 local FOWGank = Sprite("MovementTracker\\FOWGank.png")
 local APGank = Sprite("MovementTracker\\AP.png")
 local ADGank = Sprite("MovementTracker\\AD.png")
+local DEFGank = Sprite("MovementTracker\\DEF.png")
+local MRGank = Sprite("MovementTracker\\MR.png")
+local HPGank = Sprite("MovementTracker\\HP.png")
 local GankGUI = Sprite("MovementTracker\\GankGUI.png")
 local GankHP = Sprite("MovementTracker\\GankHP.png")
 local GankMANA = Sprite("MovementTracker\\GankMANA.png")
@@ -596,19 +599,34 @@ if gankAlert.gui.drawGUI:Value() then
 
 	for i,v in pairs(invChamp) do
 	
-		
+		--if v.ApDmg > v.AdDmg then
 		if gankAlert.gui.side:Value() ~= 1 then
-			if v.ApDmg > v.AdDmg then
-				APGank:Draw(gankAlert.gui.x:Value() + 72,gankAlert.gui.y:Value() + 75*(v.n-1) + 47)
-			else
-				ADGank:Draw(gankAlert.gui.x:Value() + 72,gankAlert.gui.y:Value() + 75*(v.n-1) + 47)
-			end	
+			--HPGank:Draw(gankAlert.gui.x:Value() + 72,gankAlert.gui.y:Value() + 75*(v.n-1) + 0)
+			--Draw.Text( math.floor(v.champ.health).." /" , 10, gankAlert.gui.x:Value() + 130,gankAlert.gui.y:Value() + 75*(v.n-1) + 2)
+			--Draw.Text( math.floor(v.champ.maxHealth), 10, gankAlert.gui.x:Value() + 160,gankAlert.gui.y:Value() + 75*(v.n-1) + 2)	
+
+			--Draw.Text( math.floor(v.champ.mana).." /" , 10, gankAlert.gui.x:Value() + 130,gankAlert.gui.y:Value() + 75*(v.n-1) + 14)
+			--Draw.Text( math.floor(v.champ.maxMana), 10, gankAlert.gui.x:Value() + 160,gankAlert.gui.y:Value() + 75*(v.n-1) + 14)			
+		
+			APGank:Draw(gankAlert.gui.x:Value() + 72,gankAlert.gui.y:Value() + 75*(v.n-1) + 31)
+			Draw.Text( math.floor(v.champ.ap) , 12, gankAlert.gui.x:Value() + 100,gankAlert.gui.y:Value() + 75*(v.n-1) + 31)
+			MRGank:Draw(gankAlert.gui.x:Value() + 137,gankAlert.gui.y:Value() + 75*(v.n-1) + 31)
+			Draw.Text( math.floor(v.champ.magicResist) , 12, gankAlert.gui.x:Value() + 170,gankAlert.gui.y:Value() + 75*(v.n-1) + 31)
+			
+			ADGank:Draw(gankAlert.gui.x:Value() + 72,gankAlert.gui.y:Value() + 75*(v.n-1) + 46)
+			Draw.Text( math.floor(v.champ.totalDamage) , 12, gankAlert.gui.x:Value() + 100,gankAlert.gui.y:Value() + 75*(v.n-1) + 46)
+			DEFGank:Draw(gankAlert.gui.x:Value() + 137,gankAlert.gui.y:Value() + 75*(v.n-1) + 46)
+			Draw.Text( math.floor(v.champ.armor) , 12, gankAlert.gui.x:Value() + 170,gankAlert.gui.y:Value() + 75*(v.n-1) + 46)			
 		else 
-			if v.ApDmg > v.AdDmg then
-				APGank:Draw(gankAlert.gui.x:Value() - 60,gankAlert.gui.y:Value() + 75*(v.n-1) + 47)
-			else
-				ADGank:Draw(gankAlert.gui.x:Value() - 60,gankAlert.gui.y:Value() + 75*(v.n-1) + 47)
-			end	
+			APGank:Draw(gankAlert.gui.x:Value() - 125,gankAlert.gui.y:Value() + 75*(v.n-1) + 31)
+			Draw.Text( math.floor(v.champ.ap) , 12, gankAlert.gui.x:Value() - 97,gankAlert.gui.y:Value() + 75*(v.n-1) + 31)
+			MRGank:Draw(gankAlert.gui.x:Value() - 60,gankAlert.gui.y:Value() + 75*(v.n-1) + 31)
+			Draw.Text( math.floor(v.champ.magicResist) , 12, gankAlert.gui.x:Value() - 27,gankAlert.gui.y:Value() + 75*(v.n-1) + 31)
+			
+			ADGank:Draw(gankAlert.gui.x:Value() - 125,gankAlert.gui.y:Value() + 75*(v.n-1) + 46)
+			Draw.Text( math.floor(v.champ.totalDamage) , 12, gankAlert.gui.x:Value() - 97,gankAlert.gui.y:Value() + 75*(v.n-1) + 46)
+			DEFGank:Draw(gankAlert.gui.x:Value() - 60,gankAlert.gui.y:Value() + 75*(v.n-1) + 46)
+			Draw.Text( math.floor(v.champ.armor) , 12, gankAlert.gui.x:Value() - 27,gankAlert.gui.y:Value() + 75*(v.n-1) + 46)
 		end	
 		local d = v.champ.dead
 		champSprite[v.champ.charName]:Draw(gankAlert.gui.x:Value() + 12,gankAlert.gui.y:Value() + 75*(v.n-1) + 6)
@@ -779,7 +797,7 @@ function Draw_Hero(hero)
 			local y = 70
 	
 			-- Offsets Y --
-			local offsetY = gankAlert.gui.y:Value() + 75*(v.n-1) + 6
+			local offsetY = gankAlert.gui.y:Value() + 75*(v.n-1) -10
 			local offsetT = offsetY+1
 	
 			-- Offsets X --
