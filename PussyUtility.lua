@@ -1,7 +1,7 @@
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.02
+    local Version = 0.03
     
     local Files = {
         Lua = {
@@ -67,9 +67,12 @@ local gankAlert = MenuElement({id = "gaMenu", name = "PussyUtility", type = MENU
 	
 	gankAlert:MenuElement({id = "drawRecall", name = "Predict Recall Position", value = true })
 		
-	gankAlert:MenuElement({id = "CD", name = "Cooldown Tracker", type = MENU })	   
-		gankAlert.CD:MenuElement({id = "enemyspell", name = "Show Enemy Spell CD", value = true})
-		gankAlert.CD:MenuElement({id = "enemysumm", name = "Show Enemy Summoner CD", value = true})
+	gankAlert:MenuElement({id = "CD", name = "Cooldown Tracker", type = MENU })	 
+		gankAlert.CD:MenuElement({id = "Pos", name = "Cd Tracker Interace or Champion", value = 2, drop = {"Interface", "Champion"}})
+		gankAlert.CD:MenuElement({id = "x", name = "Champion Pos: [X]", value = -75, min = -150, max = 150, step = 1})
+		gankAlert.CD:MenuElement({id = "y", name = "Champion Pos: [Y]", value = 10, min = -300, max = 150, step = 1})		
+		gankAlert.CD:MenuElement({id = "enemyspell", name = "Show Enemy Spell CD [Interface]", value = true})
+		gankAlert.CD:MenuElement({id = "enemysumm", name = "Show Enemy Summoner CD [Interface]", value = true})
 		
 	gankAlert:MenuElement({id = "JGLMenu", name = "Jungle Timers", type = MENU })
 		gankAlert.JGLMenu:MenuElement({id = "Enabled", name = "Enabled", value = true})
@@ -110,32 +113,32 @@ end
 
 -------------------------
 
-local FOWGank = Sprite("MovementTracker\\FOWGank.png")
-local APGank = Sprite("MovementTracker\\AP.png")
-local ADGank = Sprite("MovementTracker\\AD.png")
-local DEFGank = Sprite("MovementTracker\\DEF.png")
-local MRGank = Sprite("MovementTracker\\MR.png")
-local HPGank = Sprite("MovementTracker\\HP.png")
-local GankGUI = Sprite("MovementTracker\\GankGUI.png")
-local GankHP = Sprite("MovementTracker\\GankHP.png")
-local GankMANA = Sprite("MovementTracker\\GankMANA.png")
-local ultOFF = Sprite("MovementTracker\\ultOFF.png")
-local ultON = Sprite("MovementTracker\\ultON.png")
-local Shadow = Sprite("MovementTracker\\Shadow.png")
-local nrGUI = Sprite("MovementTracker\\nrGUI.png")
-local recallGUI = Sprite("MovementTracker\\recallGUI.png")
+local FOWGank = Sprite("PussySprites\\Tracker\\FOWGank.png")
+local APGank = Sprite("PussySprites\\Tracker\\AP.png")
+local ADGank = Sprite("PussySprites\\Tracker\\AD.png")
+local DEFGank = Sprite("PussySprites\\Tracker\\DEF.png")
+local MRGank = Sprite("PussySprites\\Tracker\\MR.png")
+local HPGank = Sprite("PussySprites\\Tracker\\HP.png")
+local GankGUI = Sprite("PussySprites\\Tracker\\GankGUI.png")
+local GankHP = Sprite("PussySprites\\Tracker\\GankHP.png")
+local GankMANA = Sprite("PussySprites\\Tracker\\GankMANA.png")
+local ultOFF = Sprite("PussySprites\\Tracker\\ultOFF.png")
+local ultON = Sprite("PussySprites\\Tracker\\ultON.png")
+local Shadow = Sprite("PussySprites\\Tracker\\Shadow.png")
+local nrGUI = Sprite("PussySprites\\Tracker\\nrGUI.png")
+local recallGUI = Sprite("PussySprites\\Tracker\\recallGUI.png")
 
-local gankTOP = Sprite("MovementTracker\\gankTOP.png")
-local gankMID = Sprite("MovementTracker\\gankMID.png")
-local gankBOT = Sprite("MovementTracker\\gankBOT.png")
-local gankShadow = Sprite("MovementTracker\\gankShadow.png")
+local gankTOP = Sprite("PussySprites\\Tracker\\gankTOP.png")
+local gankMID = Sprite("PussySprites\\Tracker\\gankMID.png")
+local gankBOT = Sprite("PussySprites\\Tracker\\gankBOT.png")
+local gankShadow = Sprite("PussySprites\\Tracker\\gankShadow.png")
 
-local recallMini = Sprite("MovementTracker\\recallMini.png",0.5)
-local recallMiniC = Sprite("MovementTracker\\recallMini.png",0.5)
-local miniRed = Sprite("MovementTracker\\miniRed.png",0.5)
-local miniRedC = Sprite("MovementTracker\\miniRed.png",0.5)
+local recallMini = Sprite("PussySprites\\Tracker\\recallMini.png",0.5)
+local recallMiniC = Sprite("PussySprites\\Tracker\\recallMini.png",0.5)
+local miniRed = Sprite("PussySprites\\Tracker\\miniRed.png",0.5)
+local miniRedC = Sprite("PussySprites\\Tracker\\miniRed.png",0.5)
 
-local bigRed = Sprite("MovementTracker\\miniRed.png")
+local bigRed = Sprite("PussySprites\\Tracker\\miniRed.png")
 
 local champSprite = {}
 local champSpriteSmall = {}
@@ -199,15 +202,13 @@ local camps = {}
 local TEAM_BLUE = 100;
 local TEAM_RED = 200;
 
-
-
 local function IntegerToMinSec(i)
 	local m, s = math.floor(i/60), (i%60)
 	return m..":"..(s < 10 and 0 or "")..s
 end
 
 local function InitSprites()
-	local _URL = "summons/"
+	local _URL = "PussySprites/summons/"
 	local _SIZE = 0.35
 	
 	Summon["SummonerBarrier"] = Sprite(_URL.."Barrier.png", _SIZE)
@@ -226,7 +227,7 @@ local function InitSprites()
 
 end
 	
--- print(myHero.pos)
+
 
 local mapPos = {
 ["BOT"] = {Vector(7832,49.4456,1252), Vector(10396,50.1820,1464), Vector(12650,51.5588,2466), Vector(13598,52.5385,4840), Vector(13580,52.3063,7024) },
@@ -236,14 +237,17 @@ local mapPos = {
 }
 
 local add = 0
-  
+ 
 Callback.Add("Draw", function()
 	
 	for i = 1, Game.HeroCount() do
 	local hero = Game.Hero(i)
 		if hero and hero.team ~= myHero.team then
-			Draw_Hero(hero)
-			
+			if gankAlert.CD.Pos:Value() ~= 2 then 
+				Draw_Hero(hero)
+			else
+				Draw_Hero2(hero) 
+			end
 		end
 	end
 end)
@@ -264,11 +268,11 @@ DelayAction(function()
 		local hero = Game.Hero(i)
 		if hero and hero.isEnemy and eT[hero.networkID] == nil then	
 			add = add + 1
-			champSprite[hero.charName] = Sprite("Champions\\"..hero.charName..".png", 1.2)
-			champSpriteSmall[hero.charName] = Sprite("Champions\\"..hero.charName..".png", 1)
-			champSpriteMini[hero.charName] = Sprite("Champions\\"..hero.charName..".png", .5)
-			champSpriteMiniC[hero.charName] = Sprite("Champions\\"..hero.charName..".png", .5)
-			invChamp[hero.networkID] = {champ = hero, lastTick = GetTickCount(), lastWP = Vector(0,0,0), lastPos = hero.pos or eBasePos, where = "will be added.", status = hero.visible, n = add, ApDmg = hero.ap, AdDmg = hero.totalDamage }
+			champSprite[hero.charName] = Sprite("PussySprites\\Champions\\"..hero.charName..".png", 1.2)
+			champSpriteSmall[hero.charName] = Sprite("PussySprites\\Champions\\"..hero.charName..".png", 1)
+			champSpriteMini[hero.charName] = Sprite("PussySprites\\Champions\\"..hero.charName..".png", .5)
+			champSpriteMiniC[hero.charName] = Sprite("PussySprites\\Champions\\"..hero.charName..".png", .5)
+			invChamp[hero.networkID] = {champ = hero, lastTick = GetTickCount(), lastWP = Vector(0,0,0), lastPos = hero.pos or eBasePos, where = "will be added.", status = hero.visible, n = add }
 			iCanSeeYou[hero.networkID] = {tick = 0, champ = hero, number = add, draw = false}
 			isRecalling[hero.networkID] = {status = false, tick = 0, proc = nil, spendTime = 0}
 			OnGainVision[hero.networkID] = {status = not hero.visible, tick = 0}
@@ -284,11 +288,11 @@ for i = 1, Game.HeroCount() do
 	local hero = Game.Hero(i)
 	if hero and hero.isEnemy then
 		add = add + 1
-		champSprite[hero.charName] = Sprite("Champions\\"..hero.charName..".png", 1.2)
-		champSpriteSmall[hero.charName] = Sprite("Champions\\"..hero.charName..".png", 1)
-		champSpriteMini[hero.charName] = Sprite("Champions\\"..hero.charName..".png", .5)
-		champSpriteMiniC[hero.charName] = Sprite("Champions\\"..hero.charName..".png", .5)
-		invChamp[hero.networkID] = {champ = hero, lastTick = GetTickCount(), lastWP = Vector(0,0,0), lastPos = hero.pos or eBasePos, where = "will be added.", status = hero.visible, n = add, ApDmg = hero.ap, AdDmg = hero.totalDamage }
+		champSprite[hero.charName] = Sprite("PussySprites\\Champions\\"..hero.charName..".png", 1.2)
+		champSpriteSmall[hero.charName] = Sprite("PussySprites\\Champions\\"..hero.charName..".png", 1)
+		champSpriteMini[hero.charName] = Sprite("PussySprites\\Champions\\"..hero.charName..".png", .5)
+		champSpriteMiniC[hero.charName] = Sprite("PussySprites\\Champions\\"..hero.charName..".png", .5)
+		invChamp[hero.networkID] = {champ = hero, lastTick = GetTickCount(), lastWP = Vector(0,0,0), lastPos = hero.pos or eBasePos, where = "will be added.", status = hero.visible, n = add }
 		iCanSeeYou[hero.networkID] = {tick = 0, champ = hero, number = add, draw = false}																	
 		isRecalling[hero.networkID] = {status = false, tick = 0, proc = nil, spendTime = 0}
 		OnGainVision[hero.networkID] = {status = not hero.visible, tick = 0}
@@ -1032,4 +1036,125 @@ function Draw_Hero(hero)
 	end	
 end
 
+function Draw_Hero2(hero)
+	local x = width - 101
+	local y = 70
+	
+	-- Offsets Y --
+	local offsetY = gankAlert.CD.y:Value()
+	local offsetT = offsetY+1
+	
+	-- Offsets X --
+	local offsetQ = gankAlert.CD.x:Value()
+	local offsetW = offsetQ + 25
+	local offsetE = offsetW + 25
+	local offsetR = offsetE + 25
+	
+	local offsetS = offsetR + 27
+	local offsetF = offsetS+ 25
+	
+	local offsetText = 12
+	
+	local wight = 24
+	local hight = 17
+	
+		local barPos = hero.pos2D
+		local t_wight = 0
+		
+		
+		local spellQ = hero:GetSpellData(_Q).currentCd
+		local spellW = hero:GetSpellData(_W).currentCd
+		local spellE = hero:GetSpellData(_E).currentCd
+		local spellR = hero:GetSpellData(_R).currentCd
+		
+	if hero.pos2D.onScreen then
+		if hero.visible and hero.dead == false then 
+		
+		Draw.Rect(barPos.x+offsetQ-2, barPos.y+offsetY-2, 125, 22, Draw.Color(200,0,0,0)) -- BackgroundColor
+		
+		if hero:GetSpellData(_Q).level ~= 0 then
+			t_wight =Draw.FontRect(mfloor(spellQ),14).x
+			if spellQ ~= 0 then
+				Draw.Rect(barPos.x+offsetQ, barPos.y+offsetY, wight,hight, Draw.Color(200,190,0,0)) -- rojo
+				Draw.Text(mfloor(spellQ), 14, (barPos.x+offsetQ+offsetText)-(t_wight/2), barPos.y+offsetT, Draw.Color(200,255,255,255))
+				else
+				Draw.Rect(barPos.x+offsetQ,  barPos.y+offsetY, wight,hight, Draw.Color(200,0, 153, 35)) -- Verde
+				Draw.Text("Q", 14, (barPos.x+offsetQ+offsetText)-(t_wight/2),barPos.y+offsetT, Draw.Color(200,255,255,255)) -- CDs
+			end
+		else
+			t_wight =Draw.FontRect("~",14).x
+			Draw.Rect(barPos.x+offsetQ, barPos.y+offsetY, wight,hight, Draw.Color(200,190,0,0)) -- rojo
+			Draw.Text("~", 14, (barPos.x+offsetQ+offsetText)-(t_wight/2), barPos.y+offsetT, Draw.Color(200,255,255,255))
+		end	
+		
+		if hero:GetSpellData(_W).level ~= 0 then
+			t_wight =Draw.FontRect(mfloor(spellW),14).x
+			if spellW ~= 0 then
+				Draw.Rect(barPos.x+offsetW, barPos.y+offsetY, wight,hight, Draw.Color(200,190,0,0)) 
+				Draw.Text(mfloor(spellW), 14, (barPos.x+offsetW+offsetText)-(t_wight/2), barPos.y+offsetT, Draw.Color(200,255,255,255))
+				else
+				Draw.Rect(barPos.x+offsetW,  barPos.y+offsetY, wight,hight, Draw.Color(200,0, 153, 35)) 
+				Draw.Text("W", 14, (barPos.x+offsetW+offsetText)-(t_wight/2), barPos.y+offsetT, Draw.Color(200,255,255,255)) 
+			end
+		else
+			t_wight =Draw.FontRect("~",14).x
+			Draw.Rect(barPos.x+offsetW, barPos.y+offsetY, wight,hight, Draw.Color(200,190,0,0)) 
+			Draw.Text("~", 14, (barPos.x+offsetW+offsetText)-(t_wight/2), barPos.y+offsetT, Draw.Color(200,255,255,255))
+		end
+		
+		if hero:GetSpellData(_E).level ~= 0 then
+			t_wight =Draw.FontRect(mfloor(spellE),14).x
+			if spellE ~= 0 then
+				Draw.Rect(barPos.x+offsetE,  barPos.y+offsetY, wight,hight, Draw.Color(200,190,0,0)) 
+				Draw.Text(mfloor(spellE), 14, (barPos.x+offsetE+offsetText)-(t_wight/2), barPos.y+offsetT, Draw.Color(200,255,255,255))
+				else
+				Draw.Rect(barPos.x+offsetE,  barPos.y+offsetY, wight,hight, Draw.Color(200,0, 153, 35)) 
+				Draw.Text("E", 14, (barPos.x+offsetE+offsetText)-(t_wight/2), barPos.y+offsetT, Draw.Color(200,255,255,255)) 
+			end
+		else
+			t_wight =Draw.FontRect("~",14).x
+			Draw.Rect(barPos.x+offsetE,  barPos.y+offsetY, wight,hight, Draw.Color(200,190,0,0)) 
+			Draw.Text("~", 14, (barPos.x+offsetE+offsetText)-(t_wight/2), barPos.y+offsetT, Draw.Color(200,255,255,255))
+		end	
+		
+		if hero:GetSpellData(_R).level ~= 0 then
+			t_wight =Draw.FontRect(mfloor(spellR),14).x
+			if spellR ~= 0 then
+				Draw.Rect(barPos.x+offsetR,  barPos.y+offsetY, wight,hight, Draw.Color(200,190,0,0))
+				Draw.Text(mfloor(spellR), 14, (barPos.x+offsetR+offsetText)-(t_wight/2), barPos.y+offsetT, Draw.Color(200,255,255,255))
+				else
+				Draw.Rect(barPos.x+offsetR,  barPos.y+offsetY, wight,hight, Draw.Color(200,0, 153, 35)) 
+				Draw.Text("R", 14, (barPos.x+offsetR+offsetText)-(t_wight/2), barPos.y+offsetT, Draw.Color(200,255,255,255))
+			end
+		else
+			t_wight =Draw.FontRect("~",14).x
+			Draw.Rect(barPos.x+offsetR,  barPos.y+offsetY, wight,hight, Draw.Color(200,190,0,0)) 
+			Draw.Text("~", 14, (barPos.x+offsetR+offsetText)-(t_wight/2), barPos.y+offsetT, Draw.Color(200,255,255,255))
+		end
+		
+		 -- Summons --
+			local spellOneCd = hero:GetSpellData(SUMMONER_1).currentCd
+			if spellOneCd ~= 0 then
+				Summon[hero:GetSpellData(SUMMONER_1).name]:Draw(barPos.x+offsetS, barPos.y+offsetY-2)
+				Draw.Rect(barPos.x+offsetS-3,  barPos.y+offsetY-3, wight+3,hight+6, Draw.Color(150,0,0,0))
+				t_wight =Draw.FontRect(mfloor(spellOneCd),14).x
+				Draw.Text(mfloor(spellOneCd), 14, (barPos.x+offsetS+offsetText)-(t_wight/2), barPos.y+offsetT, Draw.Color(200,255,255,255))
+				else
+				Summon[hero:GetSpellData(SUMMONER_1).name]:Draw(barPos.x+offsetS, barPos.y+offsetY-2)
+			end
+			
+			local spellTwoCd = hero:GetSpellData(SUMMONER_2).currentCd
+			if spellTwoCd ~= 0 then
+				Summon[hero:GetSpellData(SUMMONER_2).name]:Draw(barPos.x+offsetF, barPos.y+offsetY-2)
+				Draw.Rect(barPos.x+offsetF-3,  barPos.y+offsetY-3, wight+3,hight+6, Draw.Color(150,0,0,0)) 
+				t_wight =Draw.FontRect(mfloor(spellTwoCd),14).x
+				Draw.Text(mfloor(spellTwoCd), 14, (barPos.x+offsetF+offsetText)-(t_wight/2), barPos.y+offsetT, Draw.Color(200,255,255,255))
+				else
+				Summon[hero:GetSpellData(SUMMONER_2).name]:Draw(barPos.x+offsetF, barPos.y+offsetY-2)
+			end
+			
+		end	
+	end
+		
 
+end
