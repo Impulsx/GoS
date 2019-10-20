@@ -35,7 +35,7 @@ do
         local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
         if NewVersion > Version then
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
-            print("New PussyUtility Version Press 2x F6")
+            print("New PussyUtility Version/ Download pls new Sprites Folder")
         else
             print("Utility loaded")
         end
