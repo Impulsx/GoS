@@ -30,7 +30,7 @@ require('PussyDamageLib')
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.06
+    local Version = 0.07
     
     local Files = {
         Lua = {
@@ -480,6 +480,21 @@ local function GetInventorySlotItem(itemID)
     return nil
 end
 
+local function GetTarget2(range)
+local target = {}
+
+	for i, hero in pairs(EnemyHeroes()) do
+		local target1 = GetTarget(650)
+		local Range = range * range
+		if hero.isEnemy and not hero.dead then
+			if target1 and target1 ~= hero and GetDistance(hero.pos,target1.pos) < Range then
+				table.insert(target, hero)
+			end
+		end
+	end
+	return target
+end
+
 local function CheckTitan(itemID)
     assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
     for _, j in pairs({ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6, ITEM_7}) do
@@ -516,8 +531,11 @@ local RData =
 Type = _G.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 160, Range = 950, Speed = 2000, Collision = false
 }
 
+
+
 function Irelia:__init()
 	self.DetectedMissiles = {}; self.DetectedSpells = {}; self.Target = nil; self.Timer = 0 	
+	
 	self:LoadMenu()                                            
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end) 
@@ -561,6 +579,9 @@ self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
 	self.Menu.ComboSet.Burst:MenuElement({id = "Lvl", name = "Irelia Level to Start Burst", value = 6, min = 6, max = 18, step = 1})
 	self.Menu.ComboSet.Burst:MenuElement({id = "Draw", name = "Draw Text", value = true})	
 
+
+	self.Menu.ComboSet:MenuElement({type = MENU, id = "Ninja", name = "Ninja Mode"})
+	self.Menu.ComboSet.Ninja:MenuElement({id = "Q", name = "Q on all Marked Enemys", key = string.byte("I"), toggle = true})
 
 self.Menu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
 
@@ -659,11 +680,15 @@ self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 	
 end	
 
+
 function Irelia:Tick()
 if MyHeroNotReady() then return end
 
 local Mode = GetMode()
 		if Mode == "Combo" then
+			if self.Menu.ComboSet.Ninja.Q:Value() then
+				self:Ninja()
+			end	
 			if self.Menu.ComboSet.Burst.Start:Value() and myHero.levelData.lvl <= self.Menu.ComboSet.Burst.Lvl:Value() then
 				self:Combo()
 			end
@@ -713,30 +738,32 @@ local Mode = GetMode()
 			end	
 		end			
 		
-		if myHero.pos:DistanceTo(target.pos) <= 600 and myHero:GetSpellData(_E).name == "IreliaE" and Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) <= 600 and myHero:GetSpellData(_E).name == "IreliaE" and Ready(_E) and GotBuff(target, "ireliamark") == 0 then
 			Control.CastSpell(HK_E, myHero.pos)
 		end
 		
 		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and GotBuff(target, "ireliamark") == 1 then
 			CastSpell(HK_Q, target.pos, 600, 0.3)
+
 		end		
 
 		if myHero.pos:DistanceTo(target.pos) <= 400 and Ready(_W) and not Ready(_E) then					
 			Control.CastSpell(HK_W, target)
 		end
 		
-		if myHero.pos:DistanceTo(target.pos) <= 950 and myHero.pos:DistanceTo(target.pos) > 300 and Ready(_R) and Ready(_Q) and QDmg*2 < target.health then
+		if myHero.pos:DistanceTo(target.pos) <= 950 and myHero.pos:DistanceTo(target.pos) > 300 and GotBuff(target, "ireliamark") == 0 and Ready(_R) and Ready(_Q) and QDmg*2 < target.health then
 			self:CastR(target)
 		end	
 
 		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
 			 
 			if hp > 0 and QDmg > target.health then
-				CastSpell(HK_Q, target.pos, 600, 0.3)	
+				CastSpell(HK_Q, target.pos, 600, 0.3)
+
 			end
 		end	
 		
-		if QDmg >= target.health then
+		if QDmg >= target.health and GotBuff(target, "ireliamark") == 0 then
 			if myHero.pos:DistanceTo(target.pos) > 600 and myHero.pos:DistanceTo(target.pos) < 775 then
 				if myHero:GetSpellData(_E).name == "IreliaE" and Ready(_Q) and Ready(_E) then
 					Control.CastSpell(HK_E, myHero.pos)
@@ -758,6 +785,30 @@ local Mode = GetMode()
 		self:StackPassive(target)
 	
 	end	
+end
+
+function Irelia:Ninja()
+local MainTarget = GetTarget(650)
+
+for i, SecTarget in ipairs(GetTarget2(600)) do
+	if MainTarget == nil or SecTarget == nil then return end
+	
+		
+
+		if SecTarget and myHero.pos:DistanceTo(SecTarget.pos) <= 600 and GotBuff(SecTarget, "ireliamark") == 1 and IsValid(SecTarget) and Ready(_Q) then  
+			CastSpell(HK_Q, SecTarget.pos, 600, 0.3)
+			
+		else
+
+		
+			if IsValid(MainTarget) and GotBuff(MainTarget, "ireliamark") == 1 and myHero.pos:DistanceTo(MainTarget.pos) <= 600 and Ready(_Q) then
+				CastSpell(HK_Q, MainTarget.pos, 600, 0.3)
+
+			end
+			
+		end
+		
+end	
 end
 
 function Irelia:CalcExtraDmg(unit)
@@ -910,6 +961,15 @@ function Irelia:Draw()
 		else
 			Draw.Text("OFF", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+96, self.Menu.MiscSet.Drawing.XY.y:Value()+15, Draw.Color(255, 255, 0, 0)) 
 		end	
+	end	
+	
+	Draw.Text("Ninja Mode: ", 15, self.Menu.MiscSet.Drawing.XY.x:Value(), self.Menu.MiscSet.Drawing.XY.y:Value()+45, Draw.Color(255, 225, 255, 0))	
+	if self.Menu.ComboSet.Ninja.Q:Value() then 
+
+		Draw.Text("ON", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+74, self.Menu.MiscSet.Drawing.XY.y:Value()+45, Draw.Color(255, 0, 255, 0))
+	else
+		Draw.Text("OFF", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+74, self.Menu.MiscSet.Drawing.XY.y:Value()+45, Draw.Color(255, 255, 0, 0)) 
+		
 	end	
 
 	if self.Menu.ComboSet.Combo.Draw:Value() then
@@ -1330,7 +1390,7 @@ function Irelia:GetBestECastPositions(units)
                             if pointSegment and GetDistance(pointSegment, unitPos) < 1550 then number = number + 1 end 
                              
                         end
-                        if number >= 2 then startPos, endPos, count = cp, ePos, number end
+                        if number >= 0 then startPos, endPos, count = cp, ePos, number end
 
                     end
                 end
@@ -1342,12 +1402,11 @@ end
 
 function Irelia:CastE2()
 local target = GetTarget(1100)
-	if IsValid(target) and self.Menu.MiscSet.AutoE.UseE:Value() and Ready(_E) then
+	if IsValid(target) and self.Menu.MiscSet.AutoE.UseE:Value() and Ready(_E) and GotBuff(target, "ireliamark") == 0 then
 		local startPos, endPos, count = self:GetBestECastPositions(target)
-		if startPos and endPos then 
+		if startPos and endPos and count >= 2 then 
 			local cast1, cast2 = self:LineCircleIntersection(startPos, endPos, myHero.pos, 725)
-			local targetCount = GetEnemyCount(725, myHero)
-				if targetCount >= 2 and cast1 and cast2 then
+				if cast1 and cast2 then
 				if myHero:GetSpellData(_E).name == "IreliaE" then
 					Control.CastSpell(HK_E, cast1)
 				elseif myHero:GetSpellData(_E).name == "IreliaE2" then
@@ -1364,7 +1423,7 @@ end
 
 function Irelia:CastE(unit)
 
-    if myHero:GetSpellData(_E).name == "IreliaE" then
+    if myHero:GetSpellData(_E).name == "IreliaE"  and GotBuff(unit, "ireliamark") == 0 then
 		Control.CastSpell(HK_E, myHero.pos)
     end
 	
@@ -1385,6 +1444,5 @@ function Irelia:CastR(target)
 		Control.CastSpell(HK_R, pred.CastPosition)
 	end
 end	
-
 
 
