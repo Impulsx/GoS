@@ -1,7 +1,7 @@
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.04
+    local Version = 0.05
     
     local Files = {
         Lua = {
@@ -48,7 +48,7 @@ end
 
 local gankAlert = MenuElement({id = "gaMenu", name = "PussyUtility", type = MENU })
 	gankAlert:MenuElement({id = "gui", name = "Interface", type = MENU })
-		gankAlert.gui:MenuElement({id = "drawGUI", name = "Draw Interface", value = false})
+		gankAlert.gui:MenuElement({id = "drawGUI", name = "Draw Interface", value = true})
 		gankAlert.gui:MenuElement({id = "side", name = "Cd Tracker Left or Right Side", value = 2, drop = {"Left", "Right"}})		
 		gankAlert.gui:MenuElement({id = "x", name = "X", value = 50, min = 0, max = Game.Resolution().x, step = 1})
 		gankAlert.gui:MenuElement({id = "y", name = "Y", value = 50, min = 0, max = Game.Resolution().y, step = 1})
@@ -61,8 +61,8 @@ local gankAlert = MenuElement({id = "gaMenu", name = "PussyUtility", type = MENU
 		
 	gankAlert:MenuElement({id = "alert", name = "Gank Alert", type = MENU })
 		gankAlert.alert:MenuElement({id = "range", name = "Detection Range", value = 2500, min = 1500, max = 4000, step = 10})
-		gankAlert.alert:MenuElement({id = "drawGank", name = "Gank Alert", value = false})
-		gankAlert.alert:MenuElement({id = "drawGankFOW", name = "FOW Gank Alert", value = false})
+		gankAlert.alert:MenuElement({id = "drawGank", name = "Gank Alert", value = true})
+		gankAlert.alert:MenuElement({id = "drawGankFOW", name = "FOW Gank Alert", value = true})
 		
 	
 	gankAlert:MenuElement({id = "drawRecall", name = "Predict Recall Position", value = false })
@@ -71,48 +71,45 @@ local gankAlert = MenuElement({id = "gaMenu", name = "PussyUtility", type = MENU
 		gankAlert.CD:MenuElement({id = "Pos", name = "Cd Tracker Interace or Champion", value = 2, drop = {"Interface", "Champion"}})
 		gankAlert.CD:MenuElement({id = "x", name = "Champion Pos: [X]", value = -75, min = -150, max = 150, step = 1})
 		gankAlert.CD:MenuElement({id = "y", name = "Champion Pos: [Y]", value = 10, min = -300, max = 150, step = 1})		
-		gankAlert.CD:MenuElement({id = "enemyspell", name = "Show Enemy Spell CD [Interface]", value = false})
-		gankAlert.CD:MenuElement({id = "enemysumm", name = "Show Enemy Summoner CD [Interface]", value = false})
+		gankAlert.CD:MenuElement({id = "enemyspell", name = "Show Enemy Spell CD [Interface]", value = true})
+		gankAlert.CD:MenuElement({id = "enemysumm", name = "Show Enemy Summoner CD [Interface]", value = true})
 		
 	gankAlert:MenuElement({id = "JGLMenu", name = "Jungle Timers", type = MENU })
-		gankAlert.JGLMenu:MenuElement({id = "Enabled", name = "Enabled", value = false})
+		gankAlert.JGLMenu:MenuElement({id = "Enabled", name = "Enabled", value = true})
 		gankAlert.JGLMenu:MenuElement({id = "OnScreen", name = "On Screen", type = MENU})
-			gankAlert.JGLMenu.OnScreen:MenuElement({id = "Enabled", name = "Enabled", value = false})
+			gankAlert.JGLMenu.OnScreen:MenuElement({id = "Enabled", name = "Enabled", value = true})
 			gankAlert.JGLMenu.OnScreen:MenuElement({id = "FontSize", name = "Text Size", value = 22, min = 10, max = 60})
 		gankAlert.JGLMenu:MenuElement({id = "OnMinimap", name = "On Minimap", type = MENU})
-			gankAlert.JGLMenu.OnMinimap:MenuElement({id = "Enabled", name = "Enabled", value = false})
+			gankAlert.JGLMenu.OnMinimap:MenuElement({id = "Enabled", name = "Enabled", value = true})
 			gankAlert.JGLMenu.OnMinimap:MenuElement({id = "FontSize", name = "Text Size", value = 10, min = 2, max = 36})
 
 		
 	gankAlert:MenuElement({id = "TrapMenu", name = "Trap/Tower Tracker", type = MENU })
 		gankAlert.TrapMenu:MenuElement({id = "Tower", name = "Draw Enemy Tower Range", value = true})
 		gankAlert.TrapMenu:MenuElement({id = "TowerTrans", name = "Tower Range Transparency", value = 80, min = 0, max = 255})					
-		gankAlert.TrapMenu:MenuElement({id = "TEnabled", name = "Draw Enemy Traps", value = true})
-		gankAlert.TrapMenu:MenuElement({id = "FontSize", name = "Text Size", value = 12, min = 10, max = 60})		
+		
+		gankAlert.TrapMenu:MenuElement({id = "Trap", name = "Trap Tracker", type = MENU })
+		gankAlert.TrapMenu.Trap:MenuElement({name = " ", drop = {"only use if you have enough (GoS-FPS)"}})
+		gankAlert.TrapMenu.Trap:MenuElement({id = "TEnabled", name = "Draw Enemy Traps", value = false})
+		gankAlert.TrapMenu.Trap:MenuElement({id = "FontSize", name = "Text Size", value = 12, min = 10, max = 60})		
 			
 	gankAlert:MenuElement({id = "Warding", name = "Enemy Ward Tracker", type = MENU })
 
 		gankAlert.Warding:MenuElement({id = "Enabled", name = "Enabled", value = true})
 
 
-		gankAlert.Warding:MenuElement({type = MENU, id = "VisionWard", name = "Vision Wards"})
+		gankAlert.Warding:MenuElement({type = MENU, id = "VisionWard", name = "Control Ward"})
 		gankAlert.Warding.VisionWard:MenuElement({id = "ScreenDisplay", name = "Show On Screen", value = true})
 		gankAlert.Warding.VisionWard:MenuElement({id = "VisionDisplay", name = "Show Ward Vision", value = true})
 
 
-		gankAlert.Warding:MenuElement({type = MENU, id = "SightWard", name = "Sight Wards"})
-		gankAlert.Warding.SightWard:MenuElement({id = "ScreenDisplay", name = "Show On Screen", value = true})
-		gankAlert.Warding.SightWard:MenuElement({id = "TimerDisplay", name = "Show Ward Timer", value = true})
-		gankAlert.Warding.SightWard:MenuElement({id = "VisionDisplay", name = "Show Ward Vision", value = true})
-
-
-		gankAlert.Warding:MenuElement({type = MENU, id = "Trinket", name = "Warding Trinket"})
+		gankAlert.Warding:MenuElement({type = MENU, id = "Trinket", name = "Warding Totem"})
 		gankAlert.Warding.Trinket:MenuElement({id = "ScreenDisplay", name = "Show On Screen", value = true})
 		gankAlert.Warding.Trinket:MenuElement({id = "TimerDisplay", name = "Show Ward Timer", value = true})
 		gankAlert.Warding.Trinket:MenuElement({id = "VisionDisplay", name = "Show Ward Vision", value = true})
 
 
-		gankAlert.Warding:MenuElement({type = MENU, id = "Farsight", name = "Farsight Trinket"})
+		gankAlert.Warding:MenuElement({type = MENU, id = "Farsight", name = "Farsight Alteration"})
 		gankAlert.Warding.Farsight:MenuElement({id = "ScreenDisplay", name = "Show On Screen", value = true})
 		gankAlert.Warding.Farsight:MenuElement({id = "VisionDisplay", name = "Show Ward Vision", value = true})
 
@@ -251,6 +248,15 @@ local function DrawWard(type, ward)
 		if gankAlert.Warding[type].ScreenDisplay:Value() then
 			Draw.Circle(ward.pos,70,2,WardColors[type]);
 		end
+		if gankAlert.Warding["Farsight"].VisionDisplay:Value() and ward.charName == "BlueTrinket" then
+			Draw.Circle(ward.pos,500,2,WardColors[type]);
+		end	
+		if gankAlert.Warding["VisionWard"].VisionDisplay:Value() and ward.charName == "JammerDevice" then
+			Draw.Circle(ward.pos,900,2,WardColors[type]);
+		end	
+		if gankAlert.Warding["Trinket"].VisionDisplay:Value() and ward.charName == "YellowTrinket" then
+			Draw.Circle(ward.pos,900,2,WardColors[type]);
+		end			
 
 		if gankAlert.Warding[type].TimerDisplay and gankAlert.Warding[type].TimerDisplay:Value() then
 			for i = 1, ward.buffCount do
@@ -445,7 +451,7 @@ function OnTick()
 		end
 	end
 
-	if gankAlert.TrapMenu.TEnabled:Value() then
+	if gankAlert.TrapMenu.Trap.TEnabled:Value() then
 		for i,hero in pairs(enemies) do
 			if hero and hero.isEnemy then 
 		
@@ -455,7 +461,7 @@ function OnTick()
 					if hero.charName == "Teemo" then
 						if obj.charName == "TeemoMushroom" and obj.health ~= 0 and obj.team ~= myHero.team then            
 							Draw.Circle(obj.pos, 75, 3, Draw.Color(255,255,0,0))
-							Draw.Text("Mushroom", gankAlert.TrapMenu.FontSize:Value(), obj.pos2D.x, obj.pos2D.y, Draw.Color(255, 225, 255, 0))
+							Draw.Text("Mushroom", gankAlert.TrapMenu.Trap.FontSize:Value(), obj.pos2D.x, obj.pos2D.y, Draw.Color(255, 225, 255, 0))
 							if obj.pos:DistanceTo(myHero.pos) < 1450 then
 								Draw.Circle(obj.pos, 450, 3, Draw.Color(255,0,255,0))
 							end
@@ -464,7 +470,7 @@ function OnTick()
 					if hero.charName == "Shaco" then 
 						if obj.charName == "ShacoBox" and obj.health ~= 0 and obj.team ~= myHero.team then     --obj.name == "Jack In The Box"       
 							Draw.Circle(obj.pos, 75, 3, Draw.Color(255,255,0,0))
-							Draw.Text("Shaco Box", gankAlert.TrapMenu.FontSize:Value(), obj.pos2D.x, obj.pos2D.y, Draw.Color(255, 225, 255, 0))
+							Draw.Text("Shaco Box", gankAlert.TrapMenu.Trap.FontSize:Value(), obj.pos2D.x, obj.pos2D.y, Draw.Color(255, 225, 255, 0))
 							if obj.pos:DistanceTo(myHero.pos) < 1290 then
 								Draw.Circle(obj.pos, 290, 3, Draw.Color(255,0,255,0))
 							end
@@ -473,13 +479,13 @@ function OnTick()
 					if hero.charName == "Jhin" then 
 						if obj.charName == "JhinTrap" and obj.health ~= 0 and obj.team ~= myHero.team then            
 							Draw.Circle(obj.pos, 75, 3, Draw.Color(255,255,0,0))
-							Draw.Text("Jhin Trap", gankAlert.TrapMenu.FontSize:Value(), obj.pos2D.x, obj.pos2D.y, Draw.Color(255, 225, 255, 0))
+							Draw.Text("Jhin Trap", gankAlert.TrapMenu.Trap.FontSize:Value(), obj.pos2D.x, obj.pos2D.y, Draw.Color(255, 225, 255, 0))
 						end						
 					end	
 					if hero.charName == "Nidalee" then 
 						if obj.charName == "NidaleeSpear" and obj.health ~= 0 and obj.team ~= myHero.team then            
 							Draw.Circle(obj.pos, 75, 3, Draw.Color(255,255,0,0))
-							Draw.Text("Nidalee Trap", gankAlert.TrapMenu.FontSize:Value(), obj.pos2D.x, obj.pos2D.y, Draw.Color(255, 225, 255, 0))
+							Draw.Text("Nidalee Trap", gankAlert.TrapMenu.Trap.FontSize:Value(), obj.pos2D.x, obj.pos2D.y, Draw.Color(255, 225, 255, 0))
 						end						
 					end
 				end
@@ -713,6 +719,49 @@ if gankAlert.drawRecall:Value() then
 	end
 end
 
+if gankAlert.Warding.Enabled:Value() then
+	local currentTick = GetTickCount();
+	for i = 1, Game.WardCount() do
+		local ward = Game.Ward(i);
+		if ward.valid and ward.isEnemy then 
+			DrawWard(ward.maxHealth == 4 and "VisionWard" or ward.maxHealth == 3 and (ward.maxMana == 150 and "SightWard" or "Trinket") or ward.maxHealth == 1 and "Farsight" or "WTFISTHISWARD", ward)
+			if not wards[ward.networkID] then 
+				if ward.maxHealth == 4 and gankAlert.Warding.VisionWard.VisionDisplay:Value() then
+					wards[ward.networkID] = { ward.pos.x, ward.pos.y, ward.pos.z, currentTick, Draw.Color(0x70,0xAA,0,0xAA), 900 }
+				
+					end
+				if ward.maxHealth == 3 then
+					if ward.maxMana == 150 and gankAlert.Warding.SightWard.VisionDisplay:Value() then 
+						wards[ward.networkID] = { ward.pos.x, ward.pos.y, ward.pos.z, currentTick, Draw.Color(0x70,0,0xFF,0), 900 }
+						
+						elseif  gankAlert.Warding.Trinket.VisionDisplay:Value() then 
+						wards[ward.networkID] = { ward.pos.x, ward.pos.y, ward.pos.z, currentTick, Draw.Color(0x70,0xAA,0xAA,0), 900 }
+						
+						end
+					end
+				if ward.maxHealth == 1 and gankAlert.Warding.Farsight.VisionDisplay:Value() then
+					wards[ward.networkID] = { ward.pos.x, ward.pos.y, ward.pos.z, currentTick, Draw.Color(0x70,0,0xBF,0xFF), 500 }
+
+					end
+				else 
+				if ward.maxHealth == 4 and gankAlert.Warding.VisionWard.VisionDisplay:Value() then
+					wards[ward.networkID][4] = currentTick;
+					end
+				if ward.maxHealth == 3 then
+					if ward.maxMana == 150 and gankAlert.Warding.SightWard.VisionDisplay:Value() then
+						wards[ward.networkID][4] = currentTick;
+						elseif  gankAlert.Warding.Trinket.VisionDisplay:Value() then 
+						wards[ward.networkID][4] = currentTick;
+						end
+					end
+				if ward.maxHealth == 1 and gankAlert.Warding.Farsight.VisionDisplay:Value() then
+					wards[ward.networkID][4] = currentTick;
+				end
+			end
+		end
+	end
+end
+
 -- GUI
 if gankAlert.gui.drawGUI:Value() then
 
@@ -881,48 +930,7 @@ local currentTicks = GetTickCount();
 	end
 end	
 
-if gankAlert.Warding.Enabled:Value() then
-	local currentTick = GetTickCount();
-	for i = 1, Game.WardCount() do
-		local ward = Game.Ward(i);
-		if ward.valid and ward.isEnemy then 
-			DrawWard(ward.maxHealth == 4 and "VisionWard" or ward.maxHealth == 3 and (ward.maxMana == 150 and "SightWard" or "Trinket") or ward.maxHealth == 1 and "Farsight" or "WTFISTHISWARD", ward)
-			if not wards[ward.networkID] then 
-				if ward.maxHealth == 4 and gankAlert.Warding.VisionWard.VisionDisplay:Value() then
-					wards[ward.networkID] = { ward.pos.x, ward.pos.y, ward.pos.z, currentTick, Draw.Color(0x70,0xAA,0,0xAA), 900 }
-				
-					end
-				if ward.maxHealth == 3 then
-					if ward.maxMana == 150 and gankAlert.Warding.SightWard.VisionDisplay:Value() then 
-						wards[ward.networkID] = { ward.pos.x, ward.pos.y, ward.pos.z, currentTick, Draw.Color(0x70,0,0xFF,0), 900 }
-						
-						elseif  gankAlert.Warding.Trinket.VisionDisplay:Value() then 
-						wards[ward.networkID] = { ward.pos.x, ward.pos.y, ward.pos.z, currentTick, Draw.Color(0x70,0xAA,0xAA,0), 900 }
-						
-						end
-					end
-				if ward.maxHealth == 1 and gankAlert.Warding.Farsight.VisionDisplay:Value() then
-					wards[ward.networkID] = { ward.pos.x, ward.pos.y, ward.pos.z, currentTick, Draw.Color(0x70,0,0xBF,0xFF), 500 }
-					
-					end
-				else 
-				if ward.maxHealth == 4 and gankAlert.Warding.VisionWard.VisionDisplay:Value() then
-					wards[ward.networkID][4] = currentTick;
-					end
-				if ward.maxHealth == 3 then
-					if ward.maxMana == 150 and gankAlert.Warding.SightWard.VisionDisplay:Value() then
-						wards[ward.networkID][4] = currentTick;
-						elseif  gankAlert.Warding.Trinket.VisionDisplay:Value() then 
-						wards[ward.networkID][4] = currentTick;
-						end
-					end
-				if ward.maxHealth == 1 and gankAlert.Warding.Farsight.VisionDisplay:Value() then
-					wards[ward.networkID][4] = currentTick;
-				end
-			end
-		end
-	end
-end
+
 
 function OnProcessRecall(unit,recall)
 if isRecalling[unit.networkID] == nil then return end
