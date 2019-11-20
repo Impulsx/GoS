@@ -1,7 +1,7 @@
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.06
+    local Version = 0.07
     
     local Files = {
         Lua = {
@@ -187,13 +187,14 @@ local WardColors = {SightWard = Draw.Color(255,0,255,0), VisionWard = Draw.Color
 
 local minionEXP = {
  ["SRU_OrderMinionSuper"]	= 97,
- ["SRU_OrderMinionSiege"] 	= 92,
- ["SRU_OrderMinionMelee"] 	= 58.88,
- ["SRU_OrderMinionRanged"] 	= 29.44,
+ ["SRU_OrderMinionSiege"] 	= 93,
+ ["SRU_OrderMinionMelee"] 	= 60.45,
+ ["SRU_OrderMinionRanged"] 	= 29.76,
+ --------------------------------------------
  ["SRU_ChaosMinionSuper"]	= 97,
- ["SRU_ChaosMinionSiege"] 	= 92,
- ["SRU_ChaosMinionMelee"] 	= 58.88,
- ["SRU_ChaosMinionRanged"] 	= 29.44,
+ ["SRU_ChaosMinionSiege"] 	= 93,
+ ["SRU_ChaosMinionMelee"] 	= 60.45,
+ ["SRU_ChaosMinionRanged"] 	= 29.76,
 }
 
 local expT = {
@@ -515,31 +516,31 @@ function OnTick()
 				if camp.name == 'monsterCamp_1' then
 					camps[camp.chnd] = {currentTicks, 300000, camp, TEAM_BLUE, "Blue", camp.isCampUp, Draw.Color(255,0,180,255)}
 				elseif camp.name == 'monsterCamp_2' then
-					camps[camp.chnd] = {currentTicks, 150000, camp, TEAM_BLUE, "Wolves", camp.isCampUp, Draw.Color(255,220,220,220)}
+					camps[camp.chnd] = {currentTicks, 120000, camp, TEAM_BLUE, "Wolves", camp.isCampUp, Draw.Color(255,220,220,220)}
 				elseif camp.name == 'monsterCamp_3' then
-					camps[camp.chnd] = {currentTicks, 150000, camp, TEAM_BLUE, "Raptors", camp.isCampUp, Draw.Color(255,50,255,50)}
+					camps[camp.chnd] = {currentTicks, 120000, camp, TEAM_BLUE, "Raptors", camp.isCampUp, Draw.Color(255,50,255,50)}
 				elseif camp.name == 'monsterCamp_4' then
 					camps[camp.chnd] = {currentTicks, 300000, camp, TEAM_BLUE, "Red", camp.isCampUp, Draw.Color(255,255,100,100)}
 				elseif camp.name == 'monsterCamp_5' then
-					camps[camp.chnd] = {currentTicks, 150000, camp, TEAM_BLUE, "Krugs", camp.isCampUp, Draw.Color(255,160,160,160)}
+					camps[camp.chnd] = {currentTicks, 120000, camp, TEAM_BLUE, "Krugs", camp.isCampUp, Draw.Color(255,160,160,160)}
 				elseif camp.name == 'monsterCamp_6' then
 					camps[camp.chnd] = {currentTicks, 300000, camp, TEAM_BLUE, "Dragon", camp.isCampUp, Draw.Color(255,255,170,50)}
 				elseif camp.name == 'monsterCamp_7' then
 					camps[camp.chnd] = {currentTicks, 300000, camp, TEAM_RED, "Blue", camp.isCampUp, Draw.Color(255,0,180,255)}
 				elseif camp.name == 'monsterCamp_8' then
-					camps[camp.chnd] = {currentTicks, 150000, camp, TEAM_RED, "Wolves", camp.isCampUp, Draw.Color(255,220,220,220)}
+					camps[camp.chnd] = {currentTicks, 120000, camp, TEAM_RED, "Wolves", camp.isCampUp, Draw.Color(255,220,220,220)}
 				elseif camp.name == 'monsterCamp_9' then
-					camps[camp.chnd] = {currentTicks, 150000, camp, TEAM_RED, "Raptors", camp.isCampUp, Draw.Color(255,50,255,50)}
+					camps[camp.chnd] = {currentTicks, 120000, camp, TEAM_RED, "Raptors", camp.isCampUp, Draw.Color(255,50,255,50)}
 				elseif camp.name == 'monsterCamp_10' then
 					camps[camp.chnd] = {currentTicks, 300000, camp, TEAM_RED, "Red", camp.isCampUp, Draw.Color(255,255,100,100)}
 				elseif camp.name == 'monsterCamp_11' then
-					camps[camp.chnd] = {currentTicks, 150000, camp, TEAM_RED, "Krugs", camp.isCampUp, Draw.Color(255,160,160,160)}
+					camps[camp.chnd] = {currentTicks, 120000, camp, TEAM_RED, "Krugs", camp.isCampUp, Draw.Color(255,160,160,160)}
 				elseif camp.name == 'monsterCamp_12' then
 					camps[camp.chnd] = {currentTicks, 360000, camp, TEAM_RED, "Baron", camp.isCampUp, Draw.Color(255,180,50,250)}
 				elseif camp.name == 'monsterCamp_13' then
-					camps[camp.chnd] = {currentTicks, 150000, camp, TEAM_BLUE, "Gromp", camp.isCampUp, Draw.Color(255,240,240,0)}
+					camps[camp.chnd] = {currentTicks, 120000, camp, TEAM_BLUE, "Gromp", camp.isCampUp, Draw.Color(255,240,240,0)}
 				elseif camp.name == 'monsterCamp_14' then
-					camps[camp.chnd] = {currentTicks, 150000, camp, TEAM_RED, "Gromp", camp.isCampUp, Draw.Color(255,240,240,0)}
+					camps[camp.chnd] = {currentTicks, 120000, camp, TEAM_RED, "Gromp", camp.isCampUp, Draw.Color(255,240,240,0)}
 				elseif camp.name == 'monsterCamp_15' then
 					camps[camp.chnd] = {currentTicks, 150000, camp, TEAM_BLUE, "Scuttler", camp.isCampUp, Draw.Color(255,255,170,50)} 
 				elseif camp.name == 'monsterCamp_16' then
