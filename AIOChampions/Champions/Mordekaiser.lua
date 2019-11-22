@@ -1,137 +1,246 @@
-Q = {	Range = 880,	Radius = 90,	Delay = 0.25,	Speed = 1700, 	IsLine = true}
-W = {	Range = 800,	Delay = 0.25,	Speed = 999999	}
-E = {	Range = 975,	Radius = 50,	Delay = 0.25,	Speed = 1600,	Collision = true, 	IsLine = true}
-R = {	Range = 450,	Radius = 600,	Delay = 0.25,	Speed = 999999	}
-	
-
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({id = "Skills", name = "Skills", type = MENU})
-	Menu.Skills:MenuElement({id = "Q", name = "[Q] Orb of Deception", type = MENU})
-	Menu.Skills.Q:MenuElement({id = "Accuracy", name = "Combo Accuracy", value = 3, min = 1, max = 6, step = 1 })	
-	Menu.Skills.Q:MenuElement({id = "KSAccuracy", name = "KS Accuracy", value = 2, min = 1, max = 6, step = 1 })	
-	Menu.Skills.Q:MenuElement({id = "Auto", name = "Auto Cast On Immobile Targets", value = true, toggle = true })
-	Menu.Skills.Q:MenuElement({id = "Mana", name = "Minimum Mana", value = 20, min = 1, max = 100, step = 1 })
+	
+	--AutoE
+	Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})
+	Menu.AutoE:MenuElement({id = "UseE", name = "Pull Enemys under Tower",value = true})
 
-	Menu.Skills:MenuElement({id = "W", name = "[W] Fox Fire", type = MENU})
-	Menu.Skills.W:MenuElement({id = "Radius", name = "Use Radius", value = 250, min = 0, max = 1000, step = 50 })
-	Menu.Skills.W:MenuElement({id = "Mana", name = "Minimum Mana", value = 20, min = 1, max = 100, step = 1 })
+	--AutoW
+	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})
+	Menu.AutoW:MenuElement({id = "UseW", name = "AutoW", value = true})
+	Menu.AutoW:MenuElement({id = "UseWE", name = "Minimum Health", value = 50, min = 0, max = 100, identifier = "%"})	
+	
+	--ComboMenu  
+	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
+	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
+	Menu.Combo:MenuElement({id = "count", name = "[E]Minimum Targets", value = 2, min = 1, max = 5})	
+	
+	
+	--HarassMenu
+	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
+	Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
 
-	Menu.Skills:MenuElement({id = "E", name = "[E] Charm", type = MENU})
-	Menu.Skills.E:MenuElement({id = "Accuracy", name = "Combo Accuracy", value = 3, min = 1, max = 6, step = 1 })
-	Menu.Skills.E:MenuElement({id = "Auto", name = "Auto Cast On Immobile Targets", value = true, toggle = true })
-	Menu.Skills.E:MenuElement({id = "Mana", name = "Minimum Mana", value = 20, min = 1, max = 100, step = 1 })
+  
+	--LaneClear Menu
+	Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})	
+	Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	Menu.Clear:MenuElement({id = "UseE", name = "[E]", value = true})	
 
-	Menu.Skills:MenuElement({id = "R", name = "[R] Spirit Rush", type = MENU})
-	Menu.Skills.R:MenuElement({id = "Auto", name = "Danger Level (Auto)", value = 4, min = 1, max = 6, step = 1 })
-	Menu.Skills.R:MenuElement({id = "Combo", name = "Danger Level (Combo)", value = 1, min = 1, max = 6, step = 1 })
+	
+	--JungleClear
+	Menu:MenuElement({type = MENU, id = "JClear", name = "JungleClear"})
+	Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true}) 
+	Menu.JClear:MenuElement({id = "UseE", name = "[E]", value = true})	
+ 	
+    
+ 
+	--KillSteal
+	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
+	Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})	
+	Menu.ks:MenuElement({id = "UseE", name = "[E]", value = true})			
+	Menu.ks:MenuElement({id = "Targets", name = "Ult Settings", type = MENU})	
+	Menu.ks.Targets:MenuElement({id = "UseR", name = "[R] FullDmg", value = true})
+	for i, Hero in pairs(GetEnemyHeroes()) do
+		Menu.ks.Targets:MenuElement({id = Hero.charName, name = Hero.charName, value = true})		
+	end		
+	
+	
+	--Prediction
+	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})	
+	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 
-		
-	LocalDamageManager:OnIncomingCC(function(target, damage, ccType) OnCC(target, damage, ccType) end)
-	LocalObjectManager:OnBlink(function(target) OnBlink(target) end )
-	LocalObjectManager:OnSpellCast(function(spell) OnSpellCast(spell) end)
+ 
+	--Drawing 
+	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q]Range", value = true})
+	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R]Range", value = true})
+	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E]Range", value = true})
+	
+	QData =
+	{
+	Type = _G.SPELLTYPE_LINE, Delay = 0.5, Radius = 400, Range = 675, Speed = 500, Collision = false
+	}
+  	                                           
+	if _G.EOWLoaded then
+		Orb = 1
+	elseif _G.SDK and _G.SDK.Orbwalker then
+		Orb = 2
+	elseif _G.GOS then
+		Orb = 3
+	elseif _G.gsoSDK then
+		Orb = 4
+	end	
 	Callback.Add("Tick", function() Tick() end)
+	Callback.Add("Draw", function() Draw() end)		
 end
 
-function OnSpellCast(spell)
-	if spell.isEnemy and Ready(_R) then
-		local hitDetails = LocalDamageManager:GetSpellHitDetails(spell,myHero)
-		if hitDetails.Hit and hitDetails.Path then
-			if hitDetails.Danger >= Menu.Skills.R.Auto:Value() or (ComboActive() and hitDetails.Danger >= Menu.Skills.R.Combo:Value()) then	
-				local dashPos = myHero.pos + hitDetails.Path * R.Range				
-				CastSpell(HK_R, dashPos)
-			end				
-		end
-	end
-end
-
-local NextTick = LocalGameTimer()
-local NextR = LocalGameTimer()
 function Tick()
-	if BlockSpells() then return end
-	if NextTick > LocalGameTimer() then return end
+if MyHeroNotReady() then return end
+local Mode = GetMode()
 	
-	if Ready(_E) and CurrentPctMana(myHero) >= Menu.Skills.E.Mana:Value() then
-		local target = GetTarget(E.Range)
-		--Get cast position for target
-		if target and CanTarget(target) then
-			local accuracyRequired = ComboActive() and Menu.Skills.E.Accuracy:Value() or Menu.Skills.E.Auto:Value() and 4 or 6
-			local castPosition, accuracy = LocalGeometry:GetCastPosition(myHero, target, E.Range, E.Delay, E.Speed, E.Radius, E.Collision, E.IsLine)
-			if castPosition and accuracy >= accuracyRequired and LocalGeometry:IsInRange(myHero.pos, castPosition, E.Range) then
-				NextTick = LocalGameTimer() + .25
-				CastSpell(HK_E, castPosition)
-				return
-			end	
-		end
-	end
-	
-	if Ready(_Q) and CurrentPctMana(myHero) >= Menu.Skills.Q.Mana:Value() then
-		local target = GetTarget(Q.Range)
-		--Get cast position for target
-		if target and CanTarget(target) then		
-			--Check the damage we will deal to the target
-			local targetQDamage = 2 * _G.Alpha.DamageManager:CalculateMagicDamage(myHero, target, myHero.ap * .65 + ({75,120,165,210,255})[myHero:GetSpellData(_Q).level])			
-			local accuracyRequired = ComboActive() and Menu.Skills.Q.Accuracy:Value() or Menu.Skills.Q.Auto:Value() and 4 or 6
-			if targetQDamage > target.health and accuracyRequired > Menu.Skills.Q.KSAccuracy:Value() then
-				accuracyRequired = Menu.Skills.Q.KSAccuracy:Value()
-			end
-			if accuracyRequired < 6 then
-				local castPosition, accuracy = LocalGeometry:GetCastPosition(myHero, target, Q.Range, Q.Delay, Q.Speed, Q.Radius, Q.Collision, E.IsLine)
-				if castPosition and accuracy >= accuracyRequired and LocalGeometry:IsInRange(myHero.pos, castPosition, Q.Range) then
-					NextTick = LocalGameTimer() + .25
-					CastSpell(HK_Q, castPosition)
-					return
-				end
-			end			
-		end
-	end
-	
-	if Ready(_W) and CurrentPctMana(myHero) >= Menu.Skills.W.Mana:Value() then		
-		for i = 1, LocalGameHeroCount() do
-			local hero = LocalGameHero(i)
-			if hero and CanTarget(hero) then
-				local origin = LocalGeometry:PredictUnitPosition(hero, W.Delay)
-				if LocalGeometry:IsInRange(myHero.pos, origin, Menu.Skills.W.Radius:Value()) or (LocalGeometry:IsInRange(myHero.pos, origin,W.Range) and ComboActive()) then
-					NextTick = LocalGameTimer() + .25
-					CastSpell(HK_W)
-					return
-				end
-			end
-		end
-	end
-	
-	NextTick = LocalGameTimer() + .1
+	if Mode == "Combo" then
+		Combo()
+	elseif Mode == "Harass" then
+		Harass()
+	elseif Mode == "Clear" then
+		Clear()
+		JClear()			
+	end	
+
+	KillSteal()
+	AutoE()
+	AutoW()
 end
 
+function Draw()
+  if myHero.dead then return end
+	if(Menu.Drawing.DrawR:Value()) and Ready(_R) then
+    Draw.Circle(myHero, 650, 1, Draw.Color(255, 225, 255, 10)) 
+	end                                                 
+	if(Menu.Drawing.DrawQ:Value()) and Ready(_Q) then
+    Draw.Circle(myHero, 625, 1, Draw.Color(225, 225, 0, 10))
+	end
+	if(Menu.Drawing.DrawE:Value()) and Ready(_E) then
+    Draw.Circle(myHero, 900, 1, Draw.Color(225, 225, 125, 10))
+	end
 
-function OnCC(target, damage, ccType)	
-	if CanTarget(target) and LocalDamageManager.IMMOBILE_TYPES[ccType] then
-		if Ready(_Q) and CurrentPctMana(myHero) >= Menu.Skills.Q.Mana:Value() and Menu.Skills.Q.Auto:Value() and LocalGeometry:IsInRange(myHero.pos, target.pos, Q.Range - 100) then
-			NextTick = LocalGameTimer() +.25
-			CastSpell(HK_Q, target.pos)
-			return
+	local textPos = myHero.pos:To2D()	
+	if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+	end				
+end	
+
+function AutoW()
+	if myHero.health/myHero.maxHealth <= Menu.AutoW.UseWE:Value()/100 and Menu.AutoW.UseW:Value() and Ready(_W) then
+		if HasBuff(myHero, "MordekaiserW") then 
+			Control.CastSpell(HK_W)
 		end
-		if Ready(_E) and CurrentPctMana(myHero) >= Menu.Skills.E.Mana:Value() and Menu.Skills.E.Auto:Value() and LocalGeometry:IsInRange(myHero.pos, target.pos, E.Range - 100) then
-			NextTick = LocalGameTimer() +.25
-			CastSpell(HK_E, target.pos)
-			return
-		end
+		if not HasBuff(myHero, "MordekaiserW") then 
+			Control.CastSpell(HK_W)
+		end			
 	end
 end
 
-function OnBlink(target)
-	if CanTarget(target) then
-		if Ready(_E) and Menu.Skills.E.Auto:Value() and LocalGeometry:IsInRange(myHero.pos, target.pos, E.Range) then
-			local castPosition, accuracy = LocalGeometry:GetCastPosition(myHero, target, E.Range, E.Delay, E.Speed, E.Radius, E.Collision, E.IsLine)
-			if accuracy > 0 then
-				CastSpell(HK_E, target.pos)
-			end	
-		end
-		if Ready(_Q) and Menu.Skills.Q.Auto:Value() and LocalGeometry:IsInRange(myHero.pos, target.pos, Q.Range) then
-			local castPosition, accuracy = LocalGeometry:GetCastPosition(myHero, target, Q.Range, Q.Delay, Q.Speed, Q.Radius, Q.Collision, Q.IsLine)
-			if accuracy > 0 then
-				CastSpell(HK_Q, target.pos)			
-			end	
-		end
+function AutoE()
+	local target = GetTarget(1000)
+	if target == nil then return end
+	if IsValid(target) then
+		
+        if Menu.AutoE.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 900 and IsUnderAllyTurret(myHero) and Ready(_E) then
+			Control.CastSpell(HK_E, target.pos)
+        end		
 	end
+end
+
+function KillSteal()	
+	local target = GetTarget(1000)
+	if target == nil then return end
+	if IsValid(target) then
+        
+		if Menu.ks.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 625 and Ready(_Q) then
+			local QDmg = getdmg("Q", target, myHero)
+			if QDmg >= target.health then
+				local pred = GetGamsteronPrediction(target, QData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then	
+					Control.CastSpell(HK_Q, pred.CastPosition)
+				end
+			end	
+        end
+
+        if Menu.ks.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 900 and Ready(_E) then
+            local EDmg = getdmg("E", target, myHero)
+			if EDmg >= target.health then
+				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 700, 0.5, 500, 180, false)
+				if hitRate and hitRate >= 1 then	
+					Control.CastSpell(HK_E, aimPosition)	
+				end	
+			end	
+        end
+        if Menu.ks.Targets.UseR:Value() and Menu.ks.Targets[target.charName] and Menu.ks.Targets[target.charName]:Value() and myHero.pos:DistanceTo(target.pos) <= 650 and Ready(_R) then
+			if (getdmg("Q", target, myHero)+getdmg("E", target, myHero))*2 >= target.health then
+				Control.CastSpell(HK_R, target.pos)
+			end	
+		end
+	end	
+end	
+
+function Combo()
+	local target = GetTarget(1000)
+	if target == nil then return end
+	if IsValid(target) then
+        
+		if Menu.Combo.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 625 and Ready(_Q) then
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then	
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end	
+        end
+
+        if Menu.Combo.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 900 and Ready(_E) then
+            local count = GetEnemyCount(200, target)
+			if count >= Menu.Combo.count:Value() then
+				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 700, 0.5, 500, 180, false)
+				if hitRate and hitRate >= 1 then	
+					Control.CastSpell(HK_E, aimPosition)	
+				end	
+			end	
+        end
+	end
+end
+
+function Harass()
+
+	local target = GetTarget(1000)
+	if target == nil then return end
+	if IsValid(target) then
+        
+        
+		if Menu.Harass.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 625 and Ready(_Q) then
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then	
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end
+        end	
+	end
+end	
+
+function Clear()
+    for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+        if minion.team == TEAM_ENEMY and IsValid(minion) then
+           
+           
+			if Menu.Clear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 625 and Ready(_Q) then
+				Control.CastSpell(HK_Q, minion.pos)
+            end
+
+            if Menu.Clear.UseE:Value() and myHero.pos:DistanceTo(minion.pos) <= 900 and Ready(_E) then
+				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, minion, 700, 0.5, 500, 180, false)
+				if hitRate and hitRate >= 1 then	
+					Control.CastSpell(HK_E, aimPosition)	
+				end	
+            end
+        end
+    end
+end
+
+function JClear()
+    for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+        if minion.team == TEAM_JUNGLE and IsValid(minion) then
+            
+           
+			if Menu.JClear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 625 and Ready(_Q) then
+				Control.CastSpell(HK_Q, minion.pos)
+            end
+
+            if Menu.JClear.UseE:Value() and myHero.pos:DistanceTo(minion.pos) <= 900 and Ready(_E) then
+				local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, minion, 700, 0.5, 500, 180, false)
+				if hitRate and hitRate >= 1 then	
+					Control.CastSpell(HK_E, aimPosition)	
+				end	
+            end
+        end
+    end
 end
