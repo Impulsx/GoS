@@ -17,6 +17,22 @@ Data = {
             Changelog = "Irelia Changelog Here",
             Version = 0.01,
         },
+        Cassiopeia = {
+            Changelog = "Cassiopeia Changelog Here",
+            Version = 0.01,
+        },
+        Lux = {
+            Changelog = "Lux Changelog Here",
+            Version = 0.01,
+        },
+        Soraka = {
+            Changelog = "Soraka Changelog Here",
+            Version = 0.01,
+        },
+        Zyra = {
+            Changelog = "Zyra Changelog Here",
+            Version = 0.01,
+        },		
     },
 }
 
