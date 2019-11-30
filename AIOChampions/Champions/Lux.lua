@@ -35,7 +35,7 @@ end
 function LoadScript()
 	HPred()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQImmo"})
 	Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto[Q]Immobile Target", value = true})
