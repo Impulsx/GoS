@@ -1,15 +1,96 @@
-local AA = false
-local QRange = 850 * 850
-local MaxWRange = 800 * 800
-local MinWRange = 420 * 420
-local WMinCRange = 500 
-local WMaxCRange = 800 	
-local ERange = 700 * 700
-local RRange = 825 * 825
+function IsValid1(unit, range)
+    if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) and myHero.pos:DistanceTo(unit.pos) <= (range + myHero.boundingRadius + unit.boundingRadius) then
+        return true;
+    end
+    return false;
+end
+
+function Block(boolean) 
+	if boolean == true then 
+		if Orb == 1 then
+			EOW:SetAttacks(false)
+		elseif Orb == 2 then
+			_G.SDK.Orbwalker:SetAttack(false)
+		elseif Orb == 4 then
+			_G.gsoSDK.Orbwalker:SetAttack(false)			
+		else
+			--GOS:BlockAttack(true)
+		end
+	else
+		if Orb == 1 then
+			EOW:SetAttacks(true)
+		elseif Orb == 2 then
+			_G.SDK.Orbwalker:SetAttack(true)
+		elseif Orb == 4 then
+			_G.gsoSDK.Orbwalker:SetAttack(true)			
+		else
+			--GOS:BlockAttack()
+		end
+	end
+end
+
+function GetEnemyHeroes()
+    local _EnemyHeroes = {}
+    for i = 1, Game.HeroCount() do
+        local unit = Game.Hero(i)
+        if unit.isEnemy then
+            table.insert(_EnemyHeroes, unit)
+        end
+    end
+    return _EnemyHeroes
+end 
+
+function HasPoison(unit)
+	for i = 0, unit.buffCount do 
+	local buff = unit:GetBuff(i)
+		if buff.type == 23 and Game.Timer() < buff.expireTime - 0.141  then
+			return true
+		end
+	end
+	return false
+end
+
+function EnemiesNear(pos,range)
+	local pos = pos.pos
+	local N = 0
+	for i = 1,Game.HeroCount()  do
+		local hero = Game.Hero(i)
+		local Range = range * range
+		if IsValid(hero) and hero.isEnemy and pos:DistanceTo(hero.pos) < Range then
+			N = N + 1
+		end
+	end
+	return N	
+end
+
+function MinionsNear(pos,range)
+	local pos = pos.pos
+	local N = 0
+		for i = 1, Game.MinionCount() do 
+		local Minion = Game.Minion(i)
+		local Range = range * range
+		if IsValid1(Minion, 800) and Minion.team == TEAM_ENEMY and Minion.pos:DistanceTo(pos) < Range then
+			N = N + 1
+		end
+	end
+	return N	
+end
+
+function EnemyInRange(range)
+	local count = 0
+	for i, target in ipairs(GetEnemyHeroes()) do
+		if target.pos:DistanceTo(myHero.pos) < range and IsValid(target) then 
+			count = count + 1
+		end
+	end
+	return count
+end
+
+
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	
+	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
 		Menu:MenuElement({name = " ", drop = {"General Settings"}})
 		
 		--Prediction
@@ -76,7 +157,6 @@ function LoadScript()
 		Menu:MenuElement({type = MENU, id = "d", name = "Drawings"})
 		Menu.d:MenuElement({id = "ON", name = "Enable Drawings", value = true})
 		Menu.d:MenuElement({id = "Text", name = "Draw Text", value = true})
-		Menu.d:MenuElement({id = "Lines", name = "Draw Lines", value = true})
 		Menu.d:MenuElement({type = MENU, id = "Q", name = "Q"})
 		Menu.d.Q:MenuElement({id = "ON", name = "Enabled", value = true})       
 		Menu.d.Q:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
@@ -95,7 +175,7 @@ function LoadScript()
 		Menu.d.R:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 255, 255, 255)})				
 		if Menu.c.Block:Value() then
 			AA = true 
-		end
+		end		
 	
 	QData =
 	{
@@ -117,8 +197,60 @@ function LoadScript()
 		Orb = 4
 	end	
 	Callback.Add("Tick", function() Tick() end)
-	Callback.Add("Draw", function() Draw() end)		
+	
+	Callback.Add("Draw", function()
+		local textPos = myHero.pos:To2D()	
+		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+			Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+		end
+		if myHero.dead == false and Menu.d.ON:Value() then
+			
+			if Menu.d.Text:Value() then 
+				if Menu.w.E:Value() then 
+					Draw.Text("Auto E ON", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 000, 255, 000))
+				else
+					Draw.Text("Auto E OFF", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 220, 050, 000)) 
+				end
+			end
+			if Menu.d.Q.ON:Value() then
+				Draw.Circle(myHero.pos, 850, Menu.d.Q.Width:Value(), Menu.d.Q.Color:Value())
+			end
+			if Menu.d.W.ON:Value() then
+				Draw.Circle(myHero.pos, 340, Menu.d.W.Width:Value(), Menu.d.W.Color:Value())
+				Draw.Circle(myHero.pos, 960, Menu.d.W.Width:Value(), Menu.d.W.Color:Value())
+			end
+			if Menu.d.E.ON:Value() then
+				Draw.Circle(myHero.pos, 750, Menu.d.E.Width:Value(), Menu.d.E.Color:Value())
+			end	
+			if Menu.d.R.ON:Value() then
+				Draw.Circle(myHero.pos, 750, Menu.d.E.Width:Value(), Menu.d.E.Color:Value())
+			end			
+		end
+		local target = GetTarget(1200)
+		if target == nil then return end
+
+		if EnemiesNear(myHero,1200) == 1 and Ready(_R) and Ready(_W) and Ready(_E) and Ready(_Q) then	
+			local fulldmg = getdmg("Q", target, myHero) + getdmg("W", target, myHero) + getdmg("E", target, myHero) + getdmg("R", target, myHero)
+			local textPos = target.pos:To2D()
+			if IsValid(target) then
+				if fulldmg > target.health then 
+					Draw.Text("Engage PressKey", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
+				end
+			end
+		end
+	end)	
+	
 end
+
+local AA = false
+local QRange = 850
+local MaxWRange = 800
+local MinWRange = 420
+local WMinCRange = 500 
+local WMaxCRange = 800 	
+local ERange = 700
+local RRange = 825
+
 
 function Tick()
 if MyHeroNotReady() then return end
@@ -150,6 +282,8 @@ local Mode = GetMode()
 	KsQ()
 	KsW()
 	KsE()
+	
+		
 end
 
 function EdmgCreep()
@@ -192,7 +326,7 @@ function RLogic()
 		local InFace = {}
 		for i = 1, Game.HeroCount() do
 		local Hero = Game.Hero(i)
-			if IsValid(Hero, 850) then 
+			if IsValid1(Hero, 850) then 
 				--local LS = LineSegment(myHero.pos, Hero.pos)
 				--LS:__draw()
 				InFace[#InFace + 1] = Hero
@@ -216,7 +350,7 @@ function RLogic()
 			local A = CloseLine.Vector
 			local B = MainLine.Vector
 				if A ~= B then
-					if GetAngle(A,B) and GetDistanceSqr(MainLine.Host.pos, myHero.pos) < 825 then 
+					if GetAngle(A,B) and myHero.pos:DistanceTo(MainLine.Host.pos) < 825 then 
 						Count[MainLine] = Count[MainLine] + 1
 					end
 				end
@@ -294,32 +428,16 @@ function Check(Mode)
 		end
 	end
 end
-
-function CastW(key, pos)
-	local key = key or HK_W
-	local Dist = pos:DistanceTo()
-	local h = myHero.pos
-	local v = Vector(pos - myHero.pos):Normalized()
-	if Dist < WMinCRange then
-		Control.CastSpell(key, h + v*500)
-	elseif Dist > WMaxCRange then
-		Control.CastSpell(key, h + v*800)
-	else
-		Control.CastSpell(key, pos)
-	end
-end	
-
 	
 function Combo()
 local target = GetTarget(950)
 if target == nil then return end
-	local RValue = Menu.c.R:Value()
-	local Dist = GetDistanceSqr(myHero.pos, target.pos)
-	local QWReady = Ready(_Q) 
-	local RTarget, ShouldCast = RLogic()
+
 	if IsValid(target) then	
 	local result = false
-        
+    local Dist = myHero.pos:DistanceTo(target.pos) 
+	local RTarget, ShouldCast = RLogic()   
+		
 		if not result and Menu.c.E:Value() and Ready(_E) and Dist < ERange then
             result = Control.CastSpell(HK_E, target)
         end
@@ -330,12 +448,11 @@ if target == nil then return end
                     result = Control.CastSpell(HK_Q, pred.CastPosition)
                 end
             end
-        end
+        end 
         if not result and Menu.c.W:Value() and Ready(_W) then 
             if Dist < MaxWRange and Dist > MinWRange then
-            local Pos = GetPred(target, 1500, 0.25 + Game.Latency()/1000)
-                if GetDistanceSqr(Pos.pos, myHero.pos) < MaxWRange then 
-                    CastW(HK_W, Pos)
+                if myHero.pos:DistanceTo(target.pos) < MaxWRange then 
+                    CastW(HK_W, target.pos)
                 end
             end
         end
@@ -376,7 +493,7 @@ function SemiR()
 local target = GetTarget(950)
 if target == nil then return end
 	local RTarget, ShouldCast = RLogic()
-	local Dist = GetDistanceSqr(myHero.pos, target.pos)	
+	local Dist = myHero.pos:DistanceTo(target.pos)	
 	local pred = GetGamsteronPrediction(RTarget, RData, myHero)
 	if IsValid(target) and Dist < RRange and Ready(_R) then
 		if RTarget and pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
@@ -393,7 +510,7 @@ if target == nil then return end
 	
 	if IsValid(target) then
 		local EDmg = getdmg("E", target, myHero) * 2
-		local Dist = GetDistanceSqr(myHero.pos, target.pos)
+		local Dist = myHero.pos:DistanceTo(target.pos)
 		local result = false
 		if not result and Dist < ERange and Menu.h.E:Value() and Ready(_E) and (HasPoison(target) or EDmg >= target.health) then
             result = Control.CastSpell(HK_E, target)
@@ -412,15 +529,14 @@ function Clear()
 for i = 1, Game.MinionCount() do 
 local minion = Game.Minion(i)
 	if minion.team == TEAM_ENEMY and IsValid(minion) then
-		local mana_ok = myHero.mana/myHero.maxMana >= Menu.m.QW:Value() / 100
+	local mana_ok = myHero.mana/myHero.maxMana >= Menu.m.QW:Value() / 100
 		if Menu.w.Q:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= QRange and Ready(_Q) then
 			Control.CastSpell(HK_Q, minion.pos)
 		end
 		if Menu.w.W:Value() and mana_ok and Ready(_W) then
-			local Pos = GetPred(minion, 1500, 0.25 + Game.Latency()/1000)
-			local Dist = GetDistanceSqr(Pos.pos, myHero.pos)
+			local Dist = myHero.pos:DistanceTo(minion.pos)
 			if Dist < MaxWRange and Dist > MinWRange and MinionsNear(minion,500) >= Menu.w.Count:Value() then
-				CastW(HK_W, Pos)
+				CastW(HK_W, minion.pos)
 			end	
 		end
 	end
@@ -440,11 +556,10 @@ function JClear()
 			end
 		end
 		if IsValid(Minion) then
-			local Pos = GetPred(Minion, 1500, 0.25 + Game.Latency()/1000)
-			local Dist = GetDistanceSqr(Pos.pos, myHero.pos)
+			local Dist = myHero.pos:DistanceTo(Minion.pos)
 			if Dist < MaxWRange and Dist > MinWRange then	
 				if Menu.j.W:Value() and Ready(_W) and myHero.mana/myHero.maxMana > Menu.m.WW:Value()/100 then
-					CastW(HK_W, Pos)
+					CastW(HK_W, Minion.pos)
 				
 				end
 			end
@@ -475,7 +590,7 @@ end
 function KsE()
 local target = GetTarget(750)
 if target == nil then return end
-local Dist = GetDistanceSqr(myHero.pos, target.pos)	 
+local Dist = myHero.pos:DistanceTo(target.pos)	 
 	if IsValid(target) and Dist < ERange then	
 		local EDmg = getdmg("E", target, myHero) * 2
 		local PEDmg = getdmg("E", target, myHero)
@@ -494,7 +609,7 @@ end
 function KsQ()
 local target = GetTarget(900)
 if target == nil then return end
-local Dist = GetDistanceSqr(myHero.pos, target.pos)	
+local Dist = myHero.pos:DistanceTo(target.pos)	
 	if IsValid(target) and Dist < QRange then	
 		if Menu.ks.Q:Value() and Ready(_Q) then 
 			local QDmg = getdmg("Q", target, myHero)
@@ -509,14 +624,13 @@ end
 function KsW()
 local target = GetTarget(900)
 if target == nil then return end
-local Pos = GetPred(target, 1500, 0.25 + Game.Latency()/1000)
-local Dist = GetDistanceSqr(Pos.pos, myHero.pos)
+local Dist = myHero.pos:DistanceTo(target.pos)
 	
 	if IsValid(target) and Dist < MaxWRange and Dist > MinWRange then	
 		if Menu.ks.W:Value() and Ready(_W) then 
 			local WDmg = getdmg("W", target, myHero)
 			if WDmg > target.health then
-				Control.CastSpell(HK_W, Pos)
+				Control.CastSpell(HK_W, target.pos)
 			
 			end
 		end
@@ -527,7 +641,7 @@ end
 function Engage()
 local target = GetTarget(1200)
 if target == nil then return end
-local Dist = GetDistanceSqr(myHero.pos, target.pos)
+local Dist = myHero.pos:DistanceTo(target.pos)
 
 	if IsValid(target) and Dist < ERange then
 		local fulldmg = getdmg("Q", target, myHero) + getdmg("W", target, myHero) + getdmg("E", target, myHero) + getdmg("R", target, myHero)
@@ -562,17 +676,13 @@ local Dist = GetDistanceSqr(myHero.pos, target.pos)
 			end
 		end	
 		if Ready(_W) and not Ready(_R) then 
-			local Pos = GetPred(target, 1500, 0.25 + Game.Latency()/1000)
-			local Dist2 = GetDistanceSqr(myHero.pos, Pos.pos)
-			if Dist2 < MaxWRange and Dist2 > MinWRange then
-				CastW(HK_W, Pos)
+			if Dist < MaxWRange and Dist > MinWRange then
+				CastW(HK_W, target.pos)
 				
 			end
 		end
 	end	
 end
-	
-	
 	
 function AutoE()
     for i = 1, Game.MinionCount() do
@@ -581,8 +691,8 @@ function AutoE()
 			local mana_ok = myHero.mana/myHero.maxMana >= Menu.m.EW:Value() / 100
             local Dist = myHero.pos:DistanceTo(minion.pos)
 			if Menu.w.E:Value() and mana_ok and Dist <= ERange and Ready(_E) then
-				local PDmg = PEdmgCreep()
-				local EDmg = EdmgCreep()
+				local PDmg = CalcMagicalDamage(myHero, minion, PEdmgCreep()) 
+				local EDmg = CalcMagicalDamage(myHero, minion, EdmgCreep()) 
 				if HasPoison(minion) and PDmg + 20 >= minion.health then 
 					Block(true)
 					if PEdmgCreep() >= minion.health then
@@ -602,61 +712,18 @@ function AutoE()
 	end	
 end
 					
-
-function Draw()
-local textPos = myHero.pos:To2D()	
-	if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
-		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+function CastW(key, pos)
+	local key = key or HK_W
+	local Dist = pos:DistanceTo()
+	local h = myHero.pos
+	local v = Vector(pos - myHero.pos):Normalized()
+	if Dist < WMinCRange then
+		Control.CastSpell(key, h + v*500)
+	elseif Dist > WMaxCRange then
+		Control.CastSpell(key, h + v*800)
+	else
+		Control.CastSpell(key, pos)
 	end
-	if myHero.dead == false and Menu.d.ON:Value() then
-		
-		if Menu.d.Lines:Value() then
-			local InFace = {}
-			for i = 1, Game.HeroCount() do
-			local Hero = Game.Hero(i)
-				if IsValid(Hero, 850) and IsFacing(Hero) then 
-					local Vectori = Vector(myHero.pos - Hero.pos)
-					local LS = LineSegment(myHero.pos, Hero.pos)
-					LS:__draw()
-				end
-			end
-			local RTarget = RLogic()
-			if RTarget then
-				LSS = Circle(Point(RTarget), RTarget.boundingRadius)
-				LSS:__draw()
-			end
-		end
-		if Menu.d.Text:Value() then 
-			if Menu.w.E:Value() then 
-				Draw.Text("Auto E ON", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 000, 255, 000))
-			else
-				Draw.Text("Auto E OFF", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 220, 050, 000)) 
-			end
-		end
-		if Menu.d.Q.ON:Value() then
-			Draw.Circle(myHero.pos, 850, Menu.d.Q.Width:Value(), Menu.d.Q.Color:Value())
-		end
-		if Menu.d.W.ON:Value() then
-			Draw.Circle(myHero.pos, 340, Menu.d.W.Width:Value(), Menu.d.W.Color:Value())
-			Draw.Circle(myHero.pos, 960, Menu.d.W.Width:Value(), Menu.d.W.Color:Value())
-		end
-		if Menu.d.E.ON:Value() then
-			Draw.Circle(myHero.pos, 750, Menu.d.E.Width:Value(), Menu.d.E.Color:Value())
-		end	
-		if Menu.d.R.ON:Value() then
-			Draw.Circle(myHero.pos, 750, Menu.d.E.Width:Value(), Menu.d.E.Color:Value())
-		end			
-	end
-	local target = GetTarget(1200)
-	if target == nil then return end
+end	
 
-	if EnemiesNear(myHero,1200) == 1 and Ready(_R) and Ready(_W) and Ready(_E) and Ready(_Q) then	
-		local fulldmg = getdmg("Q", target, myHero) + getdmg("W", target, myHero) + getdmg("E", target, myHero) + getdmg("R", target, myHero)
-		local textPos = target.pos:To2D()
-		if IsValid(target) then
-			if fulldmg > target.health then 
-				Draw.Text("Engage PressKey", 25, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
-			end
-		end
-	end		
-end
+	
