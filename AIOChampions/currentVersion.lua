@@ -13,13 +13,9 @@ Data = {
             Changelog = "Mordekaiser Changelog Here",
             Version = 0.01,
         },
-        Irelia = {
-            Changelog = "Irelia Changelog Here",
-            Version = 0.01,
-        },
         Cassiopeia = {
             Changelog = "Cassiopeia Changelog Here",
-            Version = 0.01,
+            Version = 0.02,
         },
         Lux = {
             Changelog = "Lux Changelog Here",
