@@ -207,9 +207,9 @@ function LoadScript()
 			
 			if Menu.d.Text:Value() then 
 				if Menu.w.E:Value() then 
-					Draw.Text("Auto E ON", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 000, 255, 000))
+					Draw.Text("Auto E ON", 20, textPos.x - 70, textPos.y + 30, Draw.Color(255, 000, 255, 000))
 				else
-					Draw.Text("Auto E OFF", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 220, 050, 000)) 
+					Draw.Text("Auto E OFF", 20, textPos.x - 70, textPos.y + 30, Draw.Color(255, 220, 050, 000)) 
 				end
 			end
 			if Menu.d.Q.ON:Value() then
@@ -269,7 +269,7 @@ local Mode = GetMode()
 	elseif Mode == "Flee" then
 		
 	end
-	if Menu.w.E:Value() and Mode ~= "Combo" then
+	if Menu.w.E:Value() and (Mode ~= "Combo" or Mode ~= "Harass") then
 		AutoE()
 	end
 	if Menu.kill.Eng:Value() then
