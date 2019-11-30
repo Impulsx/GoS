@@ -1,6 +1,27 @@
+function GetAllyHeroes() 
+	AllyHeroes = {}
+	for i = 1, Game.HeroCount() do
+		local Hero = Game.Hero(i)
+		if Hero.isAlly and not Hero.isMe then
+			table.insert(AllyHeroes, Hero)
+		end
+	end
+	return AllyHeroes
+end
+
+function IsImmobileTarget(unit)
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.name == 10 ) and buff.count > 0 then
+			return true
+		end
+	end
+	return false	
+end
+
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	
+	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
 	--AutoE
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})
 	Menu.AutoE:MenuElement({id = "UseE", name = "Auto[E]Immobile Target", value = true})
@@ -50,8 +71,8 @@ function LoadScript()
 
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
-	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
-	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
+	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 
 
 	--Drawing 
@@ -80,7 +101,23 @@ function LoadScript()
 		Orb = 4
 	end	
 	Callback.Add("Tick", function() Tick() end)
-	Callback.Add("Draw", function() Draw() end)		
+
+	Callback.Add("Draw", function()
+	  if myHero.dead then return end                                                 
+		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
+		Draw.Circle(myHero, 800, 1, Draw.Color(225, 225, 0, 10))
+		end
+		if Menu.Drawing.DrawE:Value() and Ready(_E) then
+		Draw.Circle(myHero, 925, 1, Draw.Color(225, 225, 125, 10))
+		end
+		if Menu.Drawing.DrawW:Value() and Ready(_W) then
+		Draw.Circle(myHero, 550, 1, Draw.Color(225, 225, 125, 10))
+		end
+		local textPos = myHero.pos:To2D()	
+		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+			Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+		end	
+	end)		
 end
 
 function Tick()
@@ -130,57 +167,41 @@ end
 
 
 function AutoR()
-for i, ally in pairs(GetAllyHeroes()) do     	
-if ally == nil then return end	
-	if Menu.AutoR.UseR:Value() and Ready(_R) then
-		if RCount() >= Menu.AutoR.UseRE:Value() then
-			Control.CastSpell(HK_R)
-		end	
-	end
-end	
+	for i, ally in pairs(GetAllyHeroes()) do     	
+	if ally == nil then return end	
+		if Menu.AutoR.UseR:Value() and Ready(_R) then
+			if RCount() >= Menu.AutoR.UseRE:Value() then
+				Control.CastSpell(HK_R)
+			end	
+		end
+	end	
 end
 
 function AutoR2()
-for i, ally in pairs(GetAllyHeroes()) do     	
-if ally == nil then return end	
-	if IsValid(ally) and Ready(_R) then 
-		if Menu.AutoR.AutoR2[ally.charName] and Menu.AutoR.AutoR2[ally.charName]:Value() and ally.health/ally.maxHealth <= Menu.AutoR.UseRE:Value()/100 then
-			Control.CastSpell(HK_R)
+	for i, ally in pairs(GetAllyHeroes()) do     	
+	if ally == nil then return end	
+		if IsValid(ally) and Ready(_R) then 
+			if Menu.AutoR.AutoR2[ally.charName] and Menu.AutoR.AutoR2[ally.charName]:Value() and ally.health/ally.maxHealth <= Menu.AutoR.UseRE:Value()/100 then
+				Control.CastSpell(HK_R)
+			end	
 		end	
-	end	
-end
+	end
 end	
 
 
 function AutoW()
-for i, ally in pairs(GetAllyHeroes()) do     	
-if ally == nil then return end	
-	if IsValid(ally) and myHero.pos:DistanceTo(ally.pos) <= 550 and Ready(_W) and BaseCheck(myHero) == false then 
-		if Menu.AutoW.UseW:Value() then
-			if ally.health/ally.maxHealth <= Menu.AutoW.UseWE:Value()/100 and myHero.mana/myHero.maxMana >= Menu.AutoW.Mana:Value()/100 then
-				Control.CastSpell(HK_W, ally)
+local target = GetTarget(2000)     	
+if target == nil then return end	
+	for i, ally in pairs(GetAllyHeroes()) do     	
+	if ally == nil then return end	
+		if IsValid(ally) and myHero.pos:DistanceTo(ally.pos) <= 550 and Ready(_W) then 
+			if Menu.AutoW.UseW:Value() then
+				if ally.health/ally.maxHealth <= Menu.AutoW.UseWE:Value()/100 and myHero.mana/myHero.maxMana >= Menu.AutoW.Mana:Value()/100 then
+					Control.CastSpell(HK_W, ally)
+				end	
 			end	
-		end	
+		end
 	end
-end
-end
-
-			
-function Draw()
-  if myHero.dead then return end                                                 
-	if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-    Draw.Circle(myHero, 800, 1, Draw.Color(225, 225, 0, 10))
-	end
-	if Menu.Drawing.DrawE:Value() and Ready(_E) then
-    Draw.Circle(myHero, 925, 1, Draw.Color(225, 225, 125, 10))
-	end
-	if Menu.Drawing.DrawW:Value() and Ready(_W) then
-    Draw.Circle(myHero, 550, 1, Draw.Color(225, 225, 125, 10))
-	end
-	local textPos = myHero.pos:To2D()	
-	if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
-		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
-	end	
 end
        
 function KillSteal()	
