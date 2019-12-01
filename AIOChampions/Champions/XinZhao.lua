@@ -93,9 +93,7 @@ local Mode = GetMode()
 	elseif Mode == "Harass" then
 		Harass()
 	elseif Mode == "Clear" then
-		Clear()
-	elseif Mode == "Flee" then
-		
+		Clear()		
 	end	
 		
 	KS()		
