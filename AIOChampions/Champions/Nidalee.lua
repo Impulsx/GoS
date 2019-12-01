@@ -12,7 +12,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	--Combo
 	Menu:MenuElement({type = MENU, id = "ComboMode", name = "Combo"})
@@ -194,7 +194,7 @@ if target == nil then return end
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if Menu.ComboMode.UseQ:Value() then
 				if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-					CastSpell(HK_Q, pred.CastPosition)
+					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
 			end
 		end
