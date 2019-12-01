@@ -32,6 +32,10 @@ Data = {
         XinZhao = {
             Changelog = "XinZhao Changelog Here",
             Version = 0.01,
+        }, 
+        Nidalee = {
+            Changelog = "Nidalee Changelog Here",
+            Version = 0.01,
         },        
     },
 }
