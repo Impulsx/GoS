@@ -28,7 +28,11 @@ Data = {
         Zyra = {
             Changelog = "Zyra Changelog Here",
             Version = 0.01,
-        },		
+        },
+        XinZhao = {
+            Changelog = "XinZhao Changelog Here",
+            Version = 0.01,
+        },        
     },
 }
 
