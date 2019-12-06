@@ -87,10 +87,23 @@ function GetImmobileCount(range, pos)
 	return count
 end
 
+function SetAttack(bool)
+	if _G.EOWLoaded then
+		EOW:SetAttacks(bool)
+	elseif _G.SDK then                                                        
+		_G.SDK.Orbwalker:SetAttack(bool)
+	elseif _G.gsoSDK then
+		_G.gsoSDK.Orbwalker:SetAttack(bool)	
+	else
+		GOS.BlockAttack = not bool
+	end
+
+end
+
 function LoadScript()
 	HPred()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	--AutoE
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})	
@@ -161,15 +174,13 @@ function LoadScript()
 	--EscapeMenu
 	Menu:MenuElement({type = MENU, id = "evade", name = "Escape"})	
 	Menu.evade:MenuElement({id = "UseW", name = "Auto[W] Spawn Clone", value = true})
-	Menu.evade:MenuElement({id = "Min", name = "Min Life to Spawn Clone", value = 30, min = 0, max = 100, identifier = "%"})	
-	Menu.evade:MenuElement({id = "gank", name = "Auto[W] Spawn Clone Incomming Gank", value = true})
+	Menu.evade:MenuElement({id = "Min", name = "Low Life to Spawn Clone", value = 30, min = 0, max = 100, identifier = "%"})	
 	
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
 	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
-	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})
-	Menu.Drawing:MenuElement({id = "Kill", name = "Draw Killable Targets", value = true})	
+	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})	
 	
 	Q = {range = 800, width = 225, delay = 0.25, speed = 500, collision = false}    
 	E = {range = 1000, width = 70, delay = 0.25, speed = 1300, collision = false} 	
@@ -196,25 +207,7 @@ function LoadScript()
 		if(Menu.Drawing.DrawE:Value()) and Ready(_E) then
 		Draw.Circle(myHero, 1000, 1, Draw.Color(225, 225, 125, 10))
 		end
-		local target = GetTarget(20000)
-		if target == nil then return end	
-		if target and Menu.Drawing.Kill:Value() and not target.dead then
-		local hp = target.health	
-			if Ready(_Q) and getdmg("Q", target) > hp then
-				Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-				Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))
-			end	
-			if Ready(_E) and getdmg("E", target) > hp then
-				Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-				Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))		
-			end	
-			if Ready(_E) and Ready(_Q) and (getdmg("E", target) + getdmg("Q", target)) > hp then
-				Draw.Text("Killable", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-				Draw.Text("Killable", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))	
-			end
-		end
-	end)	
-	
+	end)		
 end
 
 function Tick()
@@ -249,7 +242,6 @@ local Mode = GetMode()
 	end	
 	EscapeW()
 	KillSteal()
-	GankW()
 	AutoE()
 		
 end
@@ -262,6 +254,16 @@ if target == nil then return end
 		local targetCount = HPred:GetLineTargetCount(myHero.pos, aimPosition, E.delay, E.speed, E.width, false)	
 		if hitRate and hitRate >= 1 and targetCount >= 2 then
 			Control.CastSpell(HK_E, aimPosition)
+		end
+	end
+end
+
+function EscapeW()  
+local target = GetTarget(1500)
+if target == nil then return end
+	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1500 and Ready(_W) then
+		if myHero.health/myHero.maxHealth <= Menu.evade.Min:Value()/100 and Menu.evade.UseW:Value() then
+			Control.CastSpell(HK_W, target.pos)
 		end
 	end
 end
@@ -384,38 +386,7 @@ if target == nil then return end
 		
 		end
 	end
-end	
-
-function EscapeW()  
-local target = GetTarget(1500)
-if target == nil then return end
-	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1000 then
-	local hp = myHero.health
-		if hp <= Menu.evade.Min:Value() and Menu.evade.UseW:Value() and Ready(_W) then
-			_G.SDK.Orbwalker:SetAttack(false)
-			local MPos = myHero.pos:Shortened(target.pos, 1000)
-			Control.CastSpell(HK_W, MPos)
-			_G.SDK.Orbwalker:SetAttack(true)
-		end
-	end
-end
-
-function GankW()  
-local target = GetTarget(1500)
-if target == nil then return end
-	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1500 then
-		if Menu.evade.gank:Value() and Ready(_W) then
-			local targetCount = CountEnemiesNear(myHero, 1000)
-			local allyCount = GetAllyCount(1500, myHero)
-			if targetCount > 1 and allyCount == 0 then
-				_G.SDK.Orbwalker:SetAttack(false)
-				local MPos = myHero.pos:Shortened(target.pos, 1000)
-				Control.CastSpell(HK_W, MPos)
-				_G.SDK.Orbwalker:SetAttack(true)				
-			end
-		end
-	end
-end	
+end		
 
 function AutoR()
 local target = GetTarget(1000)
