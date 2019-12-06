@@ -1,4 +1,4 @@
-local Version = 0.07
+local Version = 0.08
 
 
     local Files = {
@@ -864,7 +864,7 @@ local DamageLibTable = {
   },
 
   ["Ryze"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({80, 105, 130, 155, 180})[level] + 0.45 * source.ap + 0.03 * source.maxMana) * (1 + (GotBuff(target, "RyzeE") > 0 and ({40, 70, 100})[source:GetSpellData(_R).level] / 100 or 0)) end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({80, 105, 130, 155, 180})[level] + 0.45 * source.ap + 0.03 * source.maxMana) end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.6 * source.ap + 0.04 * source.maxMana end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 80, 100, 120, 140})[level] + 0.3 * source.ap + 0.02 * source.maxMana end},
   },
