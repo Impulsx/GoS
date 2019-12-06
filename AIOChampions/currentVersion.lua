@@ -31,7 +31,7 @@ Data = {
         },
         XinZhao = {
             Changelog = "XinZhao Changelog Here",
-            Version = 0.01,
+            Version = 0.02,
         },
         Nidalee = {
             Changelog = "Nidalee Changelog Here",
