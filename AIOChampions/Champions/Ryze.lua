@@ -37,7 +37,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -54,8 +54,8 @@ function LoadScript()
 	
 	--LaneClear Menu
 	Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})
-	Menu.Clear:MenuElement({id = "UseQ", name = "[E]+[Q] Marked Minion", value = true})
-	Menu.Clear:MenuElement({id = "Count", name = "Min minions for [E]+[Q]", value = 3, min = 1, max = 12, step = 1})	
+	Menu.Clear:MenuElement({id = "UseQ", name = "[E] + [Q] Marked Minion", value = true})
+	Menu.Clear:MenuElement({id = "Count", name = "Min minions for [E] + [Q]", value = 3, min = 1, max = 12, step = 1})	
 	Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
 	
 	--JungleClear
@@ -66,8 +66,8 @@ function LoadScript()
 	
 	--LastHit
 	Menu:MenuElement({type = MENU, id = "Last", name = "LastHit Minion"})
-	Menu.Last:MenuElement({id = "UseQ", name = "[Q]if out of AA range", value = true})
-	Menu.Last:MenuElement({id = "UseE", name = "[E]if not killable AA or Q", value = true})	
+	Menu.Last:MenuElement({id = "UseQ", name = "[Q] if out of AA range", value = true})
+	Menu.Last:MenuElement({id = "UseE", name = "[E] if not killable AA or Q", value = true})	
 	Menu.Last:MenuElement({id = "Mana", name = "Min Mana to LastHit", value = 20, min = 0, max = 100, identifier = "%"})	
 	
 	--KillSteal
@@ -106,11 +106,11 @@ function LoadScript()
 	Callback.Add("Tick", function() Tick() end)
 	
 	Callback.Add("Draw", function()
-		Draw.Text("Combo Mode: ", 15, Menu.Drawing.XY.x:Value(), Menu.Drawing.XY.y:Value()+30, Draw.Color(255, 225, 255, 0))
+		Draw.Text("Combo Mode: ", 15, Menu.Drawing.XY.x:Value(), Menu.Drawing.XY.y:Value()+15, Draw.Color(255, 225, 255, 0))
 		if Menu.Combo.Type:Value() then
-			Draw.Text("Full Combo", 15, Menu.Drawing.XY.x:Value()+74, Menu.Drawing.XY.y:Value()+30, Draw.Color(255, 0, 255, 0))
+			Draw.Text("Full Combo", 15, Menu.Drawing.XY.x:Value()+85, Menu.Drawing.XY.y:Value()+15, Draw.Color(255, 0, 255, 0))
 		else
-			Draw.Text("Fast Combo", 15, Menu.Drawing.XY.x:Value()+74, Menu.Drawing.XY.y:Value()+30, Draw.Color(255, 0, 255, 0))
+			Draw.Text("Fast Combo", 15, Menu.Drawing.XY.x:Value()+85, Menu.Drawing.XY.y:Value()+15, Draw.Color(255, 0, 255, 0))
 		end	
 		
 		if myHero.dead then return end
@@ -237,23 +237,32 @@ function LastHit()
 		if minion.team == TEAM_ENEMY and myHero.pos:DistanceTo(minion.pos) <= 1200 and myHero.mana/myHero.maxMana >= Menu.Last.Mana:Value() / 100 then
 			local Qdmg = getdmg("Q", minion, myHero)
 			local Edmg = getdmg("E", minion, myHero)
-			local level = myHero:GetSpellData(_R).level
-			local MarkedDmg = (({40, 70, 100})[level]) /100	
+
 			
-			if myHero:GetSpellData(_R).level == 0 and myHero.pos:DistanceTo(minion.pos) <= 615 and IsValid(minion) and minion.health > (myHero.totalDamage or Qdmg) and minion.health <= (Edmg +  0.1*Qdmg) and Menu.Last.UseE:Value() and Ready(_E) then
+			if myHero:GetSpellData(_R).level == 0 and myHero.pos:DistanceTo(minion.pos) <= 615 and IsValid(minion) and minion.health > (myHero.totalDamage or Qdmg) and minion.health <= Edmg + 0.1*Qdmg and Menu.Last.UseE:Value() and Ready(_E) then
 				Control.CastSpell(HK_E,minion)				
 			
-			elseif myHero.pos:DistanceTo(minion.pos) <= 615 and IsValid(minion) and minion.health > (myHero.totalDamage or Qdmg) and minion.health <= (Edmg + Qdmg*MarkedDmg) and Menu.Last.UseE:Value() and Ready(_E) then
-				Control.CastSpell(HK_E,minion)
+			elseif myHero:GetSpellData(_R).level > 0 and myHero.pos:DistanceTo(minion.pos) <= 615 and IsValid(minion) and Menu.Last.UseE:Value() and Ready(_E) then
+				local level = myHero:GetSpellData(_R).level
+				local MarkedDmg = (({40, 70, 100})[level]) /100					
+				if minion.health > (myHero.totalDamage or Qdmg) and minion.health <= (Edmg + MarkedDmg*Qdmg) then
+					Control.CastSpell(HK_E,minion)
+				end	
 			end			
 			
-			if myHero.pos:DistanceTo(minion.pos) <= 1000 and IsValid(minion) and Menu.Last.UseE:Value() and Ready(_Q) and minion.health <= Qdmg then
-				if GotBuff(minion, "RyzeE") then
+			if myHero:GetSpellData(_R).level == 0 and myHero.pos:DistanceTo(minion.pos) <= 1000 and IsValid(minion) and Menu.Last.UseE:Value() and Ready(_Q) then
+				if GotBuff(minion, "RyzeE") > 0 and minion.health <= 0.1*Qdmg then
 					Control.CastSpell(HK_Q, minion.pos)
 				end
+			elseif myHero:GetSpellData(_R).level > 0 and myHero.pos:DistanceTo(minion.pos) <= 1000 and IsValid(minion) and Menu.Last.UseE:Value() and Ready(_Q) then
+				local level = myHero:GetSpellData(_R).level
+				local MarkedDmg = (({40, 70, 100})[level]) /100	
+				if GotBuff(minion, "RyzeE") > 0 and minion.health <= (MarkedDmg*Qdmg) then
+					Control.CastSpell(HK_Q, minion.pos)
+				end				
 			end
 			
-			if myHero.pos:DistanceTo(minion.pos) <= 1000 and myHero.pos:DistanceTo(minion.pos) > myHero.range and IsValid(minion) and Menu.Last.UseQ:Value() and Ready(_Q) and minion.health <= Qdmg then
+			if myHero.pos:DistanceTo(minion.pos) <= 1000 and myHero.pos:DistanceTo(minion.pos) > (myHero.range + myHero.boundingRadius) and IsValid(minion) and Menu.Last.UseQ:Value() and Ready(_Q) and minion.health <= Qdmg then
 				Control.CastSpell(HK_Q, minion.pos)
 			end			
 		end
@@ -271,7 +280,7 @@ function Clear()
 			end			
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 1000 and IsValid(minion) and Menu.Clear.UseQ:Value() and Ready(_Q) then
-				if GotBuff(minion, "RyzeE") then
+				if GotBuff(minion, "RyzeE") > 0 then
 					Control.CastSpell(HK_Q, minion.pos)
 				end
 			end
@@ -303,13 +312,16 @@ if target == nil then return end
 		if myHero.pos:DistanceTo(target.pos) <= 615 and Menu.KillSteal.UseE:Value() and Ready(_E) then
 			local Edmg = getdmg("E", target, myHero)
 			local Qdmg = getdmg("Q", target, myHero)
-			local level = myHero:GetSpellData(_R).level
-			local MarkedDmg = (({40, 70, 100})[level]) /100			
+			
 			if myHero:GetSpellData(_R).level == 0 and (Edmg + 0.1*Qdmg) >= target.health then
 				Control.CastSpell(HK_E,target)
 			
-			elseif (Edmg + Qdmg*MarkedDmg) >= target.health then
-				Control.CastSpell(HK_E,target)			 
+			elseif myHero:GetSpellData(_R).level > 0 then
+				local level = myHero:GetSpellData(_R).level
+				local MarkedDmg = (({40, 70, 100})[level]) /100
+				if (Edmg + Qdmg*MarkedDmg) >= target.health then
+					Control.CastSpell(HK_E,target)
+				end
 			end
 		end		
 		
