@@ -71,9 +71,9 @@ local function GetPred(unit,speed,delay)
 end
 
 function LoadScript()
-	HPred()
+
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	Menu:MenuElement({id = "Combo", name = "Combo", type = MENU})
 	Menu.Combo:MenuElement({id = "UseQ", name = "Q", value = true})
@@ -90,7 +90,7 @@ function LoadScript()
 	
 	Menu:MenuElement({id = "Lasthit", name = "Lasthit", type = MENU})
 	Menu.Lasthit:MenuElement({id = "UseQ", name = "Q", value = true})
-	Menu.Lasthit:MenuElement({id = "AutoQFarm", name = "Auto Q Farm", value = false, toggle = true, key = string.byte("Z")})
+	Menu.Lasthit:MenuElement({id = "AutoQFarm", name = "Auto Q Farm", value = false, toggle = true, key = string.byte("T")})
 	Menu.Lasthit:MenuElement({id = "lasthitActive", name = "Lasthit key", key = string.byte("X")})
 	Menu.Lasthit:MenuElement({type = MENU, id = "XY", name = "Text Position"})	
 	Menu.Lasthit.XY:MenuElement({id = "x", name = "Pos: [X]", value = 0, min = 0, max = 1500, step = 10})
@@ -126,7 +126,7 @@ function LoadScript()
 	E = {Range = 700, Width = 375, Delay = 0.5, Speed = 1000, Collision = false, aoe = true, Type = "circular"}
 	R = {Range = 650, Width = 50, Delay = 0.25, Speed = 1400, Collision = false, aoe = false, Type = "line"}	
 	
-	qData =
+	QData =
 	{
 	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 950, Speed = 2000, Collision = true ,MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
 	}
@@ -229,7 +229,7 @@ if target == nil then return end
 			local pred = GetGamsteronPrediction(target, EData, myHero)
 			if Menu.Combo.UseE:Value() and Ready(_E) and pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then
 				if Menu.Combo.EMode:Value() == 1 then
-					Control.CastSpell(HK_E, Vector(target:GetPrediction(math.huge,0.25))-Vector(Vector(target:GetPrediction(math.huge,0.25))-Vector(myHero.pos)):Normalized()*350) 
+					Control.CastSpell(HK_E, Vector(target:GetPrediction(math.huge,0.25))-Vector(Vector(target:GetPrediction(math.huge,0.25))-Vector(myHero.pos)):Normalized()*375) 
 				elseif Menu.Combo.EMode:Value() == 2 then
 					Control.CastSpell(HK_E,pred.CastPosition)
 				end
@@ -352,31 +352,27 @@ if target == nil then return end
 	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < Q.Range then	
 		if Menu.isCC.UseQ:Value() and Ready(_Q) then
 			local ImmobileEnemy = IsImmobileTarget(target)
-			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if ImmobileEnemy then
-				if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-					Control.CastSpell(HK_Q, pred.CastPosition)
-				end
+				Control.CastSpell(HK_Q, target.pos)
+			
 			end
 		end
 	end
 	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < E.Range then	
 		local ImmobileEnemy = IsImmobileTarget(target)
-		local pred = GetGamsteronPrediction(target, EData, myHero)
-		if Menu.isCC.UseE:Value() and Ready(_E) and ImmobileEnemy and pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then
+		if Menu.isCC.UseE:Value() and Ready(_E) and ImmobileEnemy then
 			if Menu.Combo.EMode:Value() == 1 then
-				Control.CastSpell(HK_E, Vector(target:GetPrediction(math.huge,0.25))-Vector(Vector(target:GetPrediction(math.huge,0.25))-Vector(myHero.pos)):Normalized()*350) 
+				Control.CastSpell(HK_E, Vector(target:GetPrediction(math.huge,0.25))-Vector(Vector(target:GetPrediction(math.huge,0.25))-Vector(myHero.pos)):Normalized()*375) 
 			elseif Menu.Combo.EMode:Value() == 2 then
-				Control.CastSpell(HK_E,pred.CastPosition)
+				Control.CastSpell(HK_E,target.pos)
 			end
 		end	
 	end	
 	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < W.Range then 	
 		if Menu.isCC.UseW:Value() and Ready(_W) then
 			local ImmobileEnemy = IsImmobileTarget(target)
-			local pred = GetGamsteronPrediction(target, WData, myHero)
-			if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 and ImmobileEnemy then
-				Control.CastSpell(HK_W, pred.CastPosition)
+			if ImmobileEnemy then
+				Control.CastSpell(HK_W, target.pos)
 			end
 		end
 	end	
