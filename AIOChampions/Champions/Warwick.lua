@@ -9,7 +9,6 @@ function GetEnemyHeroes()
     return _EnemyHeroes
 end 
 
-keybindings = { [ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6}
 function GetInventorySlotItem(itemID)
     assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
     for _, j in pairs({ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6}) do
@@ -43,7 +42,7 @@ end
 function LoadScript()
 	HPred()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	--Combo--
 	Menu:MenuElement({id = "ComboMode", name = "Combo", type = MENU})
@@ -56,6 +55,9 @@ function LoadScript()
 	Menu.ComboMode:MenuElement({id = "UseHYDRA", name = "Use hydra", value = true})
 	Menu.ComboMode:MenuElement({id = "DrawDamage", name = "Draw Killable", value = true})
 	Menu.ComboMode:MenuElement({id = "DrawRange", name = "Draw RRange", value = true})	
+	Menu.ComboMode:MenuElement({type = MENU, id = "XY", name = "Text Pos Settings"})	
+	Menu.ComboMode.XY:MenuElement({id = "x", name = "Pos: [X]", value = 0, min = 0, max = 1500, step = 10})
+	Menu.ComboMode.XY:MenuElement({id = "y", name = "Pos: [Y]", value = 0, min = 0, max = 860, step = 10})	
 	
 	--Harass--
 	Menu:MenuElement({id = "HarassMode", name = "Harass", type = MENU})
@@ -132,35 +134,12 @@ local Mode = GetMode()
 	end
 end
 
-function UseHydra()
-local HTarget = GetTarget(300)
-if HTarget == nil then return end 
-	local hydraitem = GetInventorySlotItem(3748) or GetInventorySlotItem(3077) or GetInventorySlotItem(3074)
-	if hydraitem and myHero.attackData.state == STATE_WINDDOWN then
-		Control.CastSpell(keybindings[hydraitem],HTarget.pos)
-		Control.Attack(HTarget)
-	end
-end
-   
-function UseHydraminion()
-    for i = 1, Game.MinionCount() do
-	local minion = Game.Minion(i)
-        if minion and minion.team == TEAM_ENEMY or minion.team == TEAM_JUNGLE then 
-			local hydraitem = GetInventorySlotItem(3748) or GetInventorySlotItem(3077) or GetInventorySlotItem(3074)
-			if hydraitem and myHero.attackData.state == STATE_WINDDOWN then
-				Control.CastSpell(keybindings[hydraitem])
-                Control.Attack(minion)
-			end
-		end
-    end
-end
-
 function Combo()
  
-	if Menu.ComboMode.UseHYDRA:Value() and HasBuff(myHero, "Blood Hunt") then
+	if Menu.ComboMode.UseHYDRA:Value() then
     	local HTarget = GetTarget(300)
 		if HTarget == nil then return end   
-	   if IsValid(HTarget) and myHero.attackData.state == STATE_WINDDOWN then
+	   if IsValid(HTarget) then
             UseHydra()
         end
     end
@@ -168,12 +147,12 @@ function Combo()
     if Ready(_E) then 
 	local ETarget = GetTarget(375)
 	if ETarget == nil then return end
-		if Menu.ComboMode.UseE:Value() and Menu.ComboMode.Key:Value() == false and IsValid(ETarget) and HasBuff(myHero, "Primal Howl") then
+		if Menu.ComboMode.UseE:Value() and Menu.ComboMode.Key:Value() == false and IsValid(ETarget) and HasBuff(ETarget, "Primal Howl") then
 			if myHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
 		end
-        if Menu.ComboMode.UseE:Value() and Menu.ComboMode.Key:Value() == true and IsValid(ETarget) and not HasBuff(myHero, "Primal Howl") then
+        if Menu.ComboMode.UseE:Value() and Menu.ComboMode.Key:Value() == true and IsValid(ETarget) and not HasBuff(ETarget, "Primal Howl") then
 			if myHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
@@ -194,7 +173,7 @@ function Combo()
 		local WTarget = GetTarget(2000)
 		if WTarget == nil then return end 
 		if Menu.ComboMode.UseW:Value() and IsValid(WTarget) then
-			if myHero.pos:DistanceTo(WTarget.pos) < 2000 and WTarget.health/WTarget.maxHealth <= 0.2 then
+			if myHero.pos:DistanceTo(WTarget.pos) < 2000 and WTarget.health/WTarget.maxHealth <= 0.20 then
 				Control.CastSpell(HK_W)
 			end
 		end
@@ -222,14 +201,14 @@ end
 
 function CastER(target)
 local rRange = 2.5 * myHero.ms  
-	if HasBuff(myHero, "Primal Howl") then
+	if HasBuff(target, "Primal Howl") then
 		if myHero.pos:DistanceTo(target) < 150 then
 			Control.CastSpell(HK_E)
 		end
 	end	
 	
 	if Ready(_E) then 
-		if not HasBuff(myHero, "Primal Howl") then
+		if not HasBuff(target, "Primal Howl") then
 			Control.CastSpell(HK_E)
 		end
 	end
@@ -245,7 +224,7 @@ local rRange = 2.5 * myHero.ms
 			Control.CastSpell(HK_R, castPos)
 		end
 	end
-	if HasBuff(myHero, "Primal Howl") then
+	if HasBuff(target, "Primal Howl") then
 		if myHero.pos:DistanceTo(target) < 150 then
 			Control.CastSpell(HK_E)
 		end
@@ -253,22 +232,22 @@ local rRange = 2.5 * myHero.ms
 end
 
 function Harass()
-    if Menu.ComboMode.UseHYDRA:Value() and HasBuff(myHero, "Blood Hunt") then
+    if Menu.ComboMode.UseHYDRA:Value() then
         local HTarget = GetTarget(300)
 		if HTarget == nil then return end 
-		if IsValid(HTarget) and myHero.attackData.state == STATE_WINDDOWN then
+		if IsValid(HTarget) then
             UseHydra()
         end
     end
     if Ready(_E) then 
 		local ETarget = GetTarget(375)
 		if ETarget == nil then return end 
-		if Menu.HarassMode.UseE:Value() and Menu.ComboMode.Key:Value() == false and IsValid(ETarget) and HasBuff(myHero, "Primal Howl") then
+		if Menu.HarassMode.UseE:Value() and Menu.ComboMode.Key:Value() == false and IsValid(ETarget) and HasBuff(ETarget, "Primal Howl") then
 			if myHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
 		end
-        if Menu.HarassMode.UseE:Value() and Menu.ComboMode.Key:Value() == true and IsValid(ETarget) and not HasBuff(myHero, "Primal Howl") then
+        if Menu.HarassMode.UseE:Value() and Menu.ComboMode.Key:Value() == true and IsValid(ETarget) and not HasBuff(ETarget, "Primal Howl") then
 			if myHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
@@ -293,20 +272,20 @@ function Jungle()
 		if minion.team == TEAM_ENEMY or minion.team == TEAM_JUNGLE and myHero.pos:DistanceTo(minion.pos) < 400 then
 			
 			if Ready(_E) and IsValid(minion) then 
-				if Menu.ClearMode.UseE:Value() and Menu.ComboMode.Key:Value()  == false and HasBuff(myHero, "Primal Howl") then
+				if Menu.ClearMode.UseE:Value() and Menu.ComboMode.Key:Value()  == false and HasBuff(minion, "Primal Howl") then
 					if myHero.pos:DistanceTo(minion.pos) < 375 then
 						Control.CastSpell(HK_E)
 					end
 				end
-				if Menu.ClearMode.UseE:Value() and Menu.ComboMode.Key:Value()  == true and not HasBuff(myHero, "Primal Howl") then
+				if Menu.ClearMode.UseE:Value() and Menu.ComboMode.Key:Value()  == true and not HasBuff(minion, "Primal Howl") then
 					if myHero.pos:DistanceTo(minion.pos) < 375 then
 						Control.CastSpell(HK_E)
 					end
 				end
 			end	
 
-			if Menu.ClearMode.UseHYDRA:Value() and not HasBuff(myHero, "Blood Hunt") and IsValid(minion) then
-				if myHero.attackData.state == STATE_WINDDOWN and not Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 300 then
+			if Menu.ClearMode.UseHYDRA:Value() and not HasBuff(minion, "Blood Hunt") and IsValid(minion) then
+				if not Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 300 then
 					UseHydraminion()
 				end
 			end
@@ -321,7 +300,7 @@ function Jungle()
 
 			if Ready(_W) then 
 				if Menu.ClearMode.UseW:Value() and IsValid(minion) then
-					if myHero.pos:DistanceTo(minion.pos) < 175 and myHero.attackData.state == STATE_WINDDOWN then
+					if myHero.pos:DistanceTo(minion.pos) < 175 then
 						Control.CastSpell(HK_W)
 						Control.Attack(minion)
 					end
@@ -329,6 +308,25 @@ function Jungle()
 			end
 		end
 	end
+end
+
+function UseHydra()
+local hydraitem = GetInventorySlotItem(3748) or GetInventorySlotItem(3077) or GetInventorySlotItem(3074)
+	if hydraitem then
+		Control.CastSpell(ItemHotKey[hydraitem])
+	end
+end
+   
+function UseHydraminion()
+    for i = 1, Game.MinionCount() do
+	local minion = Game.Minion(i)
+        if minion and minion.team == TEAM_ENEMY or minion.team == TEAM_JUNGLE then 
+			local hydraitem = GetInventorySlotItem(3748) or GetInventorySlotItem(3077) or GetInventorySlotItem(3074)
+			if hydraitem then
+				Control.CastSpell(ItemHotKey[hydraitem])
+			end
+		end
+    end
 end
 
 class "HPred"
