@@ -55,7 +55,7 @@ Data = {
         },
         Tristana = {
             Changelog = "Tristana Changelog Here",
-            Version = 0.01,
+            Version = 0.02,
         },        
     },
 }
