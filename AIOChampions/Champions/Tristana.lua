@@ -35,21 +35,20 @@ end
 function LoadScript()
 
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "AutoQ when Explosive Charge", value = true})
 	Menu.Combo:MenuElement({id = "UseE", name = "E", value = true})
 	Menu.Combo:MenuElement({id = "UseR", name = "(R)Finisher", tooltip = "is(R)Dmg+(E)Dmg+(E)StackDmg > TargetHP than Ult", value = true})
-	Menu.Combo:MenuElement({type = MENU, id = "R", name = "R"})
-		for i, hero in pairs(GetEnemyHeroes()) do
-			Menu.Combo.R:MenuElement({id = "RR"..hero.charName, name = "KS R on: "..hero.charName, value = true})
-		end	
 	Menu.Combo:MenuElement({id = "comboActive", name = "Combo key", key = string.byte(" ")})
 	
 	Menu:MenuElement({type = MENU, id = "gap", name = "Gapclose"})
 	Menu.gap:MenuElement({name = " ", drop = {"Use AutoW if KillableTarget > UltiRange"}})		
 	Menu.gap:MenuElement({id = "UseR", name = "Ultimate Gapclose", value = true})
+	Menu.gap:MenuElement({id = "UseW", name = "UseW Back after Gapclose", value = true})
+	Menu.gap:MenuElement({id = "Count", name = "(W Back) (Min Enemys near)", value = 1, min = 1, max = 5, step = 1})
+	Menu.gap:MenuElement({id = "HP", name = "(W Back) Tristana HP lower than", value = 40, min = 0, max = 100, identifier = "%"})	
 	
 	Menu:MenuElement({type = MENU, id = "Blitz", name = "Escape"})
 	Menu.Blitz:MenuElement({id = "UseW", name = "AutoW ( Blitzcrank Grab )", value = true})
@@ -77,7 +76,6 @@ function LoadScript()
     Menu.Drawings.R:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
     Menu.Drawings.R:MenuElement({id = "Color", name = "Color", color = Draw.Color(200, 255, 255, 255)})
 	
-	Menu.Drawings:MenuElement({id = "DrawR", name = "Draw Killable (Ulti Gapclose) ", value = true})	
 	
 	W = {Range = 900}
 	E = {Range = 517 + (8 * myHero.levelData.lvl)}
@@ -129,6 +127,7 @@ local Mode = GetMode()
 	if Menu.Blitz.UseW:Value() then
 		AntiBlitz()
 	end
+	CastWBack()
 end
 
 function GetEstacks(unit)
@@ -247,12 +246,11 @@ function ComboRKS()
 local hero = GetTarget(R.Range)
 if hero == nil then return end
  	
-	if IsValid(hero) and myHero.pos:DistanceTo(hero.pos) < R.Range then
-		if Menu.Combo.R["RR"..hero.charName]:Value() and Ready(_R) then
-		local Rdamage = getdmg("R", hero, myHero)   
-			if Rdamage > hero.health then
-				Control.CastSpell(HK_R, hero)
-			end
+	if IsValid(hero) and myHero.pos:DistanceTo(hero.pos) < R.Range and Ready(_R) then
+	local Rdamage = getdmg("R", hero, myHero)   
+		if Rdamage > hero.health then
+			Control.CastSpell(HK_R, hero)
+		
         end
     end
 end
@@ -261,7 +259,7 @@ function Finisher()
 local target = GetTarget(R.Range)
 if target == nil then return end
 	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < R.Range then	
-		if Menu.Combo.UseR:Value() and Ready(_R) then
+		if Menu.Combo.UseR:Value() and Ready(_R) and GotBuff(target, "tristanaechargesound") > 0 then
 			Edmg = CalcPhysicalDamage(myHero, target, EDMG(target))  
 			Rdmg = getdmg("R", target, myHero)	
 			totalDMG = (Edmg + Rdmg)
@@ -277,11 +275,10 @@ local target = GetTarget((R.Range+W.Range+200))
 if target == nil then return end
 		
 	if IsValid(target) and Menu.gap.UseR:Value() and Ready(_R) and Ready(_W) then
-		if myHero.pos:DistanceTo(target.pos) > R.Range and myHero.pos:DistanceTo(target.pos) < (R.Range+W.Range) then
+		if myHero.pos:DistanceTo(target.pos) > R.Range and myHero.pos:DistanceTo(target.pos) < (R.Range+W.Range-100) then
 			local Rdamage = getdmg("R", target, myHero)		
 			if Rdamage >= target.health then
 				Control.CastSpell(HK_W, target.pos) 
-				CastWBack()
 			end
 		end
 	end
@@ -289,17 +286,11 @@ end
 
 function CastWBack()
 	for i, target in pairs(GetEnemyHeroes()) do
-		if Ready(_W) and CountEnemiesNear(myHero, 1000) >= 2 then
+		if Ready(_W) and Menu.gap.UseW:Value() and CountEnemiesNear(myHero, 1000) >= Menu.gap.Count:Value() and myHero.health/myHero.maxHealth <= Menu.gap.HP:Value()/100 then
 			local jump = myHero.pos:Shortened(target.pos, 700)
-			_G.SDK.Orbwalker:SetMovement(false)
-			_G.SDK.Orbwalker:SetAttack(false)
-			Control.SetCursorPos(jump)
-			Control.KeyDown(HK_W)
-			Control.KeyUp(HK_W)
+			Control.CastSpell(HK_W, jump)
 		end
 	end
-	_G.SDK.Orbwalker:SetMovement(true)
-	_G.SDK.Orbwalker:SetAttack(true)
 end	
 		
 function HarassQ()
