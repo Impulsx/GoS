@@ -52,7 +52,11 @@ Data = {
         Veigar = {
             Changelog = "Veigar Changelog Here",
             Version = 0.02,
-        },         
+        }, 
+        Tristana = {
+            Changelog = "Tristana Changelog Here",
+            Version = 0.01,
+        },        
     },
 }
 
