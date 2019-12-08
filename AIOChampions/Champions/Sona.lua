@@ -15,7 +15,7 @@ function CountEnemiesNear(pos, range)
 	for i = 1, Game.HeroCount() do 
 	local hero = Game.Hero(i)
 	local Range = range * range
-		if hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range then
+		if hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
 		count = count + 1
 		end
 	end
@@ -25,7 +25,7 @@ end
 function LoadScript()
 
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	Menu:MenuElement({id = "Key", name = "Key Settings", type = MENU})
 	Menu.Key:MenuElement({id = "Combo",name = "Combo Key", key = string.byte(" ")})
@@ -42,7 +42,7 @@ function LoadScript()
 	
 	Menu:MenuElement({id = "Rset", name = "R Settings",type = MENU})
 	Menu.Rset:MenuElement({id = "AutoR", name = "Enable Auto R",value = true})
-	Menu.Rset:MenuElement({id = "RHit", name = "Min enemies hit",value = 3, min = 1, max = 5,step = 1})
+	Menu.Rset:MenuElement({id = "RHit", name = "Min enemies hit",value = 2, min = 1, max = 5,step = 1})
 	Menu.Rset:MenuElement({id = "AllyHp", name = "Use Ult if AllyHP lower than ",value = 30, min = 1, max = 100,step = 1, identifier = "%"})	
 	
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
@@ -192,6 +192,6 @@ end
 function CastQ(target)
 local pred = GetGamsteronPrediction(target, QData, myHero)
 	if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-		CastSpell(HK_Q,pred.CastPosition)
+		Control.CastSpell(HK_Q,pred.CastPosition)
 	end
 end
