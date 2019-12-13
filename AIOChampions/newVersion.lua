@@ -35,7 +35,7 @@ Data = {
         }, 
         Nidalee = {
             Changelog = "Nidalee Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         },
         Ryze = {
             Changelog = "Ryze Changelog Here",
