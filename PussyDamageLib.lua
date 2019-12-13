@@ -1,4 +1,4 @@
-local Version = 0.08
+local Version = 0.09
 
 
     local Files = {
@@ -302,7 +302,7 @@ local DamageLibTable = {
 
   ["Braum"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 105, 150, 195, 240})[level] + 0.025 * source.maxHealth end},
-    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.6 * source.ap end},
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 300, 450})[level] + 0.6 * source.ap end},
   },
 
   ["Caitlyn"] = {
@@ -349,8 +349,9 @@ local DamageLibTable = {
 
   ["Diana"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 95, 130, 165, 200})[level] + 0.7 * source.ap end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({22, 34, 46, 58, 70})[level] + 0.2 * source.ap end},
-    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({100, 160, 220})[level] + 0.6 * source.ap end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({22, 34, 46, 58, 70})[level] + 0.15 * source.ap end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 60, 80, 100, 120})[level] + 0.4 * source.ap end},	
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({200, 300, 400})[level] + 0.6 * source.ap end},
   },
 
   ["DrMundo"] = {
@@ -384,7 +385,7 @@ local DamageLibTable = {
   },
 
   ["Ezreal"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({15, 40, 65, 90, 115})[level] + 0.15 * source.ap + 1.1 * source.totalDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 45, 70, 95, 120})[level] + 0.15 * source.ap + 1.1 * source.totalDamage end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 135, 190, 245, 300})[level] + (({0.7, 0.75, 0.8, 0.85, 0.9})[level] * source.ap) + 0.6 * source.bonusDamage end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 130, 180, 230, 280})[level] + 0.75 * source.ap + 0.5 * source.bonusDamage end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({350, 500, 650})[level] + 0.9 * source.ap + source.bonusDamage end},
@@ -864,7 +865,7 @@ local DamageLibTable = {
   },
 
   ["Ryze"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({80, 105, 130, 155, 180})[level] + 0.45 * source.ap + 0.03 * source.maxMana) end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({65, 90, 115, 140, 165})[level] + 0.45 * source.ap + 0.03 * source.maxMana) end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.6 * source.ap + 0.04 * source.maxMana end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 80, 100, 120, 140})[level] + 0.3 * source.ap + 0.02 * source.maxMana end},
   },
@@ -878,9 +879,9 @@ local DamageLibTable = {
   },
   
   ["Senna"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 80, 110, 140, 170})[level] + 0.5 * source.bonusDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({40, 70, 100, 130, 160})[level] + 0.4 * source.bonusDamage end},
     {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({70, 115, 160, 205, 250})[level] + 0.7 * source.bonusDamage end},
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({250, 375, 500})[level] + source.bonusDamage + 0.4 * source.ap end},
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({250, 375, 500})[level] + source.bonusDamage + 0.5 * source.ap end},
   },  
 
   ["Shaco"] = {
@@ -1132,7 +1133,7 @@ local DamageLibTable = {
   },
   
   ["Yuumi"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 65, 90, 115, 140, 165})[level] + 0.45 * source.ap end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 65, 90, 115, 140, 165})[level] + 0.3 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({240, 320, 400})[level] + 0.8 * source.ap end},
   },  
 
