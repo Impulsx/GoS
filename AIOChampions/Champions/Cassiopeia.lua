@@ -90,7 +90,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
 		Menu:MenuElement({name = " ", drop = {"General Settings"}})
 		
 		--Prediction
@@ -137,7 +137,7 @@ function LoadScript()
 
 		--Engage
 		Menu:MenuElement({type = MENU, id = "kill", name = "Engage"})
-		Menu.kill:MenuElement({id = "Eng", name = "EngageKill 1vs1", value = true, key = string.byte("T")})
+		Menu.kill:MenuElement({id = "Eng", name = "EngageKill 1vs1", value = true, key = string.byte("Z")})
 		
 		--Mana
 		Menu:MenuElement({type = MENU, id = "m", name = "Mana Settings"})
