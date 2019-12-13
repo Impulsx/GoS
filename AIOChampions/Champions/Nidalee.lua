@@ -12,7 +12,10 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+	
+	Menu:MenuElement({type = MENU, id = "Qset", name = "Q Setting"})	
+	Menu.Qset:MenuElement({id = "Qmin", name = "Min range use Q Human", value = 600, min = 400, max = 1500,step = 1})	
 	
 	--Combo
 	Menu:MenuElement({type = MENU, id = "ComboMode", name = "Combo"})
@@ -109,7 +112,24 @@ function LoadScript()
 		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 			Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 		end
-	end)	
+	end)
+
+function Qdmg(target)
+    local qLvl = myHero:GetSpellData(_Q).level
+	local result = 55 + 15 * qLvl + myHero.ap * 0.4
+    
+    local dist = myHero.pos:DistanceTo(target.pos)
+    if dist > 525 then
+        if dist > 1300 then
+            dmg = result + (2 * result)
+        else
+            local num = (dist - 525) * 0.25 / 96.875
+            dmg = result + (num * result)
+        end
+    end
+    
+    return dmg
+end	
 	
 end
 
@@ -130,23 +150,6 @@ local Mode = GetMode()
 end
 
 LastR = Game.Timer()
-
-function Qdmg(target)
-    local qLvl = myHero:GetSpellData(_Q).level
-	local result = 55 + 15 * qLvl + myHero.ap * 0.4
-    
-    local dist = target.distance
-    if dist > 525 then
-        if dist > 1300 then
-            result = result + 2 * result
-        else
-            local num = (dist - 525) * 0.25 / 96.875
-            result = result + num * result
-        end
-    end
-    
-    return CalcMagicalDamage(myHero, target, result)
-end
 
 function ForceCat()
     local RRTarget = GetTarget(1000)
@@ -192,7 +195,7 @@ if target == nil then return end
 	if IsValid(target) then	
 		if Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 1500 then 
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if Menu.ComboMode.UseQ:Value() then
+			if Menu.ComboMode.UseQ:Value() and myHero.pos:DistanceTo(target.pos) >= Menu.Qset.Qmin:Value() then
 				if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
 					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
@@ -271,7 +274,7 @@ function Harass()
 local target = GetTarget(1600)
 if target == nil then return end
 	if IsValid(target) then   
-		if Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 1500 then 
+		if Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 1500 and myHero.pos:DistanceTo(target.pos) >= Menu.Qset.Qmin:Value() then 
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if Menu.HarassMode.UseQ:Value() then
 				if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
@@ -366,7 +369,7 @@ end
 function KillSteal()
 local target = GetTarget(1600)
 if target == nil then return end
-	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1500 then 
+	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1500 and myHero.pos:DistanceTo(target.pos) >= Menu.Qset.Qmin:Value() then 
 		
 		if Menu.KS.UseQ:Value() and Ready(_Q) and Qdmg(target) >= target.health then
             local pred = GetGamsteronPrediction(target, QData, myHero)
@@ -378,3 +381,5 @@ if target == nil then return end
 		end
 	end	
 end
+
+
