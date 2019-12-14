@@ -21,23 +21,10 @@ function GetMinionCount(range, pos)
 	return count
 end
 
-function SetAttack(bool)
-	if _G.EOWLoaded then
-		EOW:SetAttacks(bool)
-	elseif _G.SDK then                                                        
-		_G.SDK.Orbwalker:SetAttack(bool)
-	elseif _G.gsoSDK then
-		_G.gsoSDK.Orbwalker:SetAttack(bool)	
-	else
-		GOS.BlockAttack = not bool
-	end
-
-end
-
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -169,7 +156,6 @@ if target == nil then return end
 		
 		elseif Ready(_W) and Menu.Combo.UseW:Value() and myHero.pos:DistanceTo(target.pos) <= 615 then
 			Control.CastSpell(HK_W,target)
-			_G.Control.Attack(target)
 		end
 		
 		if Ready(_Q) and Menu.Combo.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 1000 then
@@ -180,7 +166,6 @@ if target == nil then return end
 
 		elseif Ready(_E) and Menu.Combo.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 615 then	
 			Control.CastSpell(HK_E,target)
-			_G.Control.Attack(target)
 		end	
 	end
 end	
@@ -191,27 +176,23 @@ if target == nil then return end
 	if IsValid(target) then    
 		
 		if Ready(_Q) and Menu.Combo.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 1000 then
-		local pred = GetGamsteronPrediction(target, QData, myHero)
-		SetAttack(false)	
+		local pred = GetGamsteronPrediction(target, QData, myHero)	
 			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q,pred.CastPosition)
 			end	
 
 		elseif Ready(_E) and Menu.Combo.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 615 then	
-			Control.CastSpell(HK_E,target)
-		SetAttack(true)	
+			Control.CastSpell(HK_E,target)	
 		end
 
 		if Ready(_Q) and Menu.Combo.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 1000 then
-		SetAttack(false)
 		local pred = GetGamsteronPrediction(target, QData, myHero)
 			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q,pred.CastPosition)
 			end	
 		
 		elseif Ready(_W) and Menu.Combo.UseW:Value() and myHero.pos:DistanceTo(target.pos) <= 615 then
-			Control.CastSpell(HK_W,target)
-		SetAttack(true)	
+			Control.CastSpell(HK_W,target)	
 		end	
 	end
 end	
