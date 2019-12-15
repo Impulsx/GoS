@@ -12,7 +12,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
 	
 	Menu:MenuElement({type = MENU, id = "Qset", name = "Q Setting"})	
 	Menu.Qset:MenuElement({id = "Qmin", name = "Min range use Q Human", value = 600, min = 400, max = 1500,step = 1})	
@@ -45,6 +45,7 @@ function LoadScript()
 	--KillSteal
 	Menu:MenuElement({type = MENU, id = "KS", name = "KillSteal"})
 	Menu.KS:MenuElement({id = "UseQ", name = "Q: Javelin Toss", value = true})
+	Menu.KS:MenuElement({id = "UseR", name = "Auto switching Cougar/Human", value = true})	
 
 	--Flee
 	Menu:MenuElement({type = MENU, id = "Fl", name = "Flee"})
@@ -375,7 +376,7 @@ if target == nil then return end
             local pred = GetGamsteronPrediction(target, QData, myHero)
 			if myHero:GetSpellData(_Q).name == "JavelinToss" and pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
-            elseif myHero:GetSpellData(_Q).name == "Takedown" and Ready(_R) then
+            elseif myHero:GetSpellData(_Q).name == "Takedown" and Menu.KS.UseR:Value() and Ready(_R) then
 				Control.CastSpell(HK_R)
 			end
 		end
