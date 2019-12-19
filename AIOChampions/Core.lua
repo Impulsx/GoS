@@ -17,6 +17,9 @@ local clock = os.clock
 local Latency = Game.Latency
 local ping = Latency() * 0.001
 local sqrt = math.sqrt
+local TableInsert = table.insert
+local GameTimer = Game.Timer
+local MathHuge = math.huge
 
 if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 	print("GsoPred. installed Press 2x F6")
@@ -127,6 +130,18 @@ function IsRecalling(unit)
 	end 
 	return false
 end
+
+function LoadUnits()
+	for i = 1, Game.HeroCount() do
+		local unit = Game.Hero(i); Units[i] = {unit = unit, spell = nil}
+		if unit.team ~= myHero.team then TableInsert(Enemies, unit)
+		elseif unit.team == myHero.team and unit ~= myHero then TableInsert(Allies, unit) end
+	end
+	for i = 1, Game.TurretCount() do
+		local turret = Game.Turret(i)
+		if turret and turret.isEnemy then TableInsert(Turrets, turret) end
+	end
+end 
  
 function MyHeroNotReady()
     return myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero)
@@ -136,5 +151,6 @@ local remaining = 30 - Game.Timer()
 print(myHero.charName .. " will load shortly")
 DelayAction(function()
 	LoadScript()
+	LoadUnits()
 end, remaining)
 
