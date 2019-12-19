@@ -228,7 +228,7 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 	
 	--AutoE
 	Menu:MenuElement({id = "AutoE", name = "AutoE if Ground Controled", type = MENU})
@@ -403,7 +403,7 @@ end
 
 function ProcessSpell()
 	local unit, spell = OnProcessSpell()
-	if unit and spell and CCSpells[spell.name] and Ready(_E) then
+	if unit and unit.isEnemy and spell and CCSpells[spell.name] and Ready(_E) then
 		if myHero.pos:DistanceTo(unit.pos) > 3000 or not Menu.ESet.BlockList["Dodge"..spell.name]:Value() then return end
 		local Detected = CCSpells[spell.name]
 		local type = Detected.type
@@ -447,7 +447,7 @@ function ProcessSpellAlly()
 	for i, ally in pairs(GetAllyHeroes()) do
 		if myHero.pos:DistanceTo(ally.pos) <= 1000 and IsValid(ally) then
 			local unit, spell = OnProcessSpell()
-			if unit and spell and CCSpells[spell.name] and Ready(_E) then
+			if unit and unit.isEnemy and spell and CCSpells[spell.name] and Ready(_E) then
 				if unit.pos:DistanceTo(ally.pos) > 3000 or not Menu.ESet.BlockList["Dodge"..spell.name]:Value() then return end
 				local Detected = CCSpells[spell.name]
 				local type = Detected.type
