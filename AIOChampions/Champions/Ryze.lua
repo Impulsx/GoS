@@ -24,7 +24,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -210,7 +210,7 @@ if target == nil then return end
 				end			
 				
 				if myHero.pos:DistanceTo(minion.pos) <= 1000 and IsValid(minion) and Ready(_Q) then
-					if GotBuff(minion, "RyzeE") > 0 then
+					if GotBuff(minion, "RyzeE") > 0 and GotBuff(target, "RyzeE") > 0 then
 						Control.CastSpell(HK_Q, minion.pos)
 					end
 				end
