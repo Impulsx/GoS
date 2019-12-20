@@ -34,7 +34,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -154,7 +154,7 @@ end
 
 function Combo()
 	
-	if not Ready(_E) then
+	if not HasBuff(myHero, "forcepulsecancast") then
 		ComboBasic()
 	else
 		ComboBurst()
@@ -372,14 +372,14 @@ if target == nil then return end
 				if Ready(_R) and Ready(_W) and RWDmg >= HP then
 					Control.CastSpell(HK_R, target.pos)
 				end	
-				if Ready(_W) myHero.pos:DistanceTo(target.pos) < 200 and WDmg >= target.health then
+				if Ready(_W) and myHero.pos:DistanceTo(target.pos) < 200 and WDmg >= target.health then
 					Control.CastSpell(HK_W)
 				end
 			else
 				if Ready(_R) and Ready(_W) and (RDmg + WDmg) >= HP then
 					Control.CastSpell(HK_R, target.pos)
 				end	
-				if Ready(_W) myHero.pos:DistanceTo(target.pos) < 200 and WDmg >= target.health then
+				if Ready(_W) and myHero.pos:DistanceTo(target.pos) < 200 and WDmg >= target.health then
 					Control.CastSpell(HK_W)
 				end				
 			end
