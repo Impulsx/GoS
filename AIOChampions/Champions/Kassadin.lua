@@ -34,7 +34,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -293,7 +293,7 @@ function Clear()
             end
 			
             if Menu.Clear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 200 and IsValid(minion) and Ready(_W) then
-				local Dmg = getdmg("W", minion, myHero, 1) + getdmg("W", minion, myHero, 2)
+				local Dmg = (getdmg("W", minion, myHero, 1) + getdmg("W", minion, myHero, 2) + getdmg("AA", minion, myHero))
 				if Dmg >= minion.health then	
 					Control.CastSpell(HK_W)
 				end	
@@ -337,7 +337,7 @@ function LastHit()
             end
 			
             if Menu.Last.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 200 and IsValid(minion) and Ready(_W) then
-				local Dmg = getdmg("W", minion, myHero, 1) + getdmg("W", minion, myHero, 2)
+				local Dmg = (getdmg("W", minion, myHero, 1) + getdmg("W", minion, myHero, 2) + getdmg("AA", minion, myHero))
 				if Dmg >= minion.health then	
 					Control.CastSpell(HK_W)
 				end	
@@ -355,7 +355,7 @@ if target == nil then return end
 	local QDmg = getdmg("Q", target, myHero)
 	local RDmg = getdmg("R", target, myHero, 1)
 	local RBonusDmg = getdmg("R", target, myHero, 2)
-	local WDmg = (getdmg("W", target, myHero, 1) + getdmg("W", target, myHero, 2))
+	local WDmg = (getdmg("W", target, myHero, 1) + getdmg("W", target, myHero, 2) + getdmg("AA", target, myHero))
 	local FullRDmg = ((stacks * RBonusDmg) + RDmg)
 	local RWDmg = (WDmg + FullRDmg)
 	local HP = (target.health + (target.hpRegen * 2))	
