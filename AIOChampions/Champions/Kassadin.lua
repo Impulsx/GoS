@@ -34,7 +34,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -353,13 +353,14 @@ if target == nil then return end
        
 	local stacks = GotBuff(myHero, "RiftWalk")
 	local QDmg = getdmg("Q", target, myHero)
-	local RminDmg = getdmg("R", target, myHero)
+	local RDmg = getdmg("R", target, myHero, 1)
+	local RBonusDmg = getdmg("R", target, myHero, 2)
 	local WDmg = (getdmg("W", target, myHero, 1) + getdmg("W", target, myHero, 2))
-	local RDmg = (stacks * RminDmg)
-	local RWDmg = (WDmg + Rdmg)
+	local FullRDmg = ((stacks * RBonusDmg) + RDmg)
+	local RWDmg = (WDmg + FullRDmg)
 	local HP = (target.health + (target.hpRegen * 2))	
 		if Menu.ks.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 650 and Ready(_Q) then
-			if QDmg >= HP then
+			if QDmg-20 >= HP then
 				Control.CastSpell(HK_Q, target)
 			end	
         end
@@ -375,7 +376,7 @@ if target == nil then return end
 					Control.CastSpell(HK_W)
 				end
 			else
-				if Ready(_R) and Ready(_W) and (RminDmg + WDmg) >= HP then
+				if Ready(_R) and Ready(_W) and (RDmg + WDmg) >= HP then
 					Control.CastSpell(HK_R, target.pos)
 				end	
 				if Ready(_W) myHero.pos:DistanceTo(target.pos) < 200 and WDmg >= target.health then
@@ -385,7 +386,7 @@ if target == nil then return end
 		end
 		
 		if Menu.ks.UseRQ:Value() and myHero.pos:DistanceTo(target.pos) > 650 and myHero.pos:DistanceTo(target.pos) < 1100 then
-			if Ready(_R) and Ready(_Q) and QDmg >= HP then
+			if Ready(_R) and Ready(_Q) and QDmg-20 >= HP then
 				Control.CastSpell(HK_R, target.pos)
 			end			
         end
