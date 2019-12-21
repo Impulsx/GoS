@@ -1,4 +1,4 @@
-local Version = 0.10
+local Version = 0.11
 
 
     local Files = {
@@ -805,6 +805,7 @@ local DamageLibTable = {
   ["Qiyana"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + 0.9 * source.bonusDamage end},
     {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({96, 136, 176, 216, 256})[level] + 1.44 * source.bonusDamage end},--Terrain Damage	
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({8, 16, 24, 32, 40})[level] + 0.2 * source.bonusDamage + 0.3 * source.ap end},--Passive
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 95, 130, 165, 200})[level] + 0.7 * source.bonusDamage end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({100, 170, 240})[level] + 1.7 * source.bonusDamage + 0.1 * target.maxHealth end},
   },  
