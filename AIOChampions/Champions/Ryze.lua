@@ -24,7 +24,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -200,16 +200,18 @@ end
 function ComboCollision()
 local target = GetTarget(1200)
 if target == nil then return end
-	if IsValid(target) then 	
+local pred = GetGamsteronPrediction(target, QData, myHero)
+	if IsValid(target) and pred.Hitchance < Menu.Pred.PredQ:Value() + 1 then 	
 		for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
-		local pred = GetGamsteronPrediction(target, QData, myHero)
-			if minion.team == TEAM_ENEMY and pred.Hitchance < Menu.Pred.PredQ:Value() + 1 then
-				if myHero.pos:DistanceTo(minion.pos) <= 615 and target.pos:DistanceTo(minion.pos) <= 350 and IsValid(minion) and Ready(_E) then
+			
+			if myHero.pos:DistanceTo(minion.pos) <= 1000 and minion.team == TEAM_ENEMY and IsValid(minion) then
+				
+				if myHero.pos:DistanceTo(minion.pos) <= 615 and target.pos:DistanceTo(minion.pos) <= 350 and Ready(_E) then
 					Control.CastSpell(HK_E, minion)
 				end			
 				
-				if myHero.pos:DistanceTo(minion.pos) <= 1000 and IsValid(minion) and Ready(_Q) then
+				if myHero.pos:DistanceTo(minion.pos) <= 1000 and Ready(_Q) then
 					if GotBuff(minion, "RyzeE") > 0 and GotBuff(target, "RyzeE") > 0 then
 						Control.CastSpell(HK_Q, minion.pos)
 					end
