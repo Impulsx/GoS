@@ -1,11 +1,11 @@
-function GotBuff(unit, buffname)
-  for i = 0, unit.buffCount do
-    local buff = unit:GetBuff(i)
-    if buff.name == buffname and buff.count > 0 then 
-      return buff.count
-    end
-  end
-  return 0
+function HasBuff(unit, buffname)
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff.name == buffname and buff.count > 0 then 
+			return true
+		end
+	end
+	return false
 end
 
 function GetMinionCount(range, pos)
@@ -24,7 +24,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -180,18 +180,13 @@ if target == nil then return end
 			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q,pred.CastPosition)
 			end	
+		end	
 
-		elseif Ready(_E) and Menu.Combo.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 615 then	
+		if Ready(_E) and Menu.Combo.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 615 then	
 			Control.CastSpell(HK_E,target)	
 		end
-
-		if Ready(_Q) and Menu.Combo.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 1000 then
-		local pred = GetGamsteronPrediction(target, QData, myHero)
-			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-				Control.CastSpell(HK_Q,pred.CastPosition)
-			end	
 		
-		elseif Ready(_W) and Menu.Combo.UseW:Value() and myHero.pos:DistanceTo(target.pos) <= 615 then
+		if Ready(_W) and Menu.Combo.UseW:Value() and myHero.pos:DistanceTo(target.pos) <= 615 then
 			Control.CastSpell(HK_W,target)	
 		end	
 	end
@@ -212,7 +207,7 @@ local pred = GetGamsteronPrediction(target, QData, myHero)
 				end			
 				
 				if myHero.pos:DistanceTo(minion.pos) <= 1000 and Ready(_Q) then
-					if GotBuff(minion, "RyzeE") > 0 and GotBuff(target, "RyzeE") > 0 then
+					if HasBuff(minion, "RyzeE") and HasBuff(target, "RyzeE") then
 						Control.CastSpell(HK_Q, minion.pos)
 					end
 				end
@@ -256,13 +251,13 @@ function LastHit()
 			end			
 			
 			if myHero:GetSpellData(_R).level == 0 and myHero.pos:DistanceTo(minion.pos) <= 1000 and IsValid(minion) and Menu.Last.UseE:Value() and Ready(_Q) then
-				if GotBuff(minion, "RyzeE") > 0 and minion.health <= 0.1*Qdmg then
+				if HasBuff(minion, "RyzeE") and minion.health <= 0.1*Qdmg then
 					Control.CastSpell(HK_Q, minion.pos)
 				end
 			elseif myHero:GetSpellData(_R).level > 0 and myHero.pos:DistanceTo(minion.pos) <= 1000 and IsValid(minion) and Menu.Last.UseE:Value() and Ready(_Q) then
 				local level = myHero:GetSpellData(_R).level
 				local MarkedDmg = (({40, 70, 100})[level]) /100	
-				if GotBuff(minion, "RyzeE") > 0 and minion.health <= (MarkedDmg*Qdmg) then
+				if HasBuff(minion, "RyzeE") and minion.health <= (MarkedDmg*Qdmg) then
 					Control.CastSpell(HK_Q, minion.pos)
 				end				
 			end
@@ -284,9 +279,10 @@ function Clear()
 				Control.CastSpell(HK_E,minion)
 			end			
 			
-			if myHero.pos:DistanceTo(minion.pos) <= 1000 and IsValid(minion) and Menu.Clear.UseQ:Value() and Ready(_Q) then
-				if GotBuff(minion, "RyzeE") > 0 then
-					Control.CastSpell(HK_Q, minion.pos)
+			if myHero.pos:DistanceTo(minion.pos) <= 1000 and IsValid(minion) and Menu.Clear.UseQ:Value() and Ready(_Q) and HasBuff(minion, "RyzeE") then
+			local pred = GetGamsteronPrediction(minion, QData, myHero)	
+				if pred.Hitchance >= 1 then			
+					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
 			end
 		end
@@ -349,4 +345,3 @@ if target == nil then return end
 		end
 	end
 end
-
