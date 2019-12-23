@@ -98,21 +98,22 @@ require "MapPositionGOS"
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
-	Menu.Combo:MenuElement({id = "UseQW", name = "[Q]only if Ready[W]", value = true})	
+	Menu.Combo:MenuElement({id = "UseQW", name = "[Q1]waiting for Ready[W]", value = true})	
+	Menu.Combo:MenuElement({id = "UseQW2", name = "[Q2]waiting for Ready[W]", value = true})	
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})		
-	Menu.Combo:MenuElement({id = "UseR", name = "[R] Check Wall.pos", value = true})
+	Menu.Combo:MenuElement({id = "UseR", name = "[R] Check Wall.pos/ Tower.pos", value = true})
 			
 
 	--HarassMenu
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
 	Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
-	Menu.Harass:MenuElement({id = "UseQW", name = "[Q]only if Ready[W]", value = true})	
+	Menu.Harass:MenuElement({id = "UseQW", name = "[Q1]waiting for Ready[W]", value = true})	
 	Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = true})		
 	Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
   
@@ -132,8 +133,8 @@ function LoadScript()
  
 	--KillSteal
 	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
-	Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})	
-	Menu.ks:MenuElement({id = "UseQ2", name = "[Q] Terrain Buff", value = true})	
+	Menu.ks:MenuElement({id = "UseQ", name = "[Q1]", value = true})	
+	Menu.ks:MenuElement({id = "UseQ2", name = "[Q2] Terrain Buff", value = true})	
 	Menu.ks:MenuElement({id = "UseE", name = "[E]", value = true})	
 --[[
 	--Prediction
@@ -172,7 +173,11 @@ function LoadScript()
 		Draw.Circle(myHero, 875, 1, Draw.Color(255, 225, 255, 10))
 		end                                                 
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-		Draw.Circle(myHero, 650, 1, Draw.Color(225, 225, 0, 10))
+			if HasBuff(myHero, "qiyanawenchantedbuff") then
+				Draw.Circle(myHero, 710, 1, Draw.Color(225, 225, 0, 10))
+			else
+				Draw.Circle(myHero, 650, 1, Draw.Color(225, 225, 0, 10))
+			end	
 		end
 		if Menu.Drawing.DrawE:Value() and Ready(_E) then
 		Draw.Circle(myHero, 650, 1, Draw.Color(225, 225, 125, 10))
@@ -227,7 +232,7 @@ end
 
 function Combo()
 local castspell = false
-local target = GetTarget(1200)
+local target = GetTarget(2000)
 if target == nil then return end
 	if IsValid(target) then		
 		
@@ -252,12 +257,22 @@ if target == nil then return end
         end if castspell then return end
 		
 		local castPos = FindBestQiyanaWPos(Objects.WALL)
-		if Menu.Combo.UseW:Value() and myHero.pos:DistanceTo(target.pos) < 1100 and Ready(_W) and castPos ~= nil and not HasBuff(myHero, "qiyanawenchantedbuff") then
-			castspell = Control.CastSpell(HK_W, castPos)	
+		if Menu.Combo.UseW:Value() and myHero.pos:DistanceTo(target.pos) < 1900 and Ready(_W) and castPos ~= nil and not HasBuff(myHero, "qiyanawenchantedbuff") then
+			if target.pos:DistanceTo(castPos) < myHero.pos:DistanceTo(castPos) then
+				castspell = Control.CastSpell(HK_W, castPos)
+			else
+				castspell = Control.CastSpell(HK_W, castPos)
+			end
         end	if castspell then return end
 
-		if HasBuff(myHero, "qiyanawenchantedbuff") and myHero.pos:DistanceTo(target.pos) < 710 and Ready(_Q) then
-			castspell = Control.CastSpell(HK_Q, target.pos)
+		if Menu.Combo.UseQW2:Value() then
+			if HasBuff(myHero, "qiyanawenchantedbuff") and myHero.pos:DistanceTo(target.pos) < 710 and Ready(_Q) and Ready(_W) then
+				castspell = Control.CastSpell(HK_Q, target.pos)
+			end
+		else
+			if HasBuff(myHero, "qiyanawenchantedbuff") and myHero.pos:DistanceTo(target.pos) < 710 and Ready(_Q) then
+				castspell = Control.CastSpell(HK_Q, target.pos)
+			end			
 		end	
 	end
 end
@@ -287,7 +302,9 @@ if target == nil then return end
 		
 		local castPos = FindBestQiyanaWPos(Objects.WALL)
 		if Menu.Harass.UseW:Value() and myHero.pos:DistanceTo(target.pos) < 1100 and Ready(_W) and castPos ~= nil and not HasBuff(myHero, "qiyanawenchantedbuff") then
-			castspell = Control.CastSpell(HK_W, castPos)
+			if target.pos:DistanceTo(castPos) < myHero.pos:DistanceTo(target.pos) then
+				castspell = Control.CastSpell(HK_W, castPos)
+			end
         end	if castspell then return end
 
 		if HasBuff(myHero, "qiyanawenchantedbuff") and myHero.pos:DistanceTo(target.pos) < 710 and Ready(_Q) then
@@ -323,7 +340,9 @@ local castspell = false
 			
 			local castPos = FindBestQiyanaWPos(Objects.WALL)			
             if Menu.Clear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 1100 and Ready(_W) and not IsUnderTurret(minion) and castPos ~= nil and not HasBuff(myHero, "qiyanawenchantedbuff") then	
-				castspell = Control.CastSpell(HK_W, castPos)	
+				if minion.pos:DistanceTo(castPos) < myHero.pos:DistanceTo(minion.pos) then
+					castspell = Control.CastSpell(HK_W, castPos)
+				end	
             end if castspell then return end
 			
             if Menu.Clear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 1100 and Ready(_W) and IsUnderTurret(minion) and AllyMinionUnderTower() and castPos ~= nil and not HasBuff(myHero, "qiyanawenchantedbuff") then	
@@ -360,7 +379,9 @@ local castspell = false
 			
 			local castPos = FindBestQiyanaWPos(Objects.WALL)
 			if Menu.JClear.UseW:Value() and myHero.pos:DistanceTo(minion.pos) < 1100 and Ready(_W) and castPos ~= nil and not HasBuff(myHero, "qiyanawenchantedbuff") then
-				castspell = Control.CastSpell(HK_W, castPos)	
+				if minion.pos:DistanceTo(castPos) < myHero.pos:DistanceTo(minion.pos) then
+					castspell = Control.CastSpell(HK_W, castPos)
+				end		
             end if castspell then return end
 
 			if HasBuff(myHero, "qiyanawenchantedbuff") and myHero.pos:DistanceTo(minion.pos) < 710 and Ready(_Q) then
