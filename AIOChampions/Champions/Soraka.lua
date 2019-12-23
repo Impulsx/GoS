@@ -21,7 +21,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
 
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ"})
@@ -173,21 +173,21 @@ end
 
 
 function AutoR()
-	for i, ally in pairs(GetAllyHeroes()) do     	
-	if ally == nil then return end	
-		if Menu.AutoR.UseR:Value() and Ready(_R) then
-			if RCount() >= Menu.AutoR.UseRE:Value() then
-				Control.CastSpell(HK_R)
-			end	
-		end
-	end	
+	--for i, ally in pairs(GetAllyHeroes()) do     	
+	--if ally == nil then return end	
+	if Menu.AutoR.UseR:Value() and Ready(_R) then
+		if RCount() >= Menu.AutoR.UseRE:Value() then
+			Control.CastSpell(HK_R)
+		end	
+	end
+	--end	
 end
 
 function AutoR2()
 	for i, ally in pairs(GetAllyHeroes()) do     	
 	if ally == nil then return end	
-		if IsValid(ally) and Ready(_R) then 
-			if Menu.AutoR.AutoR2[ally.charName] and Menu.AutoR.AutoR2[ally.charName]:Value() and ally.health/ally.maxHealth <= Menu.AutoR.UseRE:Value()/100 then
+		if Ready(_R) then 
+			if Menu.AutoR.AutoR2[ally.charName] and Menu.AutoR.AutoR2[ally.charName]:Value() and IsValid(ally) and ally.health/ally.maxHealth <= Menu.AutoR.UseRE:Value()/100 then
 				Control.CastSpell(HK_R)
 			end	
 		end	
@@ -200,7 +200,7 @@ local target = GetTarget(2000)
 if target == nil then return end	
 	for i, ally in pairs(GetAllyHeroes()) do     	
 	if ally == nil then return end	
-		if IsValid(ally) and myHero.pos:DistanceTo(ally.pos) <= 550 and Ready(_W) then 
+		if myHero.pos:DistanceTo(ally.pos) <= 550 and IsValid(ally) and Ready(_W) then 
 			if Menu.AutoW.UseW:Value() then
 				if ally.health/ally.maxHealth <= Menu.AutoW.UseWE:Value()/100 and myHero.mana/myHero.maxMana >= Menu.AutoW.Mana:Value()/100 then
 					Control.CastSpell(HK_W, ally)
@@ -293,10 +293,8 @@ end
 function Clear()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-		if minion.team == TEAM_ENEMY and IsValid(minion) and myHero.pos:DistanceTo(minion.pos) <= 800 and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then					
-			if Ready(_Q) and Menu.Clear.UseQ:Value() then
-				Control.CastSpell(HK_Q, minion.pos)
-			end	  
+		if Ready(_Q) and Menu.Clear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 800 and minion.team == TEAM_ENEMY and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then					
+			Control.CastSpell(HK_Q, minion.pos)	  
 		end
 	end
 end
@@ -305,10 +303,8 @@ function JungleClear()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)	
 
-		if minion.team == TEAM_JUNGLE and IsValid(minion) and myHero.pos:DistanceTo(minion.pos) <= 800 and myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100 then	
-			if Ready(_Q) and Menu.JClear.UseQ:Value() then
-				Control.CastSpell(HK_Q, minion.pos)
-			end 
+		if Ready(_Q) and Menu.JClear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 800 and minion.team == TEAM_JUNGLE and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100 then	
+			Control.CastSpell(HK_Q, minion.pos) 
 		end
 	end
 end
