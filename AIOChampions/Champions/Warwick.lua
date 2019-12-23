@@ -42,7 +42,7 @@ end
 function LoadScript()
 	HPred()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
 	
 	--Combo--
 	Menu:MenuElement({id = "ComboMode", name = "Combo", type = MENU})
@@ -54,7 +54,7 @@ function LoadScript()
 	Menu.ComboMode:MenuElement({id = "comboActive", name = "Combo key", key = string.byte(" ")})
 	Menu.ComboMode:MenuElement({id = "UseHYDRA", name = "Use hydra", value = true})
 	Menu.ComboMode:MenuElement({id = "DrawDamage", name = "Draw Killable", value = true})
-	Menu.ComboMode:MenuElement({id = "DrawRange", name = "Draw RRange", value = true})	
+	Menu.ComboMode:MenuElement({id = "DrawRange", name = "Draw RRange", value = false})	
 	Menu.ComboMode:MenuElement({type = MENU, id = "XY", name = "Text Pos Settings"})	
 	Menu.ComboMode.XY:MenuElement({id = "x", name = "Pos: [X]", value = 0, min = 0, max = 1500, step = 10})
 	Menu.ComboMode.XY:MenuElement({id = "y", name = "Pos: [Y]", value = 0, min = 0, max = 860, step = 10})	
@@ -138,21 +138,20 @@ function Combo()
  
 	if Menu.ComboMode.UseHYDRA:Value() then
     	local HTarget = GetTarget(300)
-		if HTarget == nil then return end   
-	   if IsValid(HTarget) then
+		  
+		if HTarget and IsValid(HTarget) then
             UseHydra()
         end
     end
 
     if Ready(_E) then 
-	local ETarget = GetTarget(375)
-	if ETarget == nil then return end
-		if Menu.ComboMode.UseE:Value() and Menu.ComboMode.Key:Value() == false and IsValid(ETarget) and HasBuff(ETarget, "Primal Howl") then
+		local ETarget = GetTarget(375)
+		if ETarget and Menu.ComboMode.UseE:Value() and Menu.ComboMode.Key:Value() == false and IsValid(ETarget) and HasBuff(myHero, "Primal Howl") then
 			if myHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
 		end
-        if Menu.ComboMode.UseE:Value() and Menu.ComboMode.Key:Value() == true and IsValid(ETarget) and not HasBuff(ETarget, "Primal Howl") then
+        if Menu.ComboMode.UseE:Value() and Menu.ComboMode.Key:Value() == true and IsValid(ETarget) and not HasBuff(myHero, "Primal Howl") then
 			if myHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
@@ -160,9 +159,8 @@ function Combo()
 	end
 
 	if Ready(_Q) then 
-	local QTarget = GetTarget(350)
-	if QTarget == nil then return end
-		if Menu.ComboMode.UseQ:Value() and IsValid(QTarget) then
+		local QTarget = GetTarget(350)
+		if QTarget and Menu.ComboMode.UseQ:Value() and IsValid(QTarget) then
             if myHero.pos:DistanceTo(QTarget.pos) < 350 and myHero.pos:DistanceTo(QTarget.pos) > 125 then
 				Control.CastSpell(HK_Q, QTarget)
             end
@@ -171,8 +169,7 @@ function Combo()
 	
 	if Ready(_W) then 
 		local WTarget = GetTarget(2000)
-		if WTarget == nil then return end 
-		if Menu.ComboMode.UseW:Value() and IsValid(WTarget) then
+		if WTarget and Menu.ComboMode.UseW:Value() and IsValid(WTarget) then
 			if myHero.pos:DistanceTo(WTarget.pos) < 2000 and WTarget.health/WTarget.maxHealth <= 0.20 then
 				Control.CastSpell(HK_W)
 			end
@@ -180,41 +177,39 @@ function Combo()
 	end	
 
     if Ready(_R) then 
-    local rRange = 2.5 * myHero.ms
-	local target = GetTarget(rRange + 200)
-	if target == nil then return end
-	local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, rRange, 0.1, 1800, 55, false)
-        if Menu.ComboMode.UseR:Value() and IsValid(target) then
-			if myHero.pos:DistanceTo(target.pos) < rRange and hitRate and hitRate >= 1 then
-			if EnemiesAround(target, 500) >= 2 then CastER(target) return end	
-				if aimPosition:To2D().onScreen then
-					Control.CastSpell(HK_R, aimPosition)
+		local rRange = (2.5 * myHero.ms - 100)
+		local RTarget = GetTarget((rRange + 200))
+        if RTarget and Menu.ComboMode.UseR:Value() and IsValid(RTarget) then
+		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, RTarget, rRange, 0.1, 1800, 55, false)			
+			if myHero.pos:DistanceTo(RTarget.pos) < rRange and hitRate and hitRate >= 1 then
+				if EnemiesAround(RTarget, 500) >= 2 then 
+					CastER(RTarget)
+				else
+					if aimPosition:To2D().onScreen then
+						Control.CastSpell(HK_R, aimPosition)
 					
-				elseif not aimPosition:To2D().onScreen then	
-				local castPos = myHero.pos:Extended(aimPosition.pos, 1000)
-					Control.CastSpell(HK_R, castPos)
+					elseif not aimPosition:To2D().onScreen then	
+					local castPos = myHero.pos:Extended(aimPosition.pos, 1000)
+						Control.CastSpell(HK_R, castPos)
+					end	
 				end	
 			end	
         end
     end
 end
 
-function CastER(target)
-local rRange = 2.5 * myHero.ms  
-	if HasBuff(target, "Primal Howl") then
-		if myHero.pos:DistanceTo(target) < 150 then
-			Control.CastSpell(HK_E)
-		end
-	end	
-	
-	if Ready(_E) then 
-		if not HasBuff(target, "Primal Howl") then
-			Control.CastSpell(HK_E)
+function CastER(RTarget)
+local rRange = (2.5 * myHero.ms - 100)  	
+local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, RTarget, rRange, 0.1, 1800, 55, false)	
+if myHero.pos:DistanceTo(RTarget.pos) < rRange then	
+	if Ready(_E) and hitRate and hitRate >= 1 then 
+		if not HasBuff(myHero, "Primal Howl") then
+			castedE = Control.CastSpell(HK_E)
 		end
 	end
 	
 	
-	local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, rRange, 0.1, 1800, 55, false)
+
 	if hitRate and hitRate >= 1 then	
 		if aimPosition:To2D().onScreen then
 			Control.CastSpell(HK_R, aimPosition)
@@ -224,11 +219,7 @@ local rRange = 2.5 * myHero.ms
 			Control.CastSpell(HK_R, castPos)
 		end
 	end
-	if HasBuff(target, "Primal Howl") then
-		if myHero.pos:DistanceTo(target) < 150 then
-			Control.CastSpell(HK_E)
-		end
-	end	
+end
 end
 
 function Harass()
@@ -242,12 +233,12 @@ function Harass()
     if Ready(_E) then 
 		local ETarget = GetTarget(375)
 		if ETarget == nil then return end 
-		if Menu.HarassMode.UseE:Value() and Menu.ComboMode.Key:Value() == false and IsValid(ETarget) and HasBuff(ETarget, "Primal Howl") then
+		if Menu.HarassMode.UseE:Value() and Menu.ComboMode.Key:Value() == false and IsValid(ETarget) and HasBuff(myHero, "Primal Howl") then
 			if myHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
 		end
-        if Menu.HarassMode.UseE:Value() and Menu.ComboMode.Key:Value() == true and IsValid(ETarget) and not HasBuff(ETarget, "Primal Howl") then
+        if Menu.HarassMode.UseE:Value() and Menu.ComboMode.Key:Value() == true and IsValid(ETarget) and not HasBuff(myHero, "Primal Howl") then
 			if myHero.pos:DistanceTo(ETarget.pos) < 375 then
 				Control.CastSpell(HK_E)
 			end
@@ -272,12 +263,12 @@ function Jungle()
 		if minion.team == TEAM_ENEMY or minion.team == TEAM_JUNGLE and myHero.pos:DistanceTo(minion.pos) < 400 then
 			
 			if Ready(_E) and IsValid(minion) then 
-				if Menu.ClearMode.UseE:Value() and Menu.ComboMode.Key:Value()  == false and HasBuff(minion, "Primal Howl") then
+				if Menu.ClearMode.UseE:Value() and Menu.ComboMode.Key:Value()  == false and HasBuff(myHero, "Primal Howl") then
 					if myHero.pos:DistanceTo(minion.pos) < 375 then
 						Control.CastSpell(HK_E)
 					end
 				end
-				if Menu.ClearMode.UseE:Value() and Menu.ComboMode.Key:Value()  == true and not HasBuff(minion, "Primal Howl") then
+				if Menu.ClearMode.UseE:Value() and Menu.ComboMode.Key:Value()  == true and not HasBuff(myHero, "Primal Howl") then
 					if myHero.pos:DistanceTo(minion.pos) < 375 then
 						Control.CastSpell(HK_E)
 					end
