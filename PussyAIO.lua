@@ -6,7 +6,7 @@ if not table.contains(Heroes, myHero.charName) then return end
    
 
 
-   local Version = 0.33
+   local Version = 0.34
 
 
     local Files = {
@@ -110,40 +110,15 @@ local textPos = myHero.pos:To2D()
 		Draw.Text("New PussyAIO Vers. Press 2xF6", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 0, 0))
 	end
 	
-	if Game.Timer() > 20 then return end 
+	if Game.Timer() > 90 then return end 
 	if NewVersion == Version then	
-		Draw.Text("Version: 0.33", 20, textPos.x + 400, textPos.y - 220, Draw.Color(255, 255, 0, 0))
 		
-		Draw.Text("Welcome to PussyAIO", 50, textPos.x + 100, textPos.y - 200, Draw.Color(255, 255, 100, 0))
-		Draw.Text("Supported Champs", 30, textPos.x + 200, textPos.y - 150, Draw.Color(255, 255, 200, 0))
+		Draw.Text("This PussyAIO is no longer supported !!!!", 60, textPos.x -200, textPos.y - 350, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Please go to my PussyAIO Topic and Download my New AIO", 30, textPos.x - 200, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 		
-		Draw.Text("Ahri", 25, textPos.x + 200, textPos.y - 100, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Ekko", 25, textPos.x + 200, textPos.y - 80, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Kayle", 25, textPos.x + 200, textPos.y - 60, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Kalista", 25, textPos.x + 200, textPos.y - 40, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Lux", 25, textPos.x + 200, textPos.y - 20, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Morgana", 25, textPos.x + 200, textPos.y - 1, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Neeko", 25, textPos.x + 200, textPos.y + 20 , Draw.Color(255, 255, 200, 0))
-		Draw.Text("Rakan", 25, textPos.x + 200, textPos.y + 40, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Soraka", 25, textPos.x + 200, textPos.y + 60, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Sylas", 25, textPos.x + 200, textPos.y + 80, Draw.Color(255, 255, 200, 0))		
-		Draw.Text("Veigar", 25, textPos.x + 200, textPos.y + 100, Draw.Color(255, 255, 200, 0))	
-		Draw.Text("Xerath", 25, textPos.x + 200, textPos.y + 120, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Yuumi", 25, textPos.x + 200, textPos.y + 140, Draw.Color(255, 255, 200, 0))
-
-
-		Draw.Text("Cassiopeia", 25, textPos.x + 300, textPos.y - 100, Draw.Color(255, 255, 200, 0))	
-		Draw.Text("Kassadin", 25, textPos.x + 300, textPos.y - 80, Draw.Color(255, 255, 200, 0))
-		Draw.Text("LeeSin", 25, textPos.x + 300, textPos.y - 60, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Malzahar", 25, textPos.x + 300, textPos.y - 40, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Mordekaiser", 25, textPos.x + 300, textPos.y - 20, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Nidalee", 25, textPos.x + 300, textPos.y - 1 , Draw.Color(255, 255, 200, 0))
-		Draw.Text("Ryze", 25, textPos.x + 300, textPos.y + 20, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Sona", 25, textPos.x + 300, textPos.y + 40, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Tristana", 25, textPos.x + 300, textPos.y + 60, Draw.Color(255, 255, 200, 0))		
-		Draw.Text("Warwick", 25, textPos.x + 300, textPos.y + 80, Draw.Color(255, 255, 200, 0))	
-		Draw.Text("XinZhao", 25, textPos.x + 300, textPos.y + 100, Draw.Color(255, 255, 200, 0))
-		Draw.Text("Zyra", 25, textPos.x + 300, textPos.y + 120, Draw.Color(255, 255, 200, 0))		
+		Draw.Text("http://gamingonsteroids.com/topic/32366-pussyaio-new-generation/", 30, textPos.x - 200, textPos.y - 225, Draw.Color(255, 255, 0, 0))
+		Draw.Text("Please follow the Requirements in my Topic exactly !!!!", 30, textPos.x - 200, textPos.y - 200, Draw.Color(255, 255, 0, 0))
+	
 	end
 end	
 
