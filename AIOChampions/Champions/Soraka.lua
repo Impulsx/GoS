@@ -21,7 +21,12 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+
+	--AutoQ
+	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ"})
+	Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto[Q]", value = true})
+
 	--AutoE
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})
 	Menu.AutoE:MenuElement({id = "UseE", name = "Auto[E]Immobile Target", value = true})
@@ -34,8 +39,8 @@ function LoadScript()
 
 	--AutoR
 	Menu:MenuElement({type = MENU, id = "AutoR", name = "AutoR"})
-	Menu.AutoR:MenuElement({id = "UseR", name = "Auto Heal Allys below 40%", value = true})
-	Menu.AutoR:MenuElement({id = "UseRE", name = "Minimum Allys below 40%", value = 2, min = 1, max = 5})
+	Menu.AutoR:MenuElement({id = "UseR", name = "Auto Heal Allys below 20%", value = true})
+	Menu.AutoR:MenuElement({id = "UseRE", name = "Minimum Allys below 20%", value = 2, min = 1, max = 5})
 	Menu.AutoR:MenuElement({type = MENU, id = "AutoR2", name = "AutoSafe priority Ally"})
 	Menu.AutoR.AutoR2:MenuElement({id = "UseRE", name = "Minimum Health priority Ally", value = 40, min = 0, max = 100, identifier = "%"})	
 	for i, Hero in pairs(GetAllyHeroes()) do
@@ -77,18 +82,18 @@ function LoadScript()
 
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
-	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
-	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})
-	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
+	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
 	
 	QData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 235, Range = 800, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 235, Range = 800, Speed = 1750, Collision = false
 	}
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 250, Range = 925, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 250, Range = 925, Speed = 1750, Collision = false
 	}
   	                                           
 	if _G.EOWLoaded then
@@ -134,6 +139,7 @@ local Mode = GetMode()
 		
 	end	
 	KillSteal()
+	AutoQ()	
 	AutoW()
 	AutoR()
 	AutoR2()
@@ -144,7 +150,7 @@ function RCount()
 	local count = 0
 	for i = 1, Game.HeroCount() do
 		local hero = Game.Hero(i)
-		if hero and hero.isAlly and IsValid(hero) and hero.health/hero.maxHealth  * 100 < 40 then
+		if hero and hero.isAlly and IsValid(hero) and hero.health/hero.maxHealth  * 100 < 20 then
 			count = count + 1
 		
 		end
@@ -203,6 +209,20 @@ if target == nil then return end
 		end
 	end
 end
+
+function AutoQ()	
+	local target = GetTarget(1000)     	
+	if target == nil then return end	
+	if IsValid(target) then	
+		
+		if myHero.pos:DistanceTo(target.pos) <= 800 and Menu.AutoQ.UseQ:Value() and Ready(_Q) then
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end
+		end
+	end
+end	
        
 function KillSteal()	
 	local target = GetTarget(1000)     	
