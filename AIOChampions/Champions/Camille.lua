@@ -21,11 +21,35 @@ function GetMinionCount(range, pos)
 	return count
 end
 
+local function Rotate(startPos, endPos, height, theta)
+    local dx, dy = endPos.x - startPos.x, endPos.z - startPos.z
+    local px, py = dx * math.cos(theta) - dy * math.sin(theta), dx * math.sin(theta) + dy * math.cos(theta)
+    return Vector(px + startPos.x, height, py + startPos.z)
+end
+
+local Objects = {[3] = WALL }
+
+local function FindBestQiyanaWPos(mode)
+    local startPos, mPos, height = Vector(myHero.pos), Vector(mousePos), myHero.pos.y
+    for i = 100, 2000, 100 do -- search range
+        local endPos = startPos:Extended(mPos, i)
+        for j = 20, 360, 20 do -- angle step
+            local testPos = Rotate(startPos, endPos, height, math.rad(j))
+            if testPos:ToScreen().onScreen then 
+                if mode == Objects.WALL and MapPosition:inWall(testPos) then
+                    return testPos
+                end
+            end
+        end
+    end
+    return nil
+end
+
 require "MapPositionGOS"
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -80,12 +104,12 @@ function LoadScript()
 	
 	WData =
 	{
-	Type = _G.SPELLTYPE_CONE, Delay = 1.1, Radius = 650, Range = 800, Speed = 1750, Collision = false
+	Type = _G.SPELLTYPE_CONE, Delay = nil, Radius = nil, Range = 610, Speed = 1750, Collision = false
 	}
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 925, Speed = 1750, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = nil, Radius = 70, Range = 1000, Speed = 500, Collision = false
 	}
   	
 	if _G.EOWLoaded then
@@ -145,105 +169,89 @@ function ComboDmg(unit)
 	end
 	return false
 end	
-
-local function CheckERange(unit)
-	local point = Point(myHero.pos.x, myHero.pos.z)
-	local Pos1, Pos2, Pos3 = unit.pos, myHero.pos, MapPosition:inWall(point)
-	local a, b = 800, 800
-	local C2 = (a*a) + (b*b)
-	local c = math.sqrt(C2)
-	if Pos1:DistanceTo(Pos2) < c then
-	return Pos3
-	end
-	return nil
-end
-
 	
 function Combo()
-local target = GetTarget(1300)
+local target = GetTarget(2000)
 if target == nil then return end
 	if IsValid(target) then
-	local castedE = false
-	local Q1Buff = GetBuffData(myHero, "Q1")	
-	local Q2Buff = GetBuffData(myHero, "Q2")	
+	
 		if ComboDmg(target) then
 		
-			if myHero:GetSpellData(_E).name == "CamilleE2" and Menu.Combo.UseE:Value() and Ready(_E) then
-				if myHero.pos:DistanceTo(target.pos) <= 800 then
+			if myHero:GetSpellData(_E).name == "CamilleEDash2" and Menu.Combo.UseE:Value() and Ready(_E) then
+				if myHero.pos:DistanceTo(target.pos) <= 1000 then
 					local pred = GetGamsteronPrediction(target, EData, myHero)
 					if pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then
-						castedE = Control.CastSpell(HK_E, pred.CastPosition)
+						Control.CastSpell(HK_E, pred.CastPosition)
 					end
 				else
-					castedE = Control.CastSpell(HK_E, target.pos)
+					Control.CastSpell(HK_E, target.pos)
 				end	
 			end
 			
 			if Ready(_R) then
-				if myHero.pos:DistanceTo(target.pos) < 1030 and myHero.pos:DistanceTo(target.pos) > 475 and myHero:GetSpellData(_E).name == "CamilleE1" and Menu.Combo.UseE:Value() and Ready(_E) then
-					local Pos3 = CheckERange(target)
-					if Pos3 then			
-						castedE = Control.CastSpell(HK_E, Pos3)
+				if myHero.pos:DistanceTo(target.pos) < 1800 and myHero.pos:DistanceTo(target.pos) > 475 and myHero:GetSpellData(_E).name == "CamilleE" and Menu.Combo.UseE:Value() and Ready(_E) then
+					local castPos = FindBestQiyanaWPos(Objects.WALL)
+					if castPos ~= nil and target.pos:DistanceTo(castPos) < 1000 and myHero.pos:DistanceTo(castPos) < 800 then			
+						Control.CastSpell(HK_E, castPos)
 					end
 				end
 			else
-				if myHero.pos:DistanceTo(target.pos) < 1030 and myHero.pos:DistanceTo(target.pos) > 300 and myHero:GetSpellData(_E).name == "CamilleE1" and Menu.Combo.UseE:Value() and Ready(_E) then
-					local Pos3 = CheckERange(target)
-					if Pos3 then			
-						castedE = Control.CastSpell(HK_E, Pos3)
+				if myHero.pos:DistanceTo(target.pos) < 1800 and myHero.pos:DistanceTo(target.pos) > 300 and myHero:GetSpellData(_E).name == "CamilleE" and Menu.Combo.UseE:Value() and Ready(_E) then
+					local castPos = FindBestQiyanaWPos(Objects.WALL)
+					if castPos ~= nil and target.pos:DistanceTo(castPos) < 1000 and myHero.pos:DistanceTo(castPos) < 800 then			
+						Control.CastSpell(HK_E, castPos)
 					end
 				end				
 			end	
 			
-			if myHero.pos:DistanceTo(target.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ1" and Menu.Combo.UseQ:Value() and Ready(_Q) then
+			if myHero.pos:DistanceTo(target.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ" and Menu.Combo.UseQ:Value() and Ready(_Q) then
 				Control.CastSpell(HK_Q)
 			end	
 			
-			if myHero.pos:DistanceTo(target.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ2" and Q1Buff.duration < 2 and Menu.Combo.UseQ2:Value() and Ready(_Q) then
+			if myHero.pos:DistanceTo(target.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ2" and Menu.Combo.UseQ2:Value() and Ready(_Q) then
 				Control.CastSpell(HK_Q)
 			end	
-			
-			if not (Q1Buff or Q2Buff) and myHero.pos:DistanceTo(target.pos) < 650 and Menu.Combo.UseW:Value() and Ready(_W) then
+			if myHero.pathing.isDashing then return end			
+			if myHero.pos:DistanceTo(target.pos) < 610 and Menu.Combo.UseW:Value() and Ready(_W) then
 				local pred = GetGamsteronPrediction(target, WData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 then	
 					Control.CastSpell(HK_W, pred.CastPosition)
 				end	
 			end	
 
-			if castedE then return end
 			if myHero.pos:DistanceTo(target.pos) < 475 and Menu.Combo.UseR:Value() and Ready(_R) then
 				Control.CastSpell(HK_R, target)
 			end
 		
 		else
 			
-			if myHero.pos:DistanceTo(target.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ1" and Menu.Combo.UseQ:Value() and Ready(_Q) then
+			if myHero.pos:DistanceTo(target.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ" and Menu.Combo.UseQ:Value() and Ready(_Q) then
 				Control.CastSpell(HK_Q)
 			end	
 			
-			if myHero.pos:DistanceTo(target.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ2" and Q1Buff.duration < 2 and Menu.Combo.UseQ2:Value() and Ready(_Q) then
+			if myHero.pos:DistanceTo(target.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ2" and Menu.Combo.UseQ2:Value() and Ready(_Q) then
 				Control.CastSpell(HK_Q)
 			end
 
-			if myHero:GetSpellData(_E).name == "CamilleE2" and Menu.Combo.UseE:Value() and Ready(_E) then
-				if myHero.pos:DistanceTo(target.pos) <= 800 then
+			if myHero:GetSpellData(_E).name == "CamilleEDash2" and Menu.Combo.UseE:Value() and Ready(_E) then
+				if myHero.pos:DistanceTo(target.pos) <= 1000 then
 					local pred = GetGamsteronPrediction(target, EData, myHero)
 					if pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then
-						castedE = Control.CastSpell(HK_E, pred.CastPosition)
+						Control.CastSpell(HK_E, pred.CastPosition)
 					end
 				else
-					castedE = Control.CastSpell(HK_E, target.pos)
+					Control.CastSpell(HK_E, target.pos)
 				end	
 			end
 
-			if myHero.pos:DistanceTo(target.pos) < 1030 and myHero.pos:DistanceTo(target.pos) > 300 and myHero:GetSpellData(_E).name == "CamilleE1" and Menu.Combo.UseE:Value() and Ready(_E) then
-				local Pos3 = CheckERange(target)
-				if Pos3 then			
-					castedE = Control.CastSpell(HK_E, Pos3)
+			if myHero.pos:DistanceTo(target.pos) > 300 and myHero:GetSpellData(_E).name == "CamilleE" and Menu.Combo.UseE:Value() and Ready(_E) then
+				local castPos = FindBestQiyanaWPos(Objects.WALL)
+				if castPos ~= nil and target.pos:DistanceTo(castPos) < 1000 and myHero.pos:DistanceTo(castPos) < 800 then			
+					Control.CastSpell(HK_E, castPos)
 				end
 			end
-
-			if myHero.pos:DistanceTo(target.pos) < 650 and myHero.pos:DistanceTo(target.pos) > 325 and Menu.Combo.UseW:Value() and Ready(_W) then
+			if myHero.pathing.isDashing then return end
+			if myHero.pos:DistanceTo(target.pos) < 610 and myHero.pos:DistanceTo(target.pos) > 310 and Menu.Combo.UseW:Value() and Ready(_W) then
 				local pred = GetGamsteronPrediction(target, WData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 then	
 					Control.CastSpell(HK_W, pred.CastPosition)
@@ -257,17 +265,16 @@ function Harass()
 local target = GetTarget(700)
 if target == nil then return end
 	if IsValid(target) and myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value() / 100 then
-		local Q1Buff = GetBuffData(myHero, "Q1")
-		local Q2Buff = GetBuffData(myHero, "Q2")
-		if myHero.pos:DistanceTo(target.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ1" and Menu.Harass.UseQ:Value() and Ready(_Q) then
+	
+		if myHero.pos:DistanceTo(target.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ" and Menu.Harass.UseQ:Value() and Ready(_Q) then
 			Control.CastSpell(HK_Q)
 		end	
 			
-		if myHero.pos:DistanceTo(target.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ2" and Q1Buff.duration < 2 and Menu.Harass.UseQ2:Value() and Ready(_Q) then
+		if myHero.pos:DistanceTo(target.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ2" and Menu.Harass.UseQ2:Value() and Ready(_Q) then
 			Control.CastSpell(HK_Q)
 		end
 		
-		if ((not (Q1Buff or Q2Buff)) or myHero.pos:DistanceTo(target.pos) > 325) and myHero.pos:DistanceTo(target.pos) < 650 and Menu.Harass.UseW:Value() and Ready(_W) then
+		if myHero.pos:DistanceTo(target.pos) > 325 and myHero.pos:DistanceTo(target.pos) < 650 and Menu.Harass.UseW:Value() and Ready(_W) then
 			local pred = GetGamsteronPrediction(target, WData, myHero)
 			if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 then	
 				Control.CastSpell(HK_W, pred.CastPosition)
@@ -279,21 +286,19 @@ end
 function Clear()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-	local Q1Buff = GetBuffData(myHero, "Q1")
-	local Q2Buff = GetBuffData(myHero, "Q2")
 
 		if myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 700 and minion.team == TEAM_ENEMY and IsValid(minion) then
 			local QDmg = (getdmg("Q", minion, myHero, 1) + getdmg("AA", minion, myHero))
-			if Ready(_Q) and Menu.Clear.UseQ:Value() and myHero:GetSpellData(_Q).name == "CamilleQ1" and myHero.pos:DistanceTo(minion.pos) <= 175 and QDmg > minion.health then					
+			if Ready(_Q) and Menu.Clear.UseQ:Value() and myHero:GetSpellData(_Q).name == "CamilleQ" and myHero.pos:DistanceTo(minion.pos) <= 175 and QDmg > minion.health then					
 				if _G.SDK.Orbwalker:CanAttack(minion) then return end
 				Control.CastSpell(HK_Q)
 			end	
 		
-			if myHero.pos:DistanceTo(minion.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ2" and Menu.Clear.UseQ2:Value() and Ready(_Q) and Q1Buff.duration < 2 then
+			if myHero.pos:DistanceTo(minion.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ2" and Menu.Clear.UseQ2:Value() and Ready(_Q) then
 				Control.CastSpell(HK_Q)
 			end	
 
-			if not (Q1Buff or Q2Buff) and myHero.pos:DistanceTo(minion.pos) < 650 and Menu.Clear.UseW:Value() and Ready(_W) then
+			if myHero.pos:DistanceTo(minion.pos) < 650 and Menu.Clear.UseW:Value() and Ready(_W) then
 				if GetMinionCount(400, minion) >= Menu.Clear.Wcount:Value() then	
 					Control.CastSpell(HK_W, minion.pos)
 				end	
@@ -305,19 +310,17 @@ end
 function JungleClear()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-	local Q1Buff = GetBuffData(myHero, "Q1")
-	local Q2Buff = GetBuffData(myHero, "Q2")
 		if myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 700 and minion.team == TEAM_JUNGLE and IsValid(minion) then
 			
-			if Ready(_Q) and Menu.JClear.UseQ:Value() and myHero:GetSpellData(_Q).name == "CamilleQ1" and myHero.pos:DistanceTo(minion.pos) <= 175 then					
+			if Ready(_Q) and Menu.JClear.UseQ:Value() and myHero:GetSpellData(_Q).name == "CamilleQ" and myHero.pos:DistanceTo(minion.pos) <= 175 then					
 				Control.CastSpell(HK_Q)
 			end	
 		
-			if myHero.pos:DistanceTo(minion.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ2" and Menu.JClear.UseQ2:Value() and Ready(_Q) and Q1Buff.duration < 2 then
+			if myHero.pos:DistanceTo(minion.pos) < 300 and myHero:GetSpellData(_Q).name == "CamilleQ2" and Menu.JClear.UseQ2:Value() and Ready(_Q) then
 				Control.CastSpell(HK_Q)
 			end	
 
-			if not (Q1Buff or Q2Buff) and myHero.pos:DistanceTo(minion.pos) < 650 and Menu.JClear.UseW:Value() and Ready(_W) then	
+			if myHero.pos:DistanceTo(minion.pos) < 650 and Menu.JClear.UseW:Value() and Ready(_W) then	
 				Control.CastSpell(HK_W, minion.pos)	
 			end	
 		end	
@@ -327,18 +330,17 @@ end
 function LastHit()
 	for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-	local Q1Buff = GetBuffData(myHero, "Q1")
-	local Q2Buff = GetBuffData(myHero, "Q2")
+
 		if myHero.mana/myHero.maxMana >= Menu.LastHit.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 700 and minion.team == TEAM_ENEMY and IsValid(minion) then
 			local QDmg = (getdmg("Q", minion, myHero, 1) + getdmg("AA", minion, myHero))
 			local Q2Dmg = ((getdmg("Q", minion, myHero, 2)*2) + getdmg("AA", minion, myHero))
 			local WDmg = getdmg("W", minion, myHero)			
 			
-			if Ready(_Q) and Menu.LastHit.UseQ:Value() and myHero:GetSpellData(_Q).name == "CamilleQ1" and myHero.pos:DistanceTo(minion.pos) <= 175 and QDmg > minion.health then					
+			if Ready(_Q) and Menu.LastHit.UseQ:Value() and myHero:GetSpellData(_Q).name == "CamilleQ" and myHero.pos:DistanceTo(minion.pos) <= 175 and QDmg > minion.health then					
 				Control.CastSpell(HK_Q)
 			end	
 		
-			if myHero.pos:DistanceTo(minion.pos) < 175 and myHero:GetSpellData(_Q).name == "CamilleQ2" and Menu.LastHit.UseQ2:Value() and Ready(_Q) and Q1Buff.duration < 2 and Q2Dmg > minion.health then
+			if myHero.pos:DistanceTo(minion.pos) < 175 and myHero:GetSpellData(_Q).name == "CamilleQ2" and Menu.LastHit.UseQ2:Value() and Ready(_Q) and Q2Dmg > minion.health then
 				Control.CastSpell(HK_Q)
 			end	
 
