@@ -89,7 +89,7 @@ function LoadScript()
 	Menu.Combo:MenuElement({id = "UseAA", name = "Set AutoAttacks", value = 3, min = 0, max = 10, identifier = "AutoAttack/s"})	
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})	
-	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})		
+	Menu.Combo:MenuElement({id = "UseE", name = "[E] WIP", value = true})		
 	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})	
 	
 	--HarassMenu
