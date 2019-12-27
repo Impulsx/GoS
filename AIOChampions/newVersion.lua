@@ -79,7 +79,7 @@ Data = {
         }, 
         Camille = {
             Changelog = "Camille Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         },         
     },
 }
