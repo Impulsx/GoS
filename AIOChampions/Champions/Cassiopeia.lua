@@ -90,13 +90,12 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
 		Menu:MenuElement({name = " ", drop = {"General Settings"}})
 		
 		--Prediction
 		Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
-		Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
-		Menu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})		
+		Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})			
 		
 		--Combo   
 		Menu:MenuElement({type = MENU, id = "c", name = "Combo"})
@@ -108,7 +107,7 @@ function LoadScript()
 		Menu.c:MenuElement({id = "R", name = "Use R ", value = true})
 		Menu.c:MenuElement({id = "Count", name = "Min Amount to hit R", value = 2, min = 1, max = 5, step = 1})
 		Menu.c:MenuElement({id = "P", name = "Use Panic R and Ghost", value = true})
-		Menu.c:MenuElement({id = "HP", name = "Min HP % to Panic R", value = 20, min = 0, max = 100, step = 1})
+		Menu.c:MenuElement({id = "HP", name = "Min HP % to Panic R", value = 30, min = 0, max = 100, step = 1})
 		
 		--Harass
 		Menu:MenuElement({type = MENU, id = "h", name = "Harass"})
@@ -120,7 +119,7 @@ function LoadScript()
 		Menu.w:MenuElement({id = "Q", name = "Use Q", value = true})
 		Menu.w:MenuElement({id = "W", name = "Use W", value = true})
 		Menu.w:MenuElement({id = "Count", name = "Min Minions to hit W", value = 3, min = 1, max = 5, step = 1})		
-		Menu.w:MenuElement({id = "E", name = "Auto E Toggle Key", key = 84, toggle = true})
+		Menu.w:MenuElement({id = "E", name = "Auto E Toggle Key", key = 84, toggle = true, value = true})
 		
 		--JungleClear
 		Menu:MenuElement({type = MENU, id = "j", name = "JungleClear"})
@@ -137,7 +136,7 @@ function LoadScript()
 
 		--Engage
 		Menu:MenuElement({type = MENU, id = "kill", name = "Engage"})
-		Menu.kill:MenuElement({id = "Eng", name = "EngageKill 1vs1", value = true, key = string.byte("Z")})
+		Menu.kill:MenuElement({id = "Eng", name = "EngageKill 1vs1", key = string.byte("Z")})
 		
 		--Mana
 		Menu:MenuElement({type = MENU, id = "m", name = "Mana Settings"})
@@ -158,7 +157,7 @@ function LoadScript()
 		Menu.d:MenuElement({id = "ON", name = "Enable Drawings", value = true})
 		Menu.d:MenuElement({id = "Text", name = "Draw Text", value = true})
 		Menu.d:MenuElement({type = MENU, id = "Q", name = "Q"})
-		Menu.d.Q:MenuElement({id = "ON", name = "Enabled", value = true})       
+		Menu.d.Q:MenuElement({id = "ON", name = "Enabled", value = false})       
 		Menu.d.Q:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
 		Menu.d.Q:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 255, 255, 255)})
 		Menu.d:MenuElement({type = MENU, id = "W", name = "W"})
@@ -166,11 +165,11 @@ function LoadScript()
 		Menu.d.W:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
 		Menu.d.W:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 255, 255, 255)})
 		Menu.d:MenuElement({type = MENU, id = "E", name = "E"})
-		Menu.d.E:MenuElement({id = "ON", name = "Enabled", value = true})       
+		Menu.d.E:MenuElement({id = "ON", name = "Enabled", value = false})       
 		Menu.d.E:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
 		Menu.d.E:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 255, 255, 255)})
 		Menu.d:MenuElement({type = MENU, id = "R", name = "R"})
-		Menu.d.R:MenuElement({id = "ON", name = "Enabled", value = true})       
+		Menu.d.R:MenuElement({id = "ON", name = "Enabled", value = false})       
 		Menu.d.R:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
 		Menu.d.R:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 255, 255, 255)})				
 		if Menu.c.Block:Value() then
@@ -244,10 +243,10 @@ end
 
 local AA = false
 local QRange = 850
-local MaxWRange = 800
+local MaxWRange = 700
 local MinWRange = 420
 local WMinCRange = 500 
-local WMaxCRange = 800 	
+local WMaxCRange = 700 	
 local ERange = 700
 local RRange = 825
 
@@ -269,7 +268,7 @@ local Mode = GetMode()
 	elseif Mode == "Flee" then
 		
 	end
-	if Menu.w.E:Value() and (Mode ~= "Combo" or Mode ~= "Harass") then
+	if Menu.w.E:Value() then
 		AutoE()
 	end
 	if Menu.kill.Eng:Value() then
@@ -283,7 +282,7 @@ local Mode = GetMode()
 	KsW()
 	KsE()
 	
-		
+	
 end
 
 function EdmgCreep()
@@ -437,7 +436,7 @@ if target == nil then return end
 	local result = false
     local Dist = myHero.pos:DistanceTo(target.pos) 
 	local RTarget, ShouldCast = RLogic()   
-		
+	
 		if not result and Menu.c.E:Value() and Ready(_E) and Dist < ERange then
             result = Control.CastSpell(HK_E, target)
         end
@@ -450,39 +449,30 @@ if target == nil then return end
             end
         end 
         if not result and Menu.c.W:Value() and Ready(_W) then 
-            if Dist < MaxWRange and Dist > MinWRange then
-                if myHero.pos:DistanceTo(target.pos) < MaxWRange then 
-                    CastW(HK_W, target.pos)
+            if Dist < MaxWRange and Dist > 400 then
+                if myHero.pos:DistanceTo(target.pos) < 554 then 
+                local castPos = target.pos:Extended(myHero.pos, -200)    
+					result = Control.CastSpell(HK_W, castPos)
                 end
             end
         end
-		local pred = GetGamsteronPrediction(RTarget, RData, myHero)
-		local WData = myHero:GetSpellData(_W) 
-		local WCheck = Ready(_W)
-		local Panic = Menu.c.P:Value() and myHero.health/myHero.maxHealth < Menu.c.HP:Value()/100 
-		if Panic then
+ 
+		if not result and Menu.c.P:Value() and myHero.health/myHero.maxHealth < Menu.c.HP:Value()/100 and Ready(_R) then
 			if myHero:GetSpellData(SUMMONER_1).name == "SummonerHaste" and Ready(SUMMONER_1) then
 				Control.CastSpell(HK_SUMMONER_1)
 			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHaste" and Ready(SUMMONER_2) then
 				Control.CastSpell(HK_SUMMONER_2)
 			end
-		end
-		if Menu.c.R:Value() and Ready(_R) and (HasPoison(target) or Panic) and ((WCheck == false or (WCheck and (Game.Timer() + WData.cd) - WData.castTime > 2)) or WValue == false) then
-			if Panic then
-				if Dist < RRange then
-					if RTarget and pred.Hitchance >= Menu.Pred.PredR:Value()+1 then 
-						Control.CastSpell(HK_R, pred.CastPosition)
-					else
-						Control.CastSpell(HK_R, target.pos)
-					end
-				end
+
+			if Dist < RRange and GetAngle(myHero.pos, target.pos) then
+				result = Control.CastSpell(HK_R, target.pos)
 			end
-		end				
-		if Menu.c.R:Value() and Ready(_R) then
+		end
+		
+		if not result and Menu.c.R:Value() and Ready(_R) then
 			if Dist < RRange then 
-				if RTarget and ShouldCast == true and pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
-					Control.CastSpell(HK_R, pred.CastPosition)
-					
+				if RTarget and ShouldCast == true then
+					result = Control.CastSpell(HK_R, target.pos)					
 				end 
 			end
 		end
@@ -492,15 +482,9 @@ end
 function SemiR()
 local target = GetTarget(950)
 if target == nil then return end
-	local RTarget, ShouldCast = RLogic()
 	local Dist = myHero.pos:DistanceTo(target.pos)	
-	local pred = GetGamsteronPrediction(RTarget, RData, myHero)
 	if IsValid(target) and Dist < RRange and Ready(_R) then
-		if RTarget and pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
-			Control.CastSpell(HK_R, pred.CastPosition)
-		else
-			Control.CastSpell(HK_R, target.pos)			
-		end
+		Control.CastSpell(HK_R, target.pos)			
 	end 
 end
 	
@@ -590,7 +574,7 @@ end
 function KsE()
 local target = GetTarget(750)
 if target == nil then return end
-local Dist = myHero.pos:DistanceTo(target.pos)	 
+local Dist = myHero.pos:DistanceTo(target.pos)	 	
 	if IsValid(target) and Dist < ERange then	
 		local EDmg = getdmg("E", target, myHero) * 2
 		local PEDmg = getdmg("E", target, myHero)
