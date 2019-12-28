@@ -80,6 +80,10 @@ Data = {
         Camille = {
             Changelog = "Camille Changelog Here",
             Version = 0.04,
+        },
+         Jhin = {
+            Changelog = "Jhin Changelog Here",
+            Version = 0.01,
         },        
     },
 }
