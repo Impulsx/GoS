@@ -97,15 +97,28 @@ function GetAngle(v1, v2)
 	return false
 end
 
+function UseDarkHarvest()
+	for i = 0, myHero.buffCount do
+		local buff = myHero:GetBuff(i)
+		if buff.name:lower():find("darkharvest") and buff.count > 0 then 
+			return true
+		end
+	end
+	return false
+end
+
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	--AutoW 
-	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})
-	Menu.AutoW:MenuElement({name = " ", drop = {"Auto Stack Dark Haevest Rune"}})
-	Menu.AutoW:MenuElement({id = "UseW", name = "Auto[W] HP Enemy is less 50%", value = true})
-			
+	Menu:MenuElement({type = MENU, id = "AutoW", name = "Stack Dark Harvest"})
+	if UseDarkHarvest() then	
+		Menu.AutoW:MenuElement({id = "UseW", name = "Auto[W] HP Enemy is less 50%", value = true})
+	else
+		Menu.AutoW:MenuElement({name = " ", drop = {"Dark Harvest not equipped"}})	
+	end
+	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q] Logic", value = 1, drop = {"[Q]before 4th AAhit", "[Q]after 4th AAhit"}})	
@@ -229,7 +242,9 @@ local Mode = GetMode()
 	end	
 
 	KillSteal()
+	if Menu.AutoW.UseW ~= nil and Menu.AutoW.UseW:Value() then
 	AutoW()
+	end
 end
 
 function StartR()
@@ -252,10 +267,10 @@ if target == nil then return end
 	end	
 end
 
-function DarkHarvest()
+function DarkHarvestReady()
 	for i = 0, myHero.buffCount do
 		local buff = myHero:GetBuff(i)
-		if buff.name:lower():find("darkharvestcooldown")then 
+		if buff.name:lower():find("darkharvestcooldown") and buff.count > 0 then 
 			return true
 		end
 	end
@@ -266,8 +281,8 @@ function AutoW()
 	local target = GetTarget(3000)     	
 	if target == nil or myHero:GetSpellData(_R).name == "JhinRShot" then return end
 	if IsValid(target) then
-		if Menu.AutoW.UseW:Value() and Ready(_W) then
-			if myHero.pos:DistanceTo(target.pos) <= 3000 and myHero.pos:DistanceTo(target.pos) > 600 and target.health/target.maxHealth < 0.5 and not DarkHarvest() then
+		if Ready(_W) then
+			if myHero.pos:DistanceTo(target.pos) <= 3000 and myHero.pos:DistanceTo(target.pos) > 600 and target.health/target.maxHealth < 0.5 and not DarkHarvestReady() then
 				CastW(target)
 			end
 		end
