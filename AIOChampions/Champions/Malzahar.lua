@@ -43,7 +43,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
 
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "Auto[Q]Immobile"})
@@ -260,7 +260,7 @@ function Combo()
 local target = GetTarget(1000)
 if target == nil then return end
 	if IsValid(target) then
-
+	local pred = GetGamsteronPrediction(target, QData, myHero)
 		if myHero.pos:DistanceTo(target.pos) <= 650 then 	
 			if Menu.Combo.UseW:Value() and Ready(_W) then
 				Control.CastSpell(HK_W, target.pos) 
@@ -268,7 +268,7 @@ if target == nil then return end
 		end
 
 		if Menu.UseQE.UseQC:Value() then
-		local pred = GetGamsteronPrediction(target, QData, myHero)	
+			
 			if myHero:GetSpellData(_E).level == 0 then
 				if myHero.pos:DistanceTo(target.pos) <= 900 and Menu.Combo.UseQ:Value() and Ready(_Q) then
 					if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
@@ -317,9 +317,9 @@ function Harass()
 local target = GetTarget(1000)
 if target == nil then return end
 	if IsValid(target) and myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value() / 100 then
-		
+	local pred = GetGamsteronPrediction(target, QData, myHero)	
 		if Menu.UseQE.UseQH:Value() then
-		local pred = GetGamsteronPrediction(target, QData, myHero)	
+			
 			if myHero:GetSpellData(_E).level == 0 then
 				if myHero.pos:DistanceTo(target.pos) <= 900 and Menu.Harass.UseQ:Value() and Ready(_Q) then
 					if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
