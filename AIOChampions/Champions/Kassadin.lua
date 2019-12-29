@@ -34,7 +34,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -44,8 +44,8 @@ function LoadScript()
 	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})
 	Menu.Combo:MenuElement({name = " ", drop = {"2 ComboModes"}})
 	Menu.Combo:MenuElement({name = " ", drop = {"BasicCombo if not Ready[E]"}})
+	Menu.Combo:MenuElement({name = " ", drop = {"BasicCombo/Q+R+W+AA+E+(ROut if not kill...)"}})	
 	Menu.Combo:MenuElement({name = " ", drop = {"BurstCombo if Ready[E]"}})	
-	Menu.Combo:MenuElement({name = " ", drop = {"BasicCombo/Q+R+W+AA+E+(ROut if not kill...)"}})
 	Menu.Combo:MenuElement({name = " ", drop = {"Burst Combo/R3+E+W+AA+Q"}})			
 
 	--HarassMenu
@@ -187,7 +187,7 @@ if target == nil then return end
 		
 		if myHero.pos:DistanceTo(target.pos) < 500 and Ready(_R) and not Ready(_Q) and not Ready(_E) then
 			if target.health > (4 * myHero.totalDamage) then
-			local castPos = target.pos:Extended(myHero.pos, 500) 
+			local castPos = target.pos:Extended(mousePos, 500) 
 				Control.CastSpell(HK_R, castPos)
 			end	
         end				
@@ -209,7 +209,7 @@ if target == nil then return end
 					Control.CastSpell(HK_R, target.pos)
 				else
 					if myHero.pos:DistanceTo(target.pos) < 900 then
-					local castPos = target.pos:Extended(myHero.pos, 500) 
+					local castPos = target.pos:Extended(mousePos, 500) 
 						Control.CastSpell(HK_R, castPos)
 					end	
 				end				
