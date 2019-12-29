@@ -67,7 +67,7 @@ Data = {
         },
         Kassadin = {
             Changelog = "Kassadin Changelog Here",
-            Version = 0.05,
+            Version = 0.06,
         }, 
         Qiyana = {
             Changelog = "Qiyana Changelog Here",
