@@ -109,7 +109,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
 	
 	--AutoW 
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "Stack Dark Harvest"})
@@ -189,7 +189,7 @@ function LoadScript()
 		Draw.Circle(myHero, 3500, 1, Draw.Color(255, 225, 255, 10))
 		end                                                 
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-		Draw.Circle(myHero, 550, 1, Draw.Color(225, 225, 0, 10))
+		Draw.Circle(myHero, 600, 1, Draw.Color(225, 225, 0, 10))
 		end
 		if Menu.Drawing.DrawE:Value() and Ready(_E) then
 		Draw.Circle(myHero, 750, 1, Draw.Color(225, 225, 125, 10))
@@ -277,6 +277,13 @@ function DarkHarvestReady()
 	return false
 end
 
+function IsCastingAA(AAName)
+	if myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == AAName then
+		return true
+	end
+	return false	
+end
+
 function AutoW()
 	local target = GetTarget(3000)     	
 	if target == nil or myHero:GetSpellData(_R).name == "JhinRShot" then return end
@@ -293,16 +300,20 @@ function Combo()
 local target = GetTarget(3000)     	
 if target == nil or myHero:GetSpellData(_R).name == "JhinRShot" then return end
 	if IsValid(target) then
-				
-		if myHero.pos:DistanceTo(target.pos) <= 550 and Ready(_Q) then
+			
+		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
 			if Menu.Combo.UseQ:Value() ~= 1 then
-				if myHero.activeSpell.name == "JhinPassiveAttack" then
+				if IsCastingAA("JhinPassiveAttack") then
+					DelayAction(function()
 					Control.CastSpell(HK_Q, target)
-				end	
+					end,Game.Latency()/100)
+				end
 			else 
-				if myHero.activeSpell.name == "JhinBasicAttack3" then
-					Control.CastSpell(HK_Q, target)
-				end	
+				if IsCastingAA("JhinBasicAttack3") then
+					DelayAction(function()
+						Control.CastSpell(HK_Q, target)
+					end,Game.Latency()/100)
+				end
 			end	
 		end
 		
