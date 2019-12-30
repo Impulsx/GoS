@@ -20,8 +20,8 @@ function IsImmobileTarget(unit)
 end
 
 function LoadScript()
-	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
+	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
 
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ"})
