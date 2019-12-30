@@ -47,8 +47,8 @@ end
 
 function LoadScript()
 	HPred()
-	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	--AutoE
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})
 	Menu.AutoE:MenuElement({id = "UseE", name = "Pull Enemys under Tower",value = true})
