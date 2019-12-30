@@ -84,7 +84,11 @@ Data = {
          Jhin = {
             Changelog = "Jhin Changelog Here",
             Version = 0.03,
-        },        
+        },
+         Ahri = {
+            Changelog = "Ahri Changelog Here",
+            Version = 0.01,
+        },         
     },
 }
 
