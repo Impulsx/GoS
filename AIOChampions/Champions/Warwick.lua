@@ -41,8 +41,8 @@ end
 
 function LoadScript()
 	HPred()
-	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
 	
 	--Combo--
 	Menu:MenuElement({id = "ComboMode", name = "Combo", type = MENU})
