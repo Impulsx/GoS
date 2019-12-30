@@ -10,17 +10,16 @@ function GetEnemyHeroes()
 end 
 
 function EnemiesNear(pos,range)
-	local pos = pos.pos
 	local N = 0
 	for i = 1,Game.HeroCount()  do
 		local hero = Game.Hero(i)
 		local Range = range * range
-		if IsValid(hero) and hero.isEnemy and GetDistanceSqr(pos, hero.pos) < Range then
+		if not hero.dead and hero.isEnemy and GetDistanceSqr(pos, hero.pos) < Range then
 			N = N + 1
 		end
 	end
 	return N	
-end
+end	
 
 function IsUnderTurret(unit)
     for i = 1, Game.TurretCount() do
@@ -35,20 +34,19 @@ function IsUnderTurret(unit)
     return false
 end
 
-function GetObject(name)
-	for i = 1, Game.ObjectCount() do
-	local object = Game.Object(i)
-		if object.name == name then 
-			return true
+function GetTwin()
+	for i = 1, Game.ParticleCount() do 
+	local particle = Game.Particle(i)
+		if myHero.pos:DistanceTo(particle.pos) < 5000 and particle.name == "Ekko_Base_R_TrailEnd" then 
+			return particle.pos
 		end
-	end
-	return false
+	end 
 end
 
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO" .. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"WIP Version 0.01"}})
+	Menu:MenuElement({name = " ", drop = {"WIP Version 0.02"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -88,7 +86,8 @@ function LoadScript()
 
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})	
-	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})
+	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})
+	Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})	
  
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
@@ -145,6 +144,7 @@ local Mode = GetMode()
 	if Mode == "Combo" then
 		Combo()
 		CastR()
+		AutoUlt()
 	elseif Mode == "Harass" then
 		Harass()
 	elseif Mode == "Clear" then
@@ -155,49 +155,7 @@ local Mode = GetMode()
 		
 			
 	end
-AutoUlt()	
-OnDeleteObj()
-OnCreateObj()  
-OnObjectLoad()	
-end
-
-local twin = nil
-  
-function OnObjectLoad() 
-local Object = GetObject("Ekko")	
-	if Object then
-		twin = Object
-	end
-end
-
-local Objects = {}
-
-function OnCreateObj() 
-local Object1 = GetObject("Ekko")
-local Object2 = GetObject("missile")
-	if Object1 then
-		twin = Object1
-	end
-	  
-	if Object2 then
-		table.insert(Objects,Object2) 
-	end  
-end
-
-function OnDeleteObj() 
-local Object1 = GetObject("missile")
-local Object2 = GetObject("Ekko_Base_R_TrailEnd.troy")
-	if Object1 then
-		for i, deletedObjects in pairs(Objects) do
-			if Object1.networkID == deletedObjects.networkID then
-				table.remove(Objects, i) 
-			end
-		end
-	end
-  
-	if Object2 then
-		twin = nil
-	end
+		
 end
 
 function Combo()
@@ -209,11 +167,15 @@ if target == nil then return end
 		local pred = GetGamsteronPrediction(target, WData, myHero)	
 			if myHero.mana < (myHero:GetSpellData(_Q).mana + myHero:GetSpellData(_W).mana) and myHero.mana >= myHero:GetSpellData(_W).mana and (myHero.health - target.health) > (60 + 20 * myHero:GetSpellData(_W).level + 1.5 * myHero.ap) then
 				if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 then	
+					_G.SDK.Orbwalker:SetMovement(false)
 					Control.CastSpell(HK_W, pred.CastPosition)
+					_G.SDK.Orbwalker:SetMovement(true)
 				end	
-			elseif myHero.pos:DistanceTo(target.pos) > 925 then
+			elseif myHero.pos:DistanceTo(target.pos) < 925 then
 				if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 then	
+					_G.SDK.Orbwalker:SetMovement(false)
 					Control.CastSpell(HK_W, pred.CastPosition)
+					_G.SDK.Orbwalker:SetMovement(true)
 				end	
 			end
 		end		
@@ -221,25 +183,24 @@ if target == nil then return end
 		if Ready(_Q) and Menu.Combo.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 1100 then
 			local pred = GetGamsteronPrediction(target, QData, myHero)	
 			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then	
+				_G.SDK.Orbwalker:SetMovement(false)
 				Control.CastSpell(HK_Q, pred.CastPosition)
+				_G.SDK.Orbwalker:SetMovement(true)
 			end	
 		end
 	   
-		if Ready(_E) and myHero.pos:DistanceTo(target.pos) > (myHero.range + myHero.boundingRadius) and Menu.Combo.UseE:Value() then
-			local BestPos = Vector(target) - (Vector(target) - Vector(myHero)):Perpendicular():Normalized() * 350
-			if BestPos then 
-				Control.CastSpell(HK_E, BestPos)
-			else
-				Control.CastSpell(HK_E, mousePos)
-			end
+		if Ready(_E) and myHero.pos:DistanceTo(target.pos) < 500 and Menu.Combo.UseE:Value() then 
+			_G.SDK.Orbwalker:SetMovement(false)
+			Control.CastSpell(HK_E, target.pos)
+			_G.SDK.Orbwalker:SetMovement(true)
 		end
 	end
 end	
 
 function CastR()
-local target = GetTarget(20000)	
+local target = GetTarget(5000)	
 if target == nil then return end    
-	
+local twin = GetTwin()	
 	if twin and Ready(_R) and myHero.pos:DistanceTo(target.pos) <= 1000 and target.dead and Menu.Combo.UseR:Value() then
 		if myHero.health < 200 and IsUnderTurret(myHero) and not IsUnderTurret(twin) then
 			Control.CastSpell(HK_R)
@@ -278,7 +239,7 @@ if target == nil then return end
 			end
 		end
        
-		if Ready(_E) and myHero.pos:DistanceTo(target.pos) > (myHero.range + myHero.boundingRadius) and Menu.Harass.UseE:Value() then
+		if Ready(_E) and myHero.pos:DistanceTo(target.pos) > (myHero.range + myHero.boundingRadius) and myHero.pos:DistanceTo(target.pos) < 500 and Menu.Harass.UseE:Value() then
 			local BestPos = Vector(target) - (Vector(target) - Vector(myHero)):Perpendicular():Normalized() * 350
 			if BestPos then 
 				Control.CastSpell(HK_E, BestPos)
@@ -290,16 +251,17 @@ if target == nil then return end
 end	
 	 
 function AutoUlt()
+local twin = GetTwin()	
 	if twin and Ready(_R) and Menu.Combo.AutoUlt.Enabled:Value() then
 		if EnemiesNear(twin,400) >= Menu.Combo.AutoUlt.hit:Value() then
 			Control.CastSpell(HK_R)
 		end
 	end
 	
-local KillableEnemies = 0
+
 		
 	for i,enemy in pairs(GetEnemyHeroes()) do
-    			
+    local KillableEnemies = 0			
 		if Ready(_R) and Menu.Combo.AutoUlt.Enabled:Value() then
 			if twin and EnemiesNear(twin,400) >= 1 and enemy.health < getdmg("R", enemy, myHero) then 
 				KillableEnemies = KillableEnemies + 1
