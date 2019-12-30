@@ -1,11 +1,11 @@
-function HasBuff(unit, buffname)
-	for i = 0, unit.buffCount do
-		local buff = unit:GetBuff(i)
-		if buff.name == buffname and buff.count > 0 then 
-			return true
-		end
-	end
-	return false
+function GotBuff(unit, buffname)
+  for i = 0, unit.buffCount do
+    local buff = unit:GetBuff(i)
+    if buff.name == buffname and buff.count > 0 then 
+      return buff.count
+    end
+  end
+  return 0
 end
 
 function IsImmobileTarget(unit)
@@ -34,7 +34,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -81,12 +81,12 @@ function LoadScript()
 	
 	QData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 880, Speed = 1700, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 880, Speed = 1100, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
 	}
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 975, Speed = 1600, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 975, Speed = 1550, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
 	}
 
   	                                           
@@ -124,7 +124,6 @@ end
 
 function Tick()
 if MyHeroNotReady() then return end
-
 local Mode = GetMode()
 	if Mode == "Combo" then
 		Combo()
@@ -141,21 +140,45 @@ function Combo()
 local target = GetTarget(1000)
 if target == nil then return end
 	if IsValid(target) then    
-	local FirstRcast = false	
+	local Rcast = false	
+	local Ecast = false		
 		if Ready(_R) then	
+			local buff = GotBuff(myHero, "AhriTumble")
+			if myHero.pos:DistanceTo(target.pos) < 1000 and Menu.Combo.UseR:Value() and Ready(_R) and buff == 0 then
+				if myHero.pos:DistanceTo(target.pos) < 550 then
+					local castPos = target.pos:Extended(mousePos, 550)
+					Rcast = Control.CastSpell(HK_R, castPos)
+				else 
+					Rcast = Control.CastSpell(HK_R, target.pos)	
+				end	
+			end	
 			
-			if myHero.pos:DistanceTo(target.pos) < 600 and Menu.Combo.UseR:Value() and Ready(_R) then
-				FirstRcast = Control.CastSpell(HK_R, target.pos)
+			if not Ecast and myHero.pos:DistanceTo(target.pos) < 1000 and Menu.Combo.UseR:Value() and Ready(_R) and buff == 2 then
+				if myHero.pos:DistanceTo(target.pos) < 550 then
+					local castPos = target.pos:Extended(mousePos, 550)
+					Rcast = Control.CastSpell(HK_R, castPos)
+				else 
+					Rcast = Control.CastSpell(HK_R, target.pos)	
+				end	
+			end
+
+			if not Ecast and myHero.pos:DistanceTo(target.pos) < 1000 and Menu.Combo.UseR:Value() and Ready(_R) and buff == 1 then
+				if myHero.pos:DistanceTo(target.pos) < 550 then
+					local castPos = Vector(target) - (Vector(myHero) - Vector(target)):Perpendicular():Normalized() * 350
+					Rcast = Control.CastSpell(HK_R, castPos)
+				else 
+					Rcast = Control.CastSpell(HK_R, target.pos)	
+				end					
 			end			
 			
-			if FirstRcast and myHero.pos:DistanceTo(target.pos) <= 975 and Menu.Combo.UseE:Value() and Ready(_E) then
+			if Rcast and myHero.pos:DistanceTo(target.pos) <= 975 and Menu.Combo.UseE:Value() and Ready(_E) then
 				local pred = GetGamsteronPrediction(target, EData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then
-					Control.CastSpell(HK_E,pred.CastPosition)
+					Ecast = Control.CastSpell(HK_E,pred.CastPosition)
 				end
 			end			
 			
-			if myHero.pos:DistanceTo(target.pos) <= 880 and Menu.Combo.UseQ:Value() and Ready(_Q) then
+			if Ecast and myHero.pos:DistanceTo(target.pos) <= 880 and Menu.Combo.UseQ:Value() and Ready(_Q) then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
 					Control.CastSpell(HK_Q,pred.CastPosition)
