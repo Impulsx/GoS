@@ -88,7 +88,11 @@ Data = {
          Ahri = {
             Changelog = "Ahri Changelog Here",
             Version = 0.01,
-        },         
+        }, 
+         Ekko = {
+            Changelog = "Ekko Changelog Here",
+            Version = 0.01,
+        },        
     },
 }
 
