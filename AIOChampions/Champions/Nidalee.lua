@@ -11,8 +11,8 @@ end
 
 function LoadScript()
 	
-	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
+	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
 	
 	Menu:MenuElement({type = MENU, id = "Qset", name = "Q Setting"})	
 	Menu.Qset:MenuElement({id = "Qmin", name = "Min range use Q Human", value = 600, min = 400, max = 1500,step = 1})	
