@@ -24,8 +24,8 @@ end
 
 function LoadScript()
 
-	Menu = MenuElement({type = MENU, id = myHero.networkID, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
 	
 	Menu:MenuElement({id = "Key", name = "Key Settings", type = MENU})
 	Menu.Key:MenuElement({id = "Combo",name = "Combo Key", key = string.byte(" ")})
