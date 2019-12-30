@@ -11,83 +11,83 @@ Data = {
     Champions = {
         Mordekaiser = {
             Changelog = "Mordekaiser Changelog Here",
-            Version = 0.01,
+            Version = 0.02,
         },
         Cassiopeia = {
             Changelog = "Cassiopeia Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
         Lux = {
             Changelog = "Lux Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
         Soraka = {
             Changelog = "Soraka Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
         Zyra = {
             Changelog = "Zyra Changelog Here",
-            Version = 0.01,
+            Version = 0.02,
         },
         XinZhao = {
             Changelog = "XinZhao Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         }, 
         Nidalee = {
             Changelog = "Nidalee Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
         Ryze = {
             Changelog = "Ryze Changelog Here",
-            Version = 0.07,
+            Version = 0.08,
         }, 
          Neeko = {
             Changelog = "Neeko Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         }, 
         Warwick = {
             Changelog = "Warwick Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         },
         Veigar = {
             Changelog = "Veigar Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         },
         Tristana = {
             Changelog = "Tristana Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         }, 
         Sona = {
             Changelog = "Sona Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         }, 
         Morgana = {
             Changelog = "Morgana Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         },
         Kassadin = {
             Changelog = "Kassadin Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         },
         Qiyana = {
             Changelog = "Qiyana Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
         Malzahar = {
             Changelog = "Malzahar Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         }, 
         Camille = {
             Changelog = "Camille Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
          Jhin = {
             Changelog = "Jhin Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         },
          Ahri = {
             Changelog = "Ahri Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         },        
     },
 }
