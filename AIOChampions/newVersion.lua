@@ -92,7 +92,11 @@ Data = {
          Ekko = {
             Changelog = "Ekko Changelog Here",
             Version = 0.03,
-        },                
+        }, 
+         LeeSin = {
+            Changelog = "LeeSin Changelog Here",
+            Version = 0.01,
+        },         
     },
 }
 
