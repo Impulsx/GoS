@@ -81,8 +81,8 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
-	
+	Menu:MenuElement({name = " ", drop = {"WIP Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Dont Use pls,,, not finished !!!"}})	
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ Immobile"})
 	Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto[Q] + Auto[W]SavePos", value = true})
