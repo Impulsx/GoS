@@ -95,7 +95,7 @@ Data = {
         }, 
          LeeSin = {
             Changelog = "LeeSin Changelog Here",
-            Version = 0.01,
+            Version = 0.02,
         },
          Sylas = {
             Changelog = "Sylas Changelog Here",
