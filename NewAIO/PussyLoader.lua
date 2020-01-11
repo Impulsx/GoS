@@ -39,7 +39,7 @@ DownloadFileAsync("github...PussyLoader.version", COMMON_PATH .. "PussyLoader.ve
 				end)
 			end
 		else
-			print("PussyAIO:"..myHero.charName "not suppoted")
+			print("PussyAIO:".. myHero.charName .. "not suppoted")
 		end
 	end
 end)
