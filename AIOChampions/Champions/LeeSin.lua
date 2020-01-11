@@ -64,6 +64,26 @@ function WardsAround(pos, range)
     return N
 end
 
+function GetAllysRange(unit) 
+    for i = 1, Game.HeroCount() do 
+		local ally = Game.Hero(i)
+		if ally.isAlly and ally ~= myHero and ally.pos:DistanceTo(unit.pos) <= 1600 and myHero.pos:DistanceTo(unit.pos) <= 650 and IsValid(ally) then
+			return true
+		end
+	end
+	return false
+end
+
+function GetAllyTurretRange(unit) 
+    for i = 1, Game.TurretCount() do
+        local turret = Game.Turret(i)
+		if turret.isAlly and not turret.dead and turret.pos:DistanceTo(unit.pos) <= 1600 and myHero.pos:DistanceTo(unit.pos) <= 650 then
+			return true
+		end
+	end
+	return false
+end
+
 function GetAllyTurret() 
 	Allyturret = {}
     for i = 1, Game.TurretCount() do
@@ -75,17 +95,20 @@ function GetAllyTurret()
 	return Allyturret
 end
 
+function EnemyHeroes()
+	return Enemies
+end
+
 function GetAllyHeroes()
     return Allies
 end
 
 function LoadScript()
+	_wards = {2055, 2049, 2050, 2301, 2302, 2303, 3340, 3361, 3362, 3711, 1408, 1409, 1410, 1411, 2043, 3350, 3205, 3207, 2045, 2044, 3154, 3160}
+	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"WIP Version 0.01"}})	
-	Menu:MenuElement({name = " ", drop = {"Dont Use pls,,, not finished !!!"}})	
-	--AutoQ
-	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ Immobile"})
-	Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto[Q] + Auto[W]SavePos", value = true})
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"WIP Version,,, not finished !!!"}})	
 
 	--AutoW 
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})
@@ -100,8 +123,10 @@ function LoadScript()
 		
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	Menu.Combo:MenuElement({name = " ", drop = {"AutoSwitch Combo: Standart / InsecTower / InsecAlly"}})	
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
+	Menu.Combo:MenuElement({id = "Auto", name = "AutoSwitch ComboModes", value = true})	
 	Menu.Combo:MenuElement({id = "Gap", name = "Gapclose[WardJump]", value = true})
 	
 	Menu.Combo:MenuElement({id = "Set", name = "Gapclose Settings", type = MENU})		
@@ -142,25 +167,9 @@ function LoadScript()
 	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q1]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 
 	--Insec
-	Menu:MenuElement({id = "Modes", name = "Insec Mode", type = MENU}) 
-	Menu.Modes:MenuElement({id = "Modes1", name = "Insec Mode 1", type = MENU})	
-	Menu.Modes.Modes1:MenuElement({name = " ", drop = {"Fast Near Insec = Ward+W+R+Q1+Q2"}})
-	Menu.Modes.Modes1:MenuElement({name = " ", drop = {"Burst Near Insec = Ward+W+E1+R+Q1+Q2+E2"}})	
-	Menu.Modes.Modes1:MenuElement({name = " ", drop = {"Fast Far Insec = Q1+Q2+Ward+W+R"}})
-	Menu.Modes.Modes1:MenuElement({name = " ", drop = {"Burst Far Insec = Q1+Q2+Ward+W+E1+E2+R"}})	
-	Menu.Modes.Modes1:MenuElement({id = "Logic", name = "ToggleKey Near / Far Insec", key = string.byte("I"), toggle = true})
-	Menu.Modes.Modes1:MenuElement({id = "Burst", name = "ToggleKey Fast / Burst Insec", key = string.byte("O"), toggle = true})
-	Menu.Modes.Modes1:MenuElement({id = "Item", name = "Use Tiamat / Hydra BurstMode ", value = true})
-	Menu.Modes.Modes1:MenuElement({id = "Insec", name = "Insec Activate Key", key = string.byte("T")})
-	Menu.Modes.Modes1:MenuElement({id = "Draw", name = "Draw Insec Line / Circle", value = true})
-	Menu.Modes.Modes1:MenuElement({id = "Type", name = "Draw Option", value = 1, drop = {"Always", "Pressed Insec Key"}})
+	Menu:MenuElement({id = "Modes", name = "WardJump", type = MENU}) 
+	Menu.Modes:MenuElement({id = "Insec", name = "WardJump", key = string.byte("A")})
 	
-	Menu.Modes:MenuElement({id = "Modes2", name = "Insec Mode 2", type = MENU})
-	Menu.Modes.Modes2:MenuElement({id = "Insec", name = "WardJump", key = string.byte("A")})
-	
-	Menu.Modes:MenuElement({id = "Modes3", name = "Insec Mode 3", type = MENU})
-	Menu.Modes.Modes3:MenuElement({id = "Insec", name = "If Killable[Q1+E+R+Q2+E2]", value = true})
-	Menu.Modes.Modes3:MenuElement({id = "Draw", name = "Draw Killable Text", value = true})	
 	
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
@@ -203,100 +212,6 @@ function LoadScript()
 		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 			Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 		end	
-		
-		
-		if Menu.Modes.Modes1.Burst:Value() then
-			Draw.Text("Fast Insec", 20, textPos.x - 80, textPos.y + 60, Draw.Color(255, 000, 255, 000))
-		else
-			Draw.Text("Burst Insec", 20, textPos.x - 80, textPos.y + 60, Draw.Color(255, 000, 255, 000))
-		end	
-		
-		if Menu.Modes.Modes1.Logic:Value() then
-			Draw.Text("Near Insec", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 000, 255, 000))
-		else
-			Draw.Text("Far Insec", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 000, 255, 000))	
-		end
-		
-		if Menu.Modes.Modes1.Draw:Value() then
-			
-			
-			for v, spell in pairs(_wards) do
-			local Item = GetInventorySlotItem(spell)	
-			local Data = myHero:GetSpellData(Item);	
-		
-				if Item and Data.ammo > 0 and Ready(_Q) and Ready(_R) and Ready(_W) then
-					for i = 1, Game.HeroCount() do
-					local Hero = Game.Hero(i)
-					local textPos = Hero.pos:To2D()
-						if Menu.Modes.Modes1.Logic:Value() then	 
-							
-							if Menu.Modes.Modes1.Type:Value() == 2 and Menu.Modes.Modes1.Insec:Value() then 	
-								if IsValid(Hero) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then	
-									local Vectori = Vector(myHero.pos - Hero.pos)
-									local LS = LineSegment(myHero.pos, Hero.pos)
-									LS:__draw()
-									LSS = Circle(Point(Hero), Hero.boundingRadius)
-									LSS:__draw()
-									Draw.Text("Insec Mode", 20, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
-									Draw.Circle(myHero, 475, 1, Draw.Color(225, 225, 0, 0))
-								end
-							end	
-							if Menu.Modes.Modes1.Type:Value() == 1 then
-								if IsValid(Hero) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1300 then	
-									local Vectori = Vector(myHero.pos - Hero.pos)
-									local LS = LineSegment(myHero.pos, Hero.pos)
-									LS:__draw()
-									LSS = Circle(Point(Hero), Hero.boundingRadius)
-									LSS:__draw()
-									Draw.Text("Insec Mode", 20, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
-									Draw.Circle(myHero, 475, 1, Draw.Color(225, 225, 0, 0))
-								end
-							end	
-						end
-						
-						if not Menu.Modes.Modes1.Logic:Value() then
-							
-							if Menu.Modes.Modes1.Type:Value() == 2 and Menu.Modes.Modes1.Insec:Value() then 	
-								if IsValid(Hero) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1500 then								
-									local Vectori = Vector(myHero.pos - Hero.pos)
-									local LS = LineSegment(myHero.pos, Hero.pos)
-									LS:__draw()
-									LSS = Circle(Point(Hero), Hero.boundingRadius)
-									LSS:__draw()
-									Draw.Text("Insec Mode", 20, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
-									Draw.Circle(myHero, 1200, 1, Draw.Color(225, 225, 0, 0))
-								end
-							end	
-							if Menu.Modes.Modes1.Type:Value() == 1 then
-								if IsValid(Hero) and Hero.isEnemy and myHero.pos:DistanceTo(Hero.pos) <= 1500 then	
-									local Vectori = Vector(myHero.pos - Hero.pos)
-									local LS = LineSegment(myHero.pos, Hero.pos)
-									LS:__draw()
-									LSS = Circle(Point(Hero), Hero.boundingRadius)
-									LSS:__draw()
-									Draw.Text("Insec Mode", 20, textPos.x - 33, textPos.y + 60, Draw.Color(255, 255, 0, 0))
-									Draw.Circle(myHero, 1200, 1, Draw.Color(225, 225, 0, 0))
-								end
-							end	
-						end					
-					end
-				end
-			end
-		end
-		local target = GetTarget(20000)
-		if target == nil then return end	
-		if IsValid(target) and Menu.Modes.Modes3.Draw:Value() then
-			local hp = target.health	
-			local QDmg = (getdmg("Q", target, myHero, 1) + getdmg("Q", target, myHero, 2))
-			local EDmg = getdmg("E", target, myHero)
-			local RDmg = getdmg("R", target, myHero)
-			local FullDmg = (QDmg + RDmg + EDmg)	
-			if Ready(_Q) and Ready(_E) and Ready(_R) and FullDmg > hp then
-				Draw.Text("Insec Kill", 24, target.pos2D.x, target.pos2D.y,Draw.Color(0xFF00FF00))
-				Draw.Text("Insec Kill", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))
-		
-			end	
-		end
 	end)		
 end
 
@@ -304,8 +219,22 @@ function Tick()
 if MyHeroNotReady() then return end
 	local Mode = GetMode()
 		if Mode == "Combo" then
-			Combo()
-			WardJump()
+			if Ready(_R) and Menu.Combo.Auto:Value() then
+				for i, hero in pairs(EnemyHeroes()) do
+					if GetAllyTurretRange(hero) then
+						InsecTower()
+					elseif GetAllysRange(hero) then
+						InsecAlly()
+					else
+						Combo()
+						WardJump()
+					end	
+				end
+			else
+				Combo()
+				WardJump()
+			end	
+			
 		elseif Mode == "Harass" then
 			Harass()
 		elseif Mode == "Clear" then
@@ -316,29 +245,8 @@ if MyHeroNotReady() then return end
 		
 		end
 	KillSteal()
-	KillStealInsec()
-	AutoQ()
 	AutoR()
 	AutoW()
-	Activator()
-	
-	if Menu.Modes.Modes1.Insec:Value() then
-		if Menu.Modes.Modes1.Logic:Value() then
-			if Menu.Modes.Modes1.Burst:Value() then
-				Insec1()
-			else
-				BurstInsec1()
-			end	
-		
-		else	
-			
-			if Menu.Modes.Modes1.Burst:Value() then	
-				Insec2()
-			else
-				BurstInsec2()
-			end				
-		end	
-	end
 end
 
 local WardTicks = 0;
@@ -350,61 +258,6 @@ function Cast(spell,pos)
 	Control.KeyUp(spell)
 end
 
-function Activator()
-local target = GetTarget(500)     	
-if target == nil then return end	
-local Tia, Rave, Tita = GetInventorySlotItem(3077), GetInventorySlotItem(3074), GetInventorySlotItem(3748)   
-	if IsValid(target) and Menu.Modes.Modes1.Insec:Value() and Menu.Modes.Modes1.Item:Value() and not Menu.Modes.Modes1.Burst:Value() then
-        
-		if Tia and myHero.pos:DistanceTo(target.pos) <= 400 then
-            Control.CastSpell(ItemHotKey[Tia])
-        end
-		
-		if Rave and myHero.pos:DistanceTo(target.pos) <= 400 then
-            Control.CastSpell(ItemHotKey[Rave])
-        end
-		
-		if Tita and myHero.pos:DistanceTo(target.pos) <= 400 then
-            Control.CastSpell(ItemHotKey[Tita])
-        end		
-	end
-end	
-
-function KillStealInsec()
-local target = GetTarget(1300)     	
-if target == nil then return end	
-	
-	if IsValid(target) then
-		local hp = target.health
-		local QDmg = (getdmg("Q", target, myHero, 1) + getdmg("Q", target, myHero, 2))
-		local EDmg = getdmg("E", target, myHero)
-		local RDmg = getdmg("R", target, myHero)
-		local FullDmg = (QDmg + RDmg + EDmg)
-		if hp <= FullDmg and Menu.Modes.Modes3.Insec:Value() then
-			if myHero.pos:DistanceTo(target.pos) < 500 and myHero:GetSpellData(_E).name == "BlindMonkETwo" and HasBuff(target, "BlindMonkRKick") then
-				Control.CastSpell(HK_E)
-			end	
-			
-			if myHero.pos:DistanceTo(target.pos) < 350 and Ready(_E) and myHero:GetSpellData(_E).name == "BlindMonkEOne" and HasBuff(target, "BlindMonkQOne") then
-				Control.CastSpell(HK_E)
-			end			
-			
-			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
-				Control.CastSpell(HK_R, target.pos)
-			end
-						
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 350 and not HasBuff(target, "BlindMonkQOne") and Ready(_Q) and pred.Hitchance >= 2 then
-				Control.CastSpell(HK_Q, pred.CastPosition)
-			end
-			
-			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkRKick") and HasBuff(target, "BlindMonkQOne") then
-				Control.CastSpell(HK_Q)
-			end				
-		end				
-	end
-end
-
 function WardJump(key, param)
 	local mouseRadius = 200
 	if Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
@@ -414,7 +267,7 @@ function WardJump(key, param)
 				wardslot = GetInventorySlotItem(VisionItem)
 			end
 		end
-		if Menu.Modes.Modes2.Insec:Value() then	
+		if Menu.Modes.Insec:Value() then	
 			if wardslot then
 				local ward,dis = WardM()
 				if ward~=nil and dis~=nil and dis<mouseRadius then
@@ -436,25 +289,24 @@ function WardJump(key, param)
 					end
 				end
 			end
-		else
-			local target = GetTarget(1300)     	
-			if target == nil then return end
-			if wardslot and Menu.Combo.Gap:Value() and not Ready(_Q) then
-				if myHero.pos:DistanceTo(target.pos) <= Menu.Combo.Set.maxRange:Value() and myHero.pos:DistanceTo(target.pos) >= Menu.Combo.Set.minRange:Value() then		
-					local ward,dis = WardM()
-					if ward~=nil and dis~=nil and dis<mouseRadius then
-						if myHero.pos:DistanceTo(ward.pos) <=600 then
-							Cast(HK_W, ward.pos)
-						end
-					elseif GetTickCount() > LastCast + 200 then
-						LastCast = GetTickCount()
-						local Data = myHero:GetSpellData(wardslot);
-						if Data.ammo > 0 then
-							newpos = myHero.pos:Extended(target.pos,600)
-							Cast(ItemHotKey[wardslot], newpos)
-							Cast(HK_W, newpos)
-						end	
+		end
+		local target = GetTarget(1300)     	
+		if target == nil then return end
+		if wardslot and Menu.Combo.Gap:Value() and not Ready(_Q) then
+			if myHero.pos:DistanceTo(target.pos) <= Menu.Combo.Set.maxRange:Value() and myHero.pos:DistanceTo(target.pos) >= Menu.Combo.Set.minRange:Value() then		
+				local ward,dis = WardM()
+				if ward~=nil and dis~=nil and dis<mouseRadius then
+					if myHero.pos:DistanceTo(ward.pos) <=600 then
+						Cast(HK_W, ward.pos)
 					end
+				elseif GetTickCount() > LastCast + 200 then
+					LastCast = GetTickCount()
+					local Data = myHero:GetSpellData(wardslot);
+					if Data.ammo > 0 then
+						newpos = myHero.pos:Extended(target.pos,600)
+						Cast(ItemHotKey[wardslot], newpos)
+						Cast(HK_W, newpos)
+					end	
 				end
 			end
 		end
@@ -510,157 +362,28 @@ local closer, near = math.huge, nil
 	return near, closer
 end
 
-function Insec1()
-local target = GetTarget(1300)     	
+function InsecTower()
+local target = GetTarget(1500)     	
 if target == nil then return end	
 	
 	for v, spell in pairs(_wards) do
 	local Item = GetInventorySlotItem(spell)
 	local Data = myHero:GetSpellData(Item);	
 		if IsValid(target) then
+		if Item and Data.ammo == 0 then
+			Combo() return end		
 			
-			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) and myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
-				Cast(HK_R, target.pos)
-			end
-						
-			--local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 1200 and HasBuff(target, "BlindMonkRKick") and Ready(_Q) then
-				Cast(HK_Q, target.pos)
-			end
-			
-			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
-				Control.CastSpell(HK_Q)
-			end				
-	
-			for i, tower in pairs(GetAllyTurret()) do			
-				if WardsAround(target, 400) == 0 and Ready(_R) and Item and Data.ammo > 0 and myHero.pos:DistanceTo(target.pos) <= 650 then 
-					
-		
-					if tower.pos:DistanceTo(target.pos) <= 1600 then
-						local CastPos = target.pos + (target.pos-tower.pos):Normalized() * (150)
-						InsecStart(CastPos)
-					
-					else
-			
-						for i, ally in pairs(GetAllyHeroes()) do
-							if ally.pos:DistanceTo(myHero.pos) <= 1300 and IsValid(ally) and ally.pos:DistanceTo(target.pos) <= 1200 then
-							local CastPos = target.pos + (target.pos-ally.pos):Normalized() * (150)
-								InsecStart(CastPos)
-							end	
-						end
-					end				
-				end
-			end
-		end
-	end
-end
-
-function BurstInsec1()
-local target = GetTarget(1300)     	
-if target == nil then return end	
-	
-	for v, spell in pairs(_wards) do
-	local Item = GetInventorySlotItem(spell)
-	local Data = myHero:GetSpellData(Item);	
-		if IsValid(target) then
-			
-			if myHero.pos:DistanceTo(target.pos) < 500 and HasBuff(myHero, "BlindMonkQTwoDash") and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
-				Control.CastSpell(HK_E)
-			end				
-			
-			if myHero.pos:DistanceTo(target.pos) < 350 and Ready(_E) and myHero:GetSpellData(_W).name == "BlindMonkWTwo" and myHero:GetSpellData(_E).name == "BlindMonkEOne" then
-				Control.CastSpell(HK_E)
-			end			
-			
-			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
-				Cast(HK_R, target.pos)
-			end
-						
-			--local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 1200 and HasBuff(target, "BlindMonkRKick") and Ready(_Q) then
-				Cast(HK_Q, target.pos)
-			end
-			
-			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
-				Control.CastSpell(HK_Q)
-			end				
-	
-			for i, tower in pairs(GetAllyTurret()) do			
-				if WardsAround(target, 400) == 0 and Ready(_R) and Item and Data.ammo > 0 and myHero.pos:DistanceTo(target.pos) <= 650 then 
-					
-		
-					if tower.pos:DistanceTo(target.pos) <= 1600 then
-						local CastPos = target.pos + (target.pos-tower.pos):Normalized() * (150)
-						InsecStart(CastPos)
-					
-					else
-			
-						for i, ally in pairs(GetAllyHeroes()) do
-							if ally.pos:DistanceTo(myHero.pos) <= 1300 and IsValid(ally) and ally.pos:DistanceTo(target.pos) <= 1200 then
-							local CastPos = target.pos + (target.pos-ally.pos):Normalized() * (150)
-								InsecStart(CastPos)
-							end	
-						end
-					end				
-				end
-			end
-		end
-	end
-end
-
-function Insec2()
-local target = GetTarget(1300)     	
-if target == nil then return end	
-	
-	for v, spell in pairs(_wards) do
-	local Item = GetInventorySlotItem(spell)
-	local Data = myHero:GetSpellData(Item);	
-		if IsValid(target) then
-			
-			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) and myHero:GetSpellData(_W).name == "BlindMonkWTwo" then
-				Cast(HK_R, target.pos)
-			end
-						
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= 1200 and Ready(_Q) then
-				Cast(HK_Q, pred.CastPosition)
-			end
-			
-			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
-				Control.CastSpell(HK_Q)
-			end				
-	
 			for i, tower in pairs(GetAllyTurret()) do			
 				if WardsAround(target, 400) == 0 and Ready(_R) and myHero.pos:DistanceTo(target.pos) <= 250 and Item and Data.ammo > 0 then 
 		
 					if tower.pos:DistanceTo(target.pos) <= 1600 then
 						local CastPos = target.pos + (target.pos-tower.pos):Normalized() * (300)
-						InsecStart(CastPos)
-										
-					else
-						
-						for i, ally in pairs(GetAllyHeroes()) do						
-							if ally.pos:DistanceTo(myHero.pos) <= 1300 and IsValid(ally) and ally.pos:DistanceTo(target.pos) <= 1500 then
-								local CastPos = target.pos + (target.pos-ally.pos):Normalized() * (300)
-								InsecStart(CastPos)
-								
-							end	
-						end
+						Start = InsecStart(CastPos)
 					end				
 				end
-			end
-		end
-	end
-end
+			end			
+			
 
-function BurstInsec2()
-local target = GetTarget(1300)     	
-if target == nil then return end	
-	
-	for v, spell in pairs(_wards) do
-	local Item = GetInventorySlotItem(spell)
-	local Data = myHero:GetSpellData(Item);	
-		if IsValid(target) then
 			
 			if myHero.pos:DistanceTo(target.pos) < 500 and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
 				Control.CastSpell(HK_E)
@@ -670,44 +393,70 @@ if target == nil then return end
 				Control.CastSpell(HK_E)
 			end				
 			
-			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) and not Ready(_E) then
-				Cast(HK_R, target.pos)
+			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) then
+				Control.CastSpell(HK_R, target)
 			end
 						
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if myHero.pos:DistanceTo(target.pos) <= 1200 and Ready(_Q) then
-				Cast(HK_Q, pred.CastPosition)
+				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 			
 			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
 				Control.CastSpell(HK_Q)
-			end				
+			end	
+		end
+	end
+end
+
+function InsecAlly()
+local target = GetTarget(1500)     	
+if target == nil then return end	
 	
-			for i, tower in pairs(GetAllyTurret()) do			
+	for v, spell in pairs(_wards) do
+	local Item = GetInventorySlotItem(spell)
+	local Data = myHero:GetSpellData(Item);	
+		if IsValid(target) then
+		
+		if Item and Data.ammo == 0 then
+			Combo() return end
+			
+			for i, ally in pairs(GetAllyHeroes()) do			
 				if WardsAround(target, 400) == 0 and Ready(_R) and myHero.pos:DistanceTo(target.pos) <= 250 and Item and Data.ammo > 0 then 
 		
-					if tower.pos:DistanceTo(target.pos) <= 1600 then
-						local CastPos = target.pos + (target.pos-tower.pos):Normalized() * (300)
+					if ally.pos:DistanceTo(myHero.pos) <= 1300 and IsValid(ally) and ally.pos:DistanceTo(target.pos) <= 1500 then
+						local CastPos = target.pos + (target.pos-ally.pos):Normalized() * (300)
 						InsecStart(CastPos)
-										
-					else
-						
-						for i, ally in pairs(GetAllyHeroes()) do						
-							if ally.pos:DistanceTo(myHero.pos) <= 1300 and IsValid(ally) and ally.pos:DistanceTo(target.pos) <= 1500 then
-								local CastPos = target.pos + (target.pos-ally.pos):Normalized() * (300)
-								InsecStart(CastPos)
-								
-							end	
-						end
 					end				
 				end
 			end
+			
+			if myHero.pos:DistanceTo(target.pos) < 500 and myHero:GetSpellData(_E).name == "BlindMonkETwo" then
+				Control.CastSpell(HK_E)
+			end				
+			
+			if myHero.pos:DistanceTo(target.pos) < 350 and Ready(_E) and myHero:GetSpellData(_W).name == "BlindMonkWTwo" and myHero:GetSpellData(_E).name == "BlindMonkEOne" then
+				Control.CastSpell(HK_E)
+			end				
+			
+			if myHero.pos:DistanceTo(target.pos) < 375 and Ready(_R) then
+				Control.CastSpell(HK_R, target)
+			end
+						
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if myHero.pos:DistanceTo(target.pos) <= 1200 and Ready(_Q) then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end
+			
+			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
+				Control.CastSpell(HK_Q)
+			end	
 		end
 	end
 end
 
 function InsecStart(CastPos)
-local target = GetTarget(1300)     	
+local target = GetTarget(1500)     	
 if target == nil then return end
 local wardslot = nil
 	for t, VisionItem in pairs(_wards) do
@@ -721,31 +470,16 @@ local wardslot = nil
 
 					if Vector(myHero.pos):DistanceTo(CastPos)<=625 then
 						if Ready(_W) and myHero:GetSpellData(_W).name == "BlindMonkWOne" then
+							_G.SDK.Orbwalker:SetMovement(false)
 							Control.SetCursorPos(CastPos)
 							Cast(ItemHotKey[wardslot], CastPos)
-							Cast(HK_W, CastPos)		
+							Cast(HK_W, CastPos)	
+							_G.SDK.Orbwalker:SetMovement(true)
 						end
 					end
 				end
 			end
 		end
-	end
-end
-
-function AutoQ()
-local target = GetTarget(1500)     	
-if target == nil or IsUnderTurret(target) then return end	
-	
-	if IsValid(target) and Menu.AutoQ.UseQ:Value() and Ready(_Q) then
-	local pred = GetGamsteronPrediction(target, QData, myHero)
-	
-		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1200 and not HasBuff(target, "BlindMonkQOne") and pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-			Control.CastSpell(HK_Q, pred.CastPosition)
-		end	
-		
-		if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "BlindMonkQOne") then
-			Control.CastSpell(HK_Q)
-		end	
 	end
 end
 
