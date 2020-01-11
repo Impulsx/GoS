@@ -74,8 +74,15 @@ function GetEnemyCount(range, pos)
 	return count
 end
 
-function EnemyHeroes()
-	return Enemies
+function GetEnemyHeroes()
+    local _EnemyHeroes = {}
+    for i = 1, Game.HeroCount() do
+        local unit = Game.Hero(i)
+        if unit.isEnemy then
+            table.insert(_EnemyHeroes, unit)
+        end
+    end
+    return _EnemyHeroes
 end
 
 function IsKnockedUp(unit)
@@ -120,7 +127,7 @@ local UltSpells = {
 function LoadScript()
 	HPred()	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 
 	--AutoW
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})	
@@ -316,7 +323,7 @@ local Mode = GetMode()
 	   				
 	local target = GetTarget(1200)  
 	if target == nil then return end
-	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1050 and Menu.AutoR.UseR:Value() and Menu.AutoR.Target["ult"..target.charName]:Value() and Ready(_R) then		
+	if Ready(_R) and IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1050 and Menu.AutoR.UseR:Value() and Menu.AutoR.Target["ult"..target.charName]:Value() then		
 		if myHero:GetSpellData(_R).name == "SylasR" and not HasBuff(target, "SylasR") then                     
 				Control.CastSpell(HK_R, target)
 		end
@@ -360,50 +367,83 @@ local target = GetTarget(25000)
 if target == nil then return end
 	if IsValid(target) and Menu.Combo.Set.LastHit:Value() and Ready(_R) then
 	local hp = target.health		
-		
 		if (myHero:GetSpellData(_R).name == "AatroxR") then										--Aatrox 
 			Control.CastSpell(HK_R, target)
 			
 		end
 	
+
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "AhriTumble") and myHero.pos:DistanceTo(target.pos) <= 450 then		--Ahri 
-			if getdmg("R", target, Ahri) > hp then
+			if getdmg("R", target, myHero, 70) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "AkaliR") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Akali 
-			if getdmg("R", target, Akali) > hp then
+			if getdmg("R", target, myHero, 20) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
+	
+
+
+
+		if (myHero:GetSpellData(_R).name == "AkaliRb") and myHero.pos:DistanceTo(target.pos) <= 750 then		--Akalib
+			if getdmg("R", target, myHero, 21) > hp then
+				Control.CastSpell(HK_R, target)
+			end
+		end
+	
+
+
 
 		if (myHero:GetSpellData(_R).name == "FerociousHowl") then										--Alistar
 			Control.CastSpell(HK_R, target)
 			
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "CurseoftheSadMummy") and myHero.pos:DistanceTo(target.pos) <= 550 then		--Amumu 
-			if getdmg("R", target, Amumu) > hp then
+			if getdmg("R", target, myHero, 22) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+	
+
+
 		if (myHero:GetSpellData(_R).name == "GlacialStorm") and myHero.pos:DistanceTo(target.pos) <= 750 then		--Anivia
-			if getdmg("R", target, Anivia) > hp then
+			if getdmg("R", target, myHero, 13) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "AnnieR") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Annie   	 
-			if getdmg("R", target, Annie) > hp then
+			if getdmg("R", target, myHero, 23) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
+	
+
+
+
 
 		if (myHero:GetSpellData(_R).name == "EnchantedCrystalArrow") and myHero.pos:DistanceTo(target.pos) <= 25000 then		--Ashe 
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 25000, 0.25, 1600, 130, false)
-			if getdmg("R", target, Ashe) > hp and hitRate and hitRate >= 1 then
+			if getdmg("R", target, myHero, 3) > hp and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
@@ -413,40 +453,59 @@ if target == nil then return end
 				end
 			end
 		end
+	
+
+
 
 		if (myHero:GetSpellData(_R).name == "AurelionSolR") and myHero.pos:DistanceTo(target.pos) <= 1500 then		--AurelionSol
-			if getdmg("R", target, AurelionSol) > hp then
+			if getdmg("R", target, myHero, 14) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "AzirR") and myHero.pos:DistanceTo(target.pos) <= 250 then		--Azir
-			if getdmg("R", target, Azir) > hp then
+			if getdmg("R", target, myHero, 24) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "BlitzcrankR") and myHero.pos:DistanceTo(target.pos) <= 600 then	
-			if getdmg("R", target, Blitzcrank) > hp then
+			if getdmg("R", target, myHero, 26) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+	
+
+
 		if (myHero:GetSpellData(_R).name == "BrandR") and myHero.pos:DistanceTo(target.pos) <= 750 then		--brand
-			if getdmg("R", target, Brand) > hp then
+			if getdmg("R", target, myHero, 48) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
+	
+	
+
 
 		if (myHero:GetSpellData(_R).name == "BraumRWrapper") and myHero.pos:DistanceTo(target.pos) <= 1250 then		--Braum  
-			if getdmg("R", target, Braum) > hp then
+			if getdmg("R", target, myHero, 15) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+	
+
+
+
 		if (myHero:GetSpellData(_R).name == "CaitlynAceintheHole") and myHero.pos:DistanceTo(target.pos) <= 3500 then		--Caitlyn 
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 3.0, 3200, 50, true)
-			if getdmg("R", target, Caitlyn) > hp and hitRate and hitRate >= 1 then
+			if getdmg("R", target, myHero, 64) > hp and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
@@ -457,43 +516,67 @@ if target == nil then return end
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "CamilleR") and myHero.pos:DistanceTo(target.pos) <= 475 then		--Camille
 			Control.CastSpell(HK_R, target)
 		end
 
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "CassiopeiaR") and myHero.pos:DistanceTo(target.pos) <= 825 then		--Cassiopeia
-			if getdmg("R", target, Cassiopeia) > hp then
+			if getdmg("R", target, myHero, 10) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "Feast") and myHero.pos:DistanceTo(target.pos) <= 200 then		--Cho'gath
-			if getdmg("R", target, Chogath) > hp then
+			if getdmg("R", target, myHero, 2) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+	
+
+
 		if (myHero:GetSpellData(_R).name == "MissileBarrageMissile") and myHero.pos:DistanceTo(target.pos) <= 1225 then		--Corki
-			if getdmg("R", target, Corki) > hp then
+			if getdmg("R", target, myHero, 30) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "DariusExecute") and myHero.pos:DistanceTo(target.pos) <= 460 then		--Darius
-			if getdmg("R", target, Darius) > hp then
+			if getdmg("R", target, myHero, 71) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "DianaTeleport") and myHero.pos:DistanceTo(target.pos) <= 825 then		--Diana
-			if getdmg("R", target, Diana) > hp then
+			if getdmg("R", target, myHero, 34) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "DravenRCast") and myHero.pos:DistanceTo(target.pos) <= 25000 then		--Draven   
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 25000, 0.25, 2000, 160, false)
-			if getdmg("R", target, Draven) > hp and hitRate and hitRate >= 1 then
+			if getdmg("R", target, myHero, 27) > hp and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
@@ -504,26 +587,39 @@ if target == nil then return end
 			end
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "EkkoR") and myHero.pos:DistanceTo(target.pos) <= 375 then		--Ekko
-			if getdmg("R", target, Ekko) > hp then
+			if getdmg("R", target, myHero, 72) > hp then
 				Control.CastSpell(HK_R)
 			end
 		end
 	
+
+
 --function Sylas:UltElise()
 
+
+
 		if (myHero:GetSpellData(_R).name == "EvelynnR") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Evelynn      
-			local damage = (getdmg("R", target, Evelynn)*2)
+			local damage = getdmg("R", target, myHero, 25)*2
 			if target.health/target.maxHealth <= 30/100 and damage > hp then
 				Control.CastSpell(HK_R, target)
-			elseif getdmg("R", target, Evelynn) > hp then
+			elseif getdmg("R", target, myHero, 25) > hp then
 				Control.CastSpell(HK_R, target)	
 			end
 		end
 	
+
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "EzrealR") and myHero.pos:DistanceTo(target.pos) <= 25000 then		--ezreal
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 25000, 1.0, 2000, 160, false)
-			if getdmg("R", target, Ezreal) > hp and hitRate and hitRate >= 1 then
+			if getdmg("R", target, myHero, 6) > hp and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
@@ -534,102 +630,164 @@ if target == nil then return end
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "Crowstorm") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Fiddlesticks
-			if getdmg("R", target, Fiddlesticks) > hp then
+			if getdmg("R", target, myHero, 54) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "FizzR") and myHero.pos:DistanceTo(target.pos) <= 1300 then		--Fizz   
-			if getdmg("R", target, Fizz) > hp then
+			if getdmg("R", target, myHero, 28) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+	
+
+
 		local level = myHero:GetSpellData(_R).level
 		local range = ({4000, 4750, 5500})[level]
 		local count = GetEnemyCount(1000, myHero)
 
 		if (myHero:GetSpellData(_R).name == "GalioR") and myHero.pos:DistanceTo(target.pos) <= range and count == 0 then		--Galio   
-			if getdmg("R", target, Galio) > hp then
+			if getdmg("R", target, myHero, 73) > hp then
 				if target.pos:To2D().onScreen then						
 					Control.CastSpell(HK_R, target.pos) 
 				
 				elseif not target.pos:To2D().onScreen then			
-					CastSpellMM(HK_R, target.pos, range)		
+					CastSpellMM(HK_R, target.pos, range, 250)		
 				end
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "GangplankR") and myHero.pos:DistanceTo(target.pos) <= 20000 then		--Gankplank   
-			if getdmg("R", target, Gankplank) > hp then
-				if target.pos:To2D().onScreen then						
+			if getdmg("R", target, myHero, 55) > hp then
+				if target.pos:To2D().onScreen then						-----------check ist target in sichtweite
 					Control.CastSpell(HK_R, target.pos) 
 				
-				elseif not target.pos:To2D().onScreen then			
-					CastSpellMM(HK_R, target.pos, 20000, 500)	
+				elseif not target.pos:To2D().onScreen then			-----------ist target auserhalb sichtweite
+					CastSpellMM(HK_R, target.pos, 20000, 500)		-----------CastSpellMM(HK_R, target.pos, range, delay)
 				end
 			end
 		end
+	
+
+
+
+
+		local missingHP = (target.maxHealth - target.health)/100 * 0.286
+		local missingHP2 = (target.maxHealth - target.health)/100 * 0.333
+		local missingHP3 = (target.maxHealth - target.health)/100 * 0.4
+		local damage = getdmg("R", target, myHero, 49) + missingHP
+		local damage2 = getdmg("R", target, myHero, 49) + missingHP2
+		local damage3 = getdmg("R", target, myHero, 49) + missingHP3
 
 		if (myHero:GetSpellData(_R).name == "GarenR") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Garen
-			if getdmg("R", target, Garen) > hp then
+			if damage3  > hp then
+				Control.CastSpell(HK_R, target)
+			elseif damage2  > hp then
+				Control.CastSpell(HK_R, target)
+			elseif damage  > hp then
 				Control.CastSpell(HK_R, target)	
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "GnarR") and myHero.pos:DistanceTo(target.pos) <= 475 then		--Gnar     
-			if getdmg("R", target, Gnar) > hp then
+			if getdmg("R", target, myHero, 29) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "GragasR") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Gragas   
-			if getdmg("R", target, Gragas) > hp then
+			if getdmg("R", target, myHero, 30) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+	
+
+
+
 		if (myHero:GetSpellData(_R).name == "GravesChargeShot") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Graves  
-			if getdmg("R", target, Graves) > hp then
+			if getdmg("R", target, myHero, 31) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "HecarimUlt") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Hecarim  
-			if getdmg("R", target, Hecarim) > hp then
+			if getdmg("R", target, myHero, 32) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+	
+
+
 		if (myHero:GetSpellData(_R).name == "HeimerdingerR") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Heimerdinger
 				Control.CastSpell(HK_R, target)
 			
 		end
+	
+
+
 
 		if (myHero:GetSpellData(_R).name == "IllaoiR") and myHero.pos:DistanceTo(target.pos) <= 450 then		--Illaoi
-			if getdmg("R", target, Illaoi) > hp then
+			if getdmg("R", target, myHero, 56) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "IreliaR") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Irelia
-			if getdmg("R", target, Irelia) > hp then
+			if getdmg("R", target, myHero, 16) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+	
+
+
 		if (myHero:GetSpellData(_R).name == "IvernR") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Ivern
 			Control.CastSpell(HK_R, target)
 			
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "JarvanIVCataclysm") and myHero.pos:DistanceTo(target.pos) <= 650 then		--jarvan
-			if getdmg("R", target, JarvanIV) > hp then
+			if getdmg("R", target, myHero, 57) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
+
 --function Sylas:UltJayyce()      
 
 
@@ -639,9 +797,13 @@ if target == nil then return end
 --			end
 --		end
 
+	
+
+
+
 		if (myHero:GetSpellData(_R).name == "JinxR") and myHero.pos:DistanceTo(target.pos) <= 25000 then		--jinx
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 25000, 0.6, 1700, 140, false)
-			if getdmg("R", target, Jinx) > hp and hitRate and hitRate >= 1 then
+			if getdmg("R", target, myHero, 7) > hp and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
@@ -652,27 +814,42 @@ if target == nil then return end
 			end
 		end
 
+
+
+     
+
 --function Sylas:UltKallista()
+
 
 		if (myHero:GetSpellData(_R).name == "KarmaMantra") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Karma
 			Control.CastSpell(HK_R)
 			
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "KarthusFallenOne") and myHero.pos:DistanceTo(target.pos) <= 20000 then		--karthus
-			if getdmg("R", target, Karthus) > hp then
+			if getdmg("R", target, myHero, 8) > hp then
 				Control.CastSpell(HK_R)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "RiftWalk") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Kassadin
-			if getdmg("R", target, Kassadin) > hp then
+			if getdmg("R", target, myHero, 58) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "KatarinaR") and myHero.pos:DistanceTo(target.pos) <= 550 then		
-			if getdmg("R", target, Katarina) > hp then
+			if getdmg("R", target, myHero, 35) > hp then
 				Control.CastSpell(HK_R, target)
 			if myHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
@@ -684,67 +861,108 @@ if target == nil then return end
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "KaisaR") and myHero.pos:DistanceTo(target.pos) <= 1500 then		--Kaisa  
 			Control.CastSpell(HK_R, target)
 			
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "KaynR") and myHero.pos:DistanceTo(target.pos) <= 550 then		--Kayn 
 			Control.CastSpell(HK_R, target)
 			Control.CastSpell(HK_R, target)
 			Control.CastSpell(HK_R, target)
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "KennenShurikenStorm") and myHero.pos:DistanceTo(target.pos) <= 550 then		--Kennen  
-			if getdmg("R", target, Kennen) > hp then
+			if getdmg("R", target, myHero, 36) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "KledR") and myHero.pos:DistanceTo(target.pos) <= 700 then		--Kled   
 			Control.CastSpell(HK_R, target)
 			
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "KogMawLivingArtillery") and myHero.pos:DistanceTo(target.pos) <= 1300 then		--Kogmaw   
-			if getdmg("R", target, Kogmaw) > hp then
+			if getdmg("R", target, myHero, 59) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "LeblancSlideM") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Leblanc   
-			if getdmg("R", target, Leblanc) > hp then
+			if getdmg("R", target, myHero, 60) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "BlindMonkRKick") and myHero.pos:DistanceTo(target.pos) <= 375 then		--LeeSin   
-			if getdmg("R", target, LeeSin) > hp then
+			if getdmg("R", target, myHero, 74) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "LeonaSolarFlare") and myHero.pos:DistanceTo(target.pos) <= 1200 then		--leona   
-			if getdmg("R", target, Leona) > hp then
+			if getdmg("R", target, myHero, 5) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
+	
+
+
 
 		if (myHero:GetSpellData(_R).name == "LissandraR") and myHero.pos:DistanceTo(target.pos) <= 550 then		--Lissandra      
-			if getdmg("R", target, Lissandra) > hp then
+			if getdmg("R", target, myHero, 18) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
+
+	
+
 
 		if (myHero:GetSpellData(_R).name == "LucianR") and myHero.pos:DistanceTo(target.pos) <= 1200 then		--Lucian
-			if getdmg("R", target, Lucian) > hp then
+			if getdmg("R", target, myHero, 61) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 
+	
+
+
+ 
 		if (myHero:GetSpellData(_R).name == "LuxMaliceCannon") and myHero.pos:DistanceTo(target.pos) <= 3500 then		
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3500, 1, math.huge, 120, false)
-			if getdmg("R", target, Lux) > hp and hitRate and hitRate >= 1 then
+			if getdmg("R", target, myHero, 11) > hp and hitRate and hitRate >= 1 then
+				
+
+				
 				if aimPosition:To2D().onScreen then 		
 					Control.CastSpell(HK_R, aimPosition) 
 				
@@ -755,14 +973,20 @@ if target == nil then return end
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "UFSlash") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--malphite 
-			if getdmg("R", target, Malphite) > hp then
+			if getdmg("R", target, myHero, 50) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "MalzaharR") and myHero.pos:DistanceTo(target.pos) <= 700 then		
-			if (getdmg("R", target, Malzahar, 1) + getdmg("R", target, Malzahar, 2)) > hp then
+			if getdmg("R", target, myHero, 19) > hp then
 				Control.CastSpell(HK_R, target)
 			if myHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
@@ -774,19 +998,31 @@ if target == nil then return end
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "MaokaiR") and myHero.pos:DistanceTo(target.pos) <= 3000 then		--Maokai 
-			if getdmg("R", target, Maokai) > hp then
+			if getdmg("R", target, myHero, 37) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "Highlander") and myHero.pos:DistanceTo(target.pos) <= 500 then		--MasterYi
 			Control.CastSpell(HK_R, target)
 			
 		end
 
+
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "MissFortuneBulletTime") and myHero.pos:DistanceTo(target.pos) <= 1400 then		
-			if getdmg("R", target, MissFortune) > hp then
+			if getdmg("R", target, myHero, 38) > hp then
 				Control.CastSpell(HK_R, target)
 			if myHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
@@ -798,20 +1034,32 @@ if target == nil then return end
 			end
 		end
 	
-		if (myHero:GetSpellData(_R).name == "MordekaiserR") and myHero.pos:DistanceTo(target.pos) <= 650 then		--Mordekaiser  
+
+  
+
+		if (myHero:GetSpellData(_R).name == "MordekaiserChildrenOfTheGrave") and myHero.pos:DistanceTo(target.pos) <= 650 then		--Mordekaiser  
 			Control.CastSpell(HK_R, target)
 			
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "SoulShackles") and myHero.pos:DistanceTo(target.pos) <= 625 then		--morgana   
-			if getdmg("R", target, Morgana) > hp then
+			if getdmg("R", target, myHero, 52) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "NamiR") and myHero.pos:DistanceTo(target.pos) <= 2750 then		--Nami 
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 2750, 0.5, 850, 250, false)
-			if getdmg("R", target, Nami) > hp and hitRate and hitRate >= 1 then
+			if getdmg("R", target, myHero, 39) > hp and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
@@ -821,23 +1069,37 @@ if target == nil then return end
 				end
 			end
 		end
-		
+	
+
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "NautilusR") and myHero.pos:DistanceTo(target.pos) <= 825 then		--Nautilus  
-			if getdmg("R", target, Nautilus) > hp then
+			if getdmg("R", target, myHero, 40) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "NeekoR") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Neeko
-			if getdmg("R", target, Neeko) > hp then
+			if getdmg("R", target, myHero, 65) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 
+	
+
+--function Sylas:UltNiedalee()
+
+
 		local level = myHero:GetSpellData(_R).level
 		local range = ({2500, 3250, 4000})[level]
 		if (myHero:GetSpellData(_R).name == "NocturneParanoia") and myHero.pos:DistanceTo(target.pos) <= range then		--Nocturne   
-			if getdmg("R", target, Nocturne) > hp then
+			if getdmg("R", target, myHero, 75) > hp then
 				if target.pos:To2D().onScreen then						
 					Control.CastSpell(HK_R, target.pos) 
 				
@@ -847,8 +1109,12 @@ if target == nil then return end
 			end
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "NunuR") and myHero.pos:DistanceTo(target.pos) <= 650 then		
-			if getdmg("R", target, Nunu) > hp then
+			if getdmg("R", target, myHero, 17) > hp then
 				Control.CastSpell(HK_R, target)
 			if myHero.activeSpell.isChanneling == true then	
 				_G.SDK.Orbwalker:SetMovement(false)
@@ -860,26 +1126,40 @@ if target == nil then return end
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "OlafRagnarok") and myHero.pos:DistanceTo(target.pos) <= 1200 then		--Olaf  
 			if IsImmobileTarget(myHero) then
 				Control.CastSpell(HK_R)
 			end
 		end
 	
-		if (myHero:GetSpellData(_R).name == "OriannaDetonateCommand-") and myHero.pos:DistanceTo(target.pos) <= 325 then		--Orianna  
-			if getdmg("R", target, Orianna) > hp then
+
+
+
+
+		if (myHero:GetSpellData(_R).name == "OrianaDetonateCommand-") and myHero.pos:DistanceTo(target.pos) <= 325 then		--Orianna  
+			if getdmg("R", target, myHero, 66) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "OrnnR") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Ornn
 			Control.CastSpell(HK_R, target)
 			
 		end
 	
+
+
+
+
 		local count = GetEnemyCount(1000, myHero)
 		if (myHero:GetSpellData(_R).name == "PantheonRJump") and myHero.pos:DistanceTo(target.pos) <= 5500 and count == 0 then		--Phantheon   
-			if getdmg("R", target, Phantheon) > hp then
+			if getdmg("R", target, myHero, 76) > hp then
 				if target.pos:To2D().onScreen then						
 					Control.CastSpell(HK_R, target.pos) 
 				
@@ -889,115 +1169,180 @@ if target == nil then return end
 			end
 		end
 
+
+
 		if (myHero:GetSpellData(_R).name == "PoppyRSpell") and myHero.pos:DistanceTo(target.pos) <= 475 then		--Poppy  
-			if getdmg("R", target, Poppy) > hp then
+			if getdmg("R", target, myHero, 77) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
-		if (myHero:GetSpellData(_R).name == "PykeR") and myHero.pos:DistanceTo(target.pos) <= 750 and getdmg("R", target, Pyke) >= hp then	 
+
+
+		if (myHero:GetSpellData(_R).name == "PykeR") and myHero.pos:DistanceTo(target.pos) <= 750 and getdmg("R", target, myHero, 86) > hp then	 
 			Control.CastSpell(HK_R, target)
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "QuinnR") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Quinn   
 			Control.CastSpell(HK_R, target)
 			
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "RakanR") and myHero.pos:DistanceTo(target.pos) <= 300 then		--Rakan  
-			if getdmg("R", target, Rakan) > hp then
+			if getdmg("R", target, myHero, 78) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+	
+  
+  
+
 		if (myHero:GetSpellData(_R).name == "Tremors2") and myHero.pos:DistanceTo(target.pos) <= 300 then		--Rammus   
-			if getdmg("R", target, Rammus) > hp then
+			if getdmg("R", target, myHero, 62) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "RekSaiR") and myHero.pos:DistanceTo(target.pos) <= 1500 then		--RekSai   
-			if getdmg("R", target, Reksai) > hp then
+			if getdmg("R", target, myHero, 79) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "RengarR") and myHero.pos:DistanceTo(target.pos) <= 800 then		--Rengar  
 			Control.CastSpell(HK_R, target)
 		
 		end
 	
+	
+
+
 		if (myHero:GetSpellData(_R).name == "RivenFengShuiEngine") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Riven   
-			if getdmg("R", target, Riven) > hp then			
-				Control.CastSpell(HK_R)
-			end
+			Control.CastSpell(HK_R)
+		
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "RumbleCarpetBombDummy") and myHero.pos:DistanceTo(target.pos) <= 1700 then		--Rumble   
-			if getdmg("R", target, Rumble) > hp then
+			if getdmg("R", target, myHero, 41) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+	
+
+
 		if (myHero:GetSpellData(_R).name == "SejuaniR") and myHero.pos:DistanceTo(target.pos) <= 1300 then		--Sejuani   
-			if getdmg("R", target, Sejuani) > hp then
+			if getdmg("R", target, myHero, 42) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+	
+
+
 		if (myHero:GetSpellData(_R).name == "HallucinateFull") and myHero.pos:DistanceTo(target.pos) <= 500 then --Shaco 
-			if getdmg("R", target, Shaco) > hp then
+			if getdmg("R", target, myHero, 80) > hp then
 				Control.CastSpell(HK_R)
 				Control.CastSpell(HK_R, target)
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "ShyvanaTransformCast") and myHero.pos:DistanceTo(target.pos) <= 1000 then --shyvana 
-			if getdmg("R", target, Shyvana) > hp then
+			if getdmg("R", target, myHero, 51) > hp then
 				Control.CastSpell(HK_R, target)
 			end
-		end   
+		end
+	
+
+   
 
 		if (myHero:GetSpellData(_R).name == "SkarnerImpale") and myHero.pos:DistanceTo(target.pos) <= 350 then		--Skarner    
 			Control.CastSpell(HK_R, target)
 			
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "SonaR") and myHero.pos:DistanceTo(target.pos) <= 900 then		--Sona    
-			if getdmg("R", target, Sona) > hp then
+			if getdmg("R", target, myHero, 43) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 
+
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "SwainMetamorphism") and myHero.pos:DistanceTo(target.pos) <= 650 then		--Swain    
-			if getdmg("R", target, Swain) > hp then
+			if getdmg("R", target, myHero, 67) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+	
+
+
+
 		if (myHero:GetSpellData(_R).name == "SyndraR") and myHero.pos:DistanceTo(target.pos) <= 675 then		--Syndra    
 			Control.CastSpell(HK_R, target)
 			
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "TaliyahR") and myHero.pos:DistanceTo(target.pos) <= 1000 then		--Taliyah   
 			Control.CastSpell(HK_R, target)
 			
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "TalonShadowAssault") and myHero.pos:DistanceTo(target.pos) <= 550 then		--Talon   
-			if getdmg("R", target, Talon) > hp then
+			if getdmg("R", target, myHero, 81) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "ThreshRPenta") and myHero.pos:DistanceTo(target.pos) <= 450 then		--Tresh   
-			if getdmg("R", target, Thresh) > hp then
+			if getdmg("R", target, myHero, 68) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		local level = myHero:GetSpellData(_R).level
 		local range = ({400, 650, 900})[level]
 		if (myHero:GetSpellData(_R).name == "TeemoR") and myHero.pos:DistanceTo(target.pos) <= range then		--Teemo   
@@ -1005,30 +1350,46 @@ if target == nil then return end
 		
 		end
 	
+
+
+
 		local range = 517 + (8 * myHero.levelData.lvl)
+		local hp = target.health
 		if (myHero:GetSpellData(_R).name == "TristanaR") and myHero.pos:DistanceTo(target.pos) <= range then		--Tristana  	
-			if getdmg("R", target, Tristana) > hp then
+			if getdmg("R", target, myHero, 12) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "TrundlePain") and myHero.pos:DistanceTo(target.pos) <= 650 then		--Trundle     
 			Control.CastSpell(HK_R, target)
 			
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "TwitchFullAutomatic") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Twitch    
 			Control.CastSpell(HK_R, target)
 			
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "UdyrPhoenixStance") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Udyr    
 			Control.CastSpell(HK_R, target)
 			
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "UrgotR") and myHero.pos:DistanceTo(target.pos) <= 1600 then		--Urgot      
-			if getdmg("R", target, Urgot) > hp then
+			if getdmg("R", target, myHero, 44) > hp then
 				Control.CastSpell(HK_R, target)
 			end	
 			if target.health/target.maxHealth < 25/100 then
@@ -1036,53 +1397,83 @@ if target == nil then return end
 			end
 		end
 	
+	
+
+
 		if (myHero:GetSpellData(_R).name == "VarusR") and myHero.pos:DistanceTo(target.pos) <= 1075 then		--Varus     
-			if getdmg("R", target, Varus) > hp then
+			if getdmg("R", target, myHero, 45) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "VayneInquisition") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Vayne     
 			Control.CastSpell(HK_R)
 			
 		end
 	
-		if (myHero:GetSpellData(_R).name == "VeigarR") and myHero.pos:DistanceTo(target.pos) <= 650 then		--Vaiger
-			if getdmg("R", target, Veigar) > hp then
-				Control.CastSpell(HK_R, target)
-			end
-		end
-		
---function Sylas:KillUltVel'koz()
 
-		if (myHero:GetSpellData(_R).name == "ViR") and myHero.pos:DistanceTo(target.pos) <= 800 then		--Vi
-			if getdmg("R", target, Vi) > hp then
+
+
+
+		if (myHero:GetSpellData(_R).name == "VeigarR") and myHero.pos:DistanceTo(target.pos) <= 650 then		--Vaiger
+			if getdmg("R", target, myHero, 4) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+	
+
+--function Sylas:KillUltVel'koz()
+
+
+		if (myHero:GetSpellData(_R).name == "ViR") and myHero.pos:DistanceTo(target.pos) <= 800 then		--Vi
+			if getdmg("R", target, myHero, 82) > hp then
+				Control.CastSpell(HK_R, target)
+			end
+		end
+	
+
+
+
 		if (myHero:GetSpellData(_R).name == "ViktorChaosStorm") and myHero.pos:DistanceTo(target.pos) <= 700 then		--Viktor
-			if getdmg("R", target, Viktor) > hp then
+			if getdmg("R", target, myHero, 83) > hp then
+				Control.CastSpell(HK_R, target.pos)
+				Control.CastSpell(HK_R, target.pos)
 				Control.CastSpell(HK_R, target.pos)
 			end
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "VladimirHemoplague") and myHero.pos:DistanceTo(target.pos) <= 700 then		--Vladimir
-			if getdmg("R", target, Vladimir) > hp then
+			if getdmg("R", target, myHero, 63) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "VolibearR") and myHero.pos:DistanceTo(target.pos) <= 500 then		--Volibear
-			if getdmg("R", target, Volibear) > hp then
+			if getdmg("R", target, myHero, 69) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+
+
+
+
 		local range = 2.5 * myHero.ms
 		if (myHero:GetSpellData(_R).name == "WarwickR") and myHero.pos:DistanceTo(target.pos) <= range then		--Warwick	
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, range, 0.1, 1800, 55, false)
-			if getdmg("R", target, Warwick) > hp and hitRate and hitRate >= 1 then
+			if getdmg("R", target, myHero, 47) > hp and hitRate and hitRate >= 1 then
 				if aimPosition:To2D().onScreen then 	
 					Control.CastSpell(HK_R, aimPosition) 
 				
@@ -1093,17 +1484,26 @@ if target == nil then return end
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "WukongR") and myHero.pos:DistanceTo(target.pos) <= 200 then		--Wukong
 			Control.CastSpell(HK_R)
 		
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "XayahR") and myHero.pos:DistanceTo(target.pos) <= 1100 then		--Xayah
-			if getdmg("R", target, Xayah) > hp then
+			if getdmg("R", target, myHero, 84) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	
+	
+
 --[[
 
 		local level = myHero:GetSpellData(_R).level
@@ -1122,17 +1522,27 @@ if target == nil then return end
 	
 ]]
 
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "YasuoR") and myHero.pos:DistanceTo(target.pos) <= 1400 then		--Yasou
-			if getdmg("R", target, Yasuo) > hp and IsKnockedUp(target) then
+			if getdmg("R", target, myHero, 85) > hp and self:IsKnockedUp(target) then
 				Control.CastSpell(HK_R)
 			end
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "YorickReviveAlly") and myHero.pos:DistanceTo(target.pos) <= 600 then		--Yorick
 			Control.CastSpell(HK_R, target)
 		
 		end
 	
+
+
+
 		local level = myHero:GetSpellData(_R).level
 		local range = ({700, 850, 1000})[level]
 		if (myHero:GetSpellData(_R).name == "ZacR") and myHero.pos:DistanceTo(target.pos) <= range then		--Zac  						
@@ -1142,6 +1552,9 @@ if target == nil then return end
 				
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "ZedR") and myHero.pos:DistanceTo(target.pos) <= 625 then		--Zed
 			Control.CastSpell(HK_R, target)
 			Control.CastSpell(HK_R)
@@ -1149,8 +1562,12 @@ if target == nil then return end
 			
 		end
 	
+
+
+
+
 		if (myHero:GetSpellData(_R).name == "ZiggsR") and myHero.pos:DistanceTo(target.pos) <= 5300 then		--ziggs
-			if getdmg("R", target, Ziggs) > hp then
+			if getdmg("R", target, myHero, 9) > hp then
 				if target.pos:To2D().onScreen then						
 					Control.CastSpell(HK_R, target.pos) 
 				
@@ -1160,18 +1577,24 @@ if target == nil then return end
 			end	
 		end
 	
+	
+
+
 		if (myHero:GetSpellData(_R).name == "ZoeR") and myHero.pos:DistanceTo(target.pos) <= 575 then		--Zoe
 			Control.CastSpell(HK_R, target)
 		
 		end
 	
+
+
+
 		if (myHero:GetSpellData(_R).name == "ZyraR") and myHero.pos:DistanceTo(target.pos) <= 700 then		--Zyra    
-			if getdmg("R", target, Zyra) > hp then
+			if getdmg("R", target, myHero, 46) > hp then
 				Control.CastSpell(HK_R, target)
 			end
 		end
 	end
-end
+end	
 
 ----------------AOE Ults------------------------------------------------------------------------------------------------------------
 
