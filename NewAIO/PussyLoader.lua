@@ -23,17 +23,17 @@ DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/NewAIO
 
 		return
 	else
-		--no update needed, proceed
+
 		if supportedChamps[myChamp] then
-			--Champ is supported, now check if the script has been downloaded
+
 			local fileName = 'Pussy' .. myChamp
 
 			if FileExist(COMMON_PATH .. fileName .. ".lua") then
-				require fileName --requires you to name every champ 'PussyCHAMPNAME.lua' e.g. PussyQiyana.lua
+				require fileName
 				print("PussyLoader: " .. filename .. " loaded.")
 			else
-				--Download the script and start it once finished
-				DownloadFileAsync("github..." .. fileName .. ".lua", COMMON_PATH .. fileName .. ".lua", function()
+
+				DownloadFileAsync("https://github.com/Pussykate/GoS/tree/master/NewAIO/champs" .. fileName .. ".lua", COMMON_PATH .. fileName .. ".lua", function()
 					require fileName
 					print("PussyLoader: " .. filename .. " loaded.")
 				end)
