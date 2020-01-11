@@ -1,3 +1,4 @@
+--[[
 local version = 1.00
 
 local function ReadFile(path, fileName)
@@ -18,7 +19,7 @@ DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/NewAIO
 		return
 	end
 end)
-
+]]
 local Core = {}
 
 
