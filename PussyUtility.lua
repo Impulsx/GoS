@@ -1,7 +1,7 @@
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.07
+    local Version = 0.08
     
     local Files = {
         Lua = {
@@ -731,15 +731,12 @@ if gankAlert.Warding.Enabled:Value() then
 					wards[ward.networkID] = { ward.pos.x, ward.pos.y, ward.pos.z, currentTick, Draw.Color(0x70,0xAA,0,0xAA), 900 }
 				
 					end
-				if ward.maxHealth == 3 then
-					if ward.maxMana == 150 and gankAlert.Warding.SightWard.VisionDisplay:Value() then 
-						wards[ward.networkID] = { ward.pos.x, ward.pos.y, ward.pos.z, currentTick, Draw.Color(0x70,0,0xFF,0), 900 }
-						
-						elseif  gankAlert.Warding.Trinket.VisionDisplay:Value() then 
+				if ward.maxHealth == 3 then						
+					if  gankAlert.Warding.Trinket.VisionDisplay:Value() then 
 						wards[ward.networkID] = { ward.pos.x, ward.pos.y, ward.pos.z, currentTick, Draw.Color(0x70,0xAA,0xAA,0), 900 }
 						
-						end
 					end
+				end
 				if ward.maxHealth == 1 and gankAlert.Warding.Farsight.VisionDisplay:Value() then
 					wards[ward.networkID] = { ward.pos.x, ward.pos.y, ward.pos.z, currentTick, Draw.Color(0x70,0,0xBF,0xFF), 500 }
 
@@ -749,12 +746,10 @@ if gankAlert.Warding.Enabled:Value() then
 					wards[ward.networkID][4] = currentTick;
 					end
 				if ward.maxHealth == 3 then
-					if ward.maxMana == 150 and gankAlert.Warding.SightWard.VisionDisplay:Value() then
+					if  gankAlert.Warding.Trinket.VisionDisplay:Value() then 
 						wards[ward.networkID][4] = currentTick;
-						elseif  gankAlert.Warding.Trinket.VisionDisplay:Value() then 
-						wards[ward.networkID][4] = currentTick;
-						end
 					end
+				end
 				if ward.maxHealth == 1 and gankAlert.Warding.Farsight.VisionDisplay:Value() then
 					wards[ward.networkID][4] = currentTick;
 				end
