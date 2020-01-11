@@ -17,7 +17,7 @@ DownloadFileAsync("github...PussyLoader.version", COMMON_PATH .. "PussyLoader.ve
 	local onlineVersion = tonumber(ReadFile(COMMON_PATH , "PussyLoader.version"))
 
 	if onlineVersion > version then
-		DownloadFileAsync("github...PussyLoader.lua", COMMON_PATH .. "PussyLoader.lua", function()
+		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/NewAIO/PussyLoader.lua", SCRIPT_PATH .. "PussyLoader.lua", function()
 			print("PussyLoader updated. Press F6 to reload.")
 		end)
 
