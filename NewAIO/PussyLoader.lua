@@ -39,7 +39,7 @@ DownloadFileAsync("github...PussyLoader.version", COMMON_PATH .. "PussyLoader.ve
 				end)
 			end
 		else
-			-- This champ is not supported, print?
+			print("PussyAIO:"..myHero.charName "not suppoted")
 		end
 	end
 end)
