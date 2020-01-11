@@ -1,3 +1,24 @@
+local version = 1.00
+
+local function ReadFile(path, fileName)
+    local file = io.open(path .. fileName, "r")
+    local result = file:read()
+    file:close()
+    return result
+end
+
+DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/NewAIO/PussyCore.version", COMMON_PATH .. "PussyCore.version", function() 
+	local onlineVersion = tonumber(ReadFile(COMMON_PATH , "PussyCore.version"))
+
+	if onlineVersion > version then
+		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/NewAIO/PussyCore.lua", COMMON_PATH .. "PussyCore.lua", function() 
+			print("PussyLoader: PussyCore updated. Press F6 to reload.")
+		end)
+
+		return
+	end
+end)
+
 local Core = {}
 
 
