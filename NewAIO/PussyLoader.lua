@@ -13,7 +13,7 @@ local function ReadFile(path, fileName)
     return result
 end
 
-DownloadFileAsync("github...PussyLoader.version", COMMON_PATH .. "PussyLoader.version", function() 
+DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/NewAIO/PussyLoader.version", COMMON_PATH .. "PussyLoader.version", function() 
 	local onlineVersion = tonumber(ReadFile(COMMON_PATH , "PussyLoader.version"))
 
 	if onlineVersion > version then
