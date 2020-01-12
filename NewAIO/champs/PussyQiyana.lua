@@ -161,7 +161,7 @@ function Qiyana:CastQ(pos)
 end
 
 function Qiyana:CastW(pos)
-	Control.CastSpell(HK_E, pos)
+	Control.CastSpell(HK_W, pos)
 end
 
 function Qiyana:CastE(unit)
