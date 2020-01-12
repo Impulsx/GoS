@@ -55,7 +55,7 @@ Data = {
         },
         Tristana = {
             Changelog = "Tristana Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         }, 
         Sona = {
             Changelog = "Sona Changelog Here",
