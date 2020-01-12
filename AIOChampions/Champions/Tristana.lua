@@ -35,31 +35,38 @@ end
 function LoadScript()
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
 	
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
-	Menu.Combo:MenuElement({id = "UseQ", name = "AutoQ when Explosive Charge", value = true})
-	Menu.Combo:MenuElement({id = "UseE", name = "E", value = true})
+	Menu.Combo:MenuElement({id = "UseQ2", name = "[Q]", value = true})	
+	Menu.Combo:MenuElement({id = "UseQ", name = "Only [Q] when Explosive Charge", value = true})
+	Menu.Combo:MenuElement({id = "UseE", name = "[E] Explosive Charge", value = true})
+	Menu.Combo:MenuElement({type = MENU, id = "Targets", name = "Whitelist [E]"})	
+	for i, Hero in pairs(GetEnemyHeroes()) do
+		Menu.Combo.Targets:MenuElement({id = Hero.charName, name = "UseE on "..Hero.charName, value = true})		
+	end		
 	Menu.Combo:MenuElement({id = "UseR", name = "(R)Finisher", tooltip = "is(R)Dmg+(E)Dmg+(E)StackDmg > TargetHP than Ult", value = true})
 	Menu.Combo:MenuElement({id = "comboActive", name = "Combo key", key = string.byte(" ")})
 	
+	Menu.Combo:MenuElement({type = MENU, id = "gap", name = "Gapclose"})
+	Menu.Combo.gap:MenuElement({name = " ", drop = {"Use AutoW if KillableTarget > Ult-Range"}})		
+	Menu.Combo.gap:MenuElement({id = "UseR", name = "Ultimate Gapclose [W + R]", value = true})
+	Menu.Combo.gap:MenuElement({id = "minHP", name = "[Gapclose] if Tristana HP bigger than", value = 70, min = 0, max = 100, identifier = "%"})	
+	Menu.Combo.gap:MenuElement({id = "UseW", name = "UseW Back after Gapclose", value = true})
+	Menu.Combo.gap:MenuElement({id = "Count", name = "(W Back) (Min Enemys near)", value = 1, min = 1, max = 5, step = 1})
+	Menu.Combo.gap:MenuElement({id = "HP", name = "[W Back] if Tristana HP lower than", value = 30, min = 0, max = 100, identifier = "%"})	
+	
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
-	Menu.Harass:MenuElement({id = "UseQ", name = "AutoQ when Explosive Charge", value = true})
-	Menu.Harass:MenuElement({id = "UseE", name = "E", value = true})
+	Menu.Harass:MenuElement({id = "UseQ2", name = "[Q]", value = true})	
+	Menu.Harass:MenuElement({id = "UseQ", name = "Only [Q] when Explosive Charge", value = true})
+	Menu.Harass:MenuElement({id = "UseE", name = "[E] Explosive Charge", value = true})
 	Menu.Harass:MenuElement({id = "harassActive", name = "Harass key", key = string.byte("C")})	
 	
 	Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear"})	
 	Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	Menu.Clear:MenuElement({id = "UseE", name = "[E] Cannon Minions", value = true}) 		
 	Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to LaneClear", value = 40, min = 0, max = 100, identifier = "%"})	
-	Menu.Clear:MenuElement({id = "clearActive", name = "Clear key", key = string.byte("V")})	
-	
-	Menu:MenuElement({type = MENU, id = "gap", name = "Gapclose"})
-	Menu.gap:MenuElement({name = " ", drop = {"Use AutoW if KillableTarget > UltiRange"}})		
-	Menu.gap:MenuElement({id = "UseR", name = "Ultimate Gapclose", value = true})
-	Menu.gap:MenuElement({id = "UseW", name = "UseW Back after Gapclose", value = true})
-	Menu.gap:MenuElement({id = "Count", name = "(W Back) (Min Enemys near)", value = 1, min = 1, max = 5, step = 1})
-	Menu.gap:MenuElement({id = "HP", name = "(W Back) Tristana HP lower than", value = 40, min = 0, max = 100, identifier = "%"})	
+	Menu.Clear:MenuElement({id = "clearActive", name = "Clear key", key = string.byte("V")})		
 	
 	Menu:MenuElement({type = MENU, id = "Blitz", name = "Escape"})
 	Menu.Blitz:MenuElement({id = "UseW", name = "AutoW ( Blitzcrank Grab )", value = true})
@@ -223,10 +230,13 @@ function ComboQ()
 local target = GetTarget(E.Range)
 if target == nil then return end
 	
-	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < E.Range and Menu.Combo.UseQ:Value() and Ready(_Q) then
-		if GotBuff(target, "tristanaechargesound") > 0 then	
+	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < E.Range and Ready(_Q) and Menu.Combo.UseQ2:Value() then
+		if Menu.Combo.UseQ:Value() then	
+			if GotBuff(target, "tristanaechargesound") > 0 then	
+				Control.CastSpell(HK_Q)
+			end
+		else
 			Control.CastSpell(HK_Q)
-			
 		end
 	end	
 end
@@ -236,7 +246,7 @@ local target = GetTarget(E.Range)
 if target == nil then return end
 	
 	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < E.Range then	
-		if Menu.Combo.UseE:Value() and Ready(_E) then
+		if Menu.Combo.UseE:Value() and Menu.Combo.Targets[target.charName] and Menu.Combo.Targets[target.charName]:Value() and Ready(_E) then
 			Control.CastSpell(HK_E, target)
 		end
 	end
@@ -274,7 +284,7 @@ function GapcloseR()
 local target = GetTarget((R.Range+W.Range+200))
 if target == nil then return end
 		
-	if IsValid(target) and Menu.gap.UseR:Value() and Ready(_R) and Ready(_W) then
+	if IsValid(target) and Menu.Combo.gap.UseR:Value() and Ready(_R) and Ready(_W) and myHero.health/myHero.maxHealth >= Menu.Combo.gap.minHP:Value()/100 then
 		if myHero.pos:DistanceTo(target.pos) > R.Range and myHero.pos:DistanceTo(target.pos) < (R.Range+W.Range-100) then
 			local Rdamage = getdmg("R", target, myHero)		
 			if Rdamage >= target.health then
@@ -286,7 +296,7 @@ end
 
 function CastWBack()
 	for i, target in pairs(GetEnemyHeroes()) do
-		if Ready(_W) and Menu.gap.UseW:Value() and CountEnemiesNear(myHero, 1000) >= Menu.gap.Count:Value() and myHero.health/myHero.maxHealth <= Menu.gap.HP:Value()/100 then
+		if Ready(_W) and Menu.Combo.gap.UseW:Value() and CountEnemiesNear(myHero, 1000) >= Menu.Combo.gap.Count:Value() and myHero.health/myHero.maxHealth <= Menu.Combo.gap.HP:Value()/100 then
 			local jump = myHero.pos:Shortened(target.pos, 700)
 			Control.CastSpell(HK_W, jump)
 		end
@@ -296,12 +306,15 @@ end
 function HarassQ()
 local target = GetTarget(E.Range)
 if target == nil then return end
-	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < E.Range and Menu.Harass.UseQ:Value() and Ready(_Q) then
-		if GotBuff(target, "tristanaechargesound") > 0 then	
+	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < E.Range and Ready(_Q) and Menu.Harass.UseQ2:Value() then
+		if Menu.Harass.UseQ:Value() then	
+			if GotBuff(target, "tristanaechargesound") > 0 then	
+				Control.CastSpell(HK_Q)
+			end
+		else
 			Control.CastSpell(HK_Q)
-			
 		end
-	end			
+	end	
 end
 
 function HarassE()
