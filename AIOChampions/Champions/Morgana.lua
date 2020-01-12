@@ -228,7 +228,7 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
 	
 	--AutoE
 	Menu:MenuElement({id = "AutoE", name = "AutoE if Ground Controled", type = MENU})
@@ -247,6 +247,11 @@ function LoadScript()
 	--AutoW
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW Immobile Target"})	
 	Menu.AutoW:MenuElement({id = "UseW", name = "Auto[W]", value = true})
+	
+	--Extra Q Setting
+	Menu:MenuElement({type = MENU, id = "QSet", name = "Extra [Q] Settings"})	
+	Menu.QSet:MenuElement({name = " ", drop = {"[Q] MaxRange for Combo / Harass / KS "}})	
+	Menu.QSet:MenuElement({id = "Q", name = "Max Range [Q]", value = 1000, min = 0, max = 1170, step = 10})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -341,7 +346,7 @@ function LoadScript()
 		Draw.Circle(myHero, 625, 1, Draw.Color(255, 225, 255, 10))
 		end                                                 
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-		Draw.Circle(myHero, 1175, 1, Draw.Color(225, 225, 0, 10))
+		Draw.Circle(myHero, Menu.QSet.Q:Value(), 1, Draw.Color(225, 225, 0, 10))
 		end
 		if Menu.Drawing.DrawE:Value() and Ready(_E) then
 		Draw.Circle(myHero, 800, 1, Draw.Color(225, 225, 125, 10))
@@ -515,7 +520,7 @@ local target = GetTarget(1200)
 if target == nil then return end
 	if IsValid(target) then
         
-		if Menu.ks.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 1175 and Ready(_Q) then
+		if Menu.ks.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < Menu.QSet.Q:Value() and Ready(_Q) then
 			local QDmg = getdmg("Q", target, myHero)
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if QDmg >= target.health and pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
@@ -554,7 +559,7 @@ local target = GetTarget(1200)
 if target == nil then return end
 	if IsValid(target) then
         
-		if Menu.Combo.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 1175 and Ready(_Q) then
+		if Menu.Combo.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < Menu.QSet.Q:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
@@ -583,7 +588,7 @@ if target == nil then return end
 	if IsValid(target) then
         local mana_ok = myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value() / 100
         
-		if Menu.Harass.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(target.pos) < 1175 and Ready(_Q) then
+		if Menu.Harass.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(target.pos) < Menu.QSet.Q:Value() and Ready(_Q) then
 			local pred = GetGamsteronPrediction(target, QData, myHero)
 			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
