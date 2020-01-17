@@ -100,7 +100,11 @@ Data = {
          Sylas = {
             Changelog = "Sylas Changelog Here",
             Version = 0.02,
-        },        
+        }, 
+         Zoe = {
+            Changelog = "Zoe Changelog Here",
+            Version = 0.01,
+        },         
     },
 }
 
