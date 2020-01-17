@@ -128,6 +128,10 @@ local CCSpells = {
 	["TristanaR"] = {charName = "Tristana", slot = _R, type = "targeted", displayName = "Buster Shot", range = 669}
 }
 
+function GetEnemyHeroes()
+	return Enemies
+end 
+
 function OnProcessSpell()
 	for i = 1, #Units do
 		local unit = Units[i].unit; local last = Units[i].spell; local spell = unit.activeSpell
@@ -157,17 +161,6 @@ local function IsImmobileTarget(unit)
 	end
 	return false	
 end	
-
-function GetEnemyHeroes()
-    local _EnemyHeroes = {}
-    for i = 1, Game.HeroCount() do
-        local unit = Game.Hero(i)
-        if unit.isEnemy then
-            table.insert(_EnemyHeroes, unit)
-        end
-    end
-    return _EnemyHeroes
-end 
 
 function GetMinionCount(range, pos)
     local pos = pos.pos
@@ -223,10 +216,10 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Not Finished Version"}})	
+	Menu:MenuElement({name = " ", drop = {"WIP Version 0.01"}})	
 	
 	Menu:MenuElement({type = MENU, id = "RSet", name = "AutoR+E Incomming CC Spells"})	
-	Menu.RSet:MenuElement({id = "UseR", name = "Use AutoR + fullCombo", value = true})	
+	Menu.RSet:MenuElement({id = "UseR", name = "Use AutoR + E Stun", value = true})	
 	Menu.RSet:MenuElement({id = "BlockList", name = "Spell List", type = MENU})		
 	
 	--ComboMenu  
@@ -235,11 +228,11 @@ function LoadScript()
 	Menu.Combo:MenuElement({id = "UseQ2", name = "[Q2]", value = true})
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
 	Menu.Combo:MenuElement({id = "UseR", name = "[R] Increase Q2 Range", value = true})		
-	Menu.Combo:MenuElement({id = "UseR2", name = "[R]+[Q] Immobile Target", value = true})
 	
 	--W Seetings
 	Menu.Combo:MenuElement({type = MENU, id = "Wset", name = "W Settings"})	
 	Menu.Combo.Wset:MenuElement({id = "UseW", name = "Use[W]", value = true})
+	Menu.Combo.Wset:MenuElement({id = "HP", name = "Min Hp use Def Items/Summoner", value = 40, min = 0, max = 100, identifier = "%"})	
     Menu.Combo.Wset:MenuElement({id = "ignite", name = "Summoner Ignite", value = true})
     Menu.Combo.Wset:MenuElement({id = "exhaust", name = "Summoner Exhaust", value = true})
     Menu.Combo.Wset:MenuElement({id = "smite", name = "Summoner Smite", value = true})
@@ -256,10 +249,10 @@ function LoadScript()
     Menu.Combo.Wset:MenuElement({id = "omen", name = "Randuin's Omen", value = true})	
     Menu.Combo.Wset:MenuElement({id = "yo", name = "Youmuus Ghostblade", value = true})
     Menu.Combo.Wset:MenuElement({id = "rg", name = "Righteous Glory", value = true})
-    Menu.Combo.Wset:MenuElement({id = "twin", name = "Twin Shadows", value = true})			
+    Menu.Combo.Wset:MenuElement({id = "twin", name = "Twin Shadows", value = true})	
 	
 	--Ult Settings
-	Menu.Combo:MenuElement({type = MENU, id = "Ult", name = " Extra Ultimate Settings"})
+--[[	Menu.Combo:MenuElement({type = MENU, id = "Ult", name = " Extra Ultimate Settings"})
 	Menu.Combo.Ult:MenuElement({id = "UseR", name = "[R] Catch Item/Summoner", value = true})
     Menu.Combo.Ult:MenuElement({id = "ignite", name = "Summoner Ignite", value = true})
     Menu.Combo.Ult:MenuElement({id = "exhaust", name = "Summoner Exhaust", value = true})
@@ -278,7 +271,7 @@ function LoadScript()
     Menu.Combo.Ult:MenuElement({id = "yo", name = "Youmuus Ghostblade", value = true})
     Menu.Combo.Ult:MenuElement({id = "rg", name = "Righteous Glory", value = true})
     Menu.Combo.Ult:MenuElement({id = "twin", name = "Twin Shadows", value = true})	
-
+]]
 	--HarassMenu
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
 	Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})	
@@ -377,6 +370,12 @@ end
 
 function Tick()
 if MyHeroNotReady() then return end
+if Menu.RSet.UseR:Value() and Ready(_R) then
+	ProcessSpell()
+	for i, spell in pairs(DetectedSpells) do
+		UseR(i, spell)
+	end
+end
 
 local Mode = GetMode()
 	if Mode == "Combo" then
@@ -392,21 +391,46 @@ local Mode = GetMode()
 			
 	end	
 
-	KillSteal()
-
-	if Menu.RSet.UseR:Value() and Ready(_R) then
-		ProcessSpell()
-		for i, spell in pairs(DetectedSpells) do
-			UseR(i, spell)
-		end
-	end	
+	KillSteal()	
 end
 
-function ProcessSpell()
-	local ReadyForE = false
-	if ReadyForE then
-		castE()
-	end	
+function QCollision(startpos, endpos)
+	for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+		if (minion.team == TEAM_ENEMY or minion.team == TEAM_JUNGLE) and minion.dead == false then
+			local linesegment, line, isOnSegment = VectorPointProjectionOnLineSegment(startpos, endpos, minion.pos)
+			if linesegment and isOnSegment and (minion.pos:DistanceTo(linesegment) <= (minion.boundingRadius + 100) * (minion.boundingRadius + 100)) then
+				return false
+			end
+		end
+	end
+	return true
+end
+
+function CheckQPos(unit)
+	local startpos = myHero.pos
+    local endpos = Vector(unit.pos)
+    local finalpos = (endpos - startpos):Normalized()
+	local pos1 = Vector(unit.pos):Extended(myHero.pos, 1000)
+	local pos2 = finalpos:Perpendicular()
+	local pos3 = unit.pos:Perpendicular2()
+	local pos4 = unit.pos:Perpendicular2():Perpendicular2()	
+	
+	if QCollision(myHero.pos, pos1) then
+		Control.CastSpell(HK_Q, pos1)
+	
+	elseif QCollision(myHero.pos, pos2) == 0 then
+		Control.CastSpell(HK_Q, pos2)
+	
+	elseif QCollision(myHero.pos, pos3) == 0 then
+		Control.CastSpell(HK_Q, pos3)
+		
+	elseif QCollision(myHero.pos, pos4) == 0 then		
+		Control.CastSpell(HK_Q, pos4)
+	end
+end	
+
+function ProcessSpell()	
 	local unit, spell = OnProcessSpell()
 	if unit and unit.isEnemy and spell and CCSpells[spell.name] and Ready(_R) then
 		if myHero.pos:DistanceTo(unit.pos) > 3000 or not Menu.RSet.BlockList["Dodge"..spell.name]:Value() then return end
@@ -414,14 +438,20 @@ function ProcessSpell()
 		local type = Detected.type
 		if type == "targeted" then
 			if spell.target == myHero.handle then 
-				if myHero.pos:DistanceTo(unit.pos) < 1350 and Ready(_E) then
-					ReadyForE = Control.CastSpell(HK_R, unit.pos)
+				_G.SDK.Orbwalker:SetMovement(false)
+				if myHero.pos:DistanceTo(unit.pos) < 1300 and Ready(_E) then
+					Control.CastSpell(HK_R, unit.pos)
 					table.remove(DetectedSpells, i)
-				else	
+					if myHero.isChanneling then
+						CastE(unit)
+					end
+				end	
+				if not Ready(_E) then	
 					local castPos = Vector(unit) - (Vector(myHero) - Vector(unit)):Perpendicular():Normalized() * 350	
 					Control.CastSpell(HK_R, castPos)
 					table.remove(DetectedSpells, i)
-				end	
+				end
+				_G.SDK.Orbwalker:SetMovement(true)
 			end
 		else
 			local startPos = Vector(spell.startPos); local placementPos = Vector(spell.placementPos); local unitPos = unit.pos
@@ -432,11 +462,7 @@ function ProcessSpell()
 	end
 end
 
-function UseR(i, s)
-	local ReadyForE = false
-	if ReadyForE then
-		castE()
-	end	
+function UseR(i, s)	
 	local startPos = s.startPos; local endPos = s.endPos; local travelTime = 0
 	if s.speed == math.huge then travelTime = s.delay else travelTime = s.range / s.speed + s.delay end
 	if s.type == "rectangular" then
@@ -450,59 +476,59 @@ function UseR(i, s)
 			if GetDistanceSqr(myHero.pos, endPos) < (s.radius + myHero.boundingRadius) ^ 2 or GetDistanceSqr(myHero.pos, Col) < (s.radius + myHero.boundingRadius * 1.25) ^ 2 then
 				local t = s.speed ~= math.huge and CalculateCollisionTime(startPos, endPos, myHero.pos, s.startTime, s.speed, s.delay) or 0.29
 				if t < 0.3 then
-					if myHero.pos:DistanceTo(startPos) < 1350 and Ready(_E) then
-						ReadyForE = Control.CastSpell(HK_R, startPos)
-					else	
+					_G.SDK.Orbwalker:SetMovement(false)
+					if myHero.pos:DistanceTo(startPos) < 1300 and Ready(_E) then
+						Control.CastSpell(HK_R, startPos)
+						if myHero.isChanneling then
+							CastE(startPos)
+						end
+					end	
+					if not Ready(_E) then	
 						local castPos = Vector(startPos) - (Vector(myHero) - Vector(startPos)):Perpendicular():Normalized() * 350	
 						Control.CastSpell(HK_R, castPos)
-					end				
+					end
+					_G.SDK.Orbwalker:SetMovement(true)
 				end				
 			end
 		end	
 	else table.remove(DetectedSpells, i) end
 end
 
-function castE()
-local target = GetTarget(2600)
-if target == nil then return end
-	if IsValid(target) then
-				
-		if myHero.pos:DistanceTo(target.pos) < 800 and Ready(_E) then
-			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then
-				Control.CastSpell(HK_E, pred.CastPosition)
-			end	
+function CastE(Pos)
+	if myHero.pos:DistanceTo(Pos.pos) < 800 and IsValid(Pos) then
+		local pred = GetGamsteronPrediction(Pos, EData, myHero)
+		if pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then
+			Control.CastSpell(HK_E, pred.CastPosition)
 		end
-		
-		if Ready(_Q) and myHero:GetSpellData(_Q).name == "ZoeQRecast" and myHero.pos:DistanceTo(target.pos) < 2550 then
-			local pred = GetGamsteronPrediction(target, Q2Data, myHero)
-			if pred.Hitchance >= Menu.Pred.PredQ2:Value() + 1 then
-				Control.CastSpell(HK_Q, pred.CastPosition)
-			end	
-		end
-
-		if Ready(_Q) and myHero:GetSpellData(_Q).name == "ZoeQ" and myHero.pos:DistanceTo(target.pos) < 800 then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-				Control.CastSpell(HK_Q, pred.CastPosition)
-			end	
-		end       		
 	end
 end
-
 
 function KillSteal()	
 local target = GetTarget(1500)
 if target == nil then return end
 	if IsValid(target) then
-        
-		if Menu.ks.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 800 and Ready(_Q) then
-			local QDmg = getdmg("Q", target, myHero)
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= target.health and pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-				Control.CastSpell(HK_Q, pred.CastPosition)
-			end	
+		
+		if Menu.ks.UseQ:Value() and Ready(_Q) then
+			if myHero:GetSpellData(_Q).name == "ZoeQRecast" and myHero.pos:DistanceTo(target.pos) < 800 then
+				local pred = GetGamsteronPrediction(target, Q2Data, myHero)
+				if pred.Hitchance >= Menu.Pred.PredQ2:Value() + 1 then
+					DelayAction(function()
+					_G.SDK.Orbwalker:SetMovement(false)
+					Control.CastSpell(HK_Q, pred.CastPosition)
+					_G.SDK.Orbwalker:SetMovement(true)
+					end,0.3)
+				end	
+			end
         end
+
+		if Menu.ks.UseQ:Value() and Ready(_Q) then
+			local QDmg = getdmg("Q", target, myHero)
+			if myHero:GetSpellData(_Q).name == "ZoeQ" and myHero.pos:DistanceTo(target.pos) < 800 and QDmg >= target.health then
+				_G.SDK.Orbwalker:SetMovement(false)
+				CheckQPos(target)
+				_G.SDK.Orbwalker:SetMovement(true)
+			end
+        end			
 		
         if Menu.ks.UseE:Value() and Ready(_E) then
             local EDmg = getdmg("E", target, myHero)
@@ -548,37 +574,36 @@ if target == nil then return end
         end	
         
 		if Menu.Combo.UseQ2:Value() and Ready(_Q) then
-			if myHero:GetSpellData(_Q).name == "ZoeQRecast" and myHero.pos:DistanceTo(target.pos) < 2550 and myHero.pos:DistanceTo(target.pos) > 950 then
+			if myHero:GetSpellData(_Q).name == "ZoeQRecast" and myHero.pos:DistanceTo(target.pos) < 800 then
 				local pred = GetGamsteronPrediction(target, Q2Data, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ2:Value() + 1 then
+					DelayAction(function()
+					_G.SDK.Orbwalker:SetMovement(false)
 					Control.CastSpell(HK_Q, pred.CastPosition)
+					_G.SDK.Orbwalker:SetMovement(true)
+					end,0.3)
 				end	
 			end
         end
 		
+		if Menu.Combo.UseQ:Value() and Ready(_Q) and myHero:GetSpellData(_Q).name == "ZoeQ" then			
+			if myHero.pos:DistanceTo(target.pos) < 1400 and Ready(_R) then
+				_G.SDK.Orbwalker:SetMovement(false)
+				CheckQPos(target)
+				_G.SDK.Orbwalker:SetMovement(true)
+			end
+        end	
+
 		if Menu.Combo.UseQ:Value() and Ready(_Q) then
 			if myHero:GetSpellData(_Q).name == "ZoeQ" and myHero.pos:DistanceTo(target.pos) < 800 then
-				local pred = GetGamsteronPrediction(target, QData, myHero)
-				if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-					Control.CastSpell(HK_Q, pred.CastPosition)
-				end	
+				_G.SDK.Orbwalker:SetMovement(false)
+				CheckQPos(target)
+				_G.SDK.Orbwalker:SetMovement(true)
 			end
         end		
 
-        if Menu.Combo.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 950 and Ready(_R) and Ready(_Q) and myHero:GetSpellData(_Q).name == "ZoeQRecast" then
-			local castpos = myHero.pos:Shortened(target.pos, 575)
-			Control.SetCursorPos(castpos)
-			Control.KeyDown(HK_R)
-			Control.KeyUp(HK_R)
-		end
-		
-		if IsImmobileTarget(target) and Ready(_R) and Ready(_Q) and Menu.Combo.UseR2:Value() and myHero:GetSpellData(_Q).name == "ZoeQ"  then
-			local castpos = myHero.pos + (target.pos - myHero.pos):Normalized() * - 600
-			if myHero.pos:DistanceTo(target.pos) < 600 then
-			Control.SetCursorPos(castpos)
-			Control.KeyDown(HK_R)
-			Control.KeyUp(HK_R)				
-			end		
+        if Menu.Combo.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 1400 and myHero.pos:DistanceTo(target.pos) > 750 and Ready(_R) and Ready(_Q) and myHero:GetSpellData(_Q).name == "ZoeQRecast" then
+			Control.CastSpell(HK_R, target)
 		end
 	end	
 end
@@ -588,8 +613,8 @@ local target = GetTarget(2000)
 if target == nil then return end
 	if IsValid(target) then
 		if Menu.Combo.Wset.UseW:Value() and Ready(_W) then
-			local WName = myHero:GetSpellData(_W).name:lower()
-			local Hp = myHero.health/myHero.maxHealth < Menu.Combo.Wset.HP:Value() / 100 
+		local WName = myHero:GetSpellData(_W).name:lower()
+
 			if WName == "summonerdot" and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.ignite:Value()
 			or WName == "summonerexhaust"  and target.pos:DistanceTo() < 650 and Menu.Combo.Wset.exhaust:Value() 
 			or WName == "hextechgunblade"  and target.pos:DistanceTo() < 700 and Menu.Combo.Wset.hex:Value()
@@ -598,10 +623,10 @@ if target == nil then return end
 			then Control.CastSpell(HK_W, target) 
 			end
 
-			if WName == "summonerheal" and Hp and Menu.Combo.Wset.heal:Value() 
-			or WName == "summonerbarrier" and Hp and Menu.Combo.Wset.barrier:Value()
-			or WName == "zhonyasHourglass" and Hp and Menu.Combo.Wset.zhonya:Value()
-			or WName == "summonerboost" and Hp and Menu.Combo.Wset.cleanse:Value()
+			if WName == "summonerheal" and myHero.health/myHero.maxHealth < Menu.Combo.Wset.HP:Value() / 100  and Menu.Combo.Wset.heal:Value() 
+			or WName == "summonerbarrier" and myHero.health/myHero.maxHealth < Menu.Combo.Wset.HP:Value() / 100  and Menu.Combo.Wset.barrier:Value()
+			or WName == "zhonyasHourglass" and myHero.health/myHero.maxHealth < Menu.Combo.Wset.HP:Value() / 100  and Menu.Combo.Wset.zhonya:Value()
+			or WName == "summonerboost" and myHero.health/myHero.maxHealth < Menu.Combo.Wset.HP:Value() / 100  and Menu.Combo.Wset.cleanse:Value()
 		 	or WName == "itemstylus"  and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.solari:Value()
 			or WName == "youmusblade"  and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.yo:Value() 
 			or WName == "itemrighteousglory"  and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.rg:Value()
@@ -663,20 +688,23 @@ if target == nil then return end
         
         
 		if Menu.Harass.UseQ2:Value() and Ready(_Q) then
-			if myHero:GetSpellData(_Q).name == "ZoeQRecast" and myHero.pos:DistanceTo(target.pos) < 2550 and myHero.pos:DistanceTo(target.pos) > 950 then
+			if myHero:GetSpellData(_Q).name == "ZoeQRecast" and myHero.pos:DistanceTo(target.pos) < 800 then
 				local pred = GetGamsteronPrediction(target, Q2Data, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ2:Value() + 1 then
+					DelayAction(function()
+					_G.SDK.Orbwalker:SetMovement(false)
 					Control.CastSpell(HK_Q, pred.CastPosition)
+					_G.SDK.Orbwalker:SetMovement(true)
+					end,0.3)
 				end	
 			end
         end
-		
+
 		if Menu.Harass.UseQ:Value() and Ready(_Q) then
 			if myHero:GetSpellData(_Q).name == "ZoeQ" and myHero.pos:DistanceTo(target.pos) < 800 then
-				local pred = GetGamsteronPrediction(target, QData, myHero)
-				if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-					Control.CastSpell(HK_Q, pred.CastPosition)
-				end	
+				_G.SDK.Orbwalker:SetMovement(false)
+				CheckQPos(target)
+				_G.SDK.Orbwalker:SetMovement(true)
 			end
         end	
 	end
@@ -685,28 +713,63 @@ end
 function Clear()
     for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-        if minion.team == TEAM_ENEMY then
-            local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
+		local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
+		if myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and minion.team == TEAM_ENEMY and mana_ok then
+            
 			
-            if Menu.Clear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and Ready(_Q) then
-                local count = GetMinionCount(275, minion)
-				if count >= Menu.Clear.UseQM:Value() then
-					Control.CastSpell(HK_Q, minion.pos)
+			if Menu.Clear.UseQ:Value() and Ready(_Q) then
+				if myHero:GetSpellData(_Q).name == "ZoeQRecast" then
+					local pred = GetGamsteronPrediction(minion, Q2Data, myHero)
+					if pred.Hitchance >= Menu.Pred.PredQ2:Value() + 1 then
+						DelayAction(function()
+						_G.SDK.Orbwalker:SetMovement(false)
+						Control.CastSpell(HK_Q, pred.CastPosition)
+						_G.SDK.Orbwalker:SetMovement(true)
+						end,0.3)
+					end	
 				end
-            end
-        end
+			end
+			
+			if Menu.Clear.UseQ:Value() and Ready(_Q) then			
+				if myHero:GetSpellData(_Q).name == "ZoeQ" then
+					local count = GetMinionCount(275, minion)
+					if count >= Menu.Clear.UseQM:Value() then				
+						_G.SDK.Orbwalker:SetMovement(false)
+						CheckQPos(minion)
+						_G.SDK.Orbwalker:SetMovement(true)
+					end
+				end			
+			end
+		end	
     end
 end
 
 function JungleClear()
     for i = 1, Game.MinionCount() do
     local minion = Game.Minion(i)
-        if minion.team == TEAM_JUNGLE then
-            local mana_ok = myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100
-
-            if Menu.JClear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and Ready(_Q) then
-				Control.CastSpell(HK_Q, minion.pos)
-            end
+		local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
+		if myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and minion.team == TEAM_JUNGLE and mana_ok then
+			
+			if Menu.JClear.UseQ:Value() and Ready(_Q) then
+				if myHero:GetSpellData(_Q).name == "ZoeQRecast" then
+					local pred = GetGamsteronPrediction(minion, Q2Data, myHero)
+					if pred.Hitchance >= Menu.Pred.PredQ2:Value() + 1 then
+						DelayAction(function()
+						_G.SDK.Orbwalker:SetMovement(false)
+						Control.CastSpell(HK_Q, pred.CastPosition)
+						_G.SDK.Orbwalker:SetMovement(true)
+						end,0.3)
+					end	
+				end
+			end
+			
+			if Menu.JClear.UseQ:Value() and Ready(_Q) then			
+				if myHero:GetSpellData(_Q).name == "ZoeQ" then				
+					_G.SDK.Orbwalker:SetMovement(false)
+					CheckQPos(minion)
+					_G.SDK.Orbwalker:SetMovement(true)
+				end			
+			end			
         end
     end
 end
