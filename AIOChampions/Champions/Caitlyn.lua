@@ -35,13 +35,13 @@ function CastSpellMM(spell,pos,range,delay)
 	local range = range or math.huge
 	local delay = delay or 250
 	local ticker = GetTickCount()
-	if castSpell.state == 0 and GetDistance(myHero.pos,pos) < range and ticker - castSpell.casting > delay + Game.Latency then
+	if castSpell.state == 0 and GetDistance(myHero.pos,pos) < range and ticker - castSpell.casting > delay + Game.Latency() then
 		castSpell.state = 1
 		castSpell.mouse = mousePos
 		castSpell.tick = ticker
 	end
 	if castSpell.state == 1 then
-		if ticker - castSpell.tick < Game.Latency then
+		if ticker - castSpell.tick < Game.Latency() then
 			local castPosMM = pos:ToMM()
 			Control.SetCursorPos(castPosMM.x,castPosMM.y)
 			Control.KeyDown(spell)
@@ -54,7 +54,7 @@ function CastSpellMM(spell,pos,range,delay)
 				end
 			end,Game.Latency()/1000)
 		end
-		if ticker - castSpell.casting > Game.Latency then
+		if ticker - castSpell.casting > Game.Latency() then
 			Control.SetCursorPos(castSpell.mouse)
 			castSpell.state = 0
 		end
@@ -64,7 +64,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -105,20 +105,21 @@ function LoadScript()
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawKill", name = "Draw Ult Kill on Minimap", value = true})	
 	
 	QData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 1300, Speed = 2200, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.62, Radius = 60, Range = 1300, Speed = 2200, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
 	}
 
 	WData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 67, Range = 800, Speed = 3200, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 1.1, Radius = 67, Range = 800, Speed = 3200, Collision = false
 	}
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 750, Speed = 1600, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.12, Radius = 90, Range = 750, Speed = 1600, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
 	}
   	                                           
 	if _G.EOWLoaded then
@@ -150,6 +151,16 @@ function LoadScript()
 		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 			Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 		end
+		
+		local target = GetTarget(6000)     	
+		if target == nil then return end	
+		if Ready(_R) and IsValid(target) and Menu.Drawing.DrawKill:Value() then	
+			local hp = target.health
+			local RDmg = getdmg("R", target, myHero)
+			if RDmg >= hp then
+				Draw.Text("ULT KILL", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))
+			end
+		end	
 	end)		
 end
 
