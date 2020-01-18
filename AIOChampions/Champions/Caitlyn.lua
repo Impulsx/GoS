@@ -31,10 +31,40 @@ function GetMinionCount(range, pos)
 	return count
 end	
 
+function CastSpellMM(spell,pos,range,delay)
+	local range = range or math.huge
+	local delay = delay or 250
+	local ticker = GetTickCount()
+	if castSpell.state == 0 and GetDistance(myHero.pos,pos) < range and ticker - castSpell.casting > delay + Game.Latency then
+		castSpell.state = 1
+		castSpell.mouse = mousePos
+		castSpell.tick = ticker
+	end
+	if castSpell.state == 1 then
+		if ticker - castSpell.tick < Game.Latency then
+			local castPosMM = pos:ToMM()
+			Control.SetCursorPos(castPosMM.x,castPosMM.y)
+			Control.KeyDown(spell)
+			Control.KeyUp(spell)
+			castSpell.casting = ticker + delay
+			DelayAction(function()
+				if castSpell.state == 1 then
+					Control.SetCursorPos(castSpell.mouse)
+					castSpell.state = 0
+				end
+			end,Game.Latency()/1000)
+		end
+		if ticker - castSpell.casting > Game.Latency then
+			Control.SetCursorPos(castSpell.mouse)
+			castSpell.state = 0
+		end
+	end
+end
+
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -44,7 +74,7 @@ function LoadScript()
 
 	--HarassMenu
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
-	Menu.Harass:MenuElement({name = " ", drop = {"[Q]"}})
+	Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--LaneClear Menu
@@ -155,7 +185,12 @@ if target == nil then return end
 		if myHero.pos:DistanceTo(target.pos) <= 3500 and Menu.ks.UseR:Value() and Ready(_R) then
 			local RDmg = getdmg("R", target, myHero) - 100
 			if RDmg >= hp then			
-				Control.CastSpell(HK_R, target)
+				if target.pos:To2D().onScreen then 		
+					Control.CastSpell(HK_R, target) 
+				
+				elseif not target.pos:To2D().onScreen then	   
+					CastSpellMM(HK_R, target.pos, 3500)
+				end
 			end
 		end
 	end
@@ -166,28 +201,65 @@ local target = GetTarget(1400)
 if target == nil then return end
 	if IsValid(target) then
 
-		if myHero.pos:DistanceTo(target.pos) <= 800 and Menu.Combo.UseW:Value() and Ready(_W) then
-			local pred = GetGamsteronPrediction(target, WData, myHero)
-			if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 then
-				Control.CastSpell(HK_W, pred.CastPosition)
-			end	
-		end			
+		if myHero:GetSpellData(_Q).level > 0 and myHero:GetSpellData(_W).level > 0 and myHero:GetSpellData(_E).level > 0 then
+			if HasBuff(myHero, "caitlynheadshotrangcheck") then return end
+			
+			if myHero.pos:DistanceTo(target.pos) <= 800 and not HasBuff(target, "caitlynyordletrapsight") and Menu.Combo.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
+				local pred = GetGamsteronPrediction(target, WData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 then
+					Control.CastSpell(HK_W, pred.CastPosition)
+				end	
+			end			
+			
+			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "caitlynyordletrapinternal") and Menu.Combo.UseQ:Value() and Ready(_Q) and not Ready(_E) then
+				local pred = GetGamsteronPrediction(target, QData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then			
+					Control.CastSpell(HK_Q, pred.CastPosition)
 		
-		if myHero.pos:DistanceTo(target.pos) <= 1300 and Menu.Combo.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then			
-				Control.CastSpell(HK_Q, pred.CastPosition)
-	
+				end
 			end
-		end
 
-		if myHero.pos:DistanceTo(target.pos) <= 750 and Menu.Combo.UseE:Value() and Ready(_E) then
-			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then			
-				Control.CastSpell(HK_E, pred.CastPosition)
-	
+			if myHero.pos:DistanceTo(target.pos) <= 750 and IsImmobileTarget(target) and Menu.Combo.UseE:Value() and Ready(_E) then
+				local pred = GetGamsteronPrediction(target, EData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then			
+					Control.CastSpell(HK_E, pred.CastPosition)
+		
+				end
 			end
-		end		
+		else
+			if myHero.pos:DistanceTo(target.pos) <= 800 and not HasBuff(target, "caitlynyordletrapsight") and Menu.Combo.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
+				local pred = GetGamsteronPrediction(target, WData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 then
+					Control.CastSpell(HK_W, pred.CastPosition)
+				end	
+			end			
+			
+			if myHero:GetSpellData(_W).level > 0 then
+				if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "caitlynyordletrapinternal") and Menu.Combo.UseQ:Value() and Ready(_Q) then
+					local pred = GetGamsteronPrediction(target, QData, myHero)
+					if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then			
+						Control.CastSpell(HK_Q, pred.CastPosition)
+			
+					end
+				end
+			else
+				if myHero.pos:DistanceTo(target.pos) <= 1300 and Menu.Combo.UseQ:Value() and Ready(_Q) then
+					local pred = GetGamsteronPrediction(target, QData, myHero)
+					if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then			
+						Control.CastSpell(HK_Q, pred.CastPosition)
+			
+					end
+				end
+			end	
+
+			if myHero.pos:DistanceTo(target.pos) <= 750 and Menu.Combo.UseE:Value() and Ready(_E) then
+				local pred = GetGamsteronPrediction(target, EData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then			
+					Control.CastSpell(HK_E, pred.CastPosition)
+		
+				end
+			end			
+		end	
 	end
 end	
 
@@ -210,7 +282,7 @@ function Clear()
     local minion = Game.Minion(i)
 	
 		if myHero.pos:DistanceTo(minion.pos) <= 1300 and minion.team == TEAM_ENEMY and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then					
-			if Ready(_Q) and Menu.Clear.UseQ:Value() and GetMinionCount(90, minion) >= Menu.Clear.Count:Value() then
+			if Ready(_Q) and Menu.Clear.UseQ:Value() and GetMinionCount(180, minion) >= Menu.Clear.Count:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
 			end	 
 		end
