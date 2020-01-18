@@ -104,6 +104,10 @@ Data = {
          Zoe = {
             Changelog = "Zoe Changelog Here",
             Version = 0.01,
+        },
+         Caitlyn = {
+            Changelog = "Caitlyn Changelog Here",
+            Version = 0.01,
         },        
     },
 }
