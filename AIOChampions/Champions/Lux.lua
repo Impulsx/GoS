@@ -11,6 +11,10 @@ function GetMinionCount(range, pos)
 	return count
 end
 
+function GetEnemyHeroes()
+	return Enemies
+end
+
 function GetAllyHeroes() 
 	AllyHeroes = {}
 	for i = 1, Game.HeroCount() do
@@ -35,7 +39,7 @@ end
 function LoadScript()
 	HPred()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQImmo"})
 	Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto[Q]Immobile Target", value = true})
@@ -70,12 +74,13 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "JClear", name = "JungleClear"})         	
 	Menu.JClear:MenuElement({id = "UseE", name = "[E] Lucent Singularity", value = true})	
 	Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
- 
+
 	--KillSteal
 	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
 	Menu.ks:MenuElement({id = "UseQ", name = "[Q] Light Binding", value = true})	
 	Menu.ks:MenuElement({id = "UseE", name = "[E] Lucent Singularity", value = true})				
-	Menu.ks:MenuElement({id = "UseR", name = "[R] Final Spark", value = true})	
+	Menu.ks:MenuElement({id = "UseR", name = "[R] Final Spark", value = true})
+	Menu.ks:MenuElement({id = "Rrange", name = "Cast R if range greater than -->", value = 1000, min = 0, max = 3340})	
 		
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
@@ -336,87 +341,71 @@ end
 end
 
 function KillSteal()
-	local target = GetTarget(3500)     	
-	if target == nil then return end
+	for i, target in ipairs(GetEnemyHeroes()) do
 	
 	
-	if IsValid(target) then	
+		if myHero.pos:DistanceTo(target.pos) <= 3500 and IsValid(target) then	
 		local hp = target.health
-		if Menu.ks.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 1175 and Ready(_Q) then
-			local QDmg = getdmg("Q", target, myHero)
-			if QDmg >= hp then
-				KillstealQ()
+			if Menu.ks.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 1175 and Ready(_Q) then
+				local QDmg = getdmg("Q", target, myHero)
+				if QDmg >= hp then
+					KillstealQ(target)
+				end
+			end
+			if Menu.ks.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 1000 and Ready(_E) then
+				local EDmg = getdmg("E", target, myHero)
+				if EDmg >= hp then
+					KillstealE(target)
+				end
+			end
+			if Menu.ks.UseR:Value() and myHero.pos:DistanceTo(target.pos) >= Menu.ks.Rrange:Value() and Ready(_R) then
+				local RDmg = getdmg("R", target, myHero) 
+				local RDmg2 = getdmg("R", target, myHero) + (10 + 10 * myHero.levelData.lvl + myHero.ap * 0.2)
+				if HPred:HasBuff(target, "LuxIlluminatingFraulein",1.25) and RDmg2 >= hp then    
+					KillstealR(target)
+				end
+				if RDmg >= hp then
+					KillstealR(target)
+				end
+			end
+			if Menu.ks.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 1175 and Ready(_R) and Ready(_Q) then
+				local RDmg = getdmg("R", target, myHero)
+				local QDmg = getdmg("Q", target, myHero)
+				local QRDmg = QDmg + RDmg
+				if QRDmg >= hp then
+					KillstealQ(target)
+				end	
 			end
 		end
-		if Menu.ks.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 1000 and Ready(_E) then
-			local EDmg = getdmg("E", target, myHero)
-			if EDmg >= hp then
-				KillstealE()
-			end
-		end
-		if Menu.ks.UseR:Value() and myHero.pos:DistanceTo(target.pos) <= 3340 and Ready(_R) then
-			local RDmg = getdmg("R", target, myHero) 
-			local RDmg2 = getdmg("R", target, myHero) + (10 + 10 * myHero.levelData.lvl + myHero.ap * 0.2)
-			if HPred:HasBuff(target, "LuxIlluminatingFraulein",1.25) and RDmg2 >= hp then    
-				KillstealR()
-			end
-			if RDmg >= hp then
-				KillstealR()
-			end
-		end
-		if Menu.ks.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 1175 and Ready(_R) and Ready(_Q) then
-			local RDmg = getdmg("R", target, myHero)
-			local QDmg = getdmg("Q", target, myHero)
-			local QRDmg = QDmg + RDmg
-			if QRDmg >= hp then
-				KillstealQ()
-			end	
-		end
-	end
+	end	
 end	
 
-function KillstealQ()
-	local target = GetTarget(1300)
-	if target == nil then return end
-	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1175 then 	
-		if Menu.ks.UseQ:Value() then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-				Control.CastSpell(HK_Q, pred.CastPosition)
-			
-			end
-		end
-	end
-end
-
-function KillstealE()
-	local target = GetTarget(1300)
-	if target == nil then return end
-	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1000 and Menu.ks.UseE:Value() then
-		Control.CastSpell(HK_E, target.pos)
-			
+function KillstealQ(unit)
+	local pred = GetGamsteronPrediction(unit, QData, myHero)
+	if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
+		Control.CastSpell(HK_Q, pred.CastPosition)
 		
 	end
 end
 
-function KillstealR()
-    local target = GetTarget(3400)
-	if target == nil then return end
-	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 3340 then	
-		if Menu.ks.UseR:Value() then
-			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 3340, 1.0, 1000, 190, false)
-			if hitRate and hitRate >= 1 then
-				if aimPosition:To2D().onScreen then 		
-					Control.CastSpell(HK_R, aimPosition) 
+
+function KillstealE(unit)
+	Control.CastSpell(HK_E, unit.pos)
+end
+
+function KillstealR(unit)
+	local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, unit, 3340, 1.0, 1000, 190, false)
+	if hitRate and hitRate >= 1 then
+		if aimPosition:To2D().onScreen then 		
+			Control.CastSpell(HK_R, aimPosition) 
 				
-				elseif not aimPosition:To2D().onScreen then	
-				local castPos = myHero.pos:Extended(aimPosition, 1000)    
-					Control.CastSpell(HK_R, castPos)
-				end		
-			end
-		end
+		elseif not aimPosition:To2D().onScreen then	
+		local castPos = myHero.pos:Extended(aimPosition, 1000)    
+			Control.CastSpell(HK_R, castPos)
+		end		
 	end
 end
+
 
 ------ H-Pred ----------------------
 class "HPred"
