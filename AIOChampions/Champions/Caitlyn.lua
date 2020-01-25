@@ -1,3 +1,27 @@
+function GetEnemyHeroes()
+	return Enemies
+end
+
+local function CheckTrap(unit, range)
+	for i = 0, Game.ObjectCount() do
+	local object = Game.Object(i)
+		if object and GetDistance(object.pos, unit.pos) < range and (object.name == "Caitlyn_Base_W_Indicator_SizeRing") then
+		return true
+		end
+	end
+	return false
+end
+
+function EnemyInRange(range)
+	local count = 0
+	for i, target in ipairs(GetEnemyHeroes()) do
+		if target.pos:DistanceTo(myHero.pos) < range and IsValid(target) then 
+			count = count + 1
+		end
+	end
+	return count
+end
+
 function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
@@ -64,7 +88,16 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
+
+	--AutoW  
+	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})		
+	Menu.AutoW:MenuElement({id = "UseW", name = "AutoW on Immobile Target", value = true})	
+	
+	--AutoE  
+	Menu:MenuElement({type = MENU, id = "AntiGap", name = "Antigapclose"})
+	Menu.AntiGap:MenuElement({name = " ", drop = {"WIP,,, Pls Report if is not working"}})
+	Menu.AntiGap:MenuElement({id = "UseE", name = "Use[E] Antigapclose", value = true})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -92,6 +125,8 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
 	Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	Menu.ks:MenuElement({id = "UseR", name = "[R]", value = true})
+	Menu.ks:MenuElement({id = "Rrange", name = "Cast R if range greater than -->", value = 1200, min = 0, max = 3500})
+	Menu.ks:MenuElement({id = "enemy", name = "Cast R if no Enemy in range -->", value = 1200, min = 0, max = 3500})	
 
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
@@ -109,17 +144,17 @@ function LoadScript()
 	
 	QData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.62, Radius = 60, Range = 1300, Speed = 2200, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.3, Radius = 60, Range = 1250, Speed = 2200, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
 	}
 
 	WData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 1.1, Radius = 67, Range = 800, Speed = 3200, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.75, Radius = 0, Range = 800, Speed = 1450, Collision = false
 	}
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.12, Radius = 90, Range = 750, Speed = 1600, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.7, Radius = 70, Range = 750, Speed = 1600, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
 	}
   	                                           
 	if _G.EOWLoaded then
@@ -152,14 +187,14 @@ function LoadScript()
 			Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 		end
 		
-		local target = GetTarget(6000)     	
-		if target == nil then return end	
-		if Ready(_R) and IsValid(target) and Menu.Drawing.DrawKill:Value() then	
-			local hp = target.health
-			local RDmg = getdmg("R", target, myHero)
-			if RDmg >= hp then
-				Draw.Text("ULT KILL", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))
-			end
+		for i, target in ipairs(GetEnemyHeroes()) do	
+			if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= 6000 and IsValid(target) and Menu.Drawing.DrawKill:Value() then	
+				local hp = target.health
+				local RDmg = getdmg("R", target, myHero)
+				if RDmg >= hp then
+					Draw.Text("ULT KILL", 13, target.posMM.x - 15, target.posMM.y - 15,Draw.Color(0xFF00FF00))
+				end
+			end	
 		end	
 	end)		
 end
@@ -177,34 +212,58 @@ local Mode = GetMode()
 		JungleClear()		
 	end	
 	KillSteal()
+	AutoW()
+	AutoE()
+end
+
+function AutoW()
+	for i, target in ipairs(GetEnemyHeroes()) do
+		if myHero.pos:DistanceTo(target.pos) <= 800 and IsValid(target) and IsImmobileTarget(target) and not HasBuff(target, "caitlynyordletrapsight") and not CheckTrap(target, 200) and Menu.AutoW.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
+			local pred = GetGamsteronPrediction(target, WData, myHero)
+			if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 then
+				Control.CastSpell(HK_W, pred.CastPosition)
+			end	
+		end
+	end
+end	
+
+function AutoE()
+	for i, target in ipairs(GetEnemyHeroes()) do
+		if myHero.pos:DistanceTo(target.pos) <= 1500 and IsValid(target) and Menu.AntiGap.UseE:Value() and Ready(_E) then
+			if target.pathing.isDashing and target.pathing.dashSpeed > 500 and GetDistance(target.pos, myHero.pos) > GetDistance(Vector(target.pathing.endPos), myHero.pos) then
+				Control.CastSpell(HK_E, target.pos)
+			end	
+		end
+	end
 end
        
 function KillSteal()	
-local target = GetTarget(3500)     	
-if target == nil then return end	
-	if IsValid(target) then	
-	local hp = target.health
-		
-		if myHero.pos:DistanceTo(target.pos) <= 1300 and Menu.ks.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			local QDmg = getdmg("Q", target, myHero)
-			if QDmg >= hp and pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-				Control.CastSpell(HK_Q, pred.CastPosition)
+	for i, target in ipairs(GetEnemyHeroes()) do	
+		if myHero.pos:DistanceTo(target.pos) <= 3500 and IsValid(target) then	
+		local hp = target.health
+			
+			if myHero.pos:DistanceTo(target.pos) <= 1300 and Menu.ks.UseQ:Value() and Ready(_Q) then
+				local pred = GetGamsteronPrediction(target, QData, myHero)
+				local QDmg = getdmg("Q", target, myHero)
+				if QDmg >= hp and pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
+					Control.CastSpell(HK_Q, pred.CastPosition)
+				end
 			end
-		end
-		
-		if myHero.pos:DistanceTo(target.pos) <= 3500 and Menu.ks.UseR:Value() and Ready(_R) then
-			local RDmg = getdmg("R", target, myHero) - 100
-			if RDmg >= hp then			
-				if target.pos:To2D().onScreen then 		
-					Control.CastSpell(HK_R, target) 
-				
-				elseif not target.pos:To2D().onScreen then	   
-					CastSpellMM(HK_R, target.pos, 3500)
+			
+			if myHero.pos:DistanceTo(target.pos) >= Menu.ks.Rrange:Value() and Menu.ks.UseR:Value() and Ready(_R) then
+				local count = EnemyInRange(Menu.ks.enemy:Value())
+				local RDmg = getdmg("R", target, myHero) - 100
+				if RDmg >= hp and count == 0 then			
+					if target.pos:To2D().onScreen then 		
+						Control.CastSpell(HK_R, target) 
+					
+					elseif not target.pos:To2D().onScreen then	   
+						CastSpellMM(HK_R, target.pos, 3500)
+					end
 				end
 			end
 		end
-	end
+	end	
 end	
 
 function Combo()
@@ -213,16 +272,24 @@ if target == nil then return end
 	if IsValid(target) then
 
 		if myHero:GetSpellData(_Q).level > 0 and myHero:GetSpellData(_W).level > 0 and myHero:GetSpellData(_E).level > 0 then
-			if HasBuff(myHero, "caitlynheadshotrangcheck") then return end
 			
-			if myHero.pos:DistanceTo(target.pos) <= 800 and not HasBuff(target, "caitlynyordletrapsight") and Menu.Combo.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
+			if myHero.pos:DistanceTo(target.pos) <= 800 and not HasBuff(target, "caitlynyordletrapsight") and not CheckTrap(target, 200) and Menu.Combo.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
 				local pred = GetGamsteronPrediction(target, WData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 then
 					Control.CastSpell(HK_W, pred.CastPosition)
 				end	
 			end			
 			
-			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "caitlynyordletrapinternal") and Menu.Combo.UseQ:Value() and Ready(_Q) and not Ready(_E) then
+			if myHero.pos:DistanceTo(target.pos) <= 750 and Menu.Combo.UseE:Value() and Ready(_E) then
+				local pred = GetGamsteronPrediction(target, EData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then			
+					Control.CastSpell(HK_E, pred.CastPosition)
+		
+				end
+			end
+			
+			if HasBuff(myHero, "caitlynheadshotrangcheck") then return end			
+			if myHero.pos:DistanceTo(target.pos) <= 1300 and HasBuff(target, "caitlynyordletrapinternal") and Menu.Combo.UseQ:Value() and Ready(_Q) then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then			
 					Control.CastSpell(HK_Q, pred.CastPosition)
@@ -230,15 +297,8 @@ if target == nil then return end
 				end
 			end
 
-			if myHero.pos:DistanceTo(target.pos) <= 750 and IsImmobileTarget(target) and Menu.Combo.UseE:Value() and Ready(_E) then
-				local pred = GetGamsteronPrediction(target, EData, myHero)
-				if pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then			
-					Control.CastSpell(HK_E, pred.CastPosition)
-		
-				end
-			end
 		else
-			if myHero.pos:DistanceTo(target.pos) <= 800 and not HasBuff(target, "caitlynyordletrapsight") and Menu.Combo.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
+			if myHero.pos:DistanceTo(target.pos) <= 800 and not HasBuff(target, "caitlynyordletrapsight") and not CheckTrap(target, 200) and Menu.Combo.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
 				local pred = GetGamsteronPrediction(target, WData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 then
 					Control.CastSpell(HK_W, pred.CastPosition)
