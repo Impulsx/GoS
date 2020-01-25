@@ -19,7 +19,7 @@ Data = {
         },
         Lux = {
             Changelog = "Lux Changelog Here",
-            Version = 0.05,
+            Version = 0.06,
         },
         Soraka = {
             Changelog = "Soraka Changelog Here",
@@ -107,7 +107,7 @@ Data = {
         },
          Caitlyn = {
             Changelog = "Caitlyn Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },        
     },
 }
