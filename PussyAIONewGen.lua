@@ -1,7 +1,7 @@
 if _G.PussyMain then
 	return 
 end
-
+print ("PussyAIO will load shortly")
 local osclock			= os.clock;
 local open               = io.open
 local concat             = table.concat
@@ -97,6 +97,7 @@ local function AutoUpdate()
 	local function CheckUpdate()
 		local currentData, latestData = dofile(AUTO_PATH..oldVersion), dofile(AUTO_PATH..newVersion)
 		if currentData.Loader.Version < latestData.Loader.Version then
+			print ("Pls Press 2x F6")
 			DownloadFile(SCRIPT_URL, SCRIPT_PATH, "PussyAIONewGen.lua")        
 			currentData.Loader.Version = latestData.Loader.Version
 		end
@@ -126,7 +127,7 @@ local function AutoUpdate()
 		if CheckSupported() then
 			InitializeScript()	
 		else
-			print("Champion not supported: ".. myHero.charName)
+			print("PussyAIO: Champion not supported: ".. myHero.charName)
 		end
 	end
 	
@@ -136,8 +137,26 @@ local function AutoUpdate()
 		
 end
 	
-function OnLoad()
+local isLoaded = false
+function TryLoad()
+	if Game.Timer() < 30 then return end
+	isLoaded = true	
 	_G.PussyMain = true
 	AutoUpdate()
-	
+end
+
+class "Start"
+
+function Start:__init()	
+	Callback.Add("Tick", function() self:Tick() end)	
+end
+
+function Start:Tick()
+	if not isLoaded then
+		TryLoad()
+	end		
+end
+
+function OnLoad()
+	Start()
 end
