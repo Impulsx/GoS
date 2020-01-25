@@ -1,4 +1,4 @@
-local Version = 0.16
+local Version = 0.17
 
 
     local Files = {
@@ -217,6 +217,15 @@ function PassivePercentMod(source, target, amount, damageType)
   return amount
 end
 
+local function GetBaseHealth(unit)
+    if unit.charName == "Sylas" then
+        return 504.73 + 80.27 * myHero.levelData.lvl
+    end
+    if unit.charName == "Chogath" then
+        return 574.04 + 80 * myHero.levelData.lvl
+    end	
+end
+
 local DamageLibTable = {
   ["Aatrox"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({10, 30, 50, 70, 90})[level] + ({0.6, 0.65, 0.7, 0.75, 0.8})[level] * source.totalDamage end},
@@ -336,7 +345,7 @@ local DamageLibTable = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 135, 190, 245, 300})[level] + source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 125, 175, 225, 275})[level] + 0.7 * source.ap end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({22, 34, 46, 58, 70})[level] + 0.3 * source.ap end},
-    {Slot = "R", Stage = 1, DamageType = 3, Damage = function(source, target, level) return ({300, 475, 650})[level] + 0.5 * source.ap end},
+    {Slot = "R", Stage = 1, DamageType = 3, Damage = function(source, target, level) return ({300, 475, 650})[level] + 0.5 * source.ap + 0.1 * (myHero.maxHealth - GetBaseHealth(myHero)) end},
   },
 
   ["Corki"] = {
@@ -369,7 +378,7 @@ local DamageLibTable = {
   ["Draven"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({35, 40, 45, 50, 55})[level] + (({0.65, 0.75, 0.85, 0.95, 1.05})[level] * source.bonusDamage) end},
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({75, 110, 145, 180, 215})[level] + 0.5 * source.bonusDamage end},
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({175, 275, 375})[level] + 1.1 * source.bonusDamage end},
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({175, 275, 375})[level] + ({1.1, 1.3, 1.5})[level] * source.bonusDamage end},
   },
 
   ["Ekko"] = {
@@ -539,9 +548,9 @@ local DamageLibTable = {
   },  
 
   ["Karma"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 125, 170, 215, 260})[level] + 0.4 * source.ap end},
-    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({80, 125, 170, 215, 260})[level] + ({25, 75, 125, 175})[source:GetSpellData(_R).level] + 0.7 * source.ap end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 110, 160, 210, 260})[level] + 0.9 * source.ap end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({90, 135, 180, 225, 270})[level] + 0.4 * source.ap end},
+    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({90, 135, 180, 225, 270})[level] + ({25, 75, 125, 175})[source:GetSpellData(_R).level] + 0.7 * source.ap end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 130, 180, 230, 280})[level] + 0.9 * source.ap end},
   },
 
   ["Karthus"] = {
@@ -729,7 +738,7 @@ local DamageLibTable = {
   },
 
   ["Nautilus"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 130, 180, 230, 280})[level] + 0.9 * source.ap end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 115, 160, 205, 250})[level] + 0.9 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({30, 40, 50, 60, 70})[level] + 0.4 * source.ap end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({55, 85, 115, 145, 175})[level] + 0.3 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 275, 400})[level] + 0.8 * source.ap end},
@@ -891,6 +900,13 @@ local DamageLibTable = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({40, 70, 100, 130, 160})[level] + 0.4 * source.bonusDamage end},
     {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({70, 115, 160, 205, 250})[level] + 0.7 * source.bonusDamage end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({250, 375, 500})[level] + source.bonusDamage + 0.5 * source.ap end},
+  },
+
+  ["Sett"] = {
+    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({90, 125, 160, 195, 230})[level] + 0.1 * source.bonusDamage end}, -- without expended Grit
+    {Slot = "W", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({90, 125, 160, 195, 230})[level] + 0.1 * source.bonusDamage end}, -- True Damage without expended Grit
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 80, 110, 140, 170})[level] + 0.6 * source.totalDamage end},
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({200, 300, 400})[level] + source.bonusDamage end}, -- without Target BonusHealth
   },  
 
   ["Shaco"] = {
@@ -1246,7 +1262,7 @@ local DamageLibTable = {
   },
 
   ["Ziggs"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 120, 165, 210, 255})[level] + 0.65 * source.ap end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({85, 130, 175, 220, 265})[level] + 0.65 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 105, 140, 175, 210})[level] + 0.5 * source.ap end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 75, 110, 145, 180})[level] + 0.3 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({300, 450, 600})[level] + 1.1 * source.ap end},
