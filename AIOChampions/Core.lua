@@ -152,20 +152,21 @@ function MyHeroNotReady()
 end
 
 --[[
-for i = 1, Game.MissileCount() do
-local missile = Game.Missile(i)
-if missile and missile.pos:DistanceTo(myHero.pos) < 1000 then
-print ("Width:  "..missile.missileData.width)
-print ("Speed:  "..missile.missileData.speed)
-print ("Delay:  "..missile.missileData.delay)
-print ("range:  "..missile.missileData.range)
-end
+local currSpell = myHero.activeSpell
+if currSpell and currSpell.valid and myHero.isChanneling then
+print ("Width:  "..myHero.activeSpell.width)
+print ("Speed:  "..myHero.activeSpell.speed)
+print ("Delay:  "..myHero.activeSpell.castFrame)
+print ("range:  "..myHero.activeSpell.range)
 end
 ]]
-local remaining = 30 - Game.Timer()
-print(myHero.charName .. " will load shortly")
+
+
 DelayAction(function()
 	LoadScript()
-	LoadUnits()
-end, remaining)
+	LoadUnits()	
+end, 0.1)
+
+
+
 
