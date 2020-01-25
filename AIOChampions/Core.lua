@@ -46,7 +46,7 @@ function IsValid(unit)
 end
 
 function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
+    return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and GameCanUseSpell(spell) == 0
 end
 
 function GetMode()
@@ -146,7 +146,17 @@ end
 function MyHeroNotReady()
     return myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero)
 end
-
+--[[
+for i = 1, Game.MissileCount() do
+local missile = Game.Missile(i)
+if missile and missile.pos:DistanceTo(myHero.pos) < 1000 then
+print ("Width:  "..missile.missileData.width)
+print ("Speed:  "..missile.missileData.speed)
+print ("Delay:  "..missile.missileData.delay)
+print ("range:  "..missile.missileData.range)
+end
+end
+]]
 local remaining = 30 - Game.Timer()
 print(myHero.charName .. " will load shortly")
 DelayAction(function()
