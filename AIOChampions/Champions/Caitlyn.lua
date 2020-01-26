@@ -1,5 +1,12 @@
 function GetEnemyHeroes()
-	return Enemies
+    local _EnemyHeroes = {}
+    for i = 1, Game.HeroCount() do
+        local unit = Game.Hero(i)
+        if unit.isEnemy then
+            table.insert(_EnemyHeroes, unit)
+        end
+    end
+    return _EnemyHeroes
 end
 
 local function CheckTrap(unit, range)
@@ -88,7 +95,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
 
 	--AutoW  
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})		
@@ -98,6 +105,10 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "AntiGap", name = "Antigapclose"})
 	Menu.AntiGap:MenuElement({name = " ", drop = {"WIP,,, Pls Report if is not working"}})
 	Menu.AntiGap:MenuElement({id = "UseE", name = "Use[E] Antigapclose", value = true})	
+	
+	--AutoQ 
+	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ"})		
+	Menu.AutoQ:MenuElement({id = "UseQ", name = "AutoQ on Traped Target", value = true})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -211,8 +222,11 @@ local Mode = GetMode()
 		Clear()
 		JungleClear()		
 	end	
+	if Mode ~= "Combo" then
+		AutoW()
+		AutoQ()
+	end	
 	KillSteal()
-	AutoW()
 	AutoE()
 end
 
@@ -226,6 +240,18 @@ function AutoW()
 		end
 	end
 end	
+
+function AutoQ()
+	for i, target in ipairs(GetEnemyHeroes()) do
+		if myHero.pos:DistanceTo(target.pos) <= 1300 and IsValid(target) and HasBuff(target, "caitlynyordletrapinternal") and Menu.AutoQ.UseQ:Value() and Ready(_Q) then
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then			
+				Control.CastSpell(HK_Q, pred.CastPosition)
+	
+			end
+		end		
+	end
+end
 
 function AutoE()
 	for i, target in ipairs(GetEnemyHeroes()) do
@@ -252,7 +278,7 @@ function KillSteal()
 			
 			if myHero.pos:DistanceTo(target.pos) >= Menu.ks.Rrange:Value() and Menu.ks.UseR:Value() and Ready(_R) then
 				local count = EnemyInRange(Menu.ks.enemy:Value())
-				local RDmg = getdmg("R", target, myHero) - 100
+				local RDmg = getdmg("R", target, myHero) 
 				if RDmg >= hp and count == 0 then			
 					if target.pos:To2D().onScreen then 		
 						Control.CastSpell(HK_R, target) 
