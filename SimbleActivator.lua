@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.17
+    local Version = 0.18
     
     local Files =
     {
@@ -84,24 +84,42 @@ local CorruptPotionSlot = 0;
 
 
 function GetTarget(range) 
-	local target = nil 
 	if Orb == 1 then
-		target = EOW:GetTarget(range)
-	elseif Orb == 2 then 
-		target = _G.SDK.TargetSelector:GetTarget(range)
-	elseif Orb == 3 then
-		target = GOS:GetTarget(range)
-	elseif Orb == 4 then
-		target = _G.gsoSDK.TS:GetTarget(range)		
+		if myHero.ap > myHero.totalDamage then
+			return EOW:GetTarget(range, EOW.ap_dec, myHero.pos)
+		else
+			return EOW:GetTarget(range, EOW.ad_dec, myHero.pos)
+		end
+	elseif Orb == 2 and SDK.TargetSelector then
+		if myHero.ap > myHero.totalDamage then
+			return SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL)
+		else
+			return SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL)
+		end
+	elseif _G.GOS then
+		if myHero.ap > myHero.totalDamage then
+			return GOS:GetTarget(range, "AP")
+		else
+			return GOS:GetTarget(range, "AD")
+        end
+    elseif _G.gsoSDK then
+		return _G.gsoSDK.TS:GetTarget()
 	end
-	return target 
 end
 
-
 function GetMode()
-	if Orb == 1 then
-		return intToMode[EOW.CurrentMode]
-	elseif Orb == 2 then
+    
+    if Orb == 1 then
+        if combo == 1 then
+            return 'Combo'
+        elseif harass == 2 then
+            return 'Harass'
+        elseif lastHit == 3 then
+            return 'Lasthit'
+        elseif laneClear == 4 then
+            return 'Clear'
+        end
+    elseif Orb == 2 then
 		if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
 			return "Combo"
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
@@ -113,22 +131,12 @@ function GetMode()
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
 			return "Flee"
 		end
-	elseif Orb == 4 then
-		if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
-			return "Combo"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
-			return "Harass"	
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] or _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
-			return "Clear"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] then
-			return "LastHit"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
-			return "Flee"
-		end			
-	else
-		return GOS.GetMode()
-	end
-end	
+    elseif Orb == 3 then
+        return GOS:GetMode()
+    elseif Orb == 4 then
+        return _G.gsoSDK.Orbwalker:GetMode()
+    end
+end
 
 function GetAllyHeroes() 
 	AllyHeroes = {}
@@ -204,7 +212,7 @@ local function BaseCheck()
 	for i = 1, Game.ObjectCount() do
 		local base = Game.Object(i)
 		if base.type == Obj_AI_SpawnPoint then
-			if base.isAlly and myHero.pos:DistanceTo(base.pos) >= 800 then
+			if base.isAlly and myHero.pos:DistanceTo(base.pos) < 800 then
 				return true
 			end
 		end
@@ -212,8 +220,8 @@ local function BaseCheck()
 	return false	
 end	
 
-local function MyHeroReady()
-    return myHero.dead == false and Game.IsChatOpen() == false and BaseCheck() and (ExtLibEvade == nil or ExtLibEvade.Evading == false) and IsRecalling() == false
+local function MyHeroNotReady()
+    return myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero) or BaseCheck()
 end
 
 function Activator:__init()
@@ -221,9 +229,16 @@ function Activator:__init()
 	self:OnLoad()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:OnDraw() end)
+	if _G.EOWLoaded then
+		Orb = 1
+	elseif _G.SDK and _G.SDK.Orbwalker then
+		Orb = 2
+	elseif _G.GOS then
+		Orb = 3
+	elseif _G.gsoSDK then
+		Orb = 4
+	end	
 end
-
-
 
 function Activator:LoadMenu()
     
@@ -359,12 +374,16 @@ function Activator:LoadMenu()
 	
 	self.Menu.summ.SmiteMenu:MenuElement({type = MENU, id = "AutoSmiterH", name = "Auto Smite Heroes [Combo Mode]"})	
 	self.Menu.summ.SmiteMenu.AutoSmiterH:MenuElement({id = "Enabled", name = "Smite Logic", value = 2, drop = {"AutoSmite Always", "AutoSmite KillSteal"}})
+	self.Menu.summ.SmiteMenu.AutoSmiterH:MenuElement({id = "Ammo", name = "Safe 1 Smite for Jungle", value = true})	
 end
 	
-
-
 function Activator:Tick()
-  
+if MyHeroNotReady() then return end  
+local Mode = GetMode()
+	if Mode == "Combo" then
+		self:Target()
+		self:SmiteEnemy()
+	end	
 	self:Auto()
 	self:MyHero()
     self:Ally()
@@ -372,11 +391,6 @@ function Activator:Tick()
 	self:Ignite()
 	self:Pots()
 	self:Smite()
-	local Mode = GetMode()
-	if Mode == "Combo" then
-	self:Target()
-	end
-
 end
 
 local MarkTable = {
@@ -430,134 +444,6 @@ function Activator:GetSmite(smiteSlot)
 		end
 	end
 	return returnVal;
-end
-
-
-
-function Activator:OnLoad()
-	mySmiteSlot = self:GetSmite(SUMMONER_1);
-	if mySmiteSlot == 0 then
-		mySmiteSlot = self:GetSmite(SUMMONER_2);
-	end
-end
-
-function Activator:DrawSmiteableMinion(type,minion)
-	if not type or not self.Menu.summ.SmiteMenu.SmiteMarker[type] then
-		return
-	end
-	if self.Menu.summ.SmiteMenu.SmiteMarker[type]:Value() then
-		if minion.pos2D.onScreen then
-			Draw.Circle(minion.pos,minion.boundingRadius,6,Draw.Color(0xFF00FF00));
-		end
-	end
-end
-
-function Activator:AutoSmiteMinion(type,minion)
-	if not type or not self.Menu.summ.SmiteMenu.AutoSmiter[type] then
-		return
-	end
-	if self.Menu.summ.SmiteMenu.AutoSmiter[type]:Value() then
-		if minion.pos2D.onScreen then
-			if mySmiteSlot == SUMMONER_1 then
-				Control.CastSpell(HK_SUMMONER_1,minion)
-			else
-				Control.CastSpell(HK_SUMMONER_2,minion)
-			end
-		end
-	end
-end
-
-function Activator:Smite()
-if mySmiteSlot == 0 then return end	
-	if self.Menu.summ.SmiteMenu.SmiteMarker.Enabled:Value() or self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then 
-		local SData = myHero:GetSpellData(mySmiteSlot);
-		for i = 1, Game.MinionCount() do
-			minion = Game.Minion(i);
-			if minion and minion.valid and minion.team == 300 and minion.visible and not minion.dead then
-				if minion.health <= SmiteDamage[myHero.levelData.lvl] then
-					local minionName = minion.charName;
-					if self.Menu.summ.SmiteMenu.SmiteMarker.Enabled:Value() then
-						self:DrawSmiteableMinion(MarkTable[minionName], minion);
-					end
-					if self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then
-						if mySmiteSlot > 0 then
-							if SData.level > 0 then
-								if (SData.ammo > 0) then
-									if minion.distance <= (500+myHero.boundingRadius+minion.boundingRadius) then
-										self:AutoSmiteMinion(SmiteTable[minionName], minion);
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-	end 		
-	for i, target in pairs(GetEnemyHeroes()) do
-	if target == nil then return end	
-	
-		
-	local smiteDmg = 20+8*myHero.levelData.lvl;
-	local SData = myHero:GetSpellData(mySmiteSlot);
-	local Mode = GetMode()
-	
-	if SData.name == "S5_SummonerSmiteDuel" or SData.name == "S5_SummonerSmitePlayerGanker" and Mode == "Combo" then	
-		
-		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 then
-			if SData.level > 0 then
-				if (SData.ammo > 0) then
-
-					if IsValid(target) and (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) and target.health <= smiteDmg then
-						if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
-							Control.CastSpell(HK_SUMMONER_1,target)
-							
-						end	
-						if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
-							Control.CastSpell(HK_SUMMONER_2,target)
-						end
-					end
-				end
-			end
-		end
-	
-		
-		
-
-		if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 then
-			if SData.level > 0 then
-				if (SData.ammo > 0) then
-
-					if IsValid(target) and (target.distance <= (500+myHero.boundingRadius+target.boundingRadius)) then
-						if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
-							Control.CastSpell(HK_SUMMONER_1,target)
-						end	
-						if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
-							Control.CastSpell(HK_SUMMONER_2,target)
-						end
-					end
-				end
-			end
-		end
-	end
-	end	
-end	
-
-
-
-function Activator:OnDraw()
-if myHero.alive == false then return end
-	if self.Menu.summ.SmiteMenu.Enabled:Value() and (mySmiteSlot > 0) then
-		if self.Menu.summ.SmiteMenu.AutoSmiter.DrawSTS:Value() then
-			local myKey = self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key();
-			if self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then
-				if myKey > 0 then Draw.Text("Smite On ".."["..string.char(self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key()).."]",18,myHero.pos2D.x-70,myHero.pos2D.y+70,Draw.Color(255, 30, 230, 30)) end;
-				else
-				if myKey > 0 then Draw.Text("Smite Off ".."["..string.char(self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key()).."]",18,myHero.pos2D.x-70,myHero.pos2D.y+70,Draw.Color(255, 230, 30, 30)) end;
-				end
-			end
-	
-	end
 end
 
 local CleanBuffs =
@@ -654,9 +540,162 @@ for i = ITEM_1, ITEM_6 do
 return retval
 end
 
+function Activator:OnLoad()
+	mySmiteSlot = self:GetSmite(SUMMONER_1);
+	if mySmiteSlot == 0 then
+		mySmiteSlot = self:GetSmite(SUMMONER_2);
+	end
+end
+
+function Activator:DrawSmiteableMinion(type,minion)
+	if not type or not self.Menu.summ.SmiteMenu.SmiteMarker[type] then
+		return
+	end
+	if self.Menu.summ.SmiteMenu.SmiteMarker[type]:Value() then
+		if minion.pos2D.onScreen then
+			Draw.Circle(minion.pos,minion.boundingRadius,6,Draw.Color(0xFF00FF00));
+		end
+	end
+end
+
+function Activator:AutoSmiteMinion(type,minion)
+	if not type or not self.Menu.summ.SmiteMenu.AutoSmiter[type] then
+		return
+	end
+	if self.Menu.summ.SmiteMenu.AutoSmiter[type]:Value() then
+		if minion.pos2D.onScreen then
+			if mySmiteSlot == SUMMONER_1 then
+				Control.CastSpell(HK_SUMMONER_1,minion)
+			else
+				Control.CastSpell(HK_SUMMONER_2,minion)
+			end
+		end
+	end
+end
+
+function Activator:Smite()
+if mySmiteSlot == 0 then return end	
+	if self.Menu.summ.SmiteMenu.SmiteMarker.Enabled:Value() or self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then 
+		local SData = myHero:GetSpellData(mySmiteSlot);
+		for i = 1, Game.MinionCount() do
+			minion = Game.Minion(i);
+			if minion and minion.valid and minion.team == 300 and minion.visible and not minion.dead then
+				if minion.health <= SmiteDamage[myHero.levelData.lvl] then
+					local minionName = minion.charName;
+					if self.Menu.summ.SmiteMenu.SmiteMarker.Enabled:Value() then
+						self:DrawSmiteableMinion(MarkTable[minionName], minion);
+					end
+					if self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then
+						if mySmiteSlot > 0 then
+							if SData.level > 0 then
+								if (SData.ammo > 0) then
+									if minion.distance <= (500+myHero.boundingRadius+minion.boundingRadius) then
+										self:AutoSmiteMinion(SmiteTable[minionName], minion);
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Activator:SmiteEnemy()	
+local target = GetTarget(800)
+if target == nil or mySmiteSlot == 0 then return end
+	if myHero.pos:DistanceTo(target.pos) <= (500+myHero.boundingRadius+target.boundingRadius) and IsValid(target) then	
+	local smiteDmg = 20+8*myHero.levelData.lvl;
+	local SData = myHero:GetSpellData(mySmiteSlot);
+	
+		if mySmiteSlot > 0 and SData.name == "S5_SummonerSmiteDuel" or SData.name == "S5_SummonerSmitePlayerGanker" then	
+
+			if self.Menu.summ.SmiteMenu.AutoSmiterH.Ammo:Value() then
+				
+				if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 then
+					if SData.level > 0 then
+						if (SData.ammo > 1) then
+
+							if target.health <= smiteDmg then
+								if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
+									Control.CastSpell(HK_SUMMONER_1,target)
+									
+								end	
+								if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
+									Control.CastSpell(HK_SUMMONER_2,target)
+								end
+							end
+						end
+					end
+			
+				elseif self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 then
+					if SData.level > 0 then
+						if (SData.ammo > 1) then
+
+							if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
+								Control.CastSpell(HK_SUMMONER_1,target)
+							end	
+							if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
+								Control.CastSpell(HK_SUMMONER_2,target)
+							end
+						end
+					end
+				end
+			
+			elseif not self.Menu.summ.SmiteMenu.AutoSmiterH.Ammo:Value() then
+			
+				if self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 2 then
+					if SData.level > 0 then
+						if (SData.ammo > 0) then
+
+							if target.health <= smiteDmg then
+								if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
+									Control.CastSpell(HK_SUMMONER_1,target)
+									
+								end	
+								if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
+									Control.CastSpell(HK_SUMMONER_2,target)
+								end
+							end
+						end
+					end
+			
+				elseif self.Menu.summ.SmiteMenu.AutoSmiterH.Enabled:Value() == 1 then
+					if SData.level > 0 then
+						if (SData.ammo > 0) then
+
+							if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
+								Control.CastSpell(HK_SUMMONER_1,target)
+							end	
+							if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
+								Control.CastSpell(HK_SUMMONER_2,target)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Activator:OnDraw()
+	if self.Menu.summ.SmiteMenu.Enabled:Value() and (mySmiteSlot > 0) then
+		if self.Menu.summ.SmiteMenu.AutoSmiter.DrawSTS:Value() then
+			local myKey = self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key();
+			if self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Value() then
+				if myKey > 0 then Draw.Text("Smite On ".."["..string.char(self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key()).."]",18,myHero.pos2D.x-70,myHero.pos2D.y+70,Draw.Color(255, 30, 230, 30)) end;
+				else
+				if myKey > 0 then Draw.Text("Smite Off ".."["..string.char(self.Menu.summ.SmiteMenu.AutoSmiter.Enabled:Key()).."]",18,myHero.pos2D.x-70,myHero.pos2D.y+70,Draw.Color(255, 230, 30, 30)) end;
+				end
+			end
+	
+	end
+end
+
 function Activator:Auto()
-if myHero.dead then return end
-for i, target in pairs(GetEnemyHeroes()) do	
+local target = GetTarget(1500)
+if target == nil then return end	
 local Omen, Glory = GetInventorySlotItem(3143), GetInventorySlotItem(3800)   	
 	if IsValid(target) then		
 		if Omen and self.Menu.Dmg.Omen:Value() and self:EnemiesAround(myHero, 500) >= self.Menu.Dmg.Ocount:Value() and myHero.pos:DistanceTo(target.pos) <= 450 then
@@ -668,13 +707,10 @@ local Omen, Glory = GetInventorySlotItem(3143), GetInventorySlotItem(3800)
         end
 	end
 end
-end	
-
 
 -- MyHero Items ---------------
 
 function Activator:MyHero()
-if myHero.dead then return end
 local Zo, St, Se, Ed, Mi, Qu, Mik, Iro, Re = GetInventorySlotItem(3157), GetInventorySlotItem(2420), GetInventorySlotItem(3040), GetInventorySlotItem(3814), GetInventorySlotItem(3139), GetInventorySlotItem(3140), GetInventorySlotItem(3222), GetInventorySlotItem(3190), GetInventorySlotItem(3107)   
 	if self:EnemiesAround(myHero.pos, 1000) then
         
@@ -722,7 +758,6 @@ local Zo, St, Se, Ed, Mi, Qu, Mik, Iro, Re = GetInventorySlotItem(3157), GetInve
 end
 
 function Activator:QSS()
-    if myHero.dead then return end
     local hasBuff = HasBuff(myHero, "zedrdeathmark")
     local S, Z = GetInventorySlotItem(2420), GetInventorySlotItem(3157)
     if self.Menu.ZS.self.QSS.UseSZ:Value() and hasBuff then
@@ -738,7 +773,6 @@ end
 -- Ally Items ---------------
 
 function Activator:Ally()
-if myHero.dead then return end
 local Mik, Iro, Re = GetInventorySlotItem(3222), GetInventorySlotItem(3190), GetInventorySlotItem(3107)   
 	
 	for i, ally in pairs(GetAllyHeroes()) do
@@ -768,8 +802,8 @@ end
 -- Target Items -----------------------------
 
 function Activator:Target()
-if myHero.dead then return end
-for i, target in pairs(GetEnemyHeroes()) do	
+local target = GetTarget(1500)
+if target == nil then return end
 local Tia, Rave, Tita, Blade, Bilg, Glp, Gun, Proto, Omen, Glory, Twin, Spell = GetInventorySlotItem(3077), GetInventorySlotItem(3074), GetInventorySlotItem(3748), GetInventorySlotItem(3153), GetInventorySlotItem(3144), GetInventorySlotItem(3030), GetInventorySlotItem(3146), GetInventorySlotItem(3152), GetInventorySlotItem(3143), GetInventorySlotItem(3800), GetInventorySlotItem(3905), GetInventorySlotItem(3907)   
 	if IsValid(target) then
         
@@ -822,11 +856,6 @@ local Tia, Rave, Tita, Blade, Bilg, Glp, Gun, Proto, Omen, Glory, Twin, Spell = 
         end		
     end
 end
-end
-
-
-
-
 
 -- Potions ---------------------
 
@@ -862,7 +891,7 @@ if (myPotTicks + 1000 < GetTickCount()) and self.Menu.Healing.Enabled:Value() th
 			end
 		end
 	end	
-	if (currentlyDrinkingPotion == false) and myHero.health/myHero.maxHealth <= self.Menu.Healing.UsePotsPercent:Value()/100 and MyHeroReady() then
+	if (currentlyDrinkingPotion == false) and myHero.health/myHero.maxHealth <= self.Menu.Healing.UsePotsPercent:Value()/100 then
 		if HealthPotionSlot and self.Menu.Healing.UsePots:Value() then
 			Control.CastSpell(ItemHotKey[HealthPotionSlot])
 		end
@@ -882,8 +911,8 @@ end
 --Summoners-------------------------
 
 function Activator:Summoner()
-if myHero.dead then return end
-for i, target in pairs(GetEnemyHeroes()) do
+local target = GetTarget(1500)
+if target == nil then return end
     local MyHp = myHero.health/myHero.maxHealth
 
     
@@ -933,12 +962,11 @@ for i, target in pairs(GetEnemyHeroes()) do
             end
         end
 	end
-end
 end	
 		
 function Activator:Ignite()		
-if myHero.dead then return end
-for i, target in pairs(GetEnemyHeroes()) do	
+local target = GetTarget(1500)
+if target == nil then return end
 	if IsValid(target) then	
 		local TargetHp = target.health/target.maxHealth
         if self.Menu.summ.ign.ST:Value() == 1 then
@@ -961,7 +989,6 @@ for i, target in pairs(GetEnemyHeroes()) do
         end		
 	end
 end	
-end
 	
 function OnLoad()
 	Activator()
