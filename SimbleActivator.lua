@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.18
+    local Version = 0.19
     
     local Files =
     {
@@ -208,20 +208,8 @@ local function IsRecalling()
 	return false
 end
 
-local function BaseCheck()
-	for i = 1, Game.ObjectCount() do
-		local base = Game.Object(i)
-		if base.type == Obj_AI_SpawnPoint then
-			if base.isAlly and myHero.pos:DistanceTo(base.pos) < 800 then
-				return true
-			end
-		end
-	end	
-	return false	
-end	
-
 local function MyHeroNotReady()
-    return myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero) or BaseCheck()
+    return myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero) 
 end
 
 function Activator:__init()
@@ -773,6 +761,8 @@ end
 -- Ally Items ---------------
 
 function Activator:Ally()
+local target = GetTarget(1500)
+if target == nil then return end
 local Mik, Iro, Re = GetInventorySlotItem(3222), GetInventorySlotItem(3190), GetInventorySlotItem(3107)   
 	
 	for i, ally in pairs(GetAllyHeroes()) do
