@@ -8,9 +8,9 @@ end
 function AutoLvL:LoadMenu()	
 	self.Menu = MenuElement({type = MENU, id = "AutoLvL", name = "PussyAutoLevel"})
 	
-	self.Menu:MenuElement({type = MENU, id = "lvl", name = "SimbleAutoLevel"})
+	self.Menu:MenuElement({type = MENU, id = "lvl", name = "Simble AutoLevelSpells"})
 	self.Menu.lvl:MenuElement({id = "on", name = "Use AutoLevel [Start LvL 2]", value = true})	
-	self.Menu.lvl:MenuElement({id = "start", name = "Order", value = 1, drop = {"QWE", "WEQ", "EQW"}})
+	self.Menu.lvl:MenuElement({id = "start", name = "Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
 			
 end
 
@@ -36,6 +36,12 @@ function AutoLvL:AutoLevel()
 				skillingOrder = {'W','E','Q','W','W','R','W','E','W','E','R','E','E','Q','Q','R','Q','Q'}
 			elseif mode == 3 then
 				skillingOrder = {'E','Q','W','E','E','R','E','Q','E','Q','R','Q','Q','W','W','R','W','W'}
+			elseif mode == 4 then
+				skillingOrder = {'E','W','Q','E','E','R','E','W','E','W','R','W','W','Q','Q','R','Q','Q'}
+			elseif mode == 5 then
+				skillingOrder = {'W','Q','E','W','W','R','W','Q','W','Q','R','Q','Q','E','E','R','E','E'}
+			elseif mode == 6 then
+				skillingOrder = {'Q','E','W','Q','Q','R','Q','E','Q','E','R','E','E','W','W','R','W','W'}				
 			end	
 
 			local QL, WL, EL, RL = 0, 0, 0, myHero.charName == "Karma" and 1 or 0
