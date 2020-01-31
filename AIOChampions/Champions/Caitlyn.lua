@@ -92,10 +92,23 @@ function CastSpellMM(spell,pos,range,delay)
 	end
 end
 
+local function IsUnderTurret(unit)
+    for i = 1, Game.TurretCount() do
+        local turret = Game.Turret(i)
+        local range = (turret.boundingRadius + 750 + unit.boundingRadius / 2)
+        if turret.isEnemy and not turret.dead then
+            if turret.pos:DistanceTo(unit.pos) < range then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
 
 	--AutoW  
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})		
@@ -136,6 +149,7 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
 	Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	Menu.ks:MenuElement({id = "UseR", name = "[R]", value = true})
+	Menu.ks:MenuElement({id = "Turret", name = "Dont Use Ult under Enemy Tower", value = true})	
 	Menu.ks:MenuElement({id = "Rrange", name = "Cast R if range greater than -->", value = 1200, min = 0, max = 3500})
 	Menu.ks:MenuElement({id = "enemy", name = "Cast R if no Enemy in range -->", value = 1200, min = 0, max = 3500})	
 
@@ -262,7 +276,7 @@ function AutoE()
 		end
 	end
 end
-       
+        
 function KillSteal()	
 	for i, target in ipairs(GetEnemyHeroes()) do	
 		if myHero.pos:DistanceTo(target.pos) <= 3500 and IsValid(target) then	
@@ -280,12 +294,25 @@ function KillSteal()
 				local count = EnemyInRange(Menu.ks.enemy:Value())
 				local RDmg = getdmg("R", target, myHero) 
 				if RDmg >= hp and count == 0 then			
-					if target.pos:To2D().onScreen then 		
-						Control.CastSpell(HK_R, target) 
-					
-					elseif not target.pos:To2D().onScreen then	   
-						CastSpellMM(HK_R, target.pos, 3500)
-					end
+					if Menu.ks.Turret:Value() then	
+						if not IsUnderTurret(myHero) then	
+							if target.pos:To2D().onScreen then 		
+								Control.CastSpell(HK_R, target) 
+							
+							elseif not target.pos:To2D().onScreen then	   
+								CastSpellMM(HK_R, target.pos, 3500)
+							end
+						end	
+						
+					else
+	
+						if target.pos:To2D().onScreen then 		
+							Control.CastSpell(HK_R, target) 
+						
+						elseif not target.pos:To2D().onScreen then	   
+							CastSpellMM(HK_R, target.pos, 3500)
+						end					
+					end	
 				end
 			end
 		end
