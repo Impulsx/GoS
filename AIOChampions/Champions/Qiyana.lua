@@ -13,7 +13,7 @@ function CheckWall(from, to, distance)
     local pos2 = pos1 + (to - from):Normalized() * (distance - 50)
     local point1 = Point(pos1.x, pos1.z)
     local point2 = Point(pos2.x, pos2.z)
-    if MapPosition:intersectsWall(LineSegment(point1, point2)) or (MapPosition:inWall(point1) and MapPosition:inWall(point2)) then
+    if MapPosition:intersectsWall(LineSegment(point1, point2)) then
         return true
     end
     return false
@@ -93,12 +93,13 @@ local function FindBestQiyanaWPos(mode)
     return nil
 end
 
+require "2DGeometry"
 require "MapPositionGOS"
 
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
