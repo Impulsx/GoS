@@ -108,7 +108,8 @@ local function AutoUpdate()
 		
 				
 		--Load the active module
-		dofile(AUTO_PATH.."dynamicScript"..dotlua) 
+		dofile(AUTO_PATH.."dynamicScript"..dotlua)
+		
     end	    
 	
 	local function CheckUpdate()
@@ -174,6 +175,15 @@ function Start:Tick()
 	end		
 end
 
+if not FileExist(AUTO_PATH.."LVLScript"..dotlua) then
+	print("Level Script installed Press 2x F6")
+	DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/LVLScript.lua", AUTO_PATH.."LVLScript"..dotlua, function() end)
+	while not FileExist(AUTO_PATH.."LVLScript"..dotlua) do end
+end
+
 function OnLoad()
 	Start()
+	if FileExist(AUTO_PATH.."LVLScript"..dotlua) then
+		dofile(AUTO_PATH.."LVLScript"..dotlua)
+	end	
 end
