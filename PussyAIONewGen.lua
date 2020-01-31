@@ -2,6 +2,23 @@ if _G.PussyMain then
 	return 
 end
 print ("PussyAIO will load shortly")
+
+if not FileExist(COMMON_PATH .. "PussyDamageLib.lua") then
+	print("PussyDamageLib. installed Press 2x F6")
+	DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/PussyDamageLib.lua", COMMON_PATH .. "PussyDamageLib.lua", function() end)
+	while not FileExist(COMMON_PATH .. "PussyDamageLib.lua") do end
+end
+    
+require('PussyDamageLib')
+
+if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+	print("GsoPred. installed Press 2x F6")
+	DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-EXT/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
+	while not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") do end
+end
+    
+require('GamsteronPrediction')
+
 local osclock			= os.clock;
 local open               = io.open
 local concat             = table.concat
