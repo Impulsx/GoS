@@ -210,13 +210,13 @@ function CalculateCollisionTime(startPos, endPos, unitPos, startTime, speed, del
 end
 
 require "MapPositionGOS"
-
+require "2DGeometry"
 function LoadScript()
 	OnProcessSpell() 
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"WIP Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"WIP Version 0.02"}})	
 	
 	Menu:MenuElement({type = MENU, id = "RSet", name = "AutoR+E Incomming CC Spells"})	
 	Menu.RSet:MenuElement({id = "UseR", name = "Use AutoR + E Stun", value = true})	
