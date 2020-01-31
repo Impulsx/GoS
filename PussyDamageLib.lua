@@ -1,4 +1,4 @@
-local Version = 0.17
+local Version = 0.18
 
 
     local Files = {
@@ -50,7 +50,7 @@ local DamageReductionTable = {
   ["Braum"] = {buff = "BraumShieldRaise", amount = function(target) return 1 - ({0.3, 0.325, 0.35, 0.375, 0.4})[target:GetSpellData(_E).level] end},
   ["Urgot"] = {buff = "urgotswapdef", amount = function(target) return 1 - ({0.3, 0.4, 0.5})[target:GetSpellData(_R).level] end},
   ["Alistar"] = {buff = "Ferocious Howl", amount = function(target) return ({0.55, 0.65, 0.75})[target:GetSpellData(_R).level] end},
-  ["Amumu"] = {buff = "Tantrum", amount = function(target) return ({2, 4, 6, 8, 10})[target:GetSpellData(_E).level] + 0.03*target.bonusMagicResist + 0.03*target.bonusArmor end, damageType = 1},
+  --["Amumu"] = {buff = "Tantrum", amount = function(target) return ({2, 4, 6, 8, 10})[target:GetSpellData(_E).level] + 0.03*target.bonusMagicResist + 0.03*target.bonusArmor end, damageType = 1},
   ["Galio"] = {buff = "GalioIdolOfDurand", amount = function(target) return 0.5 end},
   ["Garen"] = {buff = "GarenW", amount = function(target) return 0.3 end},
   ["Gragas"] = {buff = "GragasWSelf", amount = function(target) return ({0.1, 0.12, 0.14, 0.16, 0.18})[target:GetSpellData(_W).level] + 0.04 * target.ap / 100 end},
