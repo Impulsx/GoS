@@ -1,4 +1,4 @@
-local Version = 0.18
+local Version = 0.19
 
 
     local Files = {
@@ -543,8 +543,9 @@ local DamageLibTable = {
   },
   
   ["Kaisa"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({45, 61, 77, 94, 110})[level] + 0.4 * source.ap + 0.35 * source.bonusDamage end},
-    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({20, 45, 70, 95, 120})[level] + 1.5 * source.totalDamage + 0.6 * source.ap end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({45, 61, 77, 94, 110})[level] + 0.4 * source.ap + 0.35 * source.bonusDamage end},	
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({20, 45, 70, 95, 120})[level] + 1.5 * source.totalDamage + 0.6 * source.ap end},
+    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return 0.025 * source.ap + ((target.maxHealth - target.health) / 100 * 15) end},	
   },  
 
   ["Karma"] = {
