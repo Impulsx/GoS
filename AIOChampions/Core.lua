@@ -133,77 +133,7 @@ end
 function MyHeroNotReady()
     return myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero)
 end
---[[
-function AutoLevel()
-	if not self.levelUP then
-		local actualLevel = myHero.levelData.lvl
-		local levelPoints = myHero.levelData.lvlPts
 
-		if actualLevel == 18 and levelPoints == 0 then return end
-
-		if levelPoints > 0 then
-			local mode = self.menu.al.mo:Value() == 1 and "mostUsed" or "highestRate"
-
-			local skillingOrder = self.autoLevelPresets[mode]
-			local QL, WL, EL, RL = 0, 0, 0, myHero.charName == "Karma" and 1 or 0
-			local Delay = self.menu.al.wt:Value()
-			--Check which level the spell should have
-			for i = 1, actualLevel do
-				if skillingOrder[i] == "Q" then 		--Q
-					QL = QL + 1
-				elseif skillingOrder[i] == "W" then		--W
-					WL = WL + 1
-				elseif skillingOrder[i] == "E" then 	--E
-					EL = EL + 1
-				elseif skillingOrder[i] == "R" then		--R
-					RL = RL + 1
-				end
-			end
-
-			local diffR = myHero:GetSpellData(_R).level - RL < 0
-			local lowest = 99
-			local spell
-			local lowHK_Q = myHero:GetSpellData(_Q).level - QL
-			local lowHK_W = myHero:GetSpellData(_W).level - WL
-			local lowHK_E = myHero:GetSpellData(_E).level - EL
-
-			if lowHK_Q < lowest then
-				lowest = lowHK_Q
-				spell = HK_Q
-			end
-
-			if lowHK_W < lowest then
-				lowest = lowHK_W
-				spell = HK_W
-			end
-
-			if lowHK_E < lowest then
-				lowest = lowHK_E
-				spell = HK_E
-			end
-
-			if diffR then
-				spell = HK_R
-			end
-
-			if spell then
-				self.levelUP = true
-
-				DelayAction(function()
-					Control.KeyDown(HK_LUS)
-					Control.KeyDown(spell)
-					Control.KeyUp(spell)
-					Control.KeyUp(HK_LUS)
-
-					DelayAction(function()
-						self.levelUP = false
-					end, .25)
-				end, Delay)
-			end
-		end
-	end
-end
-]]
 --[[
 local currSpell = myHero.activeSpell
 if currSpell and currSpell.valid and myHero.isChanneling then
@@ -213,14 +143,10 @@ print ("Delay:  "..myHero.activeSpell.castFrame)
 print ("range:  "..myHero.activeSpell.range)
 end
 ]]
-
-
+	
 DelayAction(function()
-	LoadScript()
-	LoadUnits()
-	--Menu:MenuElement({type = MENU, id = "lvl", name = "AutoLevel"})
-	--Menu.lvl:MenuElement({id = "on", name = "Use AutoLevel", value = true})	
-	--Menu.lvl:MenuElement({id = "start", name = "Order", value = 1, drop = {"QWE", "WEQ", "EQW"}})	
+	LoadScript()	
+	LoadUnits()	
 end, 0.1)
 
 
