@@ -55,10 +55,14 @@ local function GetBuffData(unit, buffname)
   return {type = 0, name = "", startTime = 0, expireTime = 0, duration = 0, stacks = 0, count = 0}
 end
 
+local function EnemyHeroes()
+	return Enemies
+end
+
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
