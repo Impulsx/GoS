@@ -112,7 +112,11 @@ Data = {
           Kaisa = {
             Changelog = "Kaisa Changelog Here",
             Version = 0.02,
-        },       
+        },
+         Chogath = {
+            Changelog = "Chogath Changelog Here",
+            Version = 0.01,
+        },        
     },
 }
 
