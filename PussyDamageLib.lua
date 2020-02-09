@@ -1,4 +1,4 @@
-local Version = 0.21
+local Version = 0.22
 
 
     local Files = {
@@ -38,7 +38,7 @@ local Version = 0.21
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
             print("New PussyDmgLib Version Press 2x F6")
         else
-            print("PussyDmgLib loaded")
+            print("PussyDmgLib loaded 0.22")
         end	
 	end
 	
@@ -466,6 +466,7 @@ local DamageLibTable = {
     {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({85, 120, 155, 190, 225})[level] + ({0.4, 0.7, 1.0, 1.3, 1.6})[level] * source.bonusDamage end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 110, 160, 210, 260})[level] + 0.6 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({250, 400, 550})[level] + 1.5 * source.bonusDamage end},
+    {Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({200, 320, 440})[level] + 1.2 * source.bonusDamage end},	
   },
 
   ["Hecarim"] = {
