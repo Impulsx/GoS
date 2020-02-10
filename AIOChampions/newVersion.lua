@@ -91,7 +91,7 @@ Data = {
         },
          Ekko = {
             Changelog = "Ekko Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         }, 
          LeeSin = {
             Changelog = "LeeSin Changelog Here",
