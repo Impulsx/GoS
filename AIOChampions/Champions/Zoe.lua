@@ -216,7 +216,7 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"WIP Version 0.03"}})	
+	Menu:MenuElement({name = " ", drop = {"WIP Version 0.04"}})	
 	
 	Menu:MenuElement({type = MENU, id = "RSet", name = "AutoR+E Incomming CC Spells"})	
 	Menu.RSet:MenuElement({id = "UseR", name = "Use AutoR + E Stun", value = true})	
@@ -331,7 +331,7 @@ function LoadScript()
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.5, Radius = 250, Range = 800, Speed = 2000, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.5, Radius = 250, Range = 800, Speed = 2000, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
 	}	
   	                                           
 	if _G.EOWLoaded then
