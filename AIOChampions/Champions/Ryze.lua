@@ -24,7 +24,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})	
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -279,11 +279,8 @@ function Clear()
 				Control.CastSpell(HK_E,minion)
 			end			
 			
-			if myHero.pos:DistanceTo(minion.pos) <= 1000 and IsValid(minion) and Menu.Clear.UseQ:Value() and Ready(_Q) and HasBuff(minion, "RyzeE") then
-			local pred = GetGamsteronPrediction(minion, QData, myHero)	
-				if pred.Hitchance >= 1 then			
-					Control.CastSpell(HK_Q, pred.CastPosition)
-				end
+			if myHero.pos:DistanceTo(minion.pos) <= 1000 and IsValid(minion) and Menu.Clear.UseQ:Value() and Ready(_Q) and HasBuff(minion, "RyzeE") then			
+				Control.CastSpell(HK_Q, minion.pos)
 			end
 		end
 	end
