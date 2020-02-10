@@ -52,18 +52,19 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO" .. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})		
-	Menu.Combo:MenuElement({type = MENU, id = "AutoUlt", name = "Ultimate Settings [WIP]"})
+	Menu.Combo:MenuElement({type = MENU, id = "AutoUlt", name = "Ultimate Settings"})
 	Menu.Combo.AutoUlt:MenuElement({name = " ", drop = {"Can cause FPS drops"}})
 	Menu.Combo.AutoUlt:MenuElement({id = "UseR", name = "UseR in Combo", value = false})	
-	Menu.Combo.AutoUlt:MenuElement({id = "Enabled", name = "UseR X Enemies", value = false})
+	Menu.Combo.AutoUlt:MenuElement({id = "hitX", name = "UseR Hit X Enemies", value = true})
 	Menu.Combo.AutoUlt:MenuElement({id = "hit", name = "if Can Hit X Enemies", value = 3, min = 1, max = 5, identifier = "Enemy/s"})
+	Menu.Combo.AutoUlt:MenuElement({id = "killX", name = "UseR Kill X Enemies", value = true})	
 	Menu.Combo.AutoUlt:MenuElement({id = "killable", name = "if Can Kill X Enemies", value = 2, min = 1, max = 5, identifier = "Enemy/s"})	
 	
 	--HarassMenu
@@ -251,17 +252,17 @@ if target == nil then return end
 		end
 	end	
 end	
-	 
+ 	 
 function AutoUlt()
 	if Menu.Combo.AutoUlt.Enabled:Value() then	
 		for i, twin in pairs(GetTwin())	do	
-			if twin and Ready(_R) then
+			if twin and Ready(_R) and Menu.Combo.AutoUlt.hitX:Value() then
 				if EnemiesNear(twin.pos,400) >= Menu.Combo.AutoUlt.hit:Value() then
 					Control.CastSpell(HK_R)
 				end
 			end
 	
-			if twin and Ready(_R) then		  
+			if twin and Ready(_R) and Menu.Combo.AutoUlt.killX:Value() then		  
 				if KillEnemiesNearTwin(twin.pos,400) >= Menu.Combo.AutoUlt.killable:Value() then
 					Control.CastSpell(HK_R)
 				end
