@@ -1,4 +1,4 @@
-function GetEnemyHeroes()
+local function GetEnemyHeroes()
     local _EnemyHeroes = {}
     for i = 1, Game.HeroCount() do
         local unit = Game.Hero(i)
@@ -19,7 +19,7 @@ local function CheckTrap(unit, range)
 	return false
 end
 
-function EnemyInRange(range)
+local function EnemyInRange(range)
 	local count = 0
 	for i, target in ipairs(GetEnemyHeroes()) do
 		if target.pos:DistanceTo(myHero.pos) < range and IsValid(target) then 
@@ -29,7 +29,7 @@ function EnemyInRange(range)
 	return count
 end
 
-function IsImmobileTarget(unit)
+local function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
 		if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.name == 10 ) and buff.count > 0 then
@@ -39,7 +39,7 @@ function IsImmobileTarget(unit)
 	return false	
 end
 
-function HasBuff(unit, buffname)
+local function HasBuff(unit, buffname)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
 		if buff.name == buffname and buff.count > 0 then 
@@ -49,7 +49,7 @@ function HasBuff(unit, buffname)
 	return false
 end
 
-function GetMinionCount(range, pos)
+local function GetMinionCount(range, pos)
     local pos = pos.pos
 	local count = 0
 	for i = 1,Game.MinionCount() do
@@ -62,7 +62,7 @@ function GetMinionCount(range, pos)
 	return count
 end	
 
-function CastSpellMM(spell,pos,range,delay)
+local function CastSpellMM(spell,pos,range,delay)
 	local range = range or math.huge
 	local delay = delay or 250
 	local ticker = GetTickCount()
@@ -108,7 +108,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})	
 
 	--AutoW  
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})		
@@ -116,7 +116,6 @@ function LoadScript()
 	
 	--AutoE  
 	Menu:MenuElement({type = MENU, id = "AntiGap", name = "Antigapclose"})
-	Menu.AntiGap:MenuElement({name = " ", drop = {"WIP,,, Pls Report if is not working"}})
 	Menu.AntiGap:MenuElement({id = "UseE", name = "Use[E] Antigapclose", value = true})	
 	
 	--AutoQ 
@@ -165,7 +164,9 @@ function LoadScript()
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
-	Menu.Drawing:MenuElement({id = "DrawKill", name = "Draw Ult Kill on Minimap", value = true})	
+	Menu.Drawing:MenuElement({id = "DrawKill", name = "Draw Ult Kill on Minimap", value = true})
+
+	
 	
 	QData =
 	{
@@ -174,12 +175,12 @@ function LoadScript()
 
 	WData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.75, Radius = 0, Range = 800, Speed = 1450, Collision = false
+	Type = _G.SPELLTYPE_CIRCLE, Delay = 1.9, Radius = 70, Range = 800, Speed = 1450, Collision = false
 	}
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.7, Radius = 70, Range = 750, Speed = 1600, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 750, Speed = 1600, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
 	}
   	                                           
 	if _G.EOWLoaded then
@@ -221,7 +222,7 @@ function LoadScript()
 				end
 			end	
 		end	
-	end)		
+	end)	
 end
 
 
@@ -242,14 +243,22 @@ local Mode = GetMode()
 	end	
 	KillSteal()
 	AutoE()
+	local currSpell = myHero.activeSpell
+	if currSpell and currSpell.valid then
+		_G.SDK.Orbwalker:SetAttack(false)
+	else	
+		_G.SDK.Orbwalker:SetAttack(true)
+	end	
+	
 end
 
 function AutoW()
 	for i, target in ipairs(GetEnemyHeroes()) do
-		if myHero.pos:DistanceTo(target.pos) <= 800 and IsValid(target) and IsImmobileTarget(target) and not HasBuff(target, "caitlynyordletrapsight") and not CheckTrap(target, 200) and Menu.AutoW.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
+		if myHero.pos:DistanceTo(target.pos) <= 800 and IsValid(target) and IsImmobileTarget(target) and not HasBuff(target, "caitlynyordletrapsight") and Menu.AutoW.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
 			local pred = GetGamsteronPrediction(target, WData, myHero)
 			if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 then
-				Control.CastSpell(HK_W, pred.CastPosition)
+				if CheckTrap(target, 200) then return end
+				Control.CastSpell(HK_W, pred.CastPosition)	
 			end	
 		end
 	end
@@ -279,13 +288,11 @@ end
         
 function KillSteal()	
 	for i, target in ipairs(GetEnemyHeroes()) do	
-		if myHero.pos:DistanceTo(target.pos) <= 3500 and IsValid(target) then	
-		local hp = target.health
-			
+		if myHero.pos:DistanceTo(target.pos) <= 3500 and IsValid(target) then		
 			if myHero.pos:DistanceTo(target.pos) <= 1300 and Menu.ks.UseQ:Value() and Ready(_Q) then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
-				local QDmg = getdmg("Q", target, myHero)
-				if QDmg >= hp and pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
+				local QDmg = getdmg("Q", target, myHero) 
+				if QDmg >= target.health and pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then 
 					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
 			end
@@ -293,7 +300,7 @@ function KillSteal()
 			if myHero.pos:DistanceTo(target.pos) >= Menu.ks.Rrange:Value() and Menu.ks.UseR:Value() and Ready(_R) then
 				local count = EnemyInRange(Menu.ks.enemy:Value())
 				local RDmg = getdmg("R", target, myHero) 
-				if RDmg >= hp and count == 0 then			
+				if RDmg >= target.health and count == 0 then			
 					if Menu.ks.Turret:Value() then	
 						if not IsUnderTurret(myHero) then	
 							if target.pos:To2D().onScreen then 		
@@ -326,9 +333,10 @@ if target == nil then return end
 
 		if myHero:GetSpellData(_Q).level > 0 and myHero:GetSpellData(_W).level > 0 and myHero:GetSpellData(_E).level > 0 then
 			
-			if myHero.pos:DistanceTo(target.pos) <= 800 and not HasBuff(target, "caitlynyordletrapsight") and not CheckTrap(target, 200) and Menu.Combo.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
+			if myHero.pos:DistanceTo(target.pos) <= 800 and not HasBuff(target, "caitlynyordletrapsight") and Menu.Combo.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
 				local pred = GetGamsteronPrediction(target, WData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 then
+				if CheckTrap(target, 200) then return end
 					Control.CastSpell(HK_W, pred.CastPosition)
 				end	
 			end			
@@ -351,9 +359,10 @@ if target == nil then return end
 			end
 
 		else
-			if myHero.pos:DistanceTo(target.pos) <= 800 and not HasBuff(target, "caitlynyordletrapsight") and not CheckTrap(target, 200) and Menu.Combo.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
+			if myHero.pos:DistanceTo(target.pos) <= 800 and not HasBuff(target, "caitlynyordletrapsight") and Menu.Combo.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
 				local pred = GetGamsteronPrediction(target, WData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredW:Value() + 1 then
+				if CheckTrap(target, 200) then return end
 					Control.CastSpell(HK_W, pred.CastPosition)
 				end	
 			end			
