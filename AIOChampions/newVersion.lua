@@ -116,6 +116,10 @@ Data = {
          Chogath = {
             Changelog = "Chogath Changelog Here",
             Version = 0.02,
+        },
+         Kalista = {
+            Changelog = "Kalista Changelog Here",
+            Version = 0.01,
         },        
     },
 }
