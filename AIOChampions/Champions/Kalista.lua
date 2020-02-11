@@ -16,7 +16,7 @@ local function HasBuff(unit, buffname)
 	return false
 end
 
-function GetBuffData(unit, buffname)
+local function GetBuffData(unit, buffname)
   for i = 0, unit.buffCount do
     local buff = unit:GetBuff(i)
     if buff.name == buffname and buff.count > 0 then 
@@ -26,18 +26,17 @@ function GetBuffData(unit, buffname)
   return {type = 0, name = "", startTime = 0, expireTime = 0, duration = 0, stacks = 0, count = 0}
 end
 
+local ChampTable = {["Blitzcrank"] = {charName = "Blitzcrank"}, ["Skarner"] = {charName = "Skarner"}, ["TahmKench"] = {charName = "TahmKench"}, ["Sion"] = {charName = "Sion"}}
+local BoundAlly = nil
+
 function LoadScript() 
-	HPred()
-	ChampTable = {["Blitzcrank"] = {charName = "Blitzcrank"}, ["Skarner"] = {charName = "Skarner"}, ["TahmKench"] = {charName = "TahmKench"}, ["Sion"] = {charName = "Sion"}}
-	BoundAlly = nil
-	stacks = 0
-	
+	HPred()	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	--AutoQ	
-	Menu:MenuElement({type = MENU, id = "AutoQ2", name = "AutoQ"}) ----
-	Menu.AutoQ2:MenuElement({id = "UseQ", name = "[Q]Transferring Stacks Minion to Enemy", value = true})	
+	Menu:MenuElement({type = MENU, id = "AutoQ2", name = "AutoQ"})
+	Menu.AutoQ2:MenuElement({id = "UseQ", name = "[Q]Transferring Minion-Stacks to Enemy", value = true})	
 
 	--AutoR 
 	Menu:MenuElement({type = MENU, id = "AutoR", name = "AutoR"})
@@ -47,14 +46,12 @@ function LoadScript()
 	--AutoE
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})
 	Menu.AutoE:MenuElement({id = "E", name = "ToggleKey[AutoE LastHit Minions]", key = 84, toggle = true})	
-	Menu.AutoE:MenuElement({id = "UseE", name = "Auto[E]if Enemy leave Range", value = true})
-	Menu.AutoE:MenuElement({id = "UseEM", name = "min[E]Stacks leaved Enemy", value = 7, min = 1, max = 20, step = 1})	
+	Menu.AutoE:MenuElement({id = "UseE", name = "Panic[E] if duration runs out", value = true})
+	Menu.AutoE:MenuElement({id = "UseEM", name = "min sec before Panic[E]", value = 0.9, min = 0.1, max = 4.0, step = 0.1, identifier = "sec"})	
 		
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
-	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
-	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
-	Menu.Combo:MenuElement({id = "UseEM", name = "min[E]Stacks", value = 10, min = 1, max = 20, step = 1})	
+	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})				
   
 	--LaneClear Menu
 	Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear"})			
@@ -67,7 +64,7 @@ function LoadScript()
 	Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
  
 	--KillSteal
-	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"]})
+	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
 	Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	Menu.ks:MenuElement({id = "UseE", name = "[E]", value = true})				
 
@@ -77,19 +74,28 @@ function LoadScript()
 
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
-	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
-	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
+	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})	
+	Menu.Drawing:MenuElement({type = MENU, id = "XY", name = "TextPos AutoE"})	
+	Menu.Drawing.XY:MenuElement({id = "x", name = "Pos: [X]", value = 0, min = 0, max = 1500, step = 10})
+	Menu.Drawing.XY:MenuElement({id = "y", name = "Pos: [Y]", value = 0, min = 0, max = 860, step = 10})
+	Menu.Drawing:MenuElement({type = MENU, id = "HP", name = "TextPos Hp after E"})	
+	Menu.Drawing.HP:MenuElement({name = " ", drop = {"After[E] HP / Current HP"}})	
+	Menu.Drawing.HP:MenuElement({id = "Stacks", name = "Draw HP Text", value = true})		
+	Menu.Drawing.HP:MenuElement({id = "x", name = "Pos: [X]", value = -100, min = -100, max = 100, step = 10})
+	Menu.Drawing.HP:MenuElement({id = "y", name = "Pos: [Y]", value = -100, min = -200, max = 100, step = 10})	
+
 
 
 	Menu:MenuElement({type = MENU, id = "ally", name = "WomboCombo"})
-	Menu.ally:MenuElement({type = SPACE, id = "Tip", name = "Champs[Blitzcrank, Skarner, TahmKench, Sion]"})
+
 	DelayAction(function()
 	for i, Hero in pairs(GetAllyHeroes()) do
 	
-		if ChampTable[Hero.charName] then			
+		if ChampTable[Hero.charName] then
+			Menu.ally:MenuElement({type = SPACE, id = "Tip", name = "Support[Blitzcrank, Skarner, TahmKench, Sion]"})		
 			Menu.ally:MenuElement({id = "Champ", name = Hero.charName, value = true})
 			Menu.ally:MenuElement({id = "MyHP", name = "Kalista min.Hp to UseR",  value = 40, min = 0, max = 100, step = 1})			
-		
 		end
 	end 
 	end, 0.3)
@@ -124,10 +130,28 @@ function LoadScript()
 		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 			Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
 		end	
-		for i, Hero in pairs(GetAllyHeroes()) do
-			if ChampTable[Hero.charName] then
-				Draw.Text("WomboCombo possible", 20, textPos.x + 1, textPos.y - 400, Draw.Color(255, 255, 0, 0))
-			end
+		Draw.Text("AutoLastHit[E]: ", 15, Menu.Drawing.XY.x:Value(), Menu.Drawing.XY.y:Value()+15, Draw.Color(255, 225, 255, 0))
+		if Menu.AutoE.E:Value() then
+			Draw.Text("ON", 15, Menu.Drawing.XY.x:Value()+85, Menu.Drawing.XY.y:Value()+15, Draw.Color(255, 0, 255, 0))
+		else
+			Draw.Text("OFF", 15, Menu.Drawing.XY.x:Value()+85, Menu.Drawing.XY.y:Value()+15, Draw.Color(255, 0, 255, 0))
+		end
+		
+		
+		local target = GetTarget(1200)     	
+		if target == nil then return end
+		local Pos = target.pos:To2D()
+		if Menu.Drawing.HP.Stacks:Value() and Ready(_E) and IsValid(target) and target.pos2D.onScreen and Pos.onScreen and HasBuff(target,"kalistaexpungemarker") then		 	
+			local damage = getdmg("E", target, myHero)	
+			local HpAfterDmg = target.health - damage
+				Draw.Text(" / HP "..math.floor(target.health), 17, Pos.x + Menu.Drawing.HP.x:Value()+50, Pos.y + Menu.Drawing.HP.y:Value(), Draw.Color(255, 0, 255, 0))				
+			if HpAfterDmg/target.health > 0.5 then 	
+				Draw.Text("HP "..math.floor(HpAfterDmg), 17, Pos.x + Menu.Drawing.HP.x:Value(), Pos.y + Menu.Drawing.HP.y:Value(), Draw.Color(255, 0, 255, 0))
+			elseif HpAfterDmg/target.health < 0.5 and HpAfterDmg/target.health > 0.3 then
+				Draw.Text("HP "..math.floor(HpAfterDmg), 17, Pos.x + Menu.Drawing.HP.x:Value(), Pos.y + Menu.Drawing.HP.y:Value(), Draw.Color(255, 225, 255, 0))
+			elseif HpAfterDmg/target.health < 0.3 then
+				Draw.Text("HP "..math.floor(HpAfterDmg), 17, Pos.x + Menu.Drawing.HP.x:Value(), Pos.y + Menu.Drawing.HP.y:Value(), Draw.Color(255, 255, 0, 0))
+			end	
 		end
 	end)		
 end
@@ -160,7 +184,7 @@ function BoundHero()
 	
 	for i = 1, Game.HeroCount() do
 		local hero = Game.Hero(i)
-		if not hero.isMe and hero.isAlly and HasBuff(hero,"kalistacoopstrikeally")  then
+		if not hero.isMe and hero.isAlly and HasBuff(hero,"kalistacoopstrikeally") then
 			BoundAlly = hero
 		end
 	end	
@@ -191,38 +215,6 @@ if target == nil then return end
 	end
 end
 
-local function GetEstacks(unit)
-	local stacks = 0
-	if HasBuff(unit, "kalistaexpungemarker") then
-		for i = 1, unit.buffCount do
-			local buff = unit:GetBuff(i)
-			if buff and buff.count > 0 and buff.name:lower() == "kalistaexpungemarker" then
-				stacks = buff.count
-			end
-		end
-	end
-	return stacks
-end
-
-function GetEDamage(unit,stacks)
-	local level = myHero:GetSpellData(_E).level
-	local basedmg = ({20, 30, 40, 50, 60})[level] + 0.6* (myHero.totalDamage)
-	local stacksdmg = (stacks )*(({10, 14, 19, 25, 32})[level]+({0.198, 0.237, 0.274, 0.312, 0.349})[level] * myHero.totalDamage)
-	return CalcPhysicalDamage(myHero, (basedmg + stacksdmg))
-end
-
-function GetEDamageChamp(unit,stacks)
-	local level = myHero:GetSpellData(_E).level
-	local basedmg = ({20, 30, 40, 50, 60})[level] + 0.6* (myHero.totalDamage)
-	local stacksdmg = (stacks+1)*(({10, 14, 19, 25, 32})[level]+({0.198, 0.237, 0.274, 0.312, 0.349})[level] * myHero.totalDamage)
-	return CalcPhysicalDamage(myHero, (basedmg + stacksdmg))
-end
-
-function GetQDamage(unit)
-	local basedmg = ({20, 85, 150, 215, 280})[myHero:GetSpellData(_Q).level] + myHero.totalDamage
-	return CalcPhysicalDamage(myHero,basedmg)
-end
-
 function AutoQ()
 local target = GetTarget(1300)     	
 if target == nil then return end	
@@ -234,7 +226,7 @@ if target == nil then return end
 			local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, 1150, 0.25, 2100, 40, false)	
 			local QDmg = getdmg("Q", minion, myHero)
 			local pointSegment, pointLine, isOnSegment = HPred:VectorPointProjectionOnLineSegment(myHero.pos, aimPosition, minion.pos)
-				if isOnSegment and (minion.pos.x - pointSegment.x)^2 + (minion.pos.z - pointSegment.y)^2 < (40 + minion.boundingRadius + 15) * (40 + minion.boundingRadius + 15) and GetEstacks(minion) >= 1 and QDmg >= minion.health and hitRate and hitRate >= 1 then 
+				if isOnSegment and (minion.pos.x - pointSegment.x)^2 + (minion.pos.z - pointSegment.y)^2 < (40 + minion.boundingRadius + 15) * (40 + minion.boundingRadius + 15) and HasBuff(minion, "kalistaexpungemarker") and QDmg >= minion.health and hitRate and hitRate >= 1 then 
 					Control.CastSpell(HK_Q, aimPosition)
 				end
 			end	
@@ -245,8 +237,9 @@ end
 function AutoE()
 local target = GetTarget(1200)     	
 if target == nil then return end
-	if IsValid(target) and myHero.pos:DistanceTo(target.pos) > 1000 and Ready(_E) then	
-		if Menu.AutoE.UseE:Value() and GetEstacks(target) >= Menu.AutoE.UseEM:Value() then   --- .time 4 sec
+	if Menu.AutoE.UseE:Value() and IsValid(target) and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 1100 then	
+	local buff = GetBuffData(target, "kalistaexpungemarker")	
+		if buff and buff.duration > 0 and buff.duration <= Menu.AutoE.UseEM:Value() then  
 			Control.CastSpell(HK_E)				
 		end
 	end	
@@ -272,11 +265,6 @@ if target == nil then return end
 			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end	
-		end
-		if myHero.pos:DistanceTo(target.pos) < 1100 and Menu.Combo.UseE:Value() and Ready(_E) then
-			if GetEstacks(target) >= Menu.Combo.UseEM:Value() then	
-				Control.CastSpell(HK_E)
-			end
 		end		
 	end	
 end	
@@ -297,17 +285,19 @@ function Clear()
 	end
 end
 
-local JungleTable = {
-	"SRU_Baron",
-	"SRU_RiftHerald",
-	"SRU_Dragon_Water",
-	"SRU_Dragon_Fire",
-	"SRU_Dragon_Earth",
-	"SRU_Dragon_Air",
-	"SRU_Dragon_Elder",
-	"SRU_Blue",
-	"SRU_Red",
-}
+local function EpicMonster(unit)
+	if unit.charName ==
+		"SRU_Baron" or unit.charName ==
+		"SRU_RiftHerald" or unit.charName ==
+		"SRU_Dragon_Water" or unit.charName ==
+		"SRU_Dragon_Fire" or unit.charName ==
+		"SRU_Dragon_Earth" or unit.charName ==
+		"SRU_Dragon_Air" or unit.charName ==		
+		"SRU_Dragon_Elder" then
+		return true
+	end
+	return false
+end
 
 function JungleClear()	
 	for i = 1, Game.MinionCount() do
@@ -316,10 +306,10 @@ function JungleClear()
         local mana_ok = myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100
 		local EDmg = getdmg("E", minion, myHero)
             if Menu.JClear.UseE:Value() and mana_ok and Ready(_E) then  
-				if JungleTable[minion.charName] and EDmg/2 >= minion.health then
+				if EpicMonster(minion) and EDmg/2 >= minion.health then
 					Control.CastSpell(HK_E)
 				end	
-				if not JungleTable[minion.charName] and EDmg >= minion.health then
+				if not EpicMonster(minion) and EDmg >= minion.health then
 					Control.CastSpell(HK_E)
 				end	
             end
@@ -344,15 +334,12 @@ end
 function KillSteal()
 local target = GetTarget(1300)     	
 if target == nil then return end		
-	if IsValid(target) then	
-		local buff = GetBuffData(target, "kalistaexpungemarker")
-		if buff then
-			print (buff.duration)
-		end	
-		if myHero.pos:DistanceTo(target.pos) <= 1150 and Ready(_Q) then
+	if IsValid(target) then		
+		if myHero.pos:DistanceTo(target.pos) <= 1100 and Ready(_Q) then
 			local QDmg = getdmg("Q", target, myHero)
+			local EDmg = getdmg("E", target, myHero)
 			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= target.health and pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
+			if QDmg >= target.health and (EDmg < target.health or not Ready(_E)) and pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
 				Control.CastSpell(HK_Q, pred.CastPosition)
 			end
 		end
