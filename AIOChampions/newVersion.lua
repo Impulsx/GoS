@@ -120,6 +120,10 @@ Data = {
          Kalista = {
             Changelog = "Kalista Changelog Here",
             Version = 0.03,
+        },
+         Akali = {
+            Changelog = "Akali Changelog Here",
+            Version = 0.01,
         },        
     },
 }
