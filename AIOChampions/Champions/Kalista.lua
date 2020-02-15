@@ -32,7 +32,7 @@ local BoundAlly = nil
 function LoadScript() 
 	HPred()	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
 	
 	--AutoQ	
 	Menu:MenuElement({type = MENU, id = "AutoQ2", name = "AutoQ"})
@@ -47,7 +47,8 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})
 	Menu.AutoE:MenuElement({id = "E", name = "ToggleKey[AutoE LastHit Minions]", key = 84, toggle = true})	
 	Menu.AutoE:MenuElement({id = "UseE", name = "Panic[E] if duration runs out", value = true})
-	Menu.AutoE:MenuElement({id = "UseEM", name = "min sec before Panic[E]", value = 0.9, min = 0.1, max = 4.0, step = 0.1, identifier = "sec"})	
+	Menu.AutoE:MenuElement({id = "UseEM", name = "min sec before Panic[E]", value = 0.9, min = 0.1, max = 4.0, step = 0.1, identifier = "sec"})
+	Menu.AutoE:MenuElement({id = "count", name = "min Spears for Panic[E]", value = 5, min = 0, max = 10, identifier = "Spear/s"})	
 		
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -239,7 +240,7 @@ local target = GetTarget(1200)
 if target == nil then return end
 	if Menu.AutoE.UseE:Value() and IsValid(target) and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 1100 then	
 	local buff = GetBuffData(target, "kalistaexpungemarker")	
-		if buff and buff.duration > 0 and buff.duration <= Menu.AutoE.UseEM:Value() then  
+		if buff and buff.duration > 0 and buff.duration <= Menu.AutoE.UseEM:Value() and buff.count >= Menu.AutoE.count:Value() then  
 			Control.CastSpell(HK_E)				
 		end
 	end	
