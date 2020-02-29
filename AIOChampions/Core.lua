@@ -1,13 +1,12 @@
 local menu = 1
+local Orb
 local _OnWaypoint = {}
 local _OnVision = {}
-local Allies = {}; local Enemies = {}; local Turrets = {}; local Units = {}; local AllyHeroes = {}
-local intToMode = {[0] = "", [1] = "Combo", [2] = "Harass", [3] = "LastHit", [4] = "Clear"}
 local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
 local spellcast = {state = 1, mouse = mousePos}
 local ItemHotKey = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2,[ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6, [ITEM_7] = HK_ITEM_7,}
-local Orb
 local barHeight, barWidth, barXOffset, barYOffset = 8, 103, 0, 0
+local Allies, Enemies, Turrets, Units = {}, {}, {}, {}
 local TEAM_ALLY = myHero.team
 local TEAM_ENEMY = 300 - myHero.team
 local TEAM_JUNGLE = 300
@@ -16,23 +15,64 @@ local wClock = 0
 local clock = os.clock
 local Latency = Game.Latency
 local ping = Latency() * 0.001
-local sqrt = math.sqrt
-local TableInsert = table.insert
+local MyHeroRange = myHero.range + myHero.boundingRadius * 2
+local DrawCircle = Draw.Circle
+local DrawColor = Draw.Color
+local DrawText = Draw.Text
+local ControlCastSpell = Control.CastSpell
+local GameCanUseSpell = Game.CanUseSpell
 local GameTimer = Game.Timer
+local GameHeroCount = Game.HeroCount
+local GameHero = Game.Hero
+local GameMinionCount = Game.MinionCount
+local GameMinion = Game.Minion
+local GameTurretCount = Game.TurretCount
+local GameTurret = Game.Turret
+local GameObjectCount = Game.ObjectCount
+local GameObject = Game.Object
+local GameParticleCount = Game.ParticleCount
+local GameParticle = Game.Particle
+local GameMissileCount = Game.MissileCount
+local GameMissile = Game.Missile
+local GameIsChatOpen = Game.IsChatOpen
+local TEAM_ALLY = myHero.team
+local TEAM_ENEMY = 300 - myHero.team
+local TEAM_JUNGLE = 300
+local MathSqrt = math.sqrt
 local MathHuge = math.huge
+local TableInsert = table.insert
+local TableRemove = table.remove
 
-function IsValid(unit)
+function LoadUnits()
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i); Units[i] = {unit = unit, spell = nil}
+		if unit.team ~= myHero.team then TableInsert(Enemies, unit)
+		elseif unit.team == myHero.team and unit ~= myHero then TableInsert(Allies, unit) end
+	end
+	for i = 1, GameTurretCount() do
+		local turret = GameTurret(i)
+		if turret and turret.isEnemy then TableInsert(Turrets, turret) end
+	end
+end
+
+local function ConvertToHitChance(menuValue, hitChance)
+    return menuValue == 1 and _G.PremiumPrediction.HitChance.High(hitChance)
+    or menuValue == 2 and _G.PremiumPrediction.HitChance.VeryHigh(hitChance)
+    or _G.PremiumPrediction.HitChance.Immobile(hitChance)
+end
+
+local function IsValid(unit)
     if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) then
         return true;
     end
     return false;
 end
 
-function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0
+local function Ready(spell)
+    return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and GameCanUseSpell(spell) == 0
 end
 
-function GetMode()
+local function GetMode()
     
     if Orb == 1 then
         if combo == 1 then
@@ -63,7 +103,7 @@ function GetMode()
     end
 end
 
-function GetTarget(range) 
+local function GetTarget(range) 
 	if Orb == 1 then
 		if myHero.ap > myHero.totalDamage then
 			return EOW:GetTarget(range, EOW.ap_dec, myHero.pos)
@@ -87,24 +127,24 @@ function GetTarget(range)
 	end
 end
 
-function GetDistanceSqr(p1, p2)
-	if not p1 then return math.huge end
+local function GetDistanceSqr(p1, p2)
+	if not p1 then return MathHuge end
 	p2 = p2 or myHero
 	local dx = p1.x - p2.x
 	local dz = (p1.z or p1.y) - (p2.z or p2.y)
 	return dx*dx + dz*dz
 end
 
-function GetDistance(p1, p2)
+local function GetDistance(p1, p2)
 	p2 = p2 or myHero
-	return math.sqrt(GetDistanceSqr(p1, p2))
+	return MathSqrt(GetDistanceSqr(p1, p2))
 end
 
-function GetDistance2D(p1,p2)
-	return math.sqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y))
+local function GetDistance2D(p1,p2)
+	return MathSqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y))
 end
 
-function IsRecalling(unit)
+local function IsRecalling(unit)
 	for i = 1, 63 do
 	local buff = unit:GetBuff(i) 
 		if buff.count > 0 and buff.name == "recall" and Game.Timer() < buff.expireTime then
@@ -112,26 +152,10 @@ function IsRecalling(unit)
 		end
 	end 
 	return false
-end
-
-function LoadUnits()
-	for i = 1, Game.HeroCount() do
-		local unit = Game.Hero(i); Units[i] = {unit = unit, spell = nil}
-		if unit.team ~= myHero.team then TableInsert(Enemies, unit)
-		elseif unit.team == myHero.team and unit ~= myHero then TableInsert(Allies, unit) end
-	end
-	for i = 1, Game.TurretCount() do
-		local turret = Game.Turret(i)
-		if turret and turret.isEnemy then TableInsert(Turrets, turret) end
-	end
 end 
- 
-function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0
-end
 	
-function MyHeroNotReady()
-    return myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero)
+local function MyHeroNotReady()
+    return myHero.dead or GameIsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero)
 end
 
 --[[
@@ -148,7 +172,6 @@ DelayAction(function()
 	LoadScript()	
 	LoadUnits()	
 end, 0.1)
-
 
 
 
