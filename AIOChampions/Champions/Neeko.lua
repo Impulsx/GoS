@@ -1,15 +1,15 @@
-function IsValidRange(unit, range)
+local function IsValidRange(unit, range)
     if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) and GetDistanceSqr(myHero.pos, unit.pos) <= (range + myHero.boundingRadius + unit.boundingRadius) then
         return true;
     end
     return false;
 end
 
-function GetMinionCount(range, pos)
+local function GetMinionCount(range, pos)
     local pos = pos.pos
 	local count = 0
-	for i = 1,Game.MinionCount() do
-	local hero = Game.Minion(i)
+	for i = 1,GameMinionCount() do
+	local hero = GameMinion(i)
 	local Range = range * range
 		if hero.team ~= TEAM_ALLY and hero.dead == false and GetDistanceSqr(pos, hero.pos) < Range then
 		count = count + 1
@@ -18,7 +18,7 @@ function GetMinionCount(range, pos)
 	return count
 end
 
-function GetItemSlot(unit, id)
+local function GetItemSlot(unit, id)
   for i = ITEM_1, ITEM_7 do
     if unit:GetItemData(i).itemID == id then
       return i
@@ -27,11 +27,11 @@ function GetItemSlot(unit, id)
   return 0
 end
 
-function CountEnemiesNear(pos, range)
+local function CountEnemiesNear(pos, range)
     local pos = pos.pos
 	local count = 0
-	for i = 1, Game.HeroCount() do 
-	local hero = Game.Hero(i)
+	for i = 1, GameHeroCount() do 
+	local hero = GameHero(i)
 	local Range = range * range
 		if hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range then
 		count = count + 1
@@ -40,11 +40,11 @@ function CountEnemiesNear(pos, range)
 	return count
 end	
 
-function GetAllyCount(range, pos)
+local function GetAllyCount(range, pos)
     local pos = pos.pos
 	local count = 0
-	for i = 1, Game.HeroCount() do 
-	local hero = Game.Hero(i)
+	for i = 1, GameHeroCount() do 
+	local hero = GameHero(i)
 	local Range = range * range
 		if hero.team == TEAM_ALLY and hero ~= myHero and GetDistanceSqr(pos, hero.pos) < Range then
 		count = count + 1
@@ -53,18 +53,11 @@ function GetAllyCount(range, pos)
 	return count
 end
 
-function GetAllyHeroes() 
-	AllyHeroes = {}
-	for i = 1, Game.HeroCount() do
-		local Hero = Game.Hero(i)
-		if Hero.isAlly and not Hero.isMe then
-			table.insert(AllyHeroes, Hero)
-		end
-	end
-	return AllyHeroes
+local function GetAllyHeroes() 
+	return Allies
 end
 
-function IsImmobileTarget(unit)
+local function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
 		if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.name == 10 ) and buff.count > 0 then
@@ -74,11 +67,11 @@ function IsImmobileTarget(unit)
 	return false	
 end
 
-function GetImmobileCount(range, pos)
+local function GetImmobileCount(range, pos)
     local pos = pos.pos
 	local count = 0
-	for i = 1, Game.HeroCount() do 
-	local hero = Game.Hero(i)
+	for i = 1, GameHeroCount() do 
+	local hero = GameHero(i)
 	local Range = range * range
 		if hero.isEnemy and GetDistanceSqr(pos, hero.pos) < Range and IsImmobileTarget(hero) then
 		count = count + 1
@@ -87,7 +80,7 @@ function GetImmobileCount(range, pos)
 	return count
 end
 
-function SetAttack(bool)
+local function SetAttack(bool)
 	if _G.EOWLoaded then
 		EOW:SetAttacks(bool)
 	elseif _G.SDK then                                                        
@@ -103,7 +96,7 @@ end
 function LoadScript()
 	HPred()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
 	
 	--AutoE
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})	
@@ -199,13 +192,13 @@ function LoadScript()
 	Callback.Add("Draw", function()
 		if myHero.dead then return end
 		if(Menu.Drawing.DrawR:Value()) and Ready(_R) then
-		Draw.Circle(myHero, 600, 1, Draw.Color(255, 225, 255, 10))
+		DrawCircle(myHero, 600, 1, DrawColor(255, 225, 255, 10))
 		end                                                 
 		if(Menu.Drawing.DrawQ:Value()) and Ready(_Q) then
-		Draw.Circle(myHero, 800, 1, Draw.Color(225, 225, 0, 10))
+		DrawCircle(myHero, 800, 1, DrawColor(225, 225, 0, 10))
 		end
 		if(Menu.Drawing.DrawE:Value()) and Ready(_E) then
-		Draw.Circle(myHero, 1000, 1, Draw.Color(225, 225, 125, 10))
+		DrawCircle(myHero, 1000, 1, DrawColor(225, 225, 125, 10))
 		end
 	end)		
 end
@@ -220,8 +213,8 @@ local Mode = GetMode()
 		AutoR1()
 	elseif Mode == "Harass" then
 		Harass()
-		for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
+		for i = 1, GameMinionCount() do
+		local minion = GameMinion(i)
 		local target = GetTarget(1000)
 			if target == nil then	
 				if minion.team == TEAM_ENEMY and myHero.pos:DistanceTo(minion.pos) <= 800 and IsValid(minion) and (myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 ) then	
@@ -229,7 +222,7 @@ local Mode = GetMode()
 					local hp = minion.health
 					local QDmg = getdmg("Q", minion, myHero)
 					if Menu.Harass.LH.UseQL:Value() and Ready(_Q) and hp <= QDmg and count >= Menu.Harass.LH.UseQLM:Value() then
-						Control.CastSpell(HK_Q, minion)
+						ControlCastSpell(HK_Q, minion)
 					end	 
 				end
 			end
@@ -253,7 +246,7 @@ if target == nil then return end
 		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
 		local targetCount = HPred:GetLineTargetCount(myHero.pos, aimPosition, E.delay, E.speed, E.width, false)	
 		if hitRate and hitRate >= 1 and targetCount >= 2 then
-			Control.CastSpell(HK_E, aimPosition)
+			ControlCastSpell(HK_E, aimPosition)
 		end
 	end
 end
@@ -263,7 +256,7 @@ local target = GetTarget(1500)
 if target == nil then return end
 	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1500 and Ready(_W) then
 		if myHero.health/myHero.maxHealth <= Menu.evade.Min:Value()/100 and Menu.evade.UseW:Value() then
-			Control.CastSpell(HK_W, target.pos)
+			ControlCastSpell(HK_W, target.pos)
 		end
 	end
 end
@@ -365,14 +358,14 @@ if target == nil then return end
 		local QDmg = getdmg("Q", target, myHero)
 		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
 		if Menu.ks.UseQ:Value() and Ready(_Q) and QDmg >= target.health and hitRate and hitRate >= Menu.ks.PredQ:Value() then
-			Control.CastSpell(HK_Q, aimPosition)
+			ControlCastSpell(HK_Q, aimPosition)
 		end
 	end	
 	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1000 then
 		local EDmg = getdmg("E", target, myHero)
 		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
 		if Menu.ks.UseE:Value() and Ready(_E) and EDmg >= target.health and hitRate and hitRate >= Menu.ks.PredE:Value() then
-			Control.CastSpell(HK_E, aimPosition)
+			ControlCastSpell(HK_E, aimPosition)
 		end
 	end	
 	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 800 then	
@@ -381,8 +374,8 @@ if target == nil then return end
 		local hitRateE, aimPositionE = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
 		local hitRateQ, aimPositionQ = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
 		if Menu.ks.UseEQ:Value() and Ready(_E) and Ready(_Q) and (EDmg + QDmg) >= target.health and hitRateE and hitRateQ and hitRateE >= Menu.ks.PredE:Value() and hitRateQ >= Menu.ks.PredQ:Value() then
-			Control.CastSpell(HK_E, aimPositionE)
-			Control.CastSpell(HK_Q, aimPositionQ)
+			ControlCastSpell(HK_E, aimPositionE)
+			ControlCastSpell(HK_Q, aimPositionQ)
 		
 		end
 	end
@@ -398,9 +391,9 @@ local Protobelt = GetItemSlot(myHero, 3152)
 			local targetCount = CountEnemiesNear(myHero, 600)
 			if targetCount >= Menu.Combo.Ult.WR.RHit:Value() then
 				SetAttack(false)
-				Control.CastSpell(HK_W)
+				ControlCastSpell(HK_W)
 				Proto()
-				Control.CastSpell(HK_R)	
+				ControlCastSpell(HK_R)	
 				DelayAction(function()SetAttack(true) end, 0.3)				
 			end
 			
@@ -409,7 +402,7 @@ local Protobelt = GetItemSlot(myHero, 3152)
 			if targetCount >= Menu.Combo.Ult.WR.RHit:Value() then
 				SetAttack(false)
 				Proto()
-				Control.CastSpell(HK_R)	
+				ControlCastSpell(HK_R)	
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end
 		
@@ -417,8 +410,8 @@ local Protobelt = GetItemSlot(myHero, 3152)
 			local targetCount = CountEnemiesNear(myHero, 600)
 			if targetCount >= Menu.Combo.Ult.WR.RHit:Value() then
 				SetAttack(false)
-				Control.CastSpell(HK_W)
-				Control.CastSpell(HK_R)	
+				ControlCastSpell(HK_W)
+				ControlCastSpell(HK_R)	
 				DelayAction(function()SetAttack(true) end, 0.3)				
 			end
 			
@@ -426,7 +419,7 @@ local Protobelt = GetItemSlot(myHero, 3152)
 			local targetCount = CountEnemiesNear(myHero, 600)
 			if targetCount >= Menu.Combo.Ult.WR.RHit:Value() then
 				SetAttack(false)
-				Control.CastSpell(HK_R)	
+				ControlCastSpell(HK_R)	
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end			
 		end
@@ -448,29 +441,29 @@ local allyCount = GetAllyCount(1500, myHero)
 		if Menu.Combo.Ult.One.UseR1:Value() and Menu.a.ON:Value() and Ready(_R) and Ready(_W) and ((Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
 			if targetCount == 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 400 and hp < (RDmg+QDmg+EDmg) then
 				SetAttack(false)
-				Control.CastSpell(HK_W)
+				ControlCastSpell(HK_W)
 				Proto()
-				Control.CastSpell(HK_R)	
+				ControlCastSpell(HK_R)	
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end
 		elseif Menu.Combo.Ult.One.UseR1:Value() and Menu.a.ON:Value() and Ready(_R) and not Ready(_W) and ((Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
 			if targetCount == 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 400 and hp < (RDmg+QDmg+EDmg) then
 				SetAttack(false)
 				Proto()
-				Control.CastSpell(HK_R)	
+				ControlCastSpell(HK_R)	
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end	
 		elseif Menu.Combo.Ult.One.UseR1:Value() and Menu.a.ON:Value() and Ready(_R) and Ready(_W) and ((not Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
 			if targetCount == 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 300 and hp < (RDmg+QDmg+EDmg) then
 				SetAttack(false)
-				Control.CastSpell(HK_W)
-				Control.CastSpell(HK_R)	
+				ControlCastSpell(HK_W)
+				ControlCastSpell(HK_R)	
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end
 		elseif Menu.Combo.Ult.One.UseR1:Value() and Menu.a.ON:Value() and Ready(_R) and not Ready(_W) and (( not Ready(Protobelt) and Protobelt > 0) or (Protobelt == 0)) then
 			if targetCount == 1 and allyCount == 0 and myHero.pos:DistanceTo(target.pos) <= 300 and hp < (RDmg+QDmg+EDmg) then
 				SetAttack(false)
-				Control.CastSpell(HK_R)	
+				ControlCastSpell(HK_R)	
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end			
 		end
@@ -484,7 +477,7 @@ if target == nil then return end
 local Protobelt = GetItemSlot(myHero, 3152)
 	if IsValid(target) and Menu.a.ON:Value() then
 		if myHero.pos:DistanceTo(target.pos) < 500 and Protobelt > 0 and Ready(Protobelt) then	
-			Control.CastSpell(ItemHotKey[Protobelt], target)
+			ControlCastSpell(ItemHotKey[Protobelt], target)
 		end
 	end
 end	
@@ -500,16 +493,16 @@ if target == nil then return end
 				if Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_1, ally.pos)
-						Control.CastSpell(HK_W)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_1, ally.pos)
+						ControlCastSpell(HK_W)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
 					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_2, ally.pos)
-						Control.CastSpell(HK_W)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_2, ally.pos)
+						ControlCastSpell(HK_W)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 					end	
 				end
@@ -529,14 +522,14 @@ if target == nil then return end
 				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 800 and myHero.pos:DistanceTo(ally.pos) >= 300 then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_1, ally.pos)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_1, ally.pos)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
 					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_2, ally.pos)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_2, ally.pos)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 					end	
 				end
@@ -556,16 +549,16 @@ if target == nil then return end
 				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 500 and myHero.pos:DistanceTo(ally.pos) >= 200 then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_1, ally.pos)
-						Control.CastSpell(HK_W)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_1, ally.pos)
+						ControlCastSpell(HK_W)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
 					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_2, ally.pos)
-						Control.CastSpell(HK_W)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_2, ally.pos)
+						ControlCastSpell(HK_W)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 					end	
 				end
@@ -584,8 +577,8 @@ if target == nil then return end
 			if Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 400 and myHero.pos:DistanceTo(ally.pos) >= 100 then
 					SetAttack(false)
-					Control.CastSpell(HK_W)
-					Control.CastSpell(HK_R)
+					ControlCastSpell(HK_W)
+					ControlCastSpell(HK_R)
 					DelayAction(function()SetAttack(true) end, 0.3)
 				end
 			end
@@ -603,7 +596,7 @@ if target == nil then return end
 			if Menu.Combo.Ult.Ally.UseR2:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 400 and myHero.pos:DistanceTo(ally.pos) >= 100 then
 					SetAttack(false)
-					Control.CastSpell(HK_R)
+					ControlCastSpell(HK_R)
 					DelayAction(function()SetAttack(true) end, 0.3)
 				end
 			end
@@ -622,14 +615,14 @@ if target == nil then return end
 				if targetCount >= 2 and myHero.pos:DistanceTo(ally.pos) <= 400 and myHero.pos:DistanceTo(ally.pos) >= 200 then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_1, ally.pos)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_1, ally.pos)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
 					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_2, ally.pos)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_2, ally.pos)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 					end	
 				end
@@ -647,16 +640,16 @@ if target == nil then return end
 			if myHero.pos:DistanceTo(target.pos) <= 800 and myHero.pos:DistanceTo(target.pos) >= 300 then
 				if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_1, target.pos)
-						Control.CastSpell(HK_W)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_1, target.pos)
+						ControlCastSpell(HK_W)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
 				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_2, target.pos)
-						Control.CastSpell(HK_W)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_2, target.pos)
+						ControlCastSpell(HK_W)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				end
 			end
@@ -673,14 +666,14 @@ if target == nil then return end
 			if myHero.pos:DistanceTo(target.pos) <= 800 and myHero.pos:DistanceTo(target.pos) >= 300 then
 				if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_1, target.pos)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_1, target.pos)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
 				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_2, target.pos)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_2, target.pos)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				end
 			end
@@ -697,16 +690,16 @@ if target == nil then return end
 			if myHero.pos:DistanceTo(target.pos) <= 500 and myHero.pos:DistanceTo(target.pos) >= 200 then
 				if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_1, target.pos)
-						Control.CastSpell(HK_W)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_1, target.pos)
+						ControlCastSpell(HK_W)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
 				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_2, target.pos)
-						Control.CastSpell(HK_W)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_2, target.pos)
+						ControlCastSpell(HK_W)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				end
 			end
@@ -722,8 +715,8 @@ if target == nil then return end
 		if Menu.Combo.Ult.Immo.UseR3:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 			if myHero.pos:DistanceTo(target.pos) <= 400 and myHero.pos:DistanceTo(target.pos) >= 100 then
 				SetAttack(false)
-				Control.CastSpell(HK_W)
-				Control.CastSpell(HK_R)
+				ControlCastSpell(HK_W)
+				ControlCastSpell(HK_R)
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end
 		end
@@ -738,7 +731,7 @@ if target == nil then return end
 		if Menu.Combo.Ult.Immo.UseR3:Value()  --[[and GetAllyCount(1500, myHero) >= CountEnemiesNear(myHero.pos, 2000)]] then
 			if myHero.pos:DistanceTo(target.pos) <= 400 and myHero.pos:DistanceTo(target.pos) >= 100 then
 				SetAttack(false)
-				Control.CastSpell(HK_R)
+				ControlCastSpell(HK_R)
 				DelayAction(function()SetAttack(true) end, 0.3)
 			end
 		end
@@ -754,14 +747,14 @@ if target == nil then return end
 			if myHero.pos:DistanceTo(target.pos) <= 500 and myHero.pos:DistanceTo(target.pos) >= 200 then
 				if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_1, target.pos)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_1, target.pos)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				
 				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
 						SetAttack(false)
-						Control.CastSpell(HK_SUMMONER_2, target.pos)
-						Control.CastSpell(HK_R)
+						ControlCastSpell(HK_SUMMONER_2, target.pos)
+						ControlCastSpell(HK_R)
 						DelayAction(function()SetAttack(true) end, 0.3)
 				end
 			end
@@ -775,16 +768,16 @@ if target == nil then return end
 	if IsValid(target) then
 		local hitRateE, aimPositionE = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
 		if Menu.Combo.UseE:Value() and Ready(_E) and hitRateE and hitRateE >= Menu.Combo.PredE:Value() and myHero.pos:DistanceTo(target.pos) <= 1000 then			
-			Control.CastSpell(HK_E, aimPositionE)
+			ControlCastSpell(HK_E, aimPositionE)
 		
 		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
 		if Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 800 and hitRate and hitRate >= Menu.Combo.PredQ:Value() then 
-			Control.CastSpell(HK_Q, aimPosition)
+			ControlCastSpell(HK_Q, aimPosition)
 		end
 		end
 		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
 		if Menu.Combo.UseQ:Value() and Ready(_Q) and not Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 800 and hitRate and hitRate >= Menu.Combo.PredQ:Value() and not IsImmobileTarget(target) then
-			Control.CastSpell(HK_Q, aimPosition)
+			ControlCastSpell(HK_Q, aimPosition)
 		end	
 	end
 end
@@ -795,38 +788,38 @@ if target == nil then return end
 	if IsValid(target)  and (myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value() / 100 ) then
 		local hitRateE, aimPositionE = HPred:GetHitchance(myHero.pos, target, E.range, E.delay, E.speed, E.width, E.collision)
 		if Ready(_E) and Ready(_Q) and hitRateE and hitRateE >= Menu.Harass.PredE:Value() and myHero.pos:DistanceTo(target.pos) <= 800 and Menu.Harass.UseE:Value() then
-			Control.CastSpell(HK_E, aimPositionE)
+			ControlCastSpell(HK_E, aimPositionE)
 			
 		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
 		if Menu.Harass.UseQ:Value() and Ready(_Q) and hitRate and hitRate >= Menu.Harass.PredQ:Value() then	
-			Control.CastSpell(HK_Q, aimPosition)
+			ControlCastSpell(HK_Q, aimPosition)
 		end
 		end
 		
 		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, target, Q.range, Q.delay, Q.speed, Q.width, Q.collision)
 		if Menu.Harass.UseQ:Value() and Ready(_Q) and not Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 800 and hitRate and hitRate >= Menu.Harass.PredQ:Value() then
-			Control.CastSpell(HK_Q, aimPosition)
+			ControlCastSpell(HK_Q, aimPosition)
 		end
 	end
 end
 
 function Clear()
-    for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
+    for i = 1, GameMinionCount() do
+    local minion = GameMinion(i)
         if minion.team == TEAM_ENEMY and IsValid(minion,1200) then
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
             if Menu.Clear.UseQL:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= 800 and Ready(_Q) then
                 local count = GetMinionCount(225, minion)
 				local QDmg = getdmg("Q", minion, myHero)
 				if count >= Menu.Clear.UseQLM:Value() and minion.health <= QDmg then	
-					Control.CastSpell(HK_Q, minion.pos)
+					ControlCastSpell(HK_Q, minion.pos)
 				end	
             end
 
             if Menu.Clear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= 1000 and Ready(_E) then
                 local count = GetMinionCount(1000, myHero)
 				if count >= Menu.Clear.UseEM:Value() then	
-					Control.CastSpell(HK_E, minion.pos)
+					ControlCastSpell(HK_E, minion.pos)
 				end	
             end
         end
@@ -834,17 +827,17 @@ function Clear()
 end
 
 function JungleClear()
-    for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
+    for i = 1, GameMinionCount() do
+    local minion = GameMinion(i)
         if minion.team == TEAM_JUNGLE and IsValid(minion,1200) then
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100
             
 			if Menu.JClear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= 800 and Ready(_Q) then
-                Control.CastSpell(HK_Q, minion.pos)
+                ControlCastSpell(HK_Q, minion.pos)
             end
 
             if Menu.JClear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) <= 1000 and Ready(_E) then
-                Control.CastSpell(HK_E, minion.pos)
+                ControlCastSpell(HK_E, minion.pos)
             end
         end
     end
