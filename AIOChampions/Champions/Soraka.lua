@@ -85,14 +85,14 @@ function LoadScript()
 	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 235, Range = 800, Speed = 1750, Collision = false
 	}
 	
-	QspellData = {speed = 1750, range = 800, delay = 0.5, radius = 235, collision = {}, type = "circle"}		
+	QspellData = {speed = 1750, range = 800, delay = 0.5, radius = 235, collision = {}, type = "circular"}		
 
 	EData =
 	{
 	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 250, Range = 925, Speed = 1750, Collision = false
 	}
 	
-	EspellData = {speed = 1750, range = 925, delay = 0.5, radius = 250, collision = {}, type = "circle"}		
+	EspellData = {speed = 1750, range = 925, delay = 0.5, radius = 250, collision = {}, type = "circular"}		
   	                                           
 	if _G.EOWLoaded then
 		Orb = 1
