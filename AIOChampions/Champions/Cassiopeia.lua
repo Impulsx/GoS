@@ -150,7 +150,7 @@ function LoadScript()
 	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 75, Range = 850, Speed = MathHuge, Collision = false
 	}
 	
-	spellData = {speed = MathHuge, range = 850, delay = 0.8, radius = 75, collision = {}, type = "circle"}	
+	spellData = {speed = MathHuge, range = 850, delay = 0.8, radius = 75, collision = {}, type = "circular"}	
 
 	RData =
 	{
