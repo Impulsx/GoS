@@ -1,4 +1,4 @@
-function HasBuff(unit, buffname)
+local function HasBuff(unit, buffname)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
 		if buff.name == buffname and buff.count > 0 then 
@@ -8,7 +8,7 @@ function HasBuff(unit, buffname)
 	return false
 end			
 
-function CheckWall(from, to, distance)
+local function CheckWall(from, to, distance)
     local pos1 = to + (to - from):Normalized() * 50
     local pos2 = pos1 + (to - from):Normalized() * (distance - 50)
     local point1 = Point(pos1.x, pos1.z)
@@ -19,9 +19,9 @@ function CheckWall(from, to, distance)
     return false
 end
 
-function IsUnderTurret(unit)
-    for i = 1, Game.TurretCount() do
-        local turret = Game.Turret(i)
+local function IsUnderTurret(unit)
+    for i = 1, GameTurretCount() do
+        local turret = GameTurret(i)
         local range = (turret.boundingRadius + 750 + unit.boundingRadius / 2)
         if turret.isEnemy and not turret.dead then
             if turret.pos:DistanceTo(unit.pos) < range then
@@ -32,21 +32,21 @@ function IsUnderTurret(unit)
     return false
 end
 
-function IsUltRangeTurret(unit)
+local function IsUltRangeTurret(unit)
     local _Tower = {}
-	for i = 1, Game.TurretCount() do
-        local turret = Game.Turret(i)
+	for i = 1, GameTurretCount() do
+        local turret = GameTurret(i)
         local range = (turret.boundingRadius + 200 + unit.boundingRadius / 2)
         if turret.pos:DistanceTo(unit.pos) < range then
-            table.insert(_Tower, turret)
+            TableInsert(_Tower, turret)
         end
     end
     return _Tower
 end
 
-function AllyMinionUnderTower()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
+local function AllyMinionUnderTower()
+	for i = 1, GameMinionCount() do
+    local minion = GameMinion(i)
 		if minion.team == TEAM_ALLY and IsValid(minion) and IsUnderTurret(minion) and myHero.pos:DistanceTo(minion.pos) <= 750 then
 			return true
 		end
@@ -54,7 +54,7 @@ function AllyMinionUnderTower()
 	return false
 end
 
-function SetAttack(bool)
+local function SetAttack(bool)
 	if _G.EOWLoaded then
 		EOW:SetAttacks(bool)
 	elseif _G.SDK then                                                        
@@ -99,7 +99,7 @@ require "MapPositionGOS"
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -163,28 +163,23 @@ function LoadScript()
 	Callback.Add("Tick", function() Tick() end)
 	
 	Callback.Add("Draw", function()
-		--local textPos = myHero.pos:To2D()	
-		--if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
-			--Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
-		--end  
-		
 		if myHero.dead then return end
 		
 		if Menu.Drawing.DrawR:Value() and Ready(_R) then
-		Draw.Circle(myHero, 875, 1, Draw.Color(255, 225, 255, 10))
+		DrawCircle(myHero, 875, 1, DrawColor(255, 225, 255, 10))
 		end                                                 
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
 			if HasBuff(myHero, "qiyanawenchantedbuff") then
-				Draw.Circle(myHero, 710, 1, Draw.Color(225, 225, 0, 10))
+				DrawCircle(myHero, 710, 1, DrawColor(225, 225, 0, 10))
 			else
-				Draw.Circle(myHero, 650, 1, Draw.Color(225, 225, 0, 10))
+				DrawCircle(myHero, 650, 1, DrawColor(225, 225, 0, 10))
 			end	
 		end
 		if Menu.Drawing.DrawE:Value() and Ready(_E) then
-		Draw.Circle(myHero, 650, 1, Draw.Color(225, 225, 125, 10))
+		DrawCircle(myHero, 650, 1, DrawColor(225, 225, 125, 10))
 		end
 		if Menu.Drawing.DrawW:Value() and Ready(_W) then
-		Draw.Circle(myHero, 1100, 1, Draw.Color(225, 225, 125, 10))
+		DrawCircle(myHero, 1100, 1, DrawColor(225, 225, 125, 10))
 		end		
 	end)		
 end
@@ -209,13 +204,13 @@ end
 
 function CastUlt()  
 	local castspell = false
-	for i = 1, Game.HeroCount() do
-        local hero = Game.Hero(i)
+	for i = 1, GameHeroCount() do
+        local hero = GameHero(i)
 		if myHero.pos:DistanceTo(hero.pos) < 1100 and hero.team == TEAM_ENEMY and IsValid(hero) and Menu.Combo.UseR:Value() and Ready(_R) then
 			if myHero.pos:DistanceTo(hero.pos) < 875 then
 				if CheckWall(myHero.pos, hero.pos, 400) then
 					SetAttack(false)
-					castspell = Control.CastSpell(HK_R, hero.pos)
+					castspell = ControlCastSpell(HK_R, hero.pos)
 					SetAttack(true)
 				end				
 			end	if castspell then return end
@@ -223,7 +218,7 @@ function CastUlt()
 			for i, tower in pairs(IsUltRangeTurret(hero)) do				
 				if tower and myHero.pos:DistanceTo(tower.pos) < 875 then
 					SetAttack(false)
-					castspell = Control.CastSpell(HK_R, tower.pos)
+					castspell = ControlCastSpell(HK_R, tower.pos)
 					SetAttack(true)
 				end		
 			end
@@ -238,41 +233,41 @@ if target == nil then return end
 	if IsValid(target) then		
 		
 		if Menu.Combo.UseE:Value() and myHero.pos:DistanceTo(target.pos) < 650 and Ready(_E) then			
-			castspell = Control.CastSpell(HK_E, target)
+			castspell = ControlCastSpell(HK_E, target)
         end	if castspell then return end	
 		
 		if Menu.Combo.UseQW:Value() then
 			if myHero:GetSpellData(_W).level == 0 then
 				if myHero.pos:DistanceTo(target.pos) < 650 and Menu.Combo.UseQ:Value() and Ready(_Q) and not HasBuff(myHero, "qiyanawenchantedbuff") then
-					castspell = Control.CastSpell(HK_Q, target.pos)
+					castspell = ControlCastSpell(HK_Q, target.pos)
 				end				
 			else	
 				if myHero.pos:DistanceTo(target.pos) < 650 and Ready(_Q) and Ready(_W) and not HasBuff(myHero, "qiyanawenchantedbuff") then
-					castspell = Control.CastSpell(HK_Q, target.pos)
+					castspell = ControlCastSpell(HK_Q, target.pos)
 				end
 			end	
 		else
 			if myHero.pos:DistanceTo(target.pos) < 650 and Menu.Combo.UseQ:Value() and Ready(_Q) and not HasBuff(myHero, "qiyanawenchantedbuff") then
-				castspell = Control.CastSpell(HK_Q, target.pos)
+				castspell = ControlCastSpell(HK_Q, target.pos)
 			end			
         end if castspell then return end
 		
 		local castPos = FindBestQiyanaWPos(Objects.WALL)
 		if Menu.Combo.UseW:Value() and myHero.pos:DistanceTo(target.pos) < 1900 and Ready(_W) and castPos ~= nil and not HasBuff(myHero, "qiyanawenchantedbuff") then
 			if target.pos:DistanceTo(castPos) < myHero.pos:DistanceTo(castPos) then
-				castspell = Control.CastSpell(HK_W, castPos)
+				castspell = ControlCastSpell(HK_W, castPos)
 			else
-				castspell = Control.CastSpell(HK_W, castPos)
+				castspell = ControlCastSpell(HK_W, castPos)
 			end
         end	if castspell then return end
 
 		if Menu.Combo.UseQW2:Value() then
 			if HasBuff(myHero, "qiyanawenchantedbuff") and myHero.pos:DistanceTo(target.pos) < 710 and Ready(_Q) and Ready(_W) then
-				castspell = Control.CastSpell(HK_Q, target.pos)
+				castspell = ControlCastSpell(HK_Q, target.pos)
 			end
 		else
 			if HasBuff(myHero, "qiyanawenchantedbuff") and myHero.pos:DistanceTo(target.pos) < 710 and Ready(_Q) then
-				castspell = Control.CastSpell(HK_Q, target.pos)
+				castspell = ControlCastSpell(HK_Q, target.pos)
 			end			
 		end	
 	end
@@ -288,70 +283,70 @@ if target == nil then return end
 		if Menu.Harass.UseQW:Value() then 
 			if myHero:GetSpellData(_W).level == 0 then
 				if myHero.pos:DistanceTo(target.pos) < 650 and Menu.Harass.UseQ:Value() and Ready(_Q) and not HasBuff(myHero, "qiyanawenchantedbuff") then
-					castspell = Control.CastSpell(HK_Q, target.pos)
+					castspell = ControlCastSpell(HK_Q, target.pos)
 				end	
 			else
 				if myHero.pos:DistanceTo(target.pos) < 650 and Ready(_Q) and Ready(_W) and not HasBuff(myHero, "qiyanawenchantedbuff") then
-					castspell = Control.CastSpell(HK_Q, target.pos)
+					castspell = ControlCastSpell(HK_Q, target.pos)
 				end
 			end	
 		else
 			if myHero.pos:DistanceTo(target.pos) < 650 and Menu.Harass.UseQ:Value() and Ready(_Q) and not HasBuff(myHero, "qiyanawenchantedbuff") then
-				castspell = Control.CastSpell(HK_Q, target.pos)
+				castspell = ControlCastSpell(HK_Q, target.pos)
 			end			
         end if castspell then return end
 		
 		local castPos = FindBestQiyanaWPos(Objects.WALL)
 		if Menu.Harass.UseW:Value() and myHero.pos:DistanceTo(target.pos) < 1100 and Ready(_W) and castPos ~= nil and not HasBuff(myHero, "qiyanawenchantedbuff") then
 			if target.pos:DistanceTo(castPos) < myHero.pos:DistanceTo(target.pos) then
-				castspell = Control.CastSpell(HK_W, castPos)
+				castspell = ControlCastSpell(HK_W, castPos)
 			end
         end	if castspell then return end
 
 		if HasBuff(myHero, "qiyanawenchantedbuff") and myHero.pos:DistanceTo(target.pos) < 710 and Ready(_Q) then
-			castspell = Control.CastSpell(HK_Q, target.pos)
+			castspell = ControlCastSpell(HK_Q, target.pos)
 		end			
 	end
 end		
 
 function Clear()
 local castspell = false
-    for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
+    for i = 1, GameMinionCount() do
+    local minion = GameMinion(i)
         if myHero.pos:DistanceTo(minion.pos) < 1200 and minion.team == TEAM_ENEMY and IsValid(minion) then
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
             
             if Menu.Clear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 650 and Ready(_E) and not IsUnderTurret(minion) then
-				castspell = Control.CastSpell(HK_E, minion)
+				castspell = ControlCastSpell(HK_E, minion)
             end if castspell then return end
 
             if Menu.Clear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 650 and Ready(_E) and IsUnderTurret(minion) and AllyMinionUnderTower() then
-				castspell = Control.CastSpell(HK_E, minion)
+				castspell = ControlCastSpell(HK_E, minion)
             end	if castspell then return end		
 			
 			if myHero:GetSpellData(_W).level == 0 then
 				if Menu.Clear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 650 and Ready(_Q) then
-					castspell = Control.CastSpell(HK_Q, minion,pos)	
+					castspell = ControlCastSpell(HK_Q, minion,pos)	
 				end
 			else	
 				if Menu.Clear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 650 and Ready(_Q) and Ready(_W) then
-					castspell = Control.CastSpell(HK_Q, minion,pos)	
+					castspell = ControlCastSpell(HK_Q, minion,pos)	
 				end
 			end	if castspell then return end
 			
 			local castPos = FindBestQiyanaWPos(Objects.WALL)			
             if Menu.Clear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 1100 and Ready(_W) and not IsUnderTurret(minion) and castPos ~= nil and not HasBuff(myHero, "qiyanawenchantedbuff") then	
 				if minion.pos:DistanceTo(castPos) < myHero.pos:DistanceTo(minion.pos) then
-					castspell = Control.CastSpell(HK_W, castPos)
+					castspell = ControlCastSpell(HK_W, castPos)
 				end	
             end if castspell then return end
 			
             if Menu.Clear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 1100 and Ready(_W) and IsUnderTurret(minion) and AllyMinionUnderTower() and castPos ~= nil and not HasBuff(myHero, "qiyanawenchantedbuff") then	
-				castspell = Control.CastSpell(HK_W, castPos)	
+				castspell = ControlCastSpell(HK_W, castPos)	
             end	if castspell then return end		
 
 			if HasBuff(myHero, "qiyanawenchantedbuff") and myHero.pos:DistanceTo(minion.pos) < 710 and Ready(_Q) then
-				castspell = Control.CastSpell(HK_Q, minion.pos)
+				castspell = ControlCastSpell(HK_Q, minion.pos)
 			end				
         end
     end
@@ -359,34 +354,34 @@ end
 
 function JungleClear()
 local castspell = false
-    for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
+    for i = 1, GameMinionCount() do
+    local minion = GameMinion(i)
         if myHero.pos:DistanceTo(minion.pos) < 1200 and minion.team == TEAM_JUNGLE and IsValid(minion) then
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100
             
             if Menu.JClear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 650 and Ready(_E) then
-				castspell = Control.CastSpell(HK_E, minion)
+				castspell = ControlCastSpell(HK_E, minion)
             end	if castspell then return end			
 			
 			if myHero:GetSpellData(_W).level == 0 then			
 				if Menu.JClear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 650 and Ready(_Q) then
-					castspell = Control.CastSpell(HK_Q, minion.pos)
+					castspell = ControlCastSpell(HK_Q, minion.pos)
 				end
 			else
 				if Menu.JClear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 650 and Ready(_Q) and Ready(_W) then
-					castspell = Control.CastSpell(HK_Q, minion.pos)
+					castspell = ControlCastSpell(HK_Q, minion.pos)
 				end	
 			end if castspell then return end
 			
 			local castPos = FindBestQiyanaWPos(Objects.WALL)
 			if Menu.JClear.UseW:Value() and myHero.pos:DistanceTo(minion.pos) < 1100 and Ready(_W) and castPos ~= nil and not HasBuff(myHero, "qiyanawenchantedbuff") then
 				if minion.pos:DistanceTo(castPos) < myHero.pos:DistanceTo(minion.pos) then
-					castspell = Control.CastSpell(HK_W, castPos)
+					castspell = ControlCastSpell(HK_W, castPos)
 				end		
             end if castspell then return end
 
 			if HasBuff(myHero, "qiyanawenchantedbuff") and myHero.pos:DistanceTo(minion.pos) < 710 and Ready(_Q) then
-				castspell = Control.CastSpell(HK_Q, minion.pos)
+				castspell = ControlCastSpell(HK_Q, minion.pos)
 			end				
         end
     end
@@ -407,35 +402,34 @@ if target == nil then return end
 		
 		if Menu.ks.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 650 and Ready(_Q) and not HasBuff(myHero, "qiyanawenchantedbuff") then
 			if QDmg-20 >= HP then
-				castspell = Control.CastSpell(HK_Q, target.pos)
+				castspell = ControlCastSpell(HK_Q, target.pos)
 			end	
         end if castspell then return end
 		
 		if Menu.ks.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 710 and Ready(_Q) and HasBuff(myHero, "qiyanawenchantedbuff") and not myHero:GetSpellData(_Q).name == "QiyanaQ_Rock" then
 			if QDmg-20 >= HP then
-				castspell = Control.CastSpell(HK_Q, target.pos)
+				castspell = ControlCastSpell(HK_Q, target.pos)
 			end	
         end	if castspell then return end	
 		
 		if Menu.ks.UseQ2:Value() and myHero.pos:DistanceTo(target.pos) < 710 and Ready(_Q) and myHero:GetSpellData(_Q).name == "QiyanaQ_Rock" then
 			if Q2Dmg-20 >= HP then
-				castspell = Control.CastSpell(HK_Q, target.pos)
+				castspell = ControlCastSpell(HK_Q, target.pos)
 			end			
         end if castspell then return end
 		
 		if HasBuff(myHero, "qiyanawenchantedbuffhaste") then
 			if Menu.ks.UseE:Value() and myHero.pos:DistanceTo(target.pos) < 650 and Ready(_E) then
 				if EWDmg-20 >= HP then
-					castspell = Control.CastSpell(HK_E, target)
+					castspell = ControlCastSpell(HK_E, target)
 				end	
 			end
 		else
 			if Menu.ks.UseE:Value() and myHero.pos:DistanceTo(target.pos) < 650 and Ready(_E) then
 				if EDmg-20 >= HP then
-					castspell = Control.CastSpell(HK_E, target)
+					castspell = ControlCastSpell(HK_E, target)
 				end	
 			end		
 		end
 	end	
 end
-
