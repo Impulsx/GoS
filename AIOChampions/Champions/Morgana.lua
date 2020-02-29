@@ -312,7 +312,7 @@ function LoadScript()
 	Type = _G.SPELLTYPE_CIRCLE, Collision = false, Delay = 0.25, Radius = 150, Range = 900, Speed = MathHuge
 	}
 	
-	WspellData = {speed = MathHuge, range = 900, delay = 0.25, radius = 150, collision = {}, type = "circle"}	
+	WspellData = {speed = MathHuge, range = 900, delay = 0.25, radius = 150, collision = {}, type = "circular"}	
 
 	QData =
 	{
