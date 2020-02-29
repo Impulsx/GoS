@@ -110,7 +110,7 @@ function LoadScript()
 	Type = _G.SPELLTYPE_CIRCLE, Collision = false, Delay = 0.5, Radius = 400, Range = 1600, Speed = MathHuge
 	}
 
-	WspellData = {speed = MathHuge, range = 1600, delay = 0.5, radius = 400, collision = {}, type = "circle"}	
+	WspellData = {speed = MathHuge, range = 1600, delay = 0.5, radius = 400, collision = {}, type = "circular"}	
 
   	                                           
 	if _G.EOWLoaded then
