@@ -1,4 +1,4 @@
-function GotBuff(unit, buffname)
+local function GotBuff(unit, buffname)
   for i = 0, unit.buffCount do
     local buff = unit:GetBuff(i)
     if buff.name == buffname and buff.count > 0 then 
@@ -8,7 +8,7 @@ function GotBuff(unit, buffname)
   return 0
 end
 
-function IsImmobileTarget(unit)
+local function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
 		if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.name == 10 ) and buff.count > 0 then
@@ -18,11 +18,11 @@ function IsImmobileTarget(unit)
 	return false	
 end
 
-function GetMinionCount(range, pos)
+local function GetMinionCount(range, pos)
     local pos = pos.pos
 	local count = 0
-	for i = 1,Game.MinionCount() do
-	local hero = Game.Minion(i)
+	for i = 1,GameMinionCount() do
+	local hero = GameMinion(i)
 	local Range = range * range
 		if hero.team ~= TEAM_ALLY and hero.dead == false and GetDistanceSqr(pos, hero.pos) < Range then
 		count = count + 1
@@ -34,7 +34,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -69,6 +69,7 @@ function LoadScript()
 	
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
 	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 	
@@ -83,11 +84,15 @@ function LoadScript()
 	{
 	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 880, Speed = 1100, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
 	}
+	
+	QspellData = {speed = 1100, range = 880, delay = 0.25, radius = 100, collision = {}, type = "linear"}		
 
 	EData =
 	{
 	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 975, Speed = 1550, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
 	}
+	
+	EspellData = {speed = 1550, range = 975, delay = 0.25, radius = 60, collision = {"minion"}, type = "linear"}		
 
   	                                           
 	if _G.EOWLoaded then
@@ -104,20 +109,20 @@ function LoadScript()
 	Callback.Add("Draw", function()
 		local textPos = myHero.pos:To2D()	
 		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
-			Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
+			DrawText("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, DrawColor(255, 255, 0, 0))
 		end 
 		if myHero.dead then return end
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-		Draw.Circle(myHero, 880, 1, Draw.Color(225, 225, 0, 10))
+		DrawCircle(myHero, 880, 1, DrawColor(225, 225, 0, 10))
 		end
 		if Menu.Drawing.DrawW:Value() and Ready(_W) then
-		Draw.Circle(myHero, 700, 1, Draw.Color(225, 225, 0, 10))
+		DrawCircle(myHero, 700, 1, DrawColor(225, 225, 0, 10))
 		end
 		if Menu.Drawing.DrawE:Value() and Ready(_E) then
-		Draw.Circle(myHero, 975, 1, Draw.Color(225, 225, 0, 10))
+		DrawCircle(myHero, 975, 1, DrawColor(225, 225, 0, 10))
 		end
 		if Menu.Drawing.DrawR:Value() and Ready(_R) then
-		Draw.Circle(myHero, 450, 1, Draw.Color(225, 225, 0, 10))
+		DrawCircle(myHero, 450, 1, DrawColor(225, 225, 0, 10))
 		end		
 	end)		
 end
@@ -147,66 +152,94 @@ if target == nil then return end
 			if myHero.pos:DistanceTo(target.pos) < 1000 and Menu.Combo.UseR:Value() and Ready(_R) and buff == 0 then
 				if myHero.pos:DistanceTo(target.pos) < 550 then
 					local castPos = target.pos:Extended(mousePos, 550)
-					Rcast = Control.CastSpell(HK_R, castPos)
+					Rcast = ControlCastSpell(HK_R, castPos)
 				else 
-					Rcast = Control.CastSpell(HK_R, target.pos)	
+					Rcast = ControlCastSpell(HK_R, target.pos)	
 				end	
 			end	
 			
 			if not Ecast and myHero.pos:DistanceTo(target.pos) < 1000 and Menu.Combo.UseR:Value() and Ready(_R) and buff == 2 then
 				if myHero.pos:DistanceTo(target.pos) < 550 then
 					local castPos = target.pos:Extended(mousePos, 550)
-					Rcast = Control.CastSpell(HK_R, castPos)
+					Rcast = ControlCastSpell(HK_R, castPos)
 				else 
-					Rcast = Control.CastSpell(HK_R, target.pos)	
+					Rcast = ControlCastSpell(HK_R, target.pos)	
 				end	
 			end
 
 			if not Ecast and myHero.pos:DistanceTo(target.pos) < 1000 and Menu.Combo.UseR:Value() and Ready(_R) and buff == 1 then
 				if myHero.pos:DistanceTo(target.pos) < 550 then
 					local castPos = Vector(target) - (Vector(myHero) - Vector(target)):Perpendicular():Normalized() * 350
-					Rcast = Control.CastSpell(HK_R, castPos)
+					Rcast = ControlCastSpell(HK_R, castPos)
 				else 
-					Rcast = Control.CastSpell(HK_R, target.pos)	
+					Rcast = ControlCastSpell(HK_R, target.pos)	
 				end					
 			end			
 			
 			if Rcast and myHero.pos:DistanceTo(target.pos) <= 975 and Menu.Combo.UseE:Value() and Ready(_E) then
-				local pred = GetGamsteronPrediction(target, EData, myHero)
-				if pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then
-					Ecast = Control.CastSpell(HK_E,pred.CastPosition)
+				if Menu.Pred.Change:Value() == 1 then
+					local pred = GetGamsteronPrediction(target, EData, myHero)
+					if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
+						Ecast = ControlCastSpell(HK_E, pred.CastPosition)
+					end
+				else
+					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
+					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
+						Ecast = ControlCastSpell(HK_E, pred.CastPos)
+					end	
 				end
 			end			
 			
 			if Ecast and myHero.pos:DistanceTo(target.pos) <= 880 and Menu.Combo.UseQ:Value() and Ready(_Q) then
-				local pred = GetGamsteronPrediction(target, QData, myHero)
-				if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-					Control.CastSpell(HK_Q,pred.CastPosition)
+				if Menu.Pred.Change:Value() == 1 then
+					local pred = GetGamsteronPrediction(target, QData, myHero)
+					if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
+						ControlCastSpell(HK_Q, pred.CastPosition)
+					end
+				else
+					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
+						ControlCastSpell(HK_Q, pred.CastPos)
+					end	
 				end
 			end
 
 			if myHero.pos:DistanceTo(target.pos) <= 700 and Menu.Combo.UseW:Value() and Ready(_W) then
-				Control.CastSpell(HK_W)
+				ControlCastSpell(HK_W)
 			end
 		
 		else
 		
 			if myHero.pos:DistanceTo(target.pos) <= 975 and Menu.Combo.UseE:Value() and Ready(_E) then
-				local pred = GetGamsteronPrediction(target, EData, myHero)
-				if pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then
-					Control.CastSpell(HK_E,pred.CastPosition)
+				if Menu.Pred.Change:Value() == 1 then
+					local pred = GetGamsteronPrediction(target, EData, myHero)
+					if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
+						ControlCastSpell(HK_E, pred.CastPosition)
+					end
+				else
+					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
+					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
+						ControlCastSpell(HK_E, pred.CastPos)
+					end	
 				end
 			end			
 			
 			if myHero.pos:DistanceTo(target.pos) <= 880 and Menu.Combo.UseQ:Value() and Ready(_Q) then
-				local pred = GetGamsteronPrediction(target, QData, myHero)
-				if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-					Control.CastSpell(HK_Q,pred.CastPosition)
+				if Menu.Pred.Change:Value() == 1 then
+					local pred = GetGamsteronPrediction(target, QData, myHero)
+					if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
+						ControlCastSpell(HK_Q, pred.CastPosition)
+					end
+				else
+					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
+						ControlCastSpell(HK_Q, pred.CastPos)
+					end	
 				end
 			end
 
 			if myHero.pos:DistanceTo(target.pos) <= 700 and Menu.Combo.UseW:Value() and Ready(_W) then
-				Control.CastSpell(HK_W)
+				ControlCastSpell(HK_W)
 			end		
 		end	
 	end
@@ -218,51 +251,58 @@ if target == nil then return end
 	if IsValid(target) and myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value()/100 then
 		if myHero.pos:DistanceTo(target.pos) <= 880 then	
 			if Menu.Harass.UseQ:Value() and Ready(_Q) then
-				local pred = GetGamsteronPrediction(target, QData, myHero)
-				if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-					Control.CastSpell(HK_Q,pred.CastPosition)
+				if Menu.Pred.Change:Value() == 1 then
+					local pred = GetGamsteronPrediction(target, QData, myHero)
+					if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
+						ControlCastSpell(HK_Q, pred.CastPosition)
+					end
+				else
+					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
+						ControlCastSpell(HK_Q, pred.CastPos)
+					end	
 				end
 			end
 		end
 
 		if myHero.pos:DistanceTo(target.pos) <= 700 then	
 			if Menu.Harass.UseW:Value() and Ready(_W) then
-				Control.CastSpell(HK_W)
+				ControlCastSpell(HK_W)
 			end
 		end
 	end
 end	
 
 function Clear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
+	for i = 1, GameMinionCount() do
+    local minion = GameMinion(i)
 		if myHero.pos:DistanceTo(minion.pos) <= 1000 and minion.team == TEAM_ENEMY and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 880 and Menu.Clear.UseQ:Value() and Ready(_Q) then
 				local count = GetMinionCount(150, minion)
 				if count >= Menu.Clear.Qmin:Value() then
-					Control.CastSpell(HK_Q, minion.pos)
+					ControlCastSpell(HK_Q, minion.pos)
 				end
 			end
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 700 and Menu.Clear.UseW:Value() and Ready(_W) then
-				Control.CastSpell(HK_W)
+				ControlCastSpell(HK_W)
 			end			
 		end
 	end
 end
 
 function JungleClear()
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
+	for i = 1, GameMinionCount() do
+    local minion = GameMinion(i)
 		if myHero.pos:DistanceTo(minion.pos) <= 1000 and minion.team == TEAM_JUNGLE and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100 then
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 880 and Menu.JClear.UseQ:Value() and Ready(_Q) then
-				Control.CastSpell(HK_Q, minion.pos)
+				ControlCastSpell(HK_Q, minion.pos)
 			end
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 700 and Menu.JClear.UseW:Value() and Ready(_W) then
-				Control.CastSpell(HK_W)
+				ControlCastSpell(HK_W)
 			end			
 		end
 	end
@@ -274,16 +314,30 @@ if target == nil then return end
 local Immobile = IsImmobileTarget(target)	
 	if Immobile and IsValid(target) then	
 		if myHero.pos:DistanceTo(target.pos) <= 975 and Menu.CC.UseE:Value() and Ready(_E) then
-			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if pred.Hitchance >= Menu.Pred.PredE:Value() + 1 then
-				Control.CastSpell(HK_E,pred.CastPosition)
+			if Menu.Pred.Change:Value() == 1 then
+				local pred = GetGamsteronPrediction(target, EData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
+					ControlCastSpell(HK_E, pred.CastPosition)
+				end
+			else
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
+				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
+					ControlCastSpell(HK_E, pred.CastPos)
+				end	
 			end
 		end
 		
 		if myHero.pos:DistanceTo(target.pos) <= 880 and Menu.CC.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-				Control.CastSpell(HK_Q,pred.CastPosition)
+			if Menu.Pred.Change:Value() == 1 then
+				local pred = GetGamsteronPrediction(target, QData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
+					ControlCastSpell(HK_Q, pred.CastPosition)
+				end
+			else
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
+					ControlCastSpell(HK_Q, pred.CastPos)
+				end	
 			end
 		end	
 	end
