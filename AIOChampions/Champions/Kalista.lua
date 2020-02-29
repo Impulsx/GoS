@@ -32,7 +32,7 @@ local BoundAlly = nil
 function LoadScript() 
 	HPred()	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
 	
 	--AutoQ	
 	Menu:MenuElement({type = MENU, id = "AutoQ2", name = "AutoQ"})
@@ -71,6 +71,7 @@ function LoadScript()
 
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
 	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 
 	--Drawing 
@@ -106,6 +107,8 @@ function LoadScript()
 	{
 	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 40, Range = 1150, Speed = 2100, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
 	}
+	
+	QspellData = {speed = 2100, range = 1150, delay = 0.25, radius = 40, collision = {"minion"}, type = "linear"}	
   	                                           
 	if _G.EOWLoaded then
 		Orb = 1
@@ -121,21 +124,17 @@ function LoadScript()
 	Callback.Add("Draw", function()
 		if myHero.dead then return end	
 		if Menu.Drawing.DrawR:Value() and Ready(_R) then
-		Draw.Circle(myHero, 1100, 1, Draw.Color(255, 225, 255, 10))
+		DrawCircle(myHero, 1100, 1, DrawColor(255, 225, 255, 10))
 		end                                                 
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-		Draw.Circle(myHero, 1150, 1, Draw.Color(225, 225, 0, 10))
+		DrawCircle(myHero, 1150, 1, DrawColor(225, 225, 0, 10))
 		end
-		
-		local textPos = myHero.pos:To2D()		
-		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
-			Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
-		end	
-		Draw.Text("AutoLastHit[E]: ", 15, Menu.Drawing.XY.x:Value(), Menu.Drawing.XY.y:Value()+15, Draw.Color(255, 225, 255, 0))
+	
+		DrawText("AutoLastHit[E]: ", 15, Menu.Drawing.XY.x:Value(), Menu.Drawing.XY.y:Value()+15, DrawColor(255, 225, 255, 0))
 		if Menu.AutoE.E:Value() then
-			Draw.Text("ON", 15, Menu.Drawing.XY.x:Value()+85, Menu.Drawing.XY.y:Value()+15, Draw.Color(255, 0, 255, 0))
+			DrawText("ON", 15, Menu.Drawing.XY.x:Value()+85, Menu.Drawing.XY.y:Value()+15, DrawColor(255, 0, 255, 0))
 		else
-			Draw.Text("OFF", 15, Menu.Drawing.XY.x:Value()+85, Menu.Drawing.XY.y:Value()+15, Draw.Color(255, 0, 255, 0))
+			DrawText("OFF", 15, Menu.Drawing.XY.x:Value()+85, Menu.Drawing.XY.y:Value()+15, DrawColor(255, 0, 255, 0))
 		end
 		
 		
@@ -145,13 +144,13 @@ function LoadScript()
 		if Menu.Drawing.HP.Stacks:Value() and Ready(_E) and IsValid(target) and target.pos2D.onScreen and Pos.onScreen and HasBuff(target,"kalistaexpungemarker") then		 	
 			local damage = getdmg("E", target, myHero)	
 			local HpAfterDmg = target.health - damage
-				Draw.Text(" / HP "..math.floor(target.health), 17, Pos.x + Menu.Drawing.HP.x:Value()+50, Pos.y + Menu.Drawing.HP.y:Value(), Draw.Color(255, 0, 255, 0))				
+				DrawText(" / HP "..math.floor(target.health), 17, Pos.x + Menu.Drawing.HP.x:Value()+50, Pos.y + Menu.Drawing.HP.y:Value(), DrawColor(255, 0, 255, 0))				
 			if HpAfterDmg/target.health > 0.5 then 	
-				Draw.Text("HP "..math.floor(HpAfterDmg), 17, Pos.x + Menu.Drawing.HP.x:Value(), Pos.y + Menu.Drawing.HP.y:Value(), Draw.Color(255, 0, 255, 0))
+				DrawText("HP "..math.floor(HpAfterDmg), 17, Pos.x + Menu.Drawing.HP.x:Value(), Pos.y + Menu.Drawing.HP.y:Value(), DrawColor(255, 0, 255, 0))
 			elseif HpAfterDmg/target.health < 0.5 and HpAfterDmg/target.health > 0.3 then
-				Draw.Text("HP "..math.floor(HpAfterDmg), 17, Pos.x + Menu.Drawing.HP.x:Value(), Pos.y + Menu.Drawing.HP.y:Value(), Draw.Color(255, 225, 255, 0))
+				DrawText("HP "..math.floor(HpAfterDmg), 17, Pos.x + Menu.Drawing.HP.x:Value(), Pos.y + Menu.Drawing.HP.y:Value(), DrawColor(255, 225, 255, 0))
 			elseif HpAfterDmg/target.health < 0.3 then
-				Draw.Text("HP "..math.floor(HpAfterDmg), 17, Pos.x + Menu.Drawing.HP.x:Value(), Pos.y + Menu.Drawing.HP.y:Value(), Draw.Color(255, 255, 0, 0))
+				DrawText("HP "..math.floor(HpAfterDmg), 17, Pos.x + Menu.Drawing.HP.x:Value(), Pos.y + Menu.Drawing.HP.y:Value(), DrawColor(255, 255, 0, 0))
 			end	
 		end
 	end)		
@@ -183,8 +182,8 @@ end
 function BoundHero()
 	if BoundAlly then return end
 	
-	for i = 1, Game.HeroCount() do
-		local hero = Game.Hero(i)
+	for i = 1, GameHeroCount() do
+		local hero = GameHero(i)
 		if not hero.isMe and hero.isAlly and HasBuff(hero,"kalistacoopstrikeally") then
 			BoundAlly = hero
 		end
@@ -199,17 +198,17 @@ if target == nil then return end
 		if Ready(_R) and myHero.health/myHero.maxHealth >= Menu.ally.MyHP:Value()/100 then
 			
 			if BoundAlly.charName == "Blitzcrank" and HasBuff(target, "rocketgrab2") then
-				Control.CastSpell(HK_R)
+				ControlCastSpell(HK_R)
 			
 			elseif BoundAlly.charName == "Skarner" and HasBuff(target, "SkarnerImpale") then
-				Control.CastSpell(HK_R)
+				ControlCastSpell(HK_R)
 			
 			elseif BoundAlly.charName == "TahmKench" and HasBuff(target, "tahmkenchwdevoured") then
-				Control.CastSpell(HK_R)
+				ControlCastSpell(HK_R)
 			
 			elseif BoundAlly.charName == "Sion" and (BoundAlly.activeSpell and BoundAlly.activeSpell.valid and BoundAlly.activeSpell.name == "SionR") then
 				DelayAction(function()
-				Control.CastSpell(HK_R) 
+				ControlCastSpell(HK_R) 
 				end, 0.3)
 			end
 		end
@@ -228,7 +227,7 @@ if target == nil then return end
 			local QDmg = getdmg("Q", minion, myHero)
 			local pointSegment, pointLine, isOnSegment = HPred:VectorPointProjectionOnLineSegment(myHero.pos, aimPosition, minion.pos)
 				if isOnSegment and (minion.pos.x - pointSegment.x)^2 + (minion.pos.z - pointSegment.y)^2 < (40 + minion.boundingRadius + 15) * (40 + minion.boundingRadius + 15) and HasBuff(minion, "kalistaexpungemarker") and QDmg >= minion.health and hitRate and hitRate >= 1 then 
-					Control.CastSpell(HK_Q, aimPosition)
+					ControlCastSpell(HK_Q, aimPosition)
 				end
 			end	
         end
@@ -241,7 +240,7 @@ if target == nil then return end
 	if Menu.AutoE.UseE:Value() and IsValid(target) and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 1100 then	
 	local buff = GetBuffData(target, "kalistaexpungemarker")	
 		if buff and buff.duration > 0 and buff.duration <= Menu.AutoE.UseEM:Value() and buff.count >= Menu.AutoE.count:Value() then  
-			Control.CastSpell(HK_E)				
+			ControlCastSpell(HK_E)				
 		end
 	end	
 end
@@ -250,7 +249,7 @@ function AutoR()
 	if BoundAlly then
 		if myHero.pos:DistanceTo(BoundAlly.pos) <= 1200 and IsValid(BoundAlly) and Menu.AutoR.UseR:Value() and Ready(_R) then
 			if BoundAlly.health/BoundAlly.maxHealth <= Menu.AutoR.Heal:Value()/100 then
-				Control.CastSpell(HK_R)
+				ControlCastSpell(HK_R)
 			end
 		end
 	end
@@ -262,24 +261,31 @@ if target == nil then return end
 	if IsValid(target) then
 				
 		if myHero.pos:DistanceTo(target.pos) < 1150 and Menu.Combo.UseQ:Value() and Ready(_Q) then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-				Control.CastSpell(HK_Q, pred.CastPosition)
+			if Menu.Pred.Change:Value() == 1 then
+				local pred = GetGamsteronPrediction(target, QData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
+					ControlCastSpell(HK_Q, pred.CastPosition)
+				end
+			else
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
+					ControlCastSpell(HK_Q, pred.CastPos)
+				end	
 			end	
 		end		
 	end	
 end	
 
 function Clear()
-    for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
+    for i = 1, GameMinionCount() do
+    local minion = GameMinion(i)
 	local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
 
 		if myHero.pos:DistanceTo(minion.pos) <= 1100 and minion.team == TEAM_ENEMY and IsValid(minion) and Menu.Clear.UseE:Value() then
 			if mana_ok and Ready(_E) then
 			local EDmg = getdmg("E", minion, myHero)	
 				if EDmg >= minion.health then
-					Control.CastSpell(HK_E)
+					ControlCastSpell(HK_E)
 				end
 			end
 		end
@@ -301,17 +307,17 @@ local function EpicMonster(unit)
 end
 
 function JungleClear()	
-	for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
+	for i = 1, GameMinionCount() do
+    local minion = GameMinion(i)
         if myHero.pos:DistanceTo(minion.pos) <= 1100 and minion.team == TEAM_JUNGLE and IsValid(minion) then
         local mana_ok = myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100
 		local EDmg = getdmg("E", minion, myHero)
             if Menu.JClear.UseE:Value() and mana_ok and Ready(_E) then  
 				if EpicMonster(minion) and EDmg/2 >= minion.health then
-					Control.CastSpell(HK_E)
+					ControlCastSpell(HK_E)
 				end	
 				if not EpicMonster(minion) and EDmg >= minion.health then
-					Control.CastSpell(HK_E)
+					ControlCastSpell(HK_E)
 				end	
             end
         end
@@ -319,13 +325,13 @@ function JungleClear()
 end
 
 function KillMinion()
-    for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
+    for i = 1, GameMinionCount() do
+    local minion = GameMinion(i)
         if myHero.pos:DistanceTo(minion.pos) <= 1100 and minion.team == TEAM_ENEMY and IsValid(minion) then
 			if Menu.AutoE.E:Value() and Ready(_E) then
 			local EDmg = getdmg("E", minion, myHero)	
 				if EDmg >= minion.health then
-					Control.CastSpell(HK_E)
+					ControlCastSpell(HK_E)
 				end
 			end
         end
@@ -339,16 +345,25 @@ if target == nil then return end
 		if myHero.pos:DistanceTo(target.pos) <= 1100 and Ready(_Q) then
 			local QDmg = getdmg("Q", target, myHero)
 			local EDmg = getdmg("E", target, myHero)
-			local pred = GetGamsteronPrediction(target, QData, myHero)
-			if QDmg >= target.health and (EDmg < target.health or not Ready(_E)) and pred.Hitchance >= Menu.Pred.PredQ:Value() + 1 then
-				Control.CastSpell(HK_Q, pred.CastPosition)
+			if QDmg >= target.health and (EDmg < target.health or not Ready(_E)) then
+				if Menu.Pred.Change:Value() == 1 then
+					local pred = GetGamsteronPrediction(target, QData, myHero)
+					if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
+						ControlCastSpell(HK_Q, pred.CastPosition)
+					end
+				else
+					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
+						ControlCastSpell(HK_Q, pred.CastPos)
+					end	
+				end
 			end
 		end
 		
 		if myHero.pos:DistanceTo(target.pos) <= 1100 and Ready(_E) then
 			local EDmg = getdmg("E", target, myHero)
 			if EDmg >= target.health then
-				Control.CastSpell(HK_E)
+				ControlCastSpell(HK_E)
 			end
 		end
 	end
