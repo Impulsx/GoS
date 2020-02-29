@@ -1,4 +1,4 @@
-local Version = 0.22
+local Version = 0.23
 
 
     local Files = {
@@ -38,7 +38,7 @@ local Version = 0.22
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
             print("New PussyDmgLib Version Press 2x F6")
         else
-            print("PussyDmgLib loaded 0.22")
+            print("PussyDmgLib loaded 0.23")
         end	
 	end
 	
@@ -93,6 +93,16 @@ function GetBuffData(unit, buffname)
     end
   end
   return {type = 0, name = "", startTime = 0, expireTime = 0, duration = 0, stacks = 0, count = 0}
+end
+
+local function HasPoison(unit)
+	for i = 0, unit.buffCount do 
+	local buff = unit:GetBuff(i)
+		if buff.type == 23 and Game.Timer() < buff.expireTime - 0.141  then
+			return true
+		end
+	end
+	return false
 end
 
 function CalcPhysicalDamage(source, target, amount)
@@ -337,7 +347,7 @@ local DamageLibTable = {
   ["Cassiopeia"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 110, 145, 180, 215})[level] + 0.9 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({20, 25, 30, 35, 40})[level] + 0.15 * source.ap end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return 48 + 4 * source.levelData.lvl + 0.1 * source.ap + (target.isPoisoned and ({10, 30, 50, 70, 90})[level] + 0.6 * source.ap or 0) end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return 48 + 4 * source.levelData.lvl + 0.1 * source.ap + (HasPoison(target) and ({10, 30, 50, 70, 90})[level] + 0.6 * source.ap or 0) end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.5 * source.ap end},
   },
 
@@ -609,7 +619,7 @@ local DamageLibTable = {
   ["Kalista"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 85, 150, 215, 280})[level] + source.totalDamage end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({10, 12, 14, 16, 18})[level] / 100) * target.maxHealth end},
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) local count = GotBuff(target, "kalistaexpungemarker") if count > 0 then return (({20, 30, 40, 50, 60})[level] + 0.6* (source.totalDamage)) + ((count - 1)*(({10, 14, 19, 25, 32})[level]+({0.2, 0.24, 0.27, 0.31, 0.35})[level] * (source.totalDamage))) end; return 0 end},
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) local count = GotBuff(target, "kalistaexpungemarker") if count > 0 then return (({20, 30, 40, 50, 60})[level] + 0.6* (source.totalDamage)) + ((count - 1)*(({10, 14, 19, 25, 32})[level]+({0.2, 0.24, 0.27, 0.31, 0.35})[level] * (source.totalDamage))) end; return 0 end},	
   },  
   
   ["Kayn"] = {
