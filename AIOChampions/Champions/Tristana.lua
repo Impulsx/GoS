@@ -1,15 +1,8 @@
-function GetEnemyHeroes()
-    local _EnemyHeroes = {}
-    for i = 1, Game.HeroCount() do
-        local unit = Game.Hero(i)
-        if unit.isEnemy then
-            table.insert(_EnemyHeroes, unit)
-        end
-    end
-    return _EnemyHeroes
+local function GetEnemyHeroes()
+	return Enemies
 end 
 
-function GotBuff(unit, buffname)
+local function GotBuff(unit, buffname)
   for i = 0, unit.buffCount do
     local buff = unit:GetBuff(i)
     if buff.name == buffname and buff.count > 0 then 
@@ -19,11 +12,11 @@ function GotBuff(unit, buffname)
   return 0
 end
 
-function CountEnemiesNear(pos, range)
+local function CountEnemiesNear(pos, range)
     local pos = pos.pos
 	local count = 0
-	for i = 1, Game.HeroCount() do 
-	local hero = Game.Hero(i)
+	for i = 1, GameHeroCount() do 
+	local hero = GameHero(i)
 	local Range = range * range
 		if hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
 		count = count + 1
@@ -35,7 +28,7 @@ end
 function LoadScript()
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
 	
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ2", name = "[Q]", value = true})	
@@ -77,17 +70,17 @@ function LoadScript()
 	Menu.Drawings:MenuElement({type = MENU, id = "W", name = "Draw W range"})
     Menu.Drawings.W:MenuElement({id = "Enabled", name = "Enabled", value = false})       
     Menu.Drawings.W:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
-    Menu.Drawings.W:MenuElement({id = "Color", name = "Color", color = Draw.Color(200, 255, 255, 255)})
+    Menu.Drawings.W:MenuElement({id = "Color", name = "Color", color = DrawColor(200, 255, 255, 255)})
 	--E
 	Menu.Drawings:MenuElement({type = MENU, id = "E", name = "Draw E range"})
     Menu.Drawings.E:MenuElement({id = "Enabled", name = "Enabled", value = false})       
     Menu.Drawings.E:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
-    Menu.Drawings.E:MenuElement({id = "Color", name = "Color", color = Draw.Color(200, 255, 255, 255)})	
+    Menu.Drawings.E:MenuElement({id = "Color", name = "Color", color = DrawColor(200, 255, 255, 255)})	
 	--R
 	Menu.Drawings:MenuElement({type = MENU, id = "R", name = "Draw R range"})
     Menu.Drawings.R:MenuElement({id = "Enabled", name = "Enabled", value = false})
     Menu.Drawings.R:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
-    Menu.Drawings.R:MenuElement({id = "Color", name = "Color", color = Draw.Color(200, 255, 255, 255)})
+    Menu.Drawings.R:MenuElement({id = "Color", name = "Color", color = DrawColor(200, 255, 255, 255)})
 	
 	
 	W = {Range = 900}
@@ -107,9 +100,9 @@ function LoadScript()
 
 	Callback.Add("Draw", function()
 		if myHero.dead then return end
-		if Ready(_W) and Menu.Drawings.W.Enabled:Value() then Draw.Circle(myHero, W.Range, Menu.Drawings.W.Width:Value(), Menu.Drawings.W.Color:Value()) end
-		if Ready(_E) and Menu.Drawings.E.Enabled:Value() then Draw.Circle(myHero, E.Range, Menu.Drawings.E.Width:Value(), Menu.Drawings.E.Color:Value()) end
-		if Ready(_R) and Menu.Drawings.R.Enabled:Value() then Draw.Circle(myHero, R.Range, Menu.Drawings.R.Width:Value(), Menu.Drawings.R.Color:Value()) end
+		if Ready(_W) and Menu.Drawings.W.Enabled:Value() then DrawCircle(myHero, W.Range, Menu.Drawings.W.Width:Value(), Menu.Drawings.W.Color:Value()) end
+		if Ready(_E) and Menu.Drawings.E.Enabled:Value() then DrawCircle(myHero, E.Range, Menu.Drawings.E.Width:Value(), Menu.Drawings.E.Color:Value()) end
+		if Ready(_R) and Menu.Drawings.R.Enabled:Value() then DrawCircle(myHero, R.Range, Menu.Drawings.R.Width:Value(), Menu.Drawings.R.Color:Value()) end
 
 	end)	
 end
@@ -143,7 +136,7 @@ local Mode = GetMode()
 	CastWBack()
 end
 
-function GetEstacks(unit)
+local function GetEstacks(unit)
 
 	local stacks = 0
 	if GotBuff(unit, "tristanaechargesound") > 0 then
@@ -157,7 +150,7 @@ function GetEstacks(unit)
 	return stacks
 end
 
-function GetStackDmg(unit)
+local function GetStackDmg(unit)
 
 	local total = 0
 	local eLvl = myHero:GetSpellData(_E).level
@@ -170,7 +163,7 @@ function GetStackDmg(unit)
 	return total
 end
 
-function EDMG(unit)
+local function EDMG(unit)
 	local total = 0
 	local eLvl = myHero:GetSpellData(_E).level
 	if eLvl > 0 then
@@ -183,9 +176,9 @@ function EDMG(unit)
 	return total
 end
 
-function CheckSpell(range)
-	for i = 1,Game.HeroCount() do
-		local hero = Game.Hero(i)
+local function CheckSpell(range)
+	for i = 1,GameHeroCount() do
+		local hero = GameHero(i)
         if hero.team == TEAM_ENEMY and myHero.pos:DistanceTo(hero.pos) <= range and IsValid(hero) then
 			if hero.activeSpell.name == "RocketGrab" then 
 				casterPos = hero.pos
@@ -204,7 +197,7 @@ function AntiBlitz()
 		timer.state = false
 	end
 
-	local ctc = Game.Timer() * 100
+	local ctc = GameTimer() * 100
 	
 	local target = GetTarget(1200)
 	if Menu.Blitz.UseW:Value() and CheckSpell(1200) and grabTime ~= nil and Ready(_W) then 
@@ -233,10 +226,10 @@ if target == nil then return end
 	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < E.Range and Ready(_Q) and Menu.Combo.UseQ2:Value() then
 		if Menu.Combo.UseQ:Value() then	
 			if GotBuff(target, "tristanaechargesound") > 0 then	
-				Control.CastSpell(HK_Q)
+				ControlCastSpell(HK_Q)
 			end
 		else
-			Control.CastSpell(HK_Q)
+			ControlCastSpell(HK_Q)
 		end
 	end	
 end
@@ -247,7 +240,7 @@ if target == nil then return end
 	
 	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < E.Range then	
 		if Menu.Combo.UseE:Value() and Menu.Combo.Targets[target.charName] and Menu.Combo.Targets[target.charName]:Value() and Ready(_E) then
-			Control.CastSpell(HK_E, target)
+			ControlCastSpell(HK_E, target)
 		end
 	end
 end
@@ -259,7 +252,7 @@ if hero == nil then return end
 	if IsValid(hero) and myHero.pos:DistanceTo(hero.pos) < R.Range and Ready(_R) then
 	local Rdamage = getdmg("R", hero, myHero)   
 		if Rdamage > hero.health then
-			Control.CastSpell(HK_R, hero)
+			ControlCastSpell(HK_R, hero)
 		
         end
     end
@@ -274,7 +267,7 @@ if target == nil then return end
 			Rdmg = getdmg("R", target, myHero)	
 			totalDMG = (Edmg + Rdmg)
 			if totalDMG >= target.health then
-				Control.CastSpell(HK_R, target)
+				ControlCastSpell(HK_R, target)
 			end
 		end
 	end
@@ -288,7 +281,7 @@ if target == nil then return end
 		if myHero.pos:DistanceTo(target.pos) > R.Range and myHero.pos:DistanceTo(target.pos) < (R.Range+W.Range-100) then
 			local Rdamage = getdmg("R", target, myHero)		
 			if Rdamage >= target.health then
-				Control.CastSpell(HK_W, target.pos) 
+				ControlCastSpell(HK_W, target.pos) 
 			end
 		end
 	end
@@ -298,7 +291,7 @@ function CastWBack()
 	for i, target in pairs(GetEnemyHeroes()) do
 		if Ready(_W) and Menu.Combo.gap.UseW:Value() and CountEnemiesNear(myHero, 1000) >= Menu.Combo.gap.Count:Value() and myHero.health/myHero.maxHealth <= Menu.Combo.gap.HP:Value()/100 then
 			local jump = myHero.pos:Shortened(target.pos, 700)
-			Control.CastSpell(HK_W, jump)
+			ControlCastSpell(HK_W, jump)
 		end
 	end
 end	
@@ -309,10 +302,10 @@ if target == nil then return end
 	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < E.Range and Ready(_Q) and Menu.Harass.UseQ2:Value() then
 		if Menu.Harass.UseQ:Value() then	
 			if GotBuff(target, "tristanaechargesound") > 0 then	
-				Control.CastSpell(HK_Q)
+				ControlCastSpell(HK_Q)
 			end
 		else
-			Control.CastSpell(HK_Q)
+			ControlCastSpell(HK_Q)
 		end
 	end	
 end
@@ -321,23 +314,23 @@ function HarassE()
 local target = GetTarget(E.Range)
 if target == nil then return end
     if IsValid(target) and myHero.pos:DistanceTo(target.pos) < E.Range and Menu.Harass.UseE:Value() and Ready(_E) then
-		Control.CastSpell(HK_E, target)
+		ControlCastSpell(HK_E, target)
 		   
 	end
 end
 
 function Clear()
-    for i = 1, Game.MinionCount() do
-    local minion = Game.Minion(i)
+    for i = 1, GameMinionCount() do
+    local minion = GameMinion(i)
         if myHero.pos:DistanceTo(minion.pos) < E.Range and minion.team == TEAM_ENEMY and IsValid(minion) then
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
             
             if Menu.Clear.UseE:Value() and mana_ok and Ready(_E) and minion.charName == "SRU_ChaosMinionSiege" then
-				Control.CastSpell(HK_E, minion)
+				ControlCastSpell(HK_E, minion)
             end		
 
 			if Menu.Clear.UseQ:Value() and mana_ok and Ready(_Q) then
-				Control.CastSpell(HK_Q)
+				ControlCastSpell(HK_Q)
 			end				
         end
     end
