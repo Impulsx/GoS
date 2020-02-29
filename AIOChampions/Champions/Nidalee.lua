@@ -67,7 +67,7 @@ function LoadScript()
 	Type = _G.SPELLTYPE_CIRCLE, Delay = 1.0, Radius = 100, Range = 900, Speed = 1000, Collision = false
 	}
 	
-	W1spellData = {speed = 1000, range = 900, delay = 1.0, radius = 100, collision = {}, type = "circle"}	
+	W1spellData = {speed = 1000, range = 900, delay = 1.0, radius = 100, collision = {}, type = "circular"}	
 
 	W2Data =
 	{
