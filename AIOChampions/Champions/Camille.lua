@@ -103,7 +103,7 @@ function LoadScript()
 	Type = _G.SPELLTYPE_CONE, Delay = 0.25, Radius = 300, Range = 610, Speed = 1750, Collision = false
 	}
 
-	WspellData = {speed = 1750, range = 610, delay = 0.25, radius = 300, collision = {"minion"}, type = "cone"}
+	WspellData = {speed = 1750, range = 610, delay = 0.25, radius = 300, collision = {"minion"}, type = "conic"}
   	
 	if _G.EOWLoaded then
 		Orb = 1
