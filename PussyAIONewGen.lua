@@ -3,22 +3,6 @@ if _G.PussyMain then
 end
 print ("PussyAIO will load shortly")
 
-if not FileExist(COMMON_PATH .. "PussyDamageLib.lua") then
-	print("PussyDamageLib. installed Press 2x F6")
-	DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/PussyDamageLib.lua", COMMON_PATH .. "PussyDamageLib.lua", function() end)
-	while not FileExist(COMMON_PATH .. "PussyDamageLib.lua") do end
-end
-    
-require('PussyDamageLib')
-
-if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
-	print("GsoPred. installed Press 2x F6")
-	DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-EXT/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
-	while not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") do end
-end
-    
-require('GamsteronPrediction')
-
 local osclock			= os.clock;
 local open               = io.open
 local concat             = table.concat
@@ -89,6 +73,36 @@ local function AutoUpdate()
 		f:close()
 	end
 	
+	local function LoadLibs()
+		local Heroes = {"Ahri","Akali","Caitlyn","Camille","Cassiopeia","Chogath","Ekko","Jhin","Kaisa","Kalista","Lux","Malzahar","Mordekaiser","Morgana","Nidalee","Ryze","Sona","Soraka","Veigar","Zoe","Zyra"}
+		
+		if not FileExist(COMMON_PATH .. "PussyDamageLib.lua") then
+			print("PussyDamageLib. installed Press 2x F6")
+			DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/PussyDamageLib.lua", COMMON_PATH .. "PussyDamageLib.lua", function() end)
+			while not FileExist(COMMON_PATH .. "PussyDamageLib.lua") do end
+		end
+		
+		require('PussyDamageLib')
+		
+		if table.contains(Heroes, myHero.charName) then
+			if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+				print("GsoPred. installed Press 2x F6")
+				DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-EXT/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
+				while not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") do end
+			end
+			
+			require('GamsteronPrediction')	
+			
+			if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
+				print("PremiumPred. installed Press 2x F6")
+				DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
+				while not FileExist(COMMON_PATH .. "PremiumPrediction.lua") do end
+			end
+			
+			require('PremiumPrediction')
+		end	
+	end	
+	
 	local function InitializeScript()         
         local function writeModule(content)            
             local f = assert(open(AUTO_PATH.."dynamicScript.lua", content and "a" or "w"))
@@ -143,7 +157,8 @@ local function AutoUpdate()
 	
 	local function LoadScript()
 		if CheckSupported() then
-			InitializeScript()	
+			InitializeScript()
+			LoadLibs()
 		else
 			print("PussyAIO: Champion not supported: ".. myHero.charName)
 		end
