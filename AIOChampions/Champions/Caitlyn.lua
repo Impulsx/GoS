@@ -174,7 +174,7 @@ function LoadScript()
 	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 70, Range = 800, Speed = 1450, Collision = false
 	}
 	
-	WspellData = {speed = 1450, range = 800, delay = 0.5, radius = 70, collision = {}, type = "circle"}	
+	WspellData = {speed = 1450, range = 800, delay = 0.5, radius = 70, collision = {}, type = "circular"}	
 
 	EData =
 	{
