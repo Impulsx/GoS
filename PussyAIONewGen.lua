@@ -74,7 +74,7 @@ local function AutoUpdate()
 	end
 	
 	local function LoadLibs()
-		local Heroes = {"Ahri","Akali","Caitlyn","Camille","Cassiopeia","Chogath","Ekko","Jhin","Kaisa","Kalista","Lux","Malzahar","Mordekaiser","Morgana","Nidalee","Ryze","Sona","Soraka","Veigar","Zoe","Zyra"}
+		local Heroes = {"Ahri","Akali","Caitlyn","Camille","Cassiopeia","Chogath","Ekko","Jhin","Kaisa","Kalista","Lux","Malzahar","Mordekaiser","Morgana","Nidalee","Ryze","Sett","Sona","Soraka","Veigar","Zoe","Zyra"}
 		
 		if not FileExist(COMMON_PATH .. "PussyDamageLib.lua") then
 			print("PussyDamageLib. installed Press 2x F6")
