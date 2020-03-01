@@ -124,7 +124,11 @@ Data = {
          Akali = {
             Changelog = "Akali Changelog Here",
             Version = 0.03,
-        },        
+        },
+         Sett = {
+            Changelog = "Sett Changelog Here",
+            Version = 0.01,
+        },          
     },
 }
 
