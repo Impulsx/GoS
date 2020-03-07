@@ -131,6 +131,31 @@ local function GetTarget(range)
 	end	
 end
 
+local function SetAttack(bool)
+	if _G.EOWLoaded then
+		EOW:SetAttacks(bool)
+	elseif _G.SDK then                                                        
+		_G.SDK.Orbwalker:SetAttack(bool)
+	elseif _G.PremiumOrbwalker then
+		_G.PremiumOrbwalker:SetAttack(bool)	
+	else
+		GOS.BlockAttack = not bool
+	end
+
+end
+
+local function SetMovement(bool)
+	if _G.EOWLoaded then
+		EOW:SetMovements(bool)
+	elseif _G.SDK then
+		_G.SDK.Orbwalker:SetMovement(bool)
+	elseif _G.PremiumOrbwalker then
+		_G.PremiumOrbwalker:SetMovement(bool)	
+	else
+		GOS.BlockMovement = not bool
+	end
+end
+
 local function GetDistanceSqr(p1, p2)
 	if not p1 then return MathHuge end
 	p2 = p2 or myHero
