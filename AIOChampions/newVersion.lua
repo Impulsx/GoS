@@ -5,7 +5,7 @@ Data = {
     },
     Core = {
         Changelog = "Auto Version ChangeLog Here",
-        Version = 0.10,
+        Version = 0.11,
     },
 
     Champions = {
