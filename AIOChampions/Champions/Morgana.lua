@@ -221,7 +221,7 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})
 	
 	--AutoE
 	Menu:MenuElement({id = "AutoE", name = "AutoE if Ground Controled", type = MENU})
@@ -329,6 +329,8 @@ function LoadScript()
 		Orb = 3
 	elseif _G.gsoSDK then
 		Orb = 4
+	elseif _G.PremiumOrbwalker then
+		Orb = 5		
 	end	
 	Callback.Add("Tick", function() Tick() end)
 	
