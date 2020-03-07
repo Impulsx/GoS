@@ -57,13 +57,17 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
 		Menu:MenuElement({name = " ", drop = {"General Settings"}})
 		
 		--Prediction
 		Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})		
 		Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Gamsteron Prediction", "Premium Prediction"}})		
-		Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})			
+		Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})
+		
+		--RSetting
+		Menu:MenuElement({type = MENU, id = "R", name = "R Range Setting"})
+		Menu.R:MenuElement({id = "Rrange", name = "Max CastR Range", value = 780, min = 100, max = 825, identifier = "range"})		
 		
 		--Combo   
 		Menu:MenuElement({type = MENU, id = "c", name = "Combo"})
@@ -165,7 +169,9 @@ function LoadScript()
 		Orb = 3
 	elseif _G.gsoSDK then
 		Orb = 4
-	end	
+	elseif _G.PremiumOrbwalker then
+		Orb = 5		
+	end
 	Callback.Add("Tick", function() Tick() end)
 	
 	Callback.Add("Draw", function()
@@ -310,7 +316,7 @@ function RLogic()
 			local A = CloseLine.Vector
 			local B = MainLine.Vector
 				if A ~= B then
-					if GetAngle(A,B) and myHero.pos:DistanceTo(MainLine.Host.pos) < 825 then 
+					if GetAngle(A,B) and myHero.pos:DistanceTo(MainLine.Host.pos) < Menu.R.Rrange:Value() then 
 						Count[MainLine] = Count[MainLine] + 1
 					end
 				end
@@ -389,13 +395,13 @@ if target == nil then return end
 				ControlCastSpell(HK_SUMMONER_2)
 			end
 
-			if Dist < RRange and GetAngle(myHero.pos, target.pos) then
+			if Dist < Menu.R.Rrange:Value() and GetAngle(myHero.pos, target.pos) then
 				result = ControlCastSpell(HK_R, target.pos)
 			end
 		end
 		
 		if not result and Menu.c.R:Value() and Ready(_R) then
-			if Dist < RRange then 
+			if Dist < Menu.R.Rrange:Value() then 
 				if RTarget and ShouldCast == true then
 					result = ControlCastSpell(HK_R, target.pos)					
 				end 
@@ -408,7 +414,7 @@ function SemiR()
 local target = GetTarget(950)
 if target == nil then return end
 	local Dist = myHero.pos:DistanceTo(target.pos)	
-	if IsValid(target) and Dist < RRange and Ready(_R) then
+	if IsValid(target) and Dist < Menu.R.Rrange:Value() and Ready(_R) then
 		ControlCastSpell(HK_R, target.pos)			
 	end 
 end
@@ -570,7 +576,7 @@ local Dist = myHero.pos:DistanceTo(target.pos)
 	
 		local pred = GetGamsteronPrediction(RTarget, RData, myHero)
 		if EnemiesNear(myHero,825) == 1 and Ready(_R) and Ready(_W) and Ready(_Q) and Ready(_E) then 
-			if RTarget and EnemyInRange(RRange) and fulldmg > target.health and pred.Hitchance >= 2 then
+			if RTarget and EnemyInRange(Menu.R.Rrange:Value()) and fulldmg > target.health and pred.Hitchance >= 2 then
 				ControlCastSpell(HK_R, pred.CastPosition)
 			end
 		end 
