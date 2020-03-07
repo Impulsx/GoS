@@ -75,7 +75,7 @@ Data = {
         },
         Malzahar = {
             Changelog = "Malzahar Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         }, 
         Camille = {
             Changelog = "Camille Changelog Here",
