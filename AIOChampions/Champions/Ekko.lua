@@ -52,7 +52,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO" .. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -121,6 +121,8 @@ function LoadScript()
 		Orb = 3
 	elseif _G.gsoSDK then
 		Orb = 4
+	elseif _G.PremiumOrbwalker then
+		Orb = 5		
 	end	
 	Callback.Add("Tick", function() Tick() end)
 	
@@ -158,17 +160,15 @@ local Mode = GetMode()
 end
 
 local function GetTwin()
-	if (Menu.Combo.AutoUlt.Enabled:Value() or Menu.Combo.AutoUlt.UseR:Value()) then
 	local twin = {}
 	local Range = 3000 * 3000	
-		for i = 1, GameParticleCount() do 
-		local particle = GameParticle(i)
-			if particle and GetDistanceSqr(myHero.pos, particle.pos) < Range and particle.name == "Ekko_Base_R_TrailEnd" then --"Ekko_Base_R_RewindIndicator"
-				TableInsert(twin, particle)
-			end
-		end 
-		return twin
-	end	
+	for i = 1, GameParticleCount() do 
+	local particle = GameParticle(i)
+		if particle and GetDistanceSqr(myHero.pos, particle.pos) < Range and particle.name == "Ekko_Base_R_TrailEnd" then --"Ekko_Base_R_RewindIndicator"
+			TableInsert(twin, particle)
+		end
+	end 
+	return twin
 end
 
 function Combo()
@@ -199,14 +199,14 @@ if target == nil then return end
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
 					_G.SDK.Orbwalker:SetMovement(false)
-					ControlCastSpell(HK_W, pred.CastPosition)
+					ControlCastSpell(HK_Q, pred.CastPosition)
 					_G.SDK.Orbwalker:SetMovement(true)
 				end
 			else
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
 					_G.SDK.Orbwalker:SetMovement(false)
-					ControlCastSpell(HK_W, pred.CastPos)
+					ControlCastSpell(HK_Q, pred.CastPos)
 					_G.SDK.Orbwalker:SetMovement(true)
 				end	
 			end	
@@ -256,14 +256,14 @@ if target == nil then return end
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
 					_G.SDK.Orbwalker:SetMovement(false)
-					ControlCastSpell(HK_W, pred.CastPosition)
+					ControlCastSpell(HK_Q, pred.CastPosition)
 					_G.SDK.Orbwalker:SetMovement(true)
 				end
 			else
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
 					_G.SDK.Orbwalker:SetMovement(false)
-					ControlCastSpell(HK_W, pred.CastPos)
+					ControlCastSpell(HK_Q, pred.CastPos)
 					_G.SDK.Orbwalker:SetMovement(true)
 				end	
 			end		
@@ -293,19 +293,17 @@ if target == nil then return end
 	end	
 end	
  	 
-function AutoUlt()
-	if Menu.Combo.AutoUlt.Enabled:Value() then	
-		for i, twin in pairs(GetTwin())	do	
-			if twin and Ready(_R) and Menu.Combo.AutoUlt.hitX:Value() then
-				if EnemiesNear(twin.pos,400) >= Menu.Combo.AutoUlt.hit:Value() then
-					ControlCastSpell(HK_R)
-				end
+function AutoUlt()	
+	for i, twin in pairs(GetTwin())	do	
+		if twin and Ready(_R) and Menu.Combo.AutoUlt.hitX:Value() then
+			if EnemiesNear(twin.pos,400) >= Menu.Combo.AutoUlt.hit:Value() then
+				ControlCastSpell(HK_R)
 			end
-	
-			if twin and Ready(_R) and Menu.Combo.AutoUlt.killX:Value() then		  
-				if KillEnemiesNearTwin(twin.pos,400) >= Menu.Combo.AutoUlt.killable:Value() then
-					ControlCastSpell(HK_R)
-				end
+		end
+
+		if twin and Ready(_R) and Menu.Combo.AutoUlt.killX:Value() then		  
+			if KillEnemiesNearTwin(twin.pos,400) >= Menu.Combo.AutoUlt.killable:Value() then
+				ControlCastSpell(HK_R)
 			end
 		end
 	end
