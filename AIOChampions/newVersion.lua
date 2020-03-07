@@ -71,7 +71,7 @@ Data = {
         },
         Qiyana = {
             Changelog = "Qiyana Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         },
         Malzahar = {
             Changelog = "Malzahar Changelog Here",
