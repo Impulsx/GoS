@@ -28,16 +28,18 @@ end
 function LoadScript()
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
 	
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ2", name = "[Q]", value = true})	
 	Menu.Combo:MenuElement({id = "UseQ", name = "Only [Q] when Explosive Charge", value = true})
 	Menu.Combo:MenuElement({id = "UseE", name = "[E] Explosive Charge", value = true})
 	Menu.Combo:MenuElement({type = MENU, id = "Targets", name = "Whitelist [E]"})	
-	for i, Hero in pairs(GetEnemyHeroes()) do
-		Menu.Combo.Targets:MenuElement({id = Hero.charName, name = "UseE on "..Hero.charName, value = true})		
-	end		
+	DelayAction(function()
+		for i, Hero in pairs(GetEnemyHeroes()) do  
+			Menu.Combo.Targets:MenuElement({id = Hero.charName, name = "UseE on "..Hero.charName, value = true})		
+		end	
+	end, 0.01)
 	Menu.Combo:MenuElement({id = "UseR", name = "(R)Finisher", tooltip = "is(R)Dmg+(E)Dmg+(E)StackDmg > TargetHP than Ult", value = true})
 	Menu.Combo:MenuElement({id = "comboActive", name = "Combo key", key = string.byte(" ")})
 	
@@ -95,7 +97,9 @@ function LoadScript()
 		Orb = 3
 	elseif _G.gsoSDK then
 		Orb = 4
-	end	
+	elseif _G.PremiumOrbwalker then
+		Orb = 5		
+	end
 	Callback.Add("Tick", function() Tick() end)	
 
 	Callback.Add("Draw", function()
