@@ -34,7 +34,7 @@ require('PremiumPrediction')
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.08
+    local Version = 0.09
     
     local Files = {
         Lua = {
@@ -550,7 +550,7 @@ local function GetBestECastPositions(units)
 end
 
 local function CheckHPPred(unit)
-	if _G.gsoSDK then
+	if _G.SDK then
 		return _G.SDK.HealthPrediction:GetPrediction(unit, time)
 	elseif _G.PremiumOrbwalker then
 		return _G.PremiumOrbwalker:GetHealthPrediction(unit, time)
