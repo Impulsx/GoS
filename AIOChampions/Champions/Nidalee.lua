@@ -5,7 +5,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})
 	
 	Menu:MenuElement({type = MENU, id = "Qset", name = "Q Setting"})	
 	Menu.Qset:MenuElement({id = "Qmin", name = "Min range use Q Human", value = 600, min = 400, max = 1500,step = 1})	
@@ -84,6 +84,8 @@ function LoadScript()
 		Orb = 3
 	elseif _G.gsoSDK then
 		Orb = 4
+	elseif _G.PremiumOrbwalker then
+		Orb = 5		
 	end	
 	Callback.Add("Tick", function() Tick() end)
 	
