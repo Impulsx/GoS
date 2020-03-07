@@ -120,7 +120,7 @@ local UltSpells = {
 function LoadScript()
 	HPred()	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
 
 	--AutoW
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})	
@@ -848,11 +848,11 @@ if target == nil then return end
 			if getdmg("R", target, myHero, 35) > hp then
 				ControlCastSpell(HK_R, target)
 			if myHero.activeSpell.isChanneling == true then	
-				_G.SDK.Orbwalker:SetMovement(false)
-				_G.SDK.Orbwalker:SetAttack(false)
+				SetMovement(false)
+				SetAttack(false)
 			elseif myHero.activeSpell.isChanneling == false then	
-				_G.SDK.Orbwalker:SetMovement(true)
-				_G.SDK.Orbwalker:SetAttack(true)
+				SetMovement(true)
+				SetAttack(true)
 			end
 			end
 		end
@@ -985,11 +985,11 @@ if target == nil then return end
 			if getdmg("R", target, myHero, 19) > hp then
 				ControlCastSpell(HK_R, target)
 			if myHero.activeSpell.isChanneling == true then	
-				_G.SDK.Orbwalker:SetMovement(false)
-				_G.SDK.Orbwalker:SetAttack(false)
+				SetMovement(false)
+				SetAttack(false)
 			elseif myHero.activeSpell.isChanneling == false then	
-				_G.SDK.Orbwalker:SetMovement(true)
-				_G.SDK.Orbwalker:SetAttack(true)
+				SetMovement(true)
+				SetAttack(true)
 			end
 			end
 		end
@@ -1021,11 +1021,11 @@ if target == nil then return end
 			if getdmg("R", target, myHero, 38) > hp then
 				ControlCastSpell(HK_R, target)
 			if myHero.activeSpell.isChanneling == true then	
-				_G.SDK.Orbwalker:SetMovement(false)
-				_G.SDK.Orbwalker:SetAttack(false)
+				SetMovement(false)
+				SetAttack(false)
 			elseif myHero.activeSpell.isChanneling == false then	
-				_G.SDK.Orbwalker:SetMovement(true)
-				_G.SDK.Orbwalker:SetAttack(true)
+				SetMovement(true)
+				SetAttack(true)
 			end				
 			end
 		end
@@ -1113,11 +1113,11 @@ if target == nil then return end
 			if getdmg("R", target, myHero, 17) > hp then
 				ControlCastSpell(HK_R, target)
 			if myHero.activeSpell.isChanneling == true then	
-				_G.SDK.Orbwalker:SetMovement(false)
-				_G.SDK.Orbwalker:SetAttack(false)
+				SetMovement(false)
+				SetAttack(false)
 			elseif myHero.activeSpell.isChanneling == false then	
-				_G.SDK.Orbwalker:SetMovement(true)
-				_G.SDK.Orbwalker:SetAttack(true)
+				SetMovement(true)
+				SetAttack(true)
 			end					
 			end
 		end
@@ -1735,11 +1735,11 @@ if target == nil then return end
 			if count >= Menu.Combo.Set.Hit:Value() then
 				ControlCastSpell(HK_R, target.pos)
 			if myHero.activeSpell.isChanneling == true then	
-				_G.SDK.Orbwalker:SetMovement(false)
-				_G.SDK.Orbwalker:SetAttack(false)
+				SetMovement(false)
+				SetAttack(false)
 			elseif myHero.activeSpell.isChanneling == false then	
-				_G.SDK.Orbwalker:SetMovement(true)
-				_G.SDK.Orbwalker:SetAttack(true)
+				SetMovement(true)
+				SetAttack(true)
 			end
 			end
 		end
@@ -1774,11 +1774,11 @@ if target == nil then return end
 			if count >= Menu.Combo.Set.Hit:Value() then		
 				ControlCastSpell(HK_R, target.pos)
 				if myHero.activeSpell.isChanneling == true then	
-					_G.SDK.Orbwalker:SetMovement(false)
-					_G.SDK.Orbwalker:SetAttack(false)
+					SetMovement(false)
+					SetAttack(false)
 				elseif myHero.activeSpell.isChanneling == false then	
-					_G.SDK.Orbwalker:SetMovement(true)
-					_G.SDK.Orbwalker:SetAttack(true)
+					SetMovement(true)
+					SetAttack(true)
 				end
 			end
 		end
