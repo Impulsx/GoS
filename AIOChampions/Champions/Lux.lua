@@ -32,7 +32,7 @@ end
 function LoadScript()
 	HPred()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})	
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQImmo"})
 	Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto[Q]Immobile Target", value = true})
@@ -81,9 +81,10 @@ function LoadScript()
 		
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
-	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Gamsteron Prediction", "Premium Prediction", "HPred"}})	
 	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})
+	Menu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 1, drop = {"Normal", "High", "Immobile"}})	
  
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
@@ -104,7 +105,14 @@ function LoadScript()
 	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 310, Range = 1000, Speed = 1200, Collision = false
 	}
 	
-	EspellData = {speed = 1200, range = 1000, delay = 0.25, radius = 310, collision = {}, type = "circular"}		
+	EspellData = {speed = 1200, range = 1000, delay = 0.25, radius = 310, collision = {}, type = "circular"}
+
+	RData =
+	{
+	Type = _G.SPELLTYPE_LINE, Delay = 1.0, Radius = 190, Range = 3340, Speed = 1000, Collision = false
+	}
+	
+	RspellData = {speed = 1000, range = 3340, delay = 1.0, radius = 190, collision = {}, type = "linear"}	
 	
   	                                           
 	if _G.EOWLoaded then
@@ -115,7 +123,9 @@ function LoadScript()
 		Orb = 3
 	elseif _G.gsoSDK then
 		Orb = 4
-	end	
+	elseif _G.PremiumOrbwalker then
+		Orb = 5		
+	end
 	Callback.Add("Tick", function() Tick() end)
 	
 	Callback.Add("Draw", function()
@@ -191,8 +201,8 @@ if target == nil then return end
 	end
 end
 
-local eMissile
-local eParticle
+local eMissile = nil
+local eParticle = nil
 
 local function IsETraveling()
 	return eMissile and eMissile.name and eMissile.name == "LuxLightStrikeKugel"
@@ -416,12 +426,12 @@ end
 
 function KillstealQ(unit)
 	if Menu.Pred.Change:Value() == 1 then
-		local pred = GetGamsteronPrediction(target, QData, myHero)
+		local pred = GetGamsteronPrediction(unit, QData, myHero)
 		if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
 			ControlCastSpell(HK_Q, pred.CastPosition)
 		end
 	else
-		local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+		local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, QspellData)
 		if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
 			ControlCastSpell(HK_Q, pred.CastPos)
 		end	
@@ -434,15 +444,31 @@ function KillstealE(unit)
 end
 
 function KillstealR(unit)
-	local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, unit, 3340, 1.0, 1000, 190, false)
-	if hitRate and hitRate >= 1 then
-		if aimPosition:To2D().onScreen then 		
-			ControlCastSpell(HK_R, aimPosition) 
-				
-		elseif not aimPosition:To2D().onScreen then	
-		local castPos = myHero.pos:Extended(aimPosition, 1000)    
-			ControlCastSpell(HK_R, castPos)
-		end		
+	if Menu.Pred.Change:Value() == 1 then
+		local pred = GetGamsteronPrediction(unit, RData, myHero)
+		if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
+			ControlCastSpell(HK_R, pred.CastPosition)
+		end
+	end
+	
+	if Menu.Pred.Change:Value() == 2 then
+		local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, RspellData)
+		if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
+			ControlCastSpell(HK_R, pred.CastPos)
+		end	
+	end
+	
+	if Menu.Pred.Change:Value() == 2 then
+		local hitRate, aimPosition = HPred:GetHitchance(myHero.pos, unit, 3340, 1.0, 1000, 190, false)
+		if hitRate and hitRate >= 1 then
+			if aimPosition:To2D().onScreen then 		
+				ControlCastSpell(HK_R, aimPosition) 
+					
+			elseif not aimPosition:To2D().onScreen then	
+			local castPos = myHero.pos:Extended(aimPosition, 1000)    
+				ControlCastSpell(HK_R, castPos)
+			end		
+		end
 	end
 end
 
