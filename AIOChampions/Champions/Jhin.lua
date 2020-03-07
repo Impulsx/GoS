@@ -29,9 +29,9 @@ local function CastSpell(spell,pos,range,delay)
 end
 
 local function CastSpellStart(spell, pos)
-	_G.SDK.Orbwalker:SetMovement(false)
+	SetMovement(false)
 	ControlCastSpell(spell, pos)
-	_G.SDK.Orbwalker:SetMovement(true)
+	SetMovement(true)
 end	
 
 local function CastSpellMM(spell,pos,range,delay)
@@ -109,7 +109,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
 	
 	--AutoW 
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "Stack Dark Harvest"})
@@ -434,24 +434,24 @@ function CastR(target)
 		if Menu.Pred.Change:Value() == 1 then
 			local pred = GetGamsteronPrediction(target, RData, myHero)
 			if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
-				_G.SDK.Orbwalker:SetMovement(false)
+				SetMovement(false)
 				if target.pos:To2D().onScreen then
 					CastSpell(HK_R, pred.CastPosition)
 				else
 					CastSpellMM(HK_R, pred.CastPosition)                            
 				end
-				_G.SDK.Orbwalker:SetMovement(true)
+				SetMovement(true)
 			end
 		else
 			local pred = _G.PremiumPrediction:GetPrediction(myHero, target, RspellData)
 			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
-				_G.SDK.Orbwalker:SetMovement(false)
+				SetMovement(false)
 				if target.pos:To2D().onScreen then
 					CastSpell(HK_R, pred.CastPos)
 				else
 					CastSpellMM(HK_R, pred.CastPos)                            
 				end
-				_G.SDK.Orbwalker:SetMovement(true)
+				SetMovement(true)
 			end	
 		end	
 	end
