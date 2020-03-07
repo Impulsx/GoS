@@ -54,19 +54,6 @@ local function AllyMinionUnderTower()
 	return false
 end
 
-local function SetAttack(bool)
-	if _G.EOWLoaded then
-		EOW:SetAttacks(bool)
-	elseif _G.SDK then                                                        
-		_G.SDK.Orbwalker:SetAttack(bool)
-	elseif _G.gsoSDK then
-		_G.gsoSDK.Orbwalker:SetAttack(bool)	
-	else
-		GOS.BlockAttack = not bool
-	end
-
-end
-
 local function Rotate(startPos, endPos, height, theta)
     local dx, dy = endPos.x - startPos.x, endPos.z - startPos.z
     local px, py = dx * math.cos(theta) - dy * math.sin(theta), dx * math.sin(theta) + dy * math.cos(theta)
@@ -99,7 +86,7 @@ require "MapPositionGOS"
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
