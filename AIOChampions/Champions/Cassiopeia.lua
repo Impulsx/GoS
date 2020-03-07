@@ -57,7 +57,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})	
 		Menu:MenuElement({name = " ", drop = {"General Settings"}})
 		
 		--Prediction
@@ -340,13 +340,13 @@ end
 
 function BlockAA(Mode)
 	if Mode == "Combo" then
-		_G.SDK.Orbwalker:SetAttack(false)
+		SetAttack(false)
 	end
 end
 
 function UnBlockAA(Mode)
 	if Mode ~= "Combo" then 
-		_G.SDK.Orbwalker:SetAttack(true)
+		SetAttack(true)
 	end
 end
 	
