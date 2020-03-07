@@ -52,7 +52,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO" .. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -180,16 +180,16 @@ if target == nil then return end
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, WData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					ControlCastSpell(HK_W, pred.CastPosition)
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 				end
 			else
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, WspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					ControlCastSpell(HK_W, pred.CastPos)
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 				end	
 			end	
 		end		
@@ -198,24 +198,24 @@ if target == nil then return end
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					ControlCastSpell(HK_Q, pred.CastPosition)
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 				end
 			else
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					ControlCastSpell(HK_Q, pred.CastPos)
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 				end	
 			end	
 		end
 	   
 		if Ready(_E) and myHero.pos:DistanceTo(target.pos) < 500 and Menu.Combo.UseE:Value() then 
-			_G.SDK.Orbwalker:SetMovement(false)
+			SetMovement(false)
 			ControlCastSpell(HK_E, target.pos)
-			_G.SDK.Orbwalker:SetMovement(true)
+			SetMovement(true)
 		end
 	end
 end	
@@ -255,16 +255,16 @@ if target == nil then return end
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					ControlCastSpell(HK_Q, pred.CastPosition)
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 				end
 			else
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					ControlCastSpell(HK_Q, pred.CastPos)
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 				end	
 			end		
 		end
@@ -273,16 +273,16 @@ if target == nil then return end
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, WData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					ControlCastSpell(HK_W, pred.CastPosition)
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 				end
 			else
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, WspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					ControlCastSpell(HK_W, pred.CastPos)
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 				end	
 			end	
 		end
