@@ -49,7 +49,7 @@ require "MapPositionGOS"
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -183,7 +183,7 @@ if target == nil then return end
 		
 		if Menu.Combo.UseE:Value() and Ready(_E) then
 			if myHero:GetSpellData(_E).name == "CamilleEDash2" then
-				_G.SDK.Orbwalker:SetMovement(false)
+				SetMovement(false)
 				if myHero.pos:DistanceTo(target.pos) <= 1000 then
 					Control.SetCursorPos(target.pos)
 					ControlCastSpell(HK_E, target)
@@ -192,7 +192,7 @@ if target == nil then return end
 					ControlCastSpell(HK_E, target.pos)					
 				end
 			end
-			_G.SDK.Orbwalker:SetMovement(true)
+			SetMovement(true)
 		end	
 		
 		if myHero:GetSpellData(_E).name == "CamilleEDash2" then return end
