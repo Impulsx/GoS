@@ -43,7 +43,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
 
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "Auto[Q]Immobile"})
@@ -192,11 +192,11 @@ end
 
 function ActiveUlt()
 	if myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "MalzaharR" then	
-		_G.SDK.Orbwalker:SetMovement(false)
-		_G.SDK.Orbwalker:SetAttack(false)	
+		SetMovement(false)
+		SetAttack(false)	
 	else
-		_G.SDK.Orbwalker:SetMovement(true)
-		_G.SDK.Orbwalker:SetAttack(true)
+		SetMovement(true)
+		SetAttack(true)
 	end
 end
        
@@ -352,11 +352,11 @@ if target == nil then return end
 		end
 	end
 	if IsRCharging() then	
-		_G.SDK.Orbwalker:SetMovement(false)
-		_G.SDK.Orbwalker:SetAttack(false)
+		SetMovement(false)
+		SetAttack(false)
 	else
-		_G.SDK.Orbwalker:SetMovement(true)
-		_G.SDK.Orbwalker:SetAttack(true)
+		SetMovement(true)
+		SetAttack(true)
 	end	
 end	
 
