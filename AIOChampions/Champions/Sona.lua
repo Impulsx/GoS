@@ -18,7 +18,7 @@ end
 function LoadScript()
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
 	
 	Menu:MenuElement({id = "Key", name = "Key Settings", type = MENU})
 	Menu.Key:MenuElement({id = "Combo",name = "Combo Key", key = string.byte(" ")})
@@ -60,7 +60,7 @@ function LoadScript()
 	
 	QspellData = {speed = 1000, range = 825, delay = 0.25, radius = 235, collision = {}, type = "circular"}	
 	
-    if _G.EOWLoaded then
+	if _G.EOWLoaded then
 		Orb = 1
 	elseif _G.SDK and _G.SDK.Orbwalker then
 		Orb = 2
@@ -68,6 +68,8 @@ function LoadScript()
 		Orb = 3
 	elseif _G.gsoSDK then
 		Orb = 4
+	elseif _G.PremiumOrbwalker then
+		Orb = 5		
 	end	
 	Callback.Add("Tick", function() Tick() end)	
 
