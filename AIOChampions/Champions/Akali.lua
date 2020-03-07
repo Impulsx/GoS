@@ -12,22 +12,13 @@ local function HasBuff(unit, buffname)
 	return false
 end
 
-local function DisableOrb()
-	_G.SDK.Orbwalker:SetMovement(false)
-	_G.SDK.Orbwalker:SetAttack(false)
-end
-
-local function EnableOrb()
-	_G.SDK.Orbwalker:SetMovement(true)
-	_G.SDK.Orbwalker:SetAttack(true)	
-end
-
 local spellcast = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
 local function CastSpell(HK, pos, delay)
 	if spellcast.state == 2 then return end
 	local delay = delay or 0.25
 	spellcast.state = 2
-	DisableOrb()
+	SetAttack(false)
+	SetMovement(false)
 	spellcast.mouse = mousePos
 	DelayAction(function() 
 		Control.SetCursorPos(pos) 
@@ -40,7 +31,8 @@ local function CastSpell(HK, pos, delay)
 		end,0.25)
 		
 		DelayAction(function()
-			EnableOrb()
+			SetAttack(true)
+			SetMovement(true)
 			spellcast.state = 1
 		end,0.35)
 	
@@ -49,7 +41,7 @@ end
 function LoadScript() 
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})			
 		
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
