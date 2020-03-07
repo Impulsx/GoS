@@ -34,7 +34,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -110,6 +110,8 @@ function LoadScript()
 		Orb = 3
 	elseif _G.gsoSDK then
 		Orb = 4
+	elseif _G.PremiumOrbwalker then
+		Orb = 5		
 	end	
 	Callback.Add("Tick", function() Tick() end)
 	
