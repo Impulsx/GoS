@@ -72,8 +72,7 @@ local function Ready(spell)
     return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and GameCanUseSpell(spell) == 0
 end
 
-local function GetMode()
-    
+local function GetMode()   
     if Orb == 1 then
         if combo == 1 then
             return 'Combo'
@@ -100,7 +99,9 @@ local function GetMode()
         return GOS:GetMode()
     elseif Orb == 4 then
         return _G.gsoSDK.Orbwalker:GetMode()
-    end
+	elseif Orb == 5 then
+	  return _G.PremiumOrbwalker:GetMode()
+	end
 end
 
 local function GetTarget(range) 
@@ -110,11 +111,11 @@ local function GetTarget(range)
 		else
 			return EOW:GetTarget(range, EOW.ad_dec, myHero.pos)
 		end
-	elseif Orb == 2 and SDK.TargetSelector then
+	elseif Orb == 2 and TargetSelector then
 		if myHero.ap > myHero.totalDamage then
-			return SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL)
+			return TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL)
 		else
-			return SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL)
+			return TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL)
 		end
 	elseif _G.GOS then
 		if myHero.ap > myHero.totalDamage then
@@ -124,7 +125,10 @@ local function GetTarget(range)
         end
     elseif _G.gsoSDK then
 		return _G.gsoSDK.TS:GetTarget()
-	end
+	
+	elseif _G.PremiumOrbwalker then
+		return _G.PremiumOrbwalker:GetTarget(range)
+	end	
 end
 
 local function GetDistanceSqr(p1, p2)
