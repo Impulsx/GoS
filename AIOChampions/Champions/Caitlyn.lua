@@ -101,7 +101,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.11"}})	
 
 	--AutoW  
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})		
@@ -223,7 +223,6 @@ function LoadScript()
 	end)	
 end
 
-
 function Tick()
 if MyHeroNotReady() then return end
 local Mode = GetMode()
@@ -240,14 +239,7 @@ local Mode = GetMode()
 		AutoQ()
 	end	
 	KillSteal()
-	AutoE()
-	local currSpell = myHero.activeSpell
-	if currSpell and currSpell.valid then
-		_G.SDK.Orbwalker:SetAttack(false)
-	else	
-		_G.SDK.Orbwalker:SetAttack(true)
-	end	
-	
+	AutoE()	
 end
 
 function AutoW()
