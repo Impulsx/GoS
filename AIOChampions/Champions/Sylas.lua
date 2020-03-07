@@ -120,7 +120,7 @@ local UltSpells = {
 function LoadScript()
 	HPred()	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
 
 	--AutoW
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})	
@@ -131,11 +131,12 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "AutoR", name = "AutoR"})	
 	Menu.AutoR:MenuElement({id = "UseR", name = "Auto Pulling Ult", value = true})
 	Menu.AutoR:MenuElement({type = MENU, id = "Target", name = "Target Settings"})
-	for i, hero in pairs(GetEnemyHeroes()) do
-		Menu.AutoR.Target:MenuElement({id = "ult"..hero.charName, name = "Pull Ult: "..hero.charName, value = true})
-		
-	end	
-	
+	DelayAction(function()
+		for i, hero in pairs(GetEnemyHeroes()) do
+			Menu.AutoR.Target:MenuElement({id = "ult"..hero.charName, name = "Pull Ult: "..hero.charName, value = true})
+			
+		end	
+	end, 0.01)
 
 		
 	--ComboMenu  
@@ -224,6 +225,8 @@ function LoadScript()
 		Orb = 3
 	elseif _G.gsoSDK then
 		Orb = 4
+	elseif _G.PremiumOrbwalker then
+		Orb = 5		
 	end	
 	Callback.Add("Tick", function() Tick() end)
 
