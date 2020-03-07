@@ -216,7 +216,7 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
 	
 	Menu:MenuElement({type = MENU, id = "RSet", name = "AutoR+E Incomming CC Spells"})	
 	Menu.RSet:MenuElement({id = "UseR", name = "Use AutoR + E Stun", value = true})	
@@ -442,7 +442,7 @@ function ProcessSpell()
 		local type = Detected.type
 		if type == "targeted" then
 			if spell.target == myHero.handle then 
-				_G.SDK.Orbwalker:SetMovement(false)
+				SetMovement(false)
 				if myHero.pos:DistanceTo(unit.pos) < 1300 and Ready(_E) then
 					ControlCastSpell(HK_R, unit.pos)
 					table.remove(DetectedSpells, i)
@@ -455,7 +455,7 @@ function ProcessSpell()
 					ControlCastSpell(HK_R, castPos)
 					table.remove(DetectedSpells, i)
 				end
-				_G.SDK.Orbwalker:SetMovement(true)
+				SetMovement(true)
 			end
 		else
 			local startPos = Vector(spell.startPos); local placementPos = Vector(spell.placementPos); local unitPos = unit.pos
@@ -480,7 +480,7 @@ function UseR(i, s)
 			if GetDistanceSqr(myHero.pos, endPos) < (s.radius + myHero.boundingRadius) ^ 2 or GetDistanceSqr(myHero.pos, Col) < (s.radius + myHero.boundingRadius * 1.25) ^ 2 then
 				local t = s.speed ~= math.huge and CalculateCollisionTime(startPos, endPos, myHero.pos, s.startTime, s.speed, s.delay) or 0.29
 				if t < 0.3 then
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					if myHero.pos:DistanceTo(startPos) < 1300 and Ready(_E) then
 						ControlCastSpell(HK_R, startPos)
 						if myHero.isChanneling then
@@ -491,7 +491,7 @@ function UseR(i, s)
 						local castPos = Vector(startPos) - (Vector(myHero) - Vector(startPos)):Perpendicular():Normalized() * 350	
 						ControlCastSpell(HK_R, castPos)
 					end
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 				end				
 			end
 		end	
@@ -524,9 +524,9 @@ if target == nil then return end
 				local pred = GetGamsteronPrediction(target, Q2Data, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ2:Value() + 1 then
 					DelayAction(function()
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					ControlCastSpell(HK_Q, pred.CastPosition)
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 					end,0.3)
 				end	
 			end
@@ -535,9 +535,9 @@ if target == nil then return end
 		if Menu.ks.UseQ:Value() and Ready(_Q) then
 			local QDmg = getdmg("Q", target, myHero)
 			if myHero:GetSpellData(_Q).name == "ZoeQ" and myHero.pos:DistanceTo(target.pos) < 800 and QDmg >= target.health then
-				_G.SDK.Orbwalker:SetMovement(false)
+				SetMovement(false)
 				CheckQPos(target)
-				_G.SDK.Orbwalker:SetMovement(true)
+				SetMovement(true)
 			end
         end			
 		
@@ -603,9 +603,9 @@ if target == nil then return end
 				local pred = GetGamsteronPrediction(target, Q2Data, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ2:Value() + 1 then
 					DelayAction(function()
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					ControlCastSpell(HK_Q, pred.CastPosition)
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 					end,0.3)
 				end	
 			end
@@ -613,17 +613,17 @@ if target == nil then return end
 		
 		if Menu.Combo.UseQ:Value() and Ready(_Q) and myHero:GetSpellData(_Q).name == "ZoeQ" then			
 			if myHero.pos:DistanceTo(target.pos) < 1400 and Ready(_R) then
-				_G.SDK.Orbwalker:SetMovement(false)
+				SetMovement(false)
 				CheckQPos(target)
-				_G.SDK.Orbwalker:SetMovement(true)
+				SetMovement(true)
 			end
         end	
 
 		if Menu.Combo.UseQ:Value() and Ready(_Q) then
 			if myHero:GetSpellData(_Q).name == "ZoeQ" and myHero.pos:DistanceTo(target.pos) < 800 then
-				_G.SDK.Orbwalker:SetMovement(false)
+				SetMovement(false)
 				CheckQPos(target)
-				_G.SDK.Orbwalker:SetMovement(true)
+				SetMovement(true)
 			end
         end		
 
@@ -717,9 +717,9 @@ if target == nil then return end
 				local pred = GetGamsteronPrediction(target, Q2Data, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ2:Value() + 1 then
 					DelayAction(function()
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					ControlCastSpell(HK_Q, pred.CastPosition)
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 					end,0.3)
 				end	
 			end
@@ -727,9 +727,9 @@ if target == nil then return end
 
 		if Menu.Harass.UseQ:Value() and Ready(_Q) then
 			if myHero:GetSpellData(_Q).name == "ZoeQ" and myHero.pos:DistanceTo(target.pos) < 800 then
-				_G.SDK.Orbwalker:SetMovement(false)
+				SetMovement(false)
 				CheckQPos(target)
-				_G.SDK.Orbwalker:SetMovement(true)
+				SetMovement(true)
 			end
         end	
 	end
@@ -745,9 +745,9 @@ function Clear()
 			if Menu.Clear.UseQ:Value() and Ready(_Q) then
 				if myHero:GetSpellData(_Q).name == "ZoeQRecast" then
 					DelayAction(function()
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					ControlCastSpell(HK_Q, minion.pos)
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 					end,0.3)	
 				end
 			end
@@ -756,9 +756,9 @@ function Clear()
 				if myHero:GetSpellData(_Q).name == "ZoeQ" then
 					local count = GetMinionCount(275, minion)
 					if count >= Menu.Clear.UseQM:Value() then				
-						_G.SDK.Orbwalker:SetMovement(false)
+						SetMovement(false)
 						CheckQPos(minion)
-						_G.SDK.Orbwalker:SetMovement(true)
+						SetMovement(true)
 					end
 				end			
 			end
@@ -775,18 +775,18 @@ function JungleClear()
 			if Menu.JClear.UseQ:Value() and Ready(_Q) then
 				if myHero:GetSpellData(_Q).name == "ZoeQRecast" then
 					DelayAction(function()
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					ControlCastSpell(HK_Q, minion.pos)
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 					end,0.3)	
 				end
 			end
 			
 			if Menu.JClear.UseQ:Value() and Ready(_Q) then			
 				if myHero:GetSpellData(_Q).name == "ZoeQ" then				
-					_G.SDK.Orbwalker:SetMovement(false)
+					SetMovement(false)
 					CheckQPos(minion)
-					_G.SDK.Orbwalker:SetMovement(true)
+					SetMovement(true)
 				end			
 			end			
         end
