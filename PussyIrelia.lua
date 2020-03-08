@@ -34,7 +34,7 @@ require('PremiumPrediction')
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.09
+    local Version = 0.10
     
     local Files = {
         Lua = {
@@ -550,6 +550,9 @@ local function GetBestECastPositions(units)
 end
 
 local function CheckHPPred(unit)
+local speed = 1500+myHero.ms
+local range = GetDistance(myHero.pos, unit.pos)
+local time = range / speed
 	if _G.SDK then
 		return _G.SDK.HealthPrediction:GetPrediction(unit, time)
 	elseif _G.PremiumOrbwalker then
@@ -785,7 +788,6 @@ local target = GetTarget(1100)
 if target == nil then return end	
 	if IsValid(target) then
 		local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	
-		local time = myHero.pos:DistanceTo(target.pos) / (1500+myHero.ms) 
 		local hp = CheckHPPred(target)	
 		local MarkBuff = HasBuff(target, "ireliamark")
 		
@@ -803,7 +805,7 @@ if target == nil then return end
 			self:CastW(target)
 		end
 		
-		if myHero.pos:DistanceTo(target.pos) <= 950 and myHero.pos:DistanceTo(target.pos) > 300 and not MarkBuff and Ready(_R) and Ready(_Q) and QDmg*2 < target.health then
+		if myHero.pos:DistanceTo(target.pos) <= 850 and myHero.pos:DistanceTo(target.pos) > 300 and not MarkBuff and Ready(_R) and Ready(_Q) and QDmg*2 < target.health then
 			self:CastR(target)
 		end	
 
@@ -1032,7 +1034,7 @@ if target == nil then return end
 		end		
 		
 		if EBuff() then return end		
-		if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= 950 and self.Menu.ComboSet.Combo.UseRCount:Value() then
+		if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= 850 and self.Menu.ComboSet.Combo.UseRCount:Value() then
 			if count >= self.Menu.ComboSet.Combo.RCount:Value() then					
 				countR = true
 				self:CastR(target)
@@ -1053,7 +1055,7 @@ if target == nil then return end
 		end	
 		
 		if self.Menu.ComboSet.Combo.UseR:Value() and Ready(_R) and not Ready(_W) then
-			if myHero.pos:DistanceTo(target.pos) <= 950 and not countR then					
+			if myHero.pos:DistanceTo(target.pos) <= 850 and not countR then					
 				self:CastR(target)
 
 			end
@@ -1062,7 +1064,6 @@ if target == nil then return end
 		if self.Menu.ComboSet.Combo.QLogic:Value() then
 			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then 
 				local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	
-				local time = myHero.pos:DistanceTo(target.pos) / (1500+myHero.ms) 
 				local hp = CheckHPPred(target)
 				if hp > 0 and QDmg > target.health then
 					ControlCastSpell(HK_Q, target)	
@@ -1075,8 +1076,7 @@ if target == nil then return end
 		
 		else
 			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
-				local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	
-				local time = myHero.pos:DistanceTo(target.pos) / (1500+myHero.ms)  
+				local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	 
 				local hp = CheckHPPred(target) 
 				if HasBuff(target, "ireliamark") then	
 					if hp > 0 and (QDmg*2) > target.health then
@@ -1145,7 +1145,6 @@ function Irelia:LastHit()
             
 			if self.Menu.ClearSet.LastHit.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.LastHit.Mana:Value() / 100 and Ready(_Q) then
 				local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
-				local time = myHero.pos:DistanceTo(minion.pos) / (1500+myHero.ms) 
 				local hp = CheckHPPred(minion)
 
 				if QDmg > minion.health and hp > 0 and not IsUnderTurret(minion) and not myHero.isDashing then	
@@ -1171,8 +1170,7 @@ function Irelia:AutoQ()
 			end	
             
 			if self.Menu.ClearSet.AutoQ.Q:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.AutoQ.Mana:Value() / 100 and Ready(_Q) then
-			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
-			local time = myHero.pos:DistanceTo(minion.pos) / (1500+myHero.ms) 
+			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
 			local hp = CheckHPPred(minion)
 
 				if QDmg > minion.health and hp > 0 and not IsUnderTurret(minion) and not myHero.isDashing then	
@@ -1195,8 +1193,7 @@ if GotBuff(myHero, "ireliapassivestacksmax") == 1 then return end
 
 		if myHero.pos:DistanceTo(minion.pos) <= 600 and minion.team == TEAM_ENEMY and IsValid(minion) then
 			if target.pos:DistanceTo(minion.pos) <= 400 and Ready(_Q) then
-			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
-			local time = myHero.pos:DistanceTo(minion.pos) / (1500+myHero.ms) 
+			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
 			local hp = CheckHPPred(minion)
 				if QDmg > minion.health and hp > 0 and not myHero.isDashing then
 					ControlCastSpell(HK_Q, minion)
@@ -1224,8 +1221,7 @@ function Irelia:JungleClear()
 			end				
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 600 and self.Menu.ClearSet.JClear.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 and Ready(_Q) then
-			local QDmg = getdmg("Q", minion, myHero) + self:CalcExtraDmg(minion)
-			local time = myHero.pos:DistanceTo(minion.pos) / (1500+myHero.ms) 
+			local QDmg = getdmg("Q", minion, myHero) + self:CalcExtraDmg(minion) 
 			local hp = CheckHPPred(minion)
 				if QDmg > minion.health and hp > 0 and not myHero.isDashing then
 					ControlCastSpell(HK_Q, minion)
@@ -1253,8 +1249,7 @@ function Irelia:Clear()
 			end				
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 600 and self.Menu.ClearSet.Clear.Last.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.Clear.Mana:Value() / 100 and Ready(_Q) then
-			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
-			local time = myHero.pos:DistanceTo(minion.pos) / (1500+myHero.ms) 
+			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
 			local hp = CheckHPPred(minion)
 
 				if QDmg > minion.health and hp > 0 and not IsUnderTurret(minion) and not myHero.isDashing then	
@@ -1278,7 +1273,6 @@ function Irelia:KillSteal()
 	if IsValid(target) then	
 		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and self.Menu.ks.UseQ:Value() then
 			local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	
-			local time = myHero.pos:DistanceTo(target.pos) / (1500+myHero.ms) 
 			local hp = CheckHPPred(target) 
 			if hp > 0 and QDmg > target.health then
 				ControlCastSpell(HK_Q, target)
@@ -1294,7 +1288,7 @@ function Irelia:KillSteal()
 				self:CastW(target)
 			end
 		end	
-		if myHero.pos:DistanceTo(target.pos) <= 950 and Ready(_R) and self.Menu.ks.UseR:Value() then
+		if myHero.pos:DistanceTo(target.pos) <= 850 and Ready(_R) and self.Menu.ks.UseR:Value() then
 			local RDmg = getdmg("R", target, myHero)
 			local hp = target.health
 			if RDmg >= hp then
@@ -1310,8 +1304,7 @@ function Irelia:CastQMinion(target)
 
 		if myHero.pos:DistanceTo(minion.pos) <= 600 and minion.team == TEAM_ENEMY and IsValid(minion) then
 			local Dmg = getdmg("Q", target, myHero) or getdmg("W", target, myHero) or getdmg("E", target, myHero) or getdmg("R", target, myHero)
-			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
-			local time = myHero.pos:DistanceTo(minion.pos) / (1500+myHero.ms) 
+			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
 			local hp = CheckHPPred(minion)
 			if myHero.pos:DistanceTo(minion.pos) > myHero.pos:DistanceTo(target.pos) and not IsUnderTurret(minion) and target.health > Dmg and QDmg > minion.health and hp > 0 and not myHero.isDashing then
 				ControlCastSpell(HK_Q, minion)
@@ -1327,8 +1320,7 @@ function Irelia:Gapclose(target)
 	
 		if  GetDistanceSqr(minion.pos, myHero.pos) <= 600*600 and Ready(_Q) and minion.team == TEAM_ENEMY and IsValid(minion) then
 			if GetDistanceSqr(target.pos, myHero.pos) > GetDistanceSqr(minion.pos, target.pos) and GetDistanceSqr(target.pos, minion.pos) <= 600*600 then
-			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
-			local time = myHero.pos:DistanceTo(minion.pos) / (1500+myHero.ms) 
+			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
 			local hp = CheckHPPred(minion)
 				if QDmg > minion.health and hp > 0 and not myHero.isDashing then
 					ControlCastSpell(HK_Q, minion)
@@ -1373,8 +1365,7 @@ function Irelia:Flee()
 				for i = 1, GameMinionCount() do
 				local minion = GameMinion(i)
 					if minion.pos:DistanceTo(myHero.pos) <= 600 and minion.team == TEAM_ENEMY and IsValid(minion) then
-					local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
-					local time = myHero.pos:DistanceTo(minion.pos) / (1500+myHero.ms) 
+					local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
 					local hp = CheckHPPred(minion)
 						if target.pos:DistanceTo(myHero.pos) < minion.pos:DistanceTo(target.pos) and QDmg > minion.health and hp > 0 and not myHero.isDashing then
 							ControlCastSpell(HK_Q, minion)
