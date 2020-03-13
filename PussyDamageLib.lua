@@ -38,7 +38,7 @@ local Version = 0.25
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
             print("New PussyDmgLib Version Press 2x F6")
         else
-            print("PussyDmgLib loaded 0.23")
+            print("PussyDmgLib loaded 0.25")
         end	
 	end
 	
