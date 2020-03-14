@@ -21,7 +21,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
 	
 	Menu:MenuElement({type = MENU, id = "Prio", name = "Empowered Spell Priority"})	
 	Menu.Prio:MenuElement({id = "Logic", name = "Empowered[Q] / Empowered[E]", key = string.byte("T"), toggle = true})	
@@ -50,7 +50,6 @@ function LoadScript()
 	
 	--Drawing
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
-	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q]", value = false})
 	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W]", value = false})
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E]", value = false})	
 	Menu.Drawing:MenuElement({type = MENU, id = "XY", name = "TextPos Spell Priority"})	
@@ -59,10 +58,10 @@ function LoadScript()
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1000, Speed = 1500, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1000, Speed = 1500, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
 	}
 	
-	EspellData = {speed = 1500, range = 1000, delay = 0.25, radius = 70, collision = {}, type = "linear"}		
+	EspellData = {speed = 1500, range = 1000, delay = 0.25, radius = 70, collision = {"minion"}, type = "linear"}		
 
   	                                           
 	if _G.EOWLoaded then
@@ -80,9 +79,6 @@ function LoadScript()
 
 	Callback.Add("Draw", function() 
 		if myHero.dead then return end
-		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-		DrawCircle(myHero, myHero.range, 1, DrawColor(225, 225, 0, 10))
-		end
 		if Menu.Drawing.DrawW:Value() and Ready(_W) then
 		DrawCircle(myHero, 450, 1, DrawColor(225, 225, 0, 10))
 		end
@@ -105,20 +101,22 @@ local Mode = GetMode()
 	if Mode == "Combo" then
 		Buff()
 		Combo()
-		Dash()		
+		DashAktive()		
 	elseif Mode == "Clear" then
 		Buff()
 		Clear()
 		JungleClear()
 	end	
-	AutoW()
+	if Menu.Prio.UseW:Value() and Ready(_W) then
+		AutoW()
+	end
 end
-Menu.Prio.UseW:Value()
+
 local UltActive  = false 
 local Dash       = false
 
 function AutoW()
-if Dash == false then return end	
+if myHero.mana < 4 then return end	
 	if IsImmobile(myHero) then
 		ControlCastSpell(HK_W)
 	end
@@ -134,28 +132,22 @@ function Buff()
 	end
 end
 
-local function AAReset()
-	if _G.SDK and _G.SDK.Orbwalker then
-		return _G.SDK.Orbwalker:__OnAutoAttackReset()
-	elseif _G.PremiumOrbwalker then
-		return _G.PremiumOrbwalker:__ResetAutoAttack()
-	end
-end	
-
 function CastQ(unit)
-	if myHero.pos:DistanceTo(unit.pos) < 300 then	
+	if (not Menu.Prio.Logic:Value() and myHero.mana == 4) then return end
+	if myHero.pos:DistanceTo(unit.pos) < 400 then	
 		ControlCastSpell(HK_Q)
-		AAReset()
 	end
 end
 
 function CastW(unit)
+	if myHero.mana == 4 then return end
 	if myHero.pos:DistanceTo(unit.pos) < 450 then
 		ControlCastSpell(HK_W)
 	end
 end
 
 function CastE(unit)
+	if (Menu.Prio.Logic:Value() and myHero.mana == 4) then return end
 	if myHero.pos:DistanceTo(unit.pos) < 1000 then
 		if Menu.Pred.Change:Value() == 1 then
 			local pred = GetGamsteronPrediction(unit, EData, myHero)
@@ -186,7 +178,7 @@ function Clear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 		if myHero.pos:DistanceTo(minion.pos) <= 400 and minion.team == TEAM_ENEMY and IsValid(minion) then
-			local QDmg = getdmg("Q", minion, myHero)
+			local QDmg = if myHero.mana == 4 then return getdmg("Q", minion, myHero, 2) else return getdmg("Q", minion, myHero) end
 			if Menu.Clear.UseQ:Value() and Ready(_Q) and QDmg > minion.health then 
 				CastQ(minion)	
 			end
@@ -206,15 +198,12 @@ function JungleClear()
 	end
 end
 
-function Dash()
+function DashAktive()
 	if UltActive == true then return end
 	local target = GetTarget(1100)
 	if target == nil then return end
-	if IsValid(target) and Dash == true and not IsImmobile(myHero) then	
-		if Menu.Prio.Logic:Value() then
-			if Ready(_Q) then CastQ(target) end
-		else	
-			if Ready(_E) then CastE(target) end
-		end	
+	if IsValid(target) and Dash == true then	
+		if Ready(_Q) then CastQ(target) end	
+		if Ready(_E) then CastE(target) end	
 	end
 end
