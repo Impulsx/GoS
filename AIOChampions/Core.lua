@@ -203,12 +203,11 @@ DelayAction(function()
 end, 0.05)
 	
 DelayAction(function()
-	if Menu.Pred.Change then
-		if Menu.Pred.Change:Value() == 1 then
-			require('GamsteronPrediction')
-		else
-			require('PremiumPrediction')
-		end	
+	if not Menu.Pred then return end
+	if Menu.Pred.Change:Value() == 1 then
+		require('GamsteronPrediction')
+	else
+		require('PremiumPrediction')
 	end	
-end, 0.5)
+end, 1.0)
 
