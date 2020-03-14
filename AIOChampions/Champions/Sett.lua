@@ -1,5 +1,9 @@
 local function GetEnemyHeroes()
-	return Enemies
+    return Enemies
+end 
+
+local function GetAllyHeroes()
+	return Allies
 end
 
 local function GetMinionCount(range, pos)
@@ -15,10 +19,48 @@ local function GetMinionCount(range, pos)
 	return count
 end
 
+local function UltEnemyTurret(unit)
+    for i = 1, GameTurretCount() do
+        local turret = GameTurret(i)
+        local range = (turret.boundingRadius + 750) 
+        if turret.isEnemy and not turret.dead then
+            if turret.pos:DistanceTo(unit) < range then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function UltAllyTurret(unit)
+    for i = 1, GameTurretCount() do
+        local turret = GameTurret(i)
+        local range = (turret.boundingRadius + 750)
+        if turret.isAlly and not turret.dead then
+            if turret.pos:DistanceTo(unit) < range then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function GetEnemyCount(range, pos)
+	local count = 0
+	for i = 1, GameHeroCount() do 
+	local hero = GameHero(i)
+	local Range = range * range
+		if hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
+		count = count + 1
+		end
+	end
+	return count
+end
+
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -41,6 +83,8 @@ function LoadScript()
 	Menu.Clear:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Clear:MenuElement({id = "Wmin", name = "[W] If Hit X Minion ", value = 2, min = 1, max = 6, step = 1, identifier = "Minion/s"})	
 	Menu.Clear:MenuElement({id = "Grit", name = "Min Grit to Use [W]", value = 0, min = 0, max = 100, identifier = "%"})
+	Menu.Clear:MenuElement({id = "UseE", name = "[E]", value = true})
+	Menu.Clear:MenuElement({id = "Emin", name = "[E] If Hit X Minion ", value = 3, min = 1, max = 6, step = 1, identifier = "Minion/s"})	
 	
 	--JungleClear
 	Menu:MenuElement({type = MENU, id = "JClear", name = "JungleClear"})
@@ -58,7 +102,7 @@ function LoadScript()
 	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W]", value = false})
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E]", value = false})
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R]", value = false})		
-			
+	Menu.Drawing:MenuElement({id = "REnd", name = "Draw [R] Landing Pos", value = true})			
 
 	WData =
 	{
@@ -80,7 +124,7 @@ function LoadScript()
 		Orb = 5		
 	end	
 	Callback.Add("Tick", function() Tick() end)
-	
+
 	Callback.Add("Draw", function() 
 		if myHero.dead then return end
 		if Menu.Drawing.DrawW:Value() and Ready(_W) then
@@ -91,7 +135,17 @@ function LoadScript()
 		end
 		if Menu.Drawing.DrawR:Value() and Ready(_R) then
 		DrawCircle(myHero, 400, 1, DrawColor(225, 225, 0, 10))
-		end		
+		end	
+		if Menu.Drawing.REnd:Value() and Ready(_R) then
+			local target = GetTarget(1000)
+			if target == nil then return end
+			local UltEndPos = target.pos:Extended(myHero.pos, -690)
+			if IsValid(target) and myHero.pos:DistanceTo(target.pos) < 600 and GetMode() == "Combo" and target.health/target.maxHealth <= Menu.Combo.HP:Value() / 100 then    
+				DrawCircle(UltEndPos, 400, 1, DrawColor(225, 225, 0, 10))
+				local LS = LineSegment(myHero.pos, UltEndPos)
+				LS:__draw()
+			end	
+		end			
 	end)		
 end
 
@@ -108,16 +162,24 @@ local Mode = GetMode()
 end
 
 function Combo()
-local target = GetTarget(800)
+local target = GetTarget(1400)
 if target == nil then return end
 	if IsValid(target) then    
 		
 		if myHero.pos:DistanceTo(target.pos) < 400 and Menu.Combo.UseR:Value() and Ready(_R) and Menu.Combo.Targets[target.charName] and Menu.Combo.Targets[target.charName]:Value() then
-			if target.health/target.maxHealth <= Menu.Combo.HP:Value() / 100 then
+			local UltEndPos = target.pos:Extended(myHero.pos, -690)
+			local Rdmg = getdmg("R", target, myHero)
+			if Rdmg > target.health then 
 				ControlCastSpell(HK_R, target)
-			end	
+			
+			else
+				
+				if target.health/target.maxHealth <= Menu.Combo.HP:Value() / 100 then
+					CastUlt(target)
+				end	
+			end
 		end			
-		
+					
 		if myHero.pos:DistanceTo(target.pos) < 490 and Menu.Combo.UseE:Value() and Ready(_E) then
 			ControlCastSpell(HK_E, target.pos)
 		end			
@@ -142,6 +204,25 @@ if target == nil then return end
 	end
 end	
 
+function CastUlt(unit)
+	for i, ally in pairs(GetAllyHeroes()) do
+		local UltEndPos = unit.pos:Extended(myHero.pos, -690)
+		local enemyCount = GetEnemyCount(400, UltEndPos)
+		
+		if UltAllyTurret(UltEndPos) then
+			ControlCastSpell(HK_R, unit)
+		
+		elseif ally.pos:DistanceTo(UltEndPos) < 400 then
+			ControlCastSpell(HK_R, unit)	
+			
+		elseif enemyCount >= 1 then
+			if UltEnemyTurret(UltEndPos) == false then
+				ControlCastSpell(HK_R, unit)
+			end					
+		end	
+	end
+end		
+
 function Clear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
@@ -156,6 +237,13 @@ function Clear()
 				if count >= Menu.Clear.Wmin:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Grit:Value() / 100 then			
 					ControlCastSpell(HK_W, minion.pos)
 				end	
+			end	
+			
+			if myHero.pos:DistanceTo(minion.pos) <= 490 and Menu.Clear.UseE:Value () and Ready(_E) then
+				local count = GetMinionCount (160, minion)
+				if count >= Menu.Clear.Emin:Value() then
+					ControlCastSpell(HK_E, minion.pos)
+				end
 			end			
 		end
 	end
