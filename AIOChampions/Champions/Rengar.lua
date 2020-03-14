@@ -21,7 +21,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 	
 	Menu:MenuElement({type = MENU, id = "Prio", name = "Empowered Spell Priority"})	
 	Menu.Prio:MenuElement({id = "Logic", name = "Empowered[Q] / Empowered[E]", key = string.byte("T"), toggle = true})	
@@ -174,13 +174,21 @@ function Combo()
 	end
 end
 
+local function QDmg(unit)
+	if myHero.mana == 4 then 
+		return getdmg("Q", unit, myHero, 2)
+	else 
+		return getdmg("Q", unit, myHero, 1) 
+	end
+end
+	
 function Clear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 		if myHero.pos:DistanceTo(minion.pos) <= 400 and minion.team == TEAM_ENEMY and IsValid(minion) then
-			local QDmg = if myHero.mana == 4 then return getdmg("Q", minion, myHero, 2) else return getdmg("Q", minion, myHero) end
+			local QDmg = QDmg(minion)
 			if Menu.Clear.UseQ:Value() and Ready(_Q) and QDmg > minion.health then 
-				CastQ(minion)	
+				ControlCastSpell(HK_Q)	
 			end
 		end
 	end
@@ -191,8 +199,8 @@ function JungleClear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 		if myHero.pos:DistanceTo(minion.pos) <= 1000 and minion.team == TEAM_JUNGLE and IsValid(minion) then
-			if Menu.JClear.UseQ:Value() and Ready(_Q) then CastQ(minion) end
-			if Menu.JClear.UseW:Value() and Ready(_W) then CastW(minion) end
+			if Menu.JClear.UseQ:Value() and Ready(_Q) then ControlCastSpell(HK_Q) end
+			if Menu.JClear.UseW:Value() and Ready(_W) then ControlCastSpell(HK_W) end
 			if Menu.JClear.UseE:Value() and Ready(_E) then ControlCastSpell(HK_E, minion.pos) end
 		end
 	end
