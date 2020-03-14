@@ -72,7 +72,7 @@ local function Ready(spell)
     return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and GameCanUseSpell(spell) == 0
 end
 
-local function GetMode()   
+function GetMode()   
     if Orb == 1 then
         if combo == 1 then
             return 'Combo'
@@ -104,7 +104,7 @@ local function GetMode()
 	end
 end
 
-local function GetTarget(range) 
+function GetTarget(range) 
 	if Orb == 1 then
 		if myHero.ap > myHero.totalDamage then
 			return EOW:GetTarget(range, EOW.ap_dec, myHero.pos)
@@ -196,11 +196,19 @@ print ("Delay:  "..myHero.activeSpell.castFrame)
 print ("range:  "..myHero.activeSpell.range)
 end
 ]]
+
+DelayAction(function()
+	LoadUnits()
+	LoadScript()
+end, 0.05)
 	
 DelayAction(function()
-	LoadScript()	
-	LoadUnits()	
-end, 0.1)
-
-
+	if Menu.Pred.Change then
+		if Menu.Pred.Change:Value() == 1 then
+			require('GamsteronPrediction')
+		else
+			require('PremiumPrediction')
+		end	
+	end	
+end, 0.5)
 
