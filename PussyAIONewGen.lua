@@ -74,7 +74,6 @@ local function AutoUpdate()
 	end
 	
 	local function LoadLibs()
-		local Heroes = {"Ahri","Akali","Caitlyn","Camille","Cassiopeia","Chogath","Ekko","Jhin","Kaisa","Kalista","Lux","Malzahar","Mordekaiser","Morgana","Nidalee","Ryze","Sett","Sona","Soraka","Veigar","Zoe","Zyra"}
 		
 		if not FileExist(COMMON_PATH .. "PussyDamageLib.lua") then
 			print("PussyDamageLib. installed Press 2x F6")
@@ -84,23 +83,20 @@ local function AutoUpdate()
 		
 		require('PussyDamageLib')
 		
-		if table.contains(Heroes, myHero.charName) then
-			if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
-				print("GsoPred. installed Press 2x F6")
-				DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-EXT/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
-				while not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") do end
-			end
+
+		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+			print("GsoPred. installed Press 2x F6")
+			DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-EXT/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
+			while not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") do end
+		end
+		
 			
-			require('GamsteronPrediction')	
-			
-			if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
-				print("PremiumPred. installed Press 2x F6")
-				DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
-				while not FileExist(COMMON_PATH .. "PremiumPrediction.lua") do end
-			end
-			
-			require('PremiumPrediction')
-		end	
+		
+		if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
+			print("PremiumPred. installed Press 2x F6")
+			DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
+			while not FileExist(COMMON_PATH .. "PremiumPrediction.lua") do end
+		end
 	end	
 	
 	local function InitializeScript()         
@@ -169,27 +165,8 @@ local function AutoUpdate()
 	LoadScript()
 		
 end
-	
-local isLoaded = false
-function TryLoad()
-	if Game.Timer() < 30 then return end
-	isLoaded = true	
-	_G.PussyMain = true
-	AutoUpdate()
-end
-
-class "Start"
-
-function Start:__init()	
-	Callback.Add("Tick", function() self:Tick() end)	
-end
-
-function Start:Tick()
-	if not isLoaded then
-		TryLoad()
-	end		
-end
 
 function OnLoad()
-	Start()	
+	_G.PussyMain = true
+	AutoUpdate()	
 end
