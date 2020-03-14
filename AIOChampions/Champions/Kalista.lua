@@ -26,13 +26,30 @@ local function GetBuffData(unit, buffname)
   return {type = 0, name = "", startTime = 0, expireTime = 0, duration = 0, stacks = 0, count = 0}
 end
 
+local function KillMinionCount(range, pos)
+    local pos = pos.pos
+	local count = 0
+	for i = 1,GameMinionCount() do
+	local minion = GameMinion(i)
+	local Range = range * range
+		if minion.team ~= TEAM_ALLY and minion.dead == false and GetDistanceSqr(pos, minion.pos) < Range then
+			local buff = HasBuff(minion, "kalistaexpungemarker")
+			local EDmg = getdmg("E", minion, myHero)
+			if buff and EDmg >= minion.health then
+				count = count + 1
+			end	
+		end
+	end
+	return count
+end
+
 local ChampTable = {["Blitzcrank"] = {charName = "Blitzcrank"}, ["Skarner"] = {charName = "Skarner"}, ["TahmKench"] = {charName = "TahmKench"}, ["Sion"] = {charName = "Sion"}}
 local BoundAlly = nil
 
 function LoadScript() 
 	HPred()	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
 	
 	--AutoQ	
 	Menu:MenuElement({type = MENU, id = "AutoQ2", name = "AutoQ"})
@@ -45,18 +62,24 @@ function LoadScript()
 
 	--AutoE
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})
-	Menu.AutoE:MenuElement({id = "E", name = "ToggleKey[AutoE LastHit Minions]", key = 84, toggle = true})	
-	Menu.AutoE:MenuElement({id = "UseE", name = "Panic[E] if duration runs out", value = true})
+	Menu.AutoE:MenuElement({id = "E", name = "ToggleKey[LastHit Minions]", key = 84, toggle = true})
+	Menu.AutoE:MenuElement({id = "Emin", name = "[E] If Kill X Minion ", value = 2, min = 1, max = 6, step = 1, identifier = "Minion/s"})
+	Menu.AutoE:MenuElement({name = " ", drop = {"---------------------------------------------------"}})	
+	Menu.AutoE:MenuElement({id = "E2", name = "[E] Enemy has spears and killable Minion near", value = true})
+	Menu.AutoE:MenuElement({name = " ", drop = {"---------------------------------------------------"}})	
+	Menu.AutoE:MenuElement({id = "UseE", name = "Panic[E] Enemy if duration runs out", value = true})
 	Menu.AutoE:MenuElement({id = "UseEM", name = "min sec before Panic[E]", value = 0.9, min = 0.1, max = 4.0, step = 0.1, identifier = "sec"})
 	Menu.AutoE:MenuElement({id = "count", name = "min Spears for Panic[E]", value = 5, min = 0, max = 10, identifier = "Spear/s"})	
 		
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
-	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})				
+	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	Menu.Combo:MenuElement({id = "UseE", name = "[E] if has Target Spear and minion killable", value = true})	
   
 	--LaneClear Menu
 	Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear"})			
-	Menu.Clear:MenuElement({id = "UseE", name = "[E]LastHit", value = true}) 		
+	Menu.Clear:MenuElement({id = "UseE", name = "[E]LastHit", value = true}) 
+	Menu.Clear:MenuElement({id = "Emin", name = "[E] If Kill X Minion ", value = 2, min = 1, max = 6, step = 1, identifier = "Minion/s"})	
 	Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to LaneClear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
@@ -169,12 +192,14 @@ local Mode = GetMode()
 		end	
 		JungleClear()
 	end	
-	if Mode ~= "Combo" then
-		KillMinion()
-	end
+
+	if Menu.AutoE.E2:Value() then
+		AutoE2()
+	end	
+	KillMinion()
 	KillSteal()
 	AutoQ()
-	AutoE()
+	AutoE()		
 	AutoR()
 	BoundHero()
 	WomboCombo()
@@ -247,6 +272,18 @@ if target == nil then return end
 	end	
 end
 
+function AutoE2()
+local target = GetTarget(1200)     	
+if target == nil then return end
+	if IsValid(target) and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 1100 then	
+	local buff = HasBuff(target, "kalistaexpungemarker")	
+	local count = KillMinionCount(1100, myHero)	
+		if buff and count >= 1 then  
+			ControlCastSpell(HK_E)				
+		end
+	end	
+end
+
 function AutoR()
 	if BoundAlly then
 		if myHero.pos:DistanceTo(BoundAlly.pos) <= 1200 and IsValid(BoundAlly) and Menu.AutoR.UseR:Value() and Ready(_R) then
@@ -285,8 +322,8 @@ function Clear()
 
 		if myHero.pos:DistanceTo(minion.pos) <= 1100 and minion.team == TEAM_ENEMY and IsValid(minion) and Menu.Clear.UseE:Value() then
 			if mana_ok and Ready(_E) then
-			local EDmg = getdmg("E", minion, myHero)	
-				if EDmg >= minion.health then
+			local count = KillMinionCount(1100, myHero)	
+				if count >= Menu.Clear.Emin:Value() then
 					ControlCastSpell(HK_E)
 				end
 			end
@@ -331,8 +368,8 @@ function KillMinion()
     local minion = GameMinion(i)
         if myHero.pos:DistanceTo(minion.pos) <= 1100 and minion.team == TEAM_ENEMY and IsValid(minion) then
 			if Menu.AutoE.E:Value() and Ready(_E) then
-			local EDmg = getdmg("E", minion, myHero)	
-				if EDmg >= minion.health then
+			local count = KillMinionCount(1100, myHero)	
+				if count >= Menu.AutoE.Emin:Value() then
 					ControlCastSpell(HK_E)
 				end
 			end
