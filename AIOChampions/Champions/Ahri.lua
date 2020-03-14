@@ -34,7 +34,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -178,7 +178,7 @@ if target == nil then return end
 				end					
 			end			
 			
-			if Rcast and myHero.pos:DistanceTo(target.pos) <= 975 and Menu.Combo.UseE:Value() and Ready(_E) then
+			if myHero.pos:DistanceTo(target.pos) <= 975 and Menu.Combo.UseE:Value() and Ready(_E) then
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, EData, myHero)
 					if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
