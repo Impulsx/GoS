@@ -128,7 +128,11 @@ Data = {
          Sett = {
             Changelog = "Sett Changelog Here",
             Version = 0.01,
-        },        
+        },
+         Rengar = {
+            Changelog = "Rengar Changelog Here",
+            Version = 0.01,
+        },         
     },
 }
 
