@@ -59,13 +59,15 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})	
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
+	Menu.Combo:MenuElement({id = "UseEbuff", name = "only [E] if Target has QBuff", value = true})
+	Menu.Combo:MenuElement({id = "GapE", name = "Gapclose[E]", value = true})	
 	Menu.Combo:MenuElement({id = "UseR", name = "[R] if Target killable full Combo", value = true})
 	Menu.Combo:MenuElement({name = " ", drop = {"------------------------"}})
 	Menu.Combo:MenuElement({id = "UseR2", name = "Use[R] pull count", value = true})	
@@ -83,7 +85,7 @@ function LoadScript()
 	Menu.Clear:MenuElement({id = "UseQCount", name = "[Q] min Minions", value = 2, min = 1, max = 7, step = 1, identifier = "Minion/s"})	
 	Menu.Clear:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Clear:MenuElement({id = "UseWCount", name = "[W] min Minions", value = 2, min = 1, max = 7, step = 1, identifier = "Minion/s"})	
-	Menu.Clear:MenuElement({id = "UseE", name = "[E] Cannon Minion if no Enemy near", value = true})
+	Menu.Clear:MenuElement({id = "UseE", name = "[E] Kill Cannon Minion if no Enemy near", value = true})
 	Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})	
 	
 	--JungleClear
@@ -95,7 +97,7 @@ function LoadScript()
 	
 	--KillSteal
 	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
-	Menu.ks:MenuElement({id = "UseQE", name = "[Q]+[E]", value = true})		
+	Menu.ks:MenuElement({id = "UseQE", name = "[Q] + [E]", value = true})		
 	Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.ks:MenuElement({id = "UseE", name = "[E]", value = true})	
 	
@@ -113,10 +115,10 @@ function LoadScript()
 
 	QData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 900, Speed = 1900, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 900, Speed = 1300, Collision = false
 	}
 	
-	QspellData = {speed = 1900, range = 900, delay = 0.25, radius = 70, collision = {}, type = "linear"}		
+	QspellData = {speed = 1300, range = 900, delay = 0.25, radius = 100, collision = {}, type = "linear"}		
 
   	                                           
 	if _G.EOWLoaded then
@@ -144,7 +146,7 @@ function LoadScript()
 		DrawCircle(myHero, 825, 1, DrawColor(225, 225, 0, 10))
 		end
 		if Menu.Drawing.DrawR:Value() and Ready(_R) then
-		DrawCircle(myHero, 225, 1, DrawColor(225, 225, 0, 10))
+		DrawCircle(myHero, 475, 1, DrawColor(225, 225, 0, 10))
 		end		
 	end)		
 end
@@ -155,6 +157,9 @@ local Mode = GetMode()
 	if Mode == "Combo" then
 		Combo()
 		Ult()
+		if Menu.Combo.GapE:Value() then
+			Gapclose()
+		end	
 	elseif Mode == "Harass" then
 		Harass()		
 	elseif Mode == "Clear" then
@@ -163,6 +168,8 @@ local Mode = GetMode()
 	end
 	KillSteal()	
 end
+
+	
 
 local function GetEnemyUltCount(range, pos)
     local pos = pos.pos
@@ -223,11 +230,27 @@ if target == nil then return end
 							ControlCastSpell(HK_Q, pred.CastPos)
 						end	
 					end
-				end
-						
-				if myHero.pos:DistanceTo(target.pos) <= 825 and Menu.Combo.UseE:Value() and Ready(_E) then
-					ControlCastSpell(HK_E, target)
-				end
+				end 
+				if Menu.Combo.UseEbuff:Value() then
+					if myHero:GetSpellData(_Q).level > 0 then
+				
+						if myHero.pos:DistanceTo(target.pos) <= 825 and Menu.Combo.UseE:Value() and Ready(_E) and HasBuff(target, "dianamoonlight") then
+							ControlCastSpell(HK_E, target)
+						end	
+
+					else
+
+						if myHero.pos:DistanceTo(target.pos) <= 825 and Menu.Combo.UseE:Value() and Ready(_E) then
+							ControlCastSpell(HK_E, target)
+						end
+					end	
+				
+				else
+					
+					if myHero.pos:DistanceTo(target.pos) <= 825 and Menu.Combo.UseE:Value() and Ready(_E) then
+						ControlCastSpell(HK_E, target)
+					end
+				end	
 				
 			else
 			
@@ -245,7 +268,7 @@ if target == nil then return end
 					end
 				end	
 
-				if myHero.pos:DistanceTo(target.pos) <= 825 and Menu.Combo.UseE:Value() and Ready(_E) and HasBuff(target, "......") then
+				if myHero.pos:DistanceTo(target.pos) <= 825 and Menu.Combo.UseE:Value() and Ready(_E) and HasBuff(target, "dianamoonlight") then
 					ControlCastSpell(HK_E, target)
 				end	
 
@@ -270,9 +293,26 @@ if target == nil then return end
 				end
 			end
 					
-			if myHero.pos:DistanceTo(target.pos) <= 825 and Menu.Combo.UseE:Value() and Ready(_E) then
-				ControlCastSpell(HK_E, target)
-			end			
+			if Menu.Combo.UseEbuff:Value() then
+				if myHero:GetSpellData(_Q).level > 0 then
+			
+					if myHero.pos:DistanceTo(target.pos) <= 825 and Menu.Combo.UseE:Value() and Ready(_E) and HasBuff(target, "dianamoonlight") then
+						ControlCastSpell(HK_E, target)
+					end	
+
+				else
+
+					if myHero.pos:DistanceTo(target.pos) <= 825 and Menu.Combo.UseE:Value() and Ready(_E) then
+						ControlCastSpell(HK_E, target)
+					end
+				end	
+			
+			else
+				
+				if myHero.pos:DistanceTo(target.pos) <= 825 and Menu.Combo.UseE:Value() and Ready(_E) then
+					ControlCastSpell(HK_E, target)
+				end
+			end				
 		end	
 	end
 end
@@ -318,11 +358,31 @@ function Clear()
 
 			if myHero.pos:DistanceTo(minion.pos) <= 825 and Menu.Clear.UseE:Value() and Ready(_E) then
 				local Ecount = GetEnemyCount(825, myHero)
-				if minion.charName == "SRU_ChaosMinionSiege" and Ecount == 0 then
+				local EDmg = getdmg("E", minion, myHero)
+				if minion.charName == "SRU_ChaosMinionSiege" and Ecount == 0 and EDmg > minion.health then
 					ControlCastSpell(HK_E, minion)
 				end	
 			end			
 		end
+	end
+end
+
+function Gapclose()
+local target = GetTarget(1500)
+if target == nil then return end
+	if IsValid(target) then
+		for i = 1, GameMinionCount() do
+		local minion = GameMinion(i)	
+			if myHero.pos:DistanceTo(minion.pos) < 825 and (minion.team == TEAM_JUNGLE or minion.team == TEAM_ENEMY) and IsValid(minion) then
+				if myHero.pos:DistanceTo(target.pos) > myHero.pos:DistanceTo(minion.pos) and target.pos:DistanceTo(minion.pos) < 500 and Ready(_E) and Ready(_Q) then
+					ControlCastSpell(HK_Q, minion.pos)
+				end
+				
+				if Ready(_E) and HasBuff(minion, "dianamoonlight") and myHero.pos:DistanceTo(target.pos) > myHero.pos:DistanceTo(minion.pos) then
+					ControlCastSpell(HK_E, minion)
+				end	
+			end	
+		end	
 	end
 end
 
