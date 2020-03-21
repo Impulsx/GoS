@@ -34,7 +34,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -47,6 +47,7 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
 	Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = true})
+	Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})	
 	Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
 	
 	--LaneClear Menu
@@ -251,6 +252,20 @@ function Harass()
 local target = GetTarget(1000)
 if target == nil then return end
 	if IsValid(target) and myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value()/100 then
+		if myHero.pos:DistanceTo(target.pos) <= 975 and Menu.Harass.UseE:Value() and Ready(_E) then
+			if Menu.Pred.Change:Value() == 1 then
+				local pred = GetGamsteronPrediction(target, EData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
+					ControlCastSpell(HK_E, pred.CastPosition)
+				end
+			else
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
+				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
+					ControlCastSpell(HK_E, pred.CastPos)
+				end	
+			end
+		end		
+		
 		if myHero.pos:DistanceTo(target.pos) <= 880 then	
 			if Menu.Harass.UseQ:Value() and Ready(_Q) then
 				if Menu.Pred.Change:Value() == 1 then
