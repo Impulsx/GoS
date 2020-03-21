@@ -1,11 +1,11 @@
 Data = {
 
     Loader = {
-        Version = 0.09,
+        Version = 0.10,
     },
     Core = {
         Changelog = "Auto Version ChangeLog Here",
-        Version = 0.13,
+        Version = 0.14,
     },
 
     Champions = {
@@ -87,7 +87,7 @@ Data = {
         },
          Ahri = {
             Changelog = "Ahri Changelog Here",
-            Version = 0.07,
+            Version = 0.08,
         },
          Ekko = {
             Changelog = "Ekko Changelog Here",
@@ -127,7 +127,7 @@ Data = {
         },
          Sett = {
             Changelog = "Sett Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
          Rengar = {
             Changelog = "Rengar Changelog Here",
