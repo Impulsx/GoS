@@ -136,7 +136,11 @@ Data = {
          Diana = {
             Changelog = "Diana Changelog Here",
             Version = 0.01,
-        },         
+        },
+          Fiora = {
+            Changelog = "Fiora Changelog Here",
+            Version = 0.01,
+        },        
     },
 }
 
