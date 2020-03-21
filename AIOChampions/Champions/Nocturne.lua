@@ -45,9 +45,13 @@ local function GetEnemyHeroes()
 	return Enemies
 end 
 
+local Rrange = 1750 + 750 * myHero:GetSpellData(_R).level
+
 function LoadScript()
+	RActiv = false
+	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -55,6 +59,7 @@ function LoadScript()
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})	
 	Menu.Combo:MenuElement({id = "UseR", name = "[R] if killable with FullCombo", value = true})
+	Menu.Combo:MenuElement({id = "range", name = "[R] is range bigger than", value = 1000, min = 0, max = Rrange, step = 10, identifier = "range"})	
 	Menu.Combo:MenuElement({id = "Draw", name = "Draw Killable FullCombo[onScreen+Minimap]", value = true})
   
 	--LaneClear Menu
@@ -80,16 +85,15 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
 	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
-	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})	
+	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawRMiniMap", name = "Draw [R] Range MiniMap", value = true})	
 	
 	QData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 1200, Speed = 1600, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 1200, Speed = 1600, Collision = false
 	}
 	
-	QspellData = {speed = 1600, range = 1200, delay = 0.25, radius = 100, collision = {}, type = "linear"}		
-	
-	Rrange = 1750 + 750 * myHero:GetSpellData(_R).lvl
+	QspellData = {speed = 1600, range = 1200, delay = 0.25, radius = 60, collision = {}, type = "linear"}		
   	
 	if _G.EOWLoaded then
 		Orb = 1
@@ -106,10 +110,20 @@ function LoadScript()
 
 	Callback.Add("Draw", function()
 	if myHero.dead then return end
-	
+
 		if Menu.Drawing.DrawR:Value() and Ready(_R) then
 		DrawCircle(myHero, Rrange, 1, DrawColor(255, 225, 255, 10))
-		end                                                 
+		end
+		if Menu.Drawing.DrawRMiniMap:Value() and Ready(_R) then
+			local Pos = myHero.pos
+			if myHero:GetSpellData(_R).level == 1 then
+			Draw.CircleMinimap(Pos.x, Pos.y, Pos.z, 2500, 1, DrawColor(255, 225, 255, 10))
+			elseif myHero:GetSpellData(_R).level == 2 then
+			Draw.CircleMinimap(Pos.x, Pos.y, Pos.z, 3250, 1, DrawColor(255, 225, 255, 10))
+			elseif myHero:GetSpellData(_R).level == 3 then
+			Draw.CircleMinimap(Pos.x, Pos.y, Pos.z, 4000, 1, DrawColor(255, 225, 255, 10))		
+			end
+		end	
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
 		DrawCircle(myHero, 1200, 1, DrawColor(225, 225, 0, 10))
 		end
@@ -137,13 +151,29 @@ function Tick()
 if MyHeroNotReady() then return end
 local Mode = GetMode()
 	if Mode == "Combo" then
-		Combo()
+		if not RActiv then
+			Combo()
+		end	
 		if Ready(_R) then
 			Ult()
 		end	
 	elseif Mode == "Clear" then
 		Clear()
 		JungleClear()
+	end	
+	
+	if myHero:GetSpellData(_R).name == "NocturneParanoia2" then
+		RActiv = true
+	else
+		RActiv = false
+	end	
+	
+	if RActiv then
+		SetAttack(false)
+		SetMovement(false)
+	else
+		SetAttack(true)
+		SetMovement(true)	
 	end	
 end
 
@@ -152,17 +182,22 @@ local target = GetTarget(Rrange+100)
 if target == nil then return end
 	if IsValid(target) then
 			
-		if myHero.pos:DistanceTo(target.pos) <= Rrange and Menu.Combo.UseR:Value() then
+		if myHero.pos:DistanceTo(target.pos) <= Rrange and myHero.pos:DistanceTo(target.pos) > Menu.Combo.range:Value() and Menu.Combo.UseR:Value() then
 			local RDmg = getdmg("R", target, myHero)
 			local QDmg = getdmg("Q", target, myHero)
 			local EDmg = getdmg("E", target, myHero)
 			local FullDmg = (RDmg + QDmg + EDmg)
-			if FullDmg >= target.health then				
-				if target.pos:To2D().onScreen then
-					ControlCastSpell(HK_R, target)
-				else
-					CastSpellMM(HK_R, target.pos)                            
-				end				
+			if FullDmg >= target.health then
+				if myHero:GetSpellData(_R).name == "NocturneParanoia" then
+					ControlCastSpell(HK_R)
+				end	
+				if myHero:GetSpellData(_R).name == "NocturneParanoia2" then
+					if target.pos:To2D().onScreen then
+						ControlCastSpell(HK_R, target)
+					else
+						CastSpellMM(HK_R, target.pos, Rrange)                            
+					end
+				end	
 			end
 		end
 	end	
@@ -205,14 +240,14 @@ function Clear()
             
             
 			if myHero.pos:DistanceTo(minion.pos) < 1200 and Menu.Clear.UseQ:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 and Ready(_Q) then
-				local count = GetMinionCount(400, minion)
+				local count = GetMinionCount(100, minion)
 				if count >= Menu.Clear.UseQM:Value() then
 					ControlCastSpell(HK_Q, minion.pos)
 				end	
             end
                       
 			if myHero.pos:DistanceTo(minion.pos) < 425 and Ready(_E) and Menu.Clear.UseE:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
-				local count = GetMinionCount(400, minion)
+				local count = GetMinionCount(100, minion)
 				if count >= Menu.Clear.UseEM:Value() then
 					ControlCastSpell(HK_E, minion)
                 end    
