@@ -132,6 +132,10 @@ Data = {
          Rengar = {
             Changelog = "Rengar Changelog Here",
             Version = 0.01,
+        }, 
+         Diana = {
+            Changelog = "Diana Changelog Here",
+            Version = 0.01,
         },         
     },
 }
