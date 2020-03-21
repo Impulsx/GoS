@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.11
+    local Version = 0.12
     
     local Files = {
         Lua = {
@@ -106,6 +106,7 @@ local GameMinion = Game.Minion
 local GameTurretCount = Game.TurretCount
 local GameTurret = Game.Turret
 local GameIsChatOpen = Game.IsChatOpen
+_G.LATENCY = 0.05
 
 require "DamageLib"
 
