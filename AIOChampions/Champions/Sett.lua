@@ -57,10 +57,12 @@ local function GetEnemyCount(range, pos)
 	return count
 end
 
+require "2DGeometry"
+
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -141,7 +143,7 @@ function LoadScript()
 			if target == nil then return end
 			local UltEndPos = target.pos:Extended(myHero.pos, -690)
 			if IsValid(target) and myHero.pos:DistanceTo(target.pos) < 600 and GetMode() == "Combo" and target.health/target.maxHealth <= Menu.Combo.HP:Value() / 100 then    
-				DrawCircle(UltEndPos, 400, 1, DrawColor(225, 225, 0, 10))
+				DrawCircle(UltEndPos, 400, 1, DrawColor(225, 225, 0, 10))				
 				local LS = LineSegment(myHero.pos, UltEndPos)
 				LS:__draw()
 			end	
