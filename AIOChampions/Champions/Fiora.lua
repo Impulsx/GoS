@@ -142,8 +142,17 @@ local function GetEnemyHeroes()
 	return Enemies
 end 
 
-local function GetAllyHeroes() 
-	return Allies
+local function GetEnemyCount(range, pos)
+    local pos = pos.pos
+	local count = 0
+	for i = 1, GameHeroCount() do 
+	local hero = GameHero(i)
+	local Range = range * range
+		if hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
+		count = count + 1
+		end
+	end
+	return count
 end
 
 local function VectorPointProjectionOnLineSegment(v1, v2, v)
@@ -196,7 +205,7 @@ function LoadScript()
 	WActiv = false
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
 	
 	Menu:MenuElement({type = MENU, id = "WSet", name = "AutoW Incomming CC Spells"})	
 	Menu.WSet:MenuElement({id = "UseW", name = "AutoW CC Spells", value = true})	
@@ -209,10 +218,12 @@ function LoadScript()
 	
 	--UltSettings
 	Menu.Combo:MenuElement({type = MENU, id = "Ult", name = "Ultimate Settings"})
-	Menu.Combo.Ult:MenuElement({id = "Rself", name = "[R] Self", value = true})
-	Menu.Combo.Ult:MenuElement({id = "myHP", name = "[R] Self / if Hp lower than", value = 40, min = 0, max = 100, identifier = "%"})
-	Menu.Combo.Ult:MenuElement({id = "Rally", name = "[R] Ally", value = true})
-	Menu.Combo.Ult:MenuElement({id = "allyHP", name = "[R] Ally / if Hp lower than", value = 40, min = 0, max = 100, identifier = "%"})	
+	Menu.Combo.Ult:MenuElement({id = "Rself", name = "[R] Check Fiora Hp", value = true})
+	Menu.Combo.Ult:MenuElement({id = "myHP", name = "[R] if Fiora Hp lower than", value = 40, min = 0, max = 100, identifier = "%"})
+	Menu.Combo.Ult:MenuElement({name = " ", drop = {"--------------------------------------"}})	
+	Menu.Combo.Ult:MenuElement({id = "RCount", name = "Use[R] if min Enemys in range ", value = true})
+	Menu.Combo.Ult:MenuElement({id = "count", name = "min Enemys", value = 2, min = 1, max = 5, step = 1, identifier = "Enemy/s"})
+	Menu.Combo.Ult:MenuElement({id = "range", name = "Check Enemys in", value = 600, min = 0, max = 2000, step = 10, identifier = "range"})	
   
 	--LaneClear Menu
 	Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear"})	
@@ -424,8 +435,8 @@ if target == nil then return end
 			end	
         end
 	end	
-end	
-
+end
+	
 function Ult()
 local target = GetTarget(600)
 if target == nil then return end
@@ -435,11 +446,10 @@ if target == nil then return end
 			ControlCastSpell(HK_R, target)
         end
        
-		if Menu.Combo.Ult.Rally:Value() and Ready(_R) then
-			for i, Ally in pairs(GetAllyHeroes()) do
-				if myHero.pos:DistanceTo(Ally.pos) < 600 and IsValid(Ally) and Ally.health/Ally.maxHealth <= Menu.Combo.Ult.allyHP:Value() / 100 then
-					ControlCastSpell(HK_R, target)
-				end
+		if Menu.Combo.Ult.RCount:Value() and Ready(_R) then
+			local count = GetEnemyCount(Menu.Combo.Ult.range:Value(), myHero)
+			if count >= Menu.Combo.Ult.count:Value() then
+				ControlCastSpell(HK_R, target)
 			end	
         end
 	end
