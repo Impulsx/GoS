@@ -42,6 +42,7 @@ local MathSqrt = math.sqrt
 local MathHuge = math.huge
 local TableInsert = table.insert
 local TableRemove = table.remove
+_G.LATENCY = 0.05
 
 function LoadUnits()
 	for i = 1, GameHeroCount() do
