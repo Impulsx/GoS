@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.13
+    local Version = 0.14
     
     local Files = {
         Lua = {
@@ -160,6 +160,17 @@ end
 
 local function Ready(spell)
     return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and GameCanUseSpell(spell) == 0
+end
+
+local function GetDistanceSqr(pos1, pos2)
+	local pos2 = pos2 or myHero.pos
+	local dx = pos1.x - pos2.x
+	local dz = (pos1.z or pos1.y) - (pos2.z or pos2.y)
+	return dx * dx + dz * dz
+end
+
+local function GetDistance(pos1, pos2)
+	return sqrt(GetDistanceSqr(pos1, pos2))
 end
 
 function GetTarget(range) 
@@ -324,17 +335,6 @@ local function VectorPointProjectionOnLineSegment(v1, v2, v)
 	local isOnSegment = rS == rL
 	local pointSegment = isOnSegment and pointLine or { x = ax + rS * (bx - ax), y = ay + rS * (by - ay) }
 	return pointSegment, pointLine, isOnSegment
-end
-
-local function GetDistanceSqr(pos1, pos2)
-	local pos2 = pos2 or myHero.pos
-	local dx = pos1.x - pos2.x
-	local dz = (pos1.z or pos1.y) - (pos2.z or pos2.y)
-	return dx * dx + dz * dz
-end
-
-local function GetDistance(pos1, pos2)
-	return sqrt(GetDistanceSqr(pos1, pos2))
 end
 
 local function CastSpell(spell,pos,range,delay)
