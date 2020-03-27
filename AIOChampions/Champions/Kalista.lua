@@ -49,7 +49,7 @@ local BoundAlly = nil
 function LoadScript() 
 	HPred()	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
 	
 	--AutoQ	
 	Menu:MenuElement({type = MENU, id = "AutoQ2", name = "AutoQ"})
@@ -101,7 +101,8 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
 	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})	
-	Menu.Drawing:MenuElement({type = MENU, id = "XY", name = "TextPos AutoE"})	
+	Menu.Drawing:MenuElement({type = MENU, id = "XY", name = "TextPos AutoE"})
+	Menu.Drawing.XY:MenuElement({id = "Enable", name = "Draw AutoE Text", value = true})	
 	Menu.Drawing.XY:MenuElement({id = "x", name = "Pos: [X]", value = 0, min = 0, max = 1500, step = 10})
 	Menu.Drawing.XY:MenuElement({id = "y", name = "Pos: [Y]", value = 0, min = 0, max = 860, step = 10})
 	Menu.Drawing:MenuElement({type = MENU, id = "HP", name = "TextPos Hp after E"})	
@@ -155,13 +156,14 @@ function LoadScript()
 		DrawCircle(myHero, 1150, 1, DrawColor(225, 225, 0, 10))
 		end
 	
-		DrawText("AutoLastHit[E]: ", 15, Menu.Drawing.XY.x:Value(), Menu.Drawing.XY.y:Value()+15, DrawColor(255, 225, 255, 0))
-		if Menu.AutoE.E:Value() then
-			DrawText("ON", 15, Menu.Drawing.XY.x:Value()+85, Menu.Drawing.XY.y:Value()+15, DrawColor(255, 0, 255, 0))
-		else
-			DrawText("OFF", 15, Menu.Drawing.XY.x:Value()+85, Menu.Drawing.XY.y:Value()+15, DrawColor(255, 0, 255, 0))
+		if Menu.Drawing.XY.Enable:Value() then
+			DrawText("AutoLastHit[E]: ", 15, Menu.Drawing.XY.x:Value(), Menu.Drawing.XY.y:Value()+15, DrawColor(255, 225, 255, 0))
+			if Menu.AutoE.E:Value() then
+				DrawText("ON", 15, Menu.Drawing.XY.x:Value()+85, Menu.Drawing.XY.y:Value()+15, DrawColor(255, 0, 255, 0))
+			else
+				DrawText("OFF", 15, Menu.Drawing.XY.x:Value()+85, Menu.Drawing.XY.y:Value()+15, DrawColor(255, 0, 255, 0))
+			end
 		end
-		
 		
 		local target = GetTarget(1200)     	
 		if target == nil then return end
