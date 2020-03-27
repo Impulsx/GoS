@@ -34,7 +34,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -42,6 +42,7 @@ function LoadScript()
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})		
 	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})
+	Menu.Combo:MenuElement({id = "HP", name = "Use[R] if own HP bigger than -->", value = 60, min = 0, max = 100, identifier = "%"})	
 	Menu.Combo:MenuElement({name = " ", drop = {"2 ComboModes"}})
 	Menu.Combo:MenuElement({name = " ", drop = {"BasicCombo if not Ready[E]"}})
 	Menu.Combo:MenuElement({name = " ", drop = {"BasicCombo/Q+R+W+AA+E+(ROut if not kill...)"}})	
@@ -169,7 +170,7 @@ if target == nil then return end
 			ControlCastSpell(HK_Q, target)
         end
        
-        if Menu.Combo.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 650 and Ready(_R) then
+        if Menu.Combo.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 650 and Ready(_R) and myHero.health/myHero.maxHealth >= Menu.Combo.HP:Value() / 100 then
 			ControlCastSpell(HK_R, target.pos)
 		end		
 
@@ -191,7 +192,7 @@ if target == nil then return end
 			end
         end
 		
-		if myHero.pos:DistanceTo(target.pos) < 500 and Ready(_R) and not Ready(_Q) and not Ready(_E) then
+		if Menu.Combo.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 500 and Ready(_R) and not Ready(_Q) and not Ready(_E) and myHero.health/myHero.maxHealth >= Menu.Combo.HP:Value() / 100 then
 			if target.health > (4 * myHero.totalDamage) then
 			local castPos = target.pos:Extended(mousePos, 500) 
 				ControlCastSpell(HK_R, castPos)
@@ -205,7 +206,7 @@ local target = GetTarget(1200)
 if target == nil then return end
 	if IsValid(target) and Ready(_E) and HasBuff(myHero, "forcepulsecancast") then
 	local stacks = GotBuff(myHero, "RiftWalk")     
-        if Menu.Combo.UseR:Value() and Ready(_R) then
+        if Menu.Combo.UseR:Value() and Ready(_R) and myHero.health/myHero.maxHealth >= Menu.Combo.HP:Value() / 100 then
 			if stacks >= 2 then 
 				if myHero.pos:DistanceTo(target.pos) < 650 then
 					ControlCastSpell(HK_R, target.pos)
