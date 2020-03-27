@@ -37,12 +37,13 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
-	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})	
+	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
+	Menu.Combo:MenuElement({id = "cancel", name = "Cancel [E] if no Enemy near -->", value = 500, min = 0, max = 1000, identifier = "range"})	
 	Menu.Combo:MenuElement({id = "UseR", name = "[R] if killable", value = true})
 	Menu.Combo:MenuElement({id = "UseRHP", name = "[R] Enemy HP check", value = false})	
 	Menu.Combo:MenuElement({id = "HP", name = "[R] if Enemy HP lower than -->", value = 30, min = 0, max = 100, identifier = "%"})
@@ -148,45 +149,57 @@ if target == nil then return end
 	if IsValid(target) then
 		local Enemys1 = EnemiesNear(myHero,1000)
 		local Enemys2 = EnemiesNear(myHero,500)
+		local Enemys3 = EnemiesNear(myHero,Menu.Combo.cancel:Value())
+		local RDmg = getdmg("R", target, myHero)
 	
 		if Enemys1 == 1 then
-			if myHero.pos:DistanceTo(target.pos) <= 400 and Ready(_Q) and Menu.Combo.UseQ:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 300 and Ready(_Q) and Menu.Combo.UseQ:Value() then
 				ControlCastSpell(HK_Q)
 			end
 			
-			if myHero.pos:DistanceTo(target.pos) <= 325 and Ready(_E) and Menu.Combo.UseE:Value() then
-				ControlCastSpell(HK_E, target)
+			if myHero.pos:DistanceTo(target.pos) <= 325 and Ready(_E) and not Ready(_Q) and Menu.Combo.UseE:Value() then
+				ControlCastSpell(HK_E, target.pos)
+			end
+
+			if myHero:GetSpellData(HK_E).name == "GarenECancel" and (Enemys3 == 0 or (Ready(_R) and RDmg > target.health)) then
+				ControlCastSpell(HK_E)
 			end				
 			
-			if myHero.pos:DistanceTo(target.pos) <= 400 and Ready(_R) then				
-				local RDmg = getdmg("R", target, myHero)
-				if Menu.Combo.UseR:Value() and RDmg > target.health then
-					ControlCastSpell(HK_R. target)
-				end	
-				if Menu.Combo.UseRHP:Value() and target.health/target.maxHealth <= Menu.Combo.HP:Value() / 100 then
-					ControlCastSpell(HK_R. target)
-				end				
-			end
+			if Ready(_R) then
+				if myHero.pos:DistanceTo(target.pos) <= 400 then				
+					if Menu.Combo.UseR:Value() and RDmg > target.health then
+						ControlCastSpell(HK_R, target)
+					end	
+					if Menu.Combo.UseRHP:Value() and target.health/target.maxHealth <= Menu.Combo.HP:Value() / 100 then
+						ControlCastSpell(HK_R, target)
+					end				
+				end
+			end	
 		end	
 		
 		if Enemys2 >= 2 then
 			if Ready(_E) and Menu.Combo.UseE:Value() then
-				ControlCastSpell(HK_E, target)
-			end	
+				ControlCastSpell(HK_E, target.pos)
+			end
+
+			if myHero:GetSpellData(HK_E).name == "GarenECancel" and (Enemys3 == 0 or (Ready(_R) and RDmg > target.health)) then
+				ControlCastSpell(HK_E)
+			end				
 			
-			if myHero.pos:DistanceTo(target.pos) <= 400 and Ready(_Q) and Menu.Combo.UseQ:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 300 and Ready(_Q) and Menu.Combo.UseQ:Value() then
 				ControlCastSpell(HK_Q)
 			end
 			
-			if myHero.pos:DistanceTo(target.pos) <= 400 and Ready(_R) then				
-				local RDmg = getdmg("R", target, myHero)
-				if Menu.Combo.UseR:Value() and RDmg > target.health then
-					ControlCastSpell(HK_R. target)
-				end	
-				if Menu.Combo.UseRHP:Value() and target.health/target.maxHealth <= Menu.Combo.HP:Value() / 100 then
-					ControlCastSpell(HK_R. target)
-				end				
-			end			
+			if Ready(_R) then
+				if myHero.pos:DistanceTo(target.pos) <= 400 then				
+					if Menu.Combo.UseR:Value() and RDmg > target.health then
+						ControlCastSpell(HK_R, target)
+					end	
+					if Menu.Combo.UseRHP:Value() and target.health/target.maxHealth <= Menu.Combo.HP:Value() / 100 then
+						ControlCastSpell(HK_R, target)
+					end				
+				end
+			end				
 		end
 	end	
 end	
@@ -196,7 +209,7 @@ local target = GetTarget(600)
 if target == nil then return end
 	if IsValid(target) then
 
-		if myHero.pos:DistanceTo(target.pos) <= 400 then	
+		if myHero.pos:DistanceTo(target.pos) <= 300 then	
 			if Menu.Harass.UseQ:Value() and Ready(_Q) then
 				ControlCastSpell(HK_Q)
 			end
@@ -211,7 +224,7 @@ function Clear()
 		if myHero.pos:DistanceTo(minion.pos) <= 600 and minion.team == TEAM_ENEMY and IsValid(minion) then
             
             
-			if myHero.pos:DistanceTo(minion.pos) < 400 and Menu.Clear.UseQ:Value() and Ready(_Q) then
+			if myHero.pos:DistanceTo(minion.pos) < 300 and Menu.Clear.UseQ:Value() and Ready(_Q) then
 				local QDmg = getdmg("Q", minion, myHero) + getdmg("AA", minion, myHero)
 				if QDmg >= minion.health then
 					ControlCastSpell(HK_Q)
@@ -235,7 +248,7 @@ function JungleClear()
 		if myHero.pos:DistanceTo(minion.pos) <= 600 and minion.team == TEAM_JUNGLE and IsValid(minion) then
             
             
-			if myHero.pos:DistanceTo(minion.pos) < 400 and Menu.Clear.UseQ:Value() and Ready(_Q) then
+			if myHero.pos:DistanceTo(minion.pos) < 300 and Menu.Clear.UseQ:Value() and Ready(_Q) then
 				ControlCastSpell(HK_Q)
             end
                       
