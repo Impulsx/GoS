@@ -35,7 +35,7 @@ Data = {
         }, 
         Nidalee = {
             Changelog = "Nidalee Changelog Here",
-            Version = 0.07,
+            Version = 0.08,
         },
         Ryze = {
             Changelog = "Ryze Changelog Here",
@@ -67,7 +67,7 @@ Data = {
         },
         Kassadin = {
             Changelog = "Kassadin Changelog Here",
-            Version = 0.09,
+            Version = 0.10,
         },
         Qiyana = {
             Changelog = "Qiyana Changelog Here",
@@ -87,7 +87,7 @@ Data = {
         },
          Ahri = {
             Changelog = "Ahri Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         },
          Ekko = {
             Changelog = "Ekko Changelog Here",
@@ -119,7 +119,7 @@ Data = {
         },
          Kalista = {
             Changelog = "Kalista Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         },
          Akali = {
             Changelog = "Akali Changelog Here",
@@ -139,7 +139,7 @@ Data = {
         },
           Fiora = {
             Changelog = "Fiora Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         },
           Nocturne = {
             Changelog = "Nocturne Changelog Here",
