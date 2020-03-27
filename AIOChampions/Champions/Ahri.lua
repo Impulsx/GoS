@@ -31,10 +31,36 @@ local function GetMinionCount(range, pos)
 	return count
 end
 
+local function IsUltPosUnderTurret(Pos)
+    for i = 1, GameTurretCount() do
+        local turret = GameTurret(i)
+        local range = (turret.boundingRadius + 750 + myHero.boundingRadius / 2)
+        if turret.isEnemy and not turret.dead then
+            if turret.pos:DistanceTo(Pos) < range then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function IsUnderTurret(unit)
+    for i = 1, GameTurretCount() do
+        local turret = GameTurret(i)
+        local range = (turret.boundingRadius + 750 + unit.boundingRadius / 2)
+        if turret.isEnemy and not turret.dead then
+            if turret.pos:DistanceTo(unit.pos) < range then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -110,10 +136,6 @@ function LoadScript()
 	Callback.Add("Tick", function() Tick() end)
 	
 	Callback.Add("Draw", function()
-		local textPos = myHero.pos:To2D()	
-		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
-			DrawText("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, DrawColor(255, 255, 0, 0))
-		end 
 		if myHero.dead then return end
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
 		DrawCircle(myHero, 880, 1, DrawColor(225, 225, 0, 10))
@@ -155,27 +177,39 @@ if target == nil then return end
 			if myHero.pos:DistanceTo(target.pos) < 1000 and Menu.Combo.UseR:Value() and Ready(_R) and buff == 0 then
 				if myHero.pos:DistanceTo(target.pos) < 550 then
 					local castPos = target.pos:Extended(mousePos, 550)
-					Rcast = ControlCastSpell(HK_R, castPos)
+					if not IsUltPosUnderTurret(castPos) then
+						Rcast = ControlCastSpell(HK_R, castPos)
+					end	
 				else 
-					Rcast = ControlCastSpell(HK_R, target.pos)	
+					if not IsUnderTurret(target) then
+						Rcast = ControlCastSpell(HK_R, target.pos)	
+					end	
 				end	
 			end	
 			
 			if not Ecast and myHero.pos:DistanceTo(target.pos) < 1000 and Menu.Combo.UseR:Value() and Ready(_R) and buff == 2 then
 				if myHero.pos:DistanceTo(target.pos) < 550 then
 					local castPos = target.pos:Extended(mousePos, 550)
-					Rcast = ControlCastSpell(HK_R, castPos)
+					if not IsUltPosUnderTurret(castPos) then
+						Rcast = ControlCastSpell(HK_R, castPos)
+					end	
 				else 
-					Rcast = ControlCastSpell(HK_R, target.pos)	
+					if not IsUnderTurret(target) then
+						Rcast = ControlCastSpell(HK_R, target.pos)	
+					end	
 				end	
 			end
 
 			if not Ecast and myHero.pos:DistanceTo(target.pos) < 1000 and Menu.Combo.UseR:Value() and Ready(_R) and buff == 1 then
 				if myHero.pos:DistanceTo(target.pos) < 550 then
 					local castPos = Vector(target) - (Vector(myHero) - Vector(target)):Perpendicular():Normalized() * 350
-					Rcast = ControlCastSpell(HK_R, castPos)
+					if not IsUltPosUnderTurret(castPos) then
+						Rcast = ControlCastSpell(HK_R, castPos)
+					end
 				else 
-					Rcast = ControlCastSpell(HK_R, target.pos)	
+					if not IsUnderTurret(target) then
+						Rcast = ControlCastSpell(HK_R, target.pos)	
+					end	
 				end					
 			end			
 			
