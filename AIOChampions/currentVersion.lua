@@ -148,6 +148,10 @@ Data = {
           Garen = {
             Changelog = "Garen Changelog Here",
             Version = 0.01,
+        },
+          Pyke = {
+            Changelog = "Pyke Changelog Here",
+            Version = 0.01,
         },         
     },
 }
