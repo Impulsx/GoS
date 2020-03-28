@@ -34,7 +34,6 @@ function LoadScript()
 	Menu.Combo:MenuElement({id = "UseR", name = "Auto[R] Kill", value = true})
 	Menu.Combo:MenuElement({id = "Draw", name = "Draw Killable FullCombo[onScreen+Minimap]", value = true})	
 	Menu.Combo:MenuElement({type = MENU, id = "W", name = "W Setting"})	
-	Menu.Combo.W:MenuElement({name = " ", drop = {"If Enemy killable and range bigger than X"}})
 	Menu.Combo.W:MenuElement({id = "UseW", name = "[W]", value = true}) 
 	Menu.Combo.W:MenuElement({id = "WRange", name = "Use[W] if range bigger than -->", value = 500, min = 0, max = 1000, step = 10})		
 
