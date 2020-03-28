@@ -12,11 +12,6 @@ local function HasBuff(unit, buffname)
 	return false
 end
 
-local function QCastTime(unit)
-	local Time = (((myHero.pos:DistanceTo(unit.pos) - 400) / 140) / 10) + 0.75
-	return Time
-end
-
 function UltDamage()
 	local LvL = myHero.levelData.lvl
 	local Dmg1 = ({250, 250, 250, 250, 250, 250, 290, 330, 370, 400, 430, 450, 470, 490, 510, 530, 540, 550})[LvL]
@@ -26,9 +21,11 @@ function UltDamage()
 end
 
 function LoadScript()
+	local isChannelingQ, startTime = false, 0
+	local CastQReady = false
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})		
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})		
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})	
@@ -57,24 +54,24 @@ function LoadScript()
 	
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Collision = false, Delay = 0.28, Radius = 150, Range = 550, Speed = 500
+	Type = _G.SPELLTYPE_LINE, Collision = false, Delay = 0.28, Radius = 60, Range = 550, Speed = 500
 	}
 	
-	EspellData = {speed = 500, range = 550, delay = 0.28, radius = 150, collision = {}, type = "linear"}	
+	EspellData = {speed = 500, range = 550, delay = 0.28, radius = 60, collision = {}, type = "linear"}	
 
 	QData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1100, Speed = 2000, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 1000, Speed = 1700, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
 	}
 	
-	QspellData = {speed = 2000, range = 1100, delay = 0.25, radius = 70, collision = {"minion"}, type = "linear"}	
+	QspellData = {speed = 1700, range = 1000, delay = 0.25, radius = 55, collision = {"minion"}, type = "linear"}	
   	 
 	RData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Collision = false, Delay = 0.5, Radius = 250, Range = 750, Speed = 500
+	Type = _G.SPELLTYPE_CIRCLE, Collision = false, Delay = 0.5, Radius = 250, Range = 750, Speed = 1000
 	}
 	
-	RspellData = {speed = 500, range = 750, delay = 0.5, radius = 250, collision = {}, type = "circular"}
+	RspellData = {speed = 1000, range = 750, delay = 0.5, radius = 250, collision = {}, type = "circular"}
 	 
 	if _G.EOWLoaded then
 		Orb = 1
@@ -118,14 +115,53 @@ function LoadScript()
 	end)		
 end
 
+local function GetWindingQRange(startTime)
+	local t = GameTimer() - startTime - 0.5
+	return t <= 0 and 400 or math.min(1100, 400 + 1400 * t)
+end
+
 function Tick()
 if MyHeroNotReady() then return end
+	if (myHero.activeSpell.valid and myHero.activeSpell.name == "PykeQ") then
+		isChannelingQ = true
+		startTime = GameTimer()
+	elseif not Ready(_Q) then
+		isChannelingQ = false
+	end
+	if isChannelingQ and Ready(_Q) then
+		local range = GetWindingQRange(startTime)
+		if range <= 1100 then
+			CastQ()
+		end
+	end	
 
 local Mode = GetMode()
 	if Mode == "Combo" then
 		Combo()		
 	end
-	Ult()	
+	Ult()
+end
+
+function CastQ()
+local target = GetTarget(1100)
+if target == nil then return end
+	if IsValid(target) then		
+		if Menu.Pred.Change:Value() == 1 then
+			local pred = GetGamsteronPrediction(target, QData, myHero)
+			if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then								
+				--SetMovement(false)
+				ControlCastSpell(HK_Q, pred.CastPosition)
+				--SetMovement(true)
+			end
+		else
+			local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
+				--SetMovement(false)
+				ControlCastSpell(HK_Q, pred.CastPos)
+				--SetMovement(true)
+			end	
+		end	
+	end
 end
 	
 function Ult()
@@ -133,18 +169,24 @@ local target = GetTarget(800)
 if target == nil then return end
 	local buff1 = HasBuff(target, "PykeQMelee")
 	local buff2 = HasBuff(myHero, "PykeQ")
+	local startR = 0
 	if not buff1 and not buff2 and Menu.Combo.UseR:Value() and Ready(_R) and IsValid(target) and myHero.pos:DistanceTo(target.pos) < 750 then
         local RDmg = UltDamage()
 		if RDmg >= target.health then
+			if GameTimer() - startR < 2 then return end
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, RData, myHero)
-				if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
+				if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then					 
 					ControlCastSpell(HK_R, pred.CastPosition)
+					startR = GameTimer()
+					return
 				end
 			else
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, RspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
 					ControlCastSpell(HK_R, pred.CastPos)
+					startR = GameTimer()
+					return
 				end	
 			end
         end
@@ -155,93 +197,45 @@ function Combo()
 local target = GetTarget(1500)
 if target == nil then return end
 	if IsValid(target) then
-		local CastQ = false
 		
 		if Ready(_R) and myHero.pos:DistanceTo(target.pos) < 750 and UltDamage() > target.health then return end
-		
-		if Menu.Combo.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 550 and Ready(_E) and not CastQ then
-			ControlCastSpell(HK_E, target.pos)
-		end		
-		
-		if Ready(_R) then
-			local RDmg = UltDamage()
-			local QDmg = getdmg("Q", target, myHero)
-			local EDmg = getdmg("E", target, myHero)
-			local FullDmg = (RDmg + QDmg + EDmg)		
-			if FullDmg >= target.health then	
-				if Menu.Combo.W.UseW:Value() and myHero.pos:DistanceTo(target.pos) > Menu.Combo.W.WRange:Value() and Ready(_W) and not CastQ then
-					ControlCastSpell(HK_W)
-				end				
-			end
+		if (myHero.activeSpell.valid and myHero.activeSpell.name == "PykeQ") then CastQReady = false return end	
+	
+		if Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 1100 then
+			if Menu.Pred.Change:Value() == 1 then
+				local pred = GetGamsteronPrediction(target, QData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then													
+					CastQReady = Control.KeyDown(HK_Q)
+				end
+			else
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
+					CastQReady = Control.KeyDown(HK_Q)					
+				end
+			end	
+		end	
 			
-			if Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 1000 then
-				local Time = QCastTime(target)
-				if myHero.pos:DistanceTo(target.pos) > 400 then
-					if Menu.Pred.Change:Value() == 1 then
-						local pred = GetGamsteronPrediction(target, QData, myHero)
-						if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then								
-							CastQ = Control.KeyDown(HK_Q)
-							DelayAction(function()
-							CastQ = false
-							SetMovement(false)
-							Control.SetCursorPos(pred.CastPosition)
-							Control.KeyUp(HK_Q)
-							SetMovement(true)
-							end, Time)
-						end
-					else
-						local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
-						if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-							CastQ = Control.KeyDown(HK_Q)
-							DelayAction(function()
-							CastQ = false
-							SetMovement(false)
-							Control.SetCursorPos(pred.CastPos)
-							Control.KeyUp(HK_Q)
-							SetMovement(true)
-							end, Time)																
-						end	
-					end	
-				else
-					ControlCastSpell(HK_Q, target.pos)
+		if Menu.Combo.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 300 and Ready(_E) and (Ready(_Q) and not CastQ) or not Ready(_Q) then
+			if Menu.Pred.Change:Value() == 1 then
+				local pred = GetGamsteronPrediction(target, EData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then	
+					SetMovement(false)
+					ControlCastSpell(HK_E, pred.CastPosition)
+					SetMovement(true)
+				end
+			else
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
+				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
+					SetMovement(false)
+					ControlCastSpell(HK_E, pred.CastPos)
+					SetMovement(true)
 				end	
 			end
-			
-		else
-
-			if Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 1000 then
-				local Time = QCastTime(target)
-				if myHero.pos:DistanceTo(target.pos) > 400 then
-					if Menu.Pred.Change:Value() == 1 then
-						local pred = GetGamsteronPrediction(target, QData, myHero)
-						if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then							
-							CastQ = Control.KeyDown(HK_Q)
-							DelayAction(function()
-							CastQ = false
-							SetMovement(false)
-							Control.SetCursorPos(pred.CastPosition)
-							Control.KeyUp(HK_Q)
-							SetMovement(true)
-							end, Time)
-						end
-					else
-						local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
-						if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then							
-							CastQ = Control.KeyDown(HK_Q)
-							DelayAction(function()
-							CastQ = false							
-							SetMovement(false)
-							Control.SetCursorPos(pred.CastPos)
-							Control.KeyUp(HK_Q)
-							SetMovement(true)
-							end, Time)																
-						end	
-					end	
-				else
-					ControlCastSpell(HK_Q, target.pos)
-				end				
-			end			
 		end
+			
+		if Menu.Combo.W.UseW:Value() and myHero.pos:DistanceTo(target.pos) > Menu.Combo.W.WRange:Value() and Ready(_W) then
+			ControlCastSpell(HK_W)
+		end				
 	end
 end
 
