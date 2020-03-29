@@ -25,13 +25,14 @@ function LoadScript()
 	local CastQReady = false
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})		
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})		
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})	
-	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
+	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	Menu.Combo:MenuElement({id = "QRange", name = "Use[Q] if range bigger than -->", value = 400, min = 0, max = 1100, step = 10})	
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})	
-	Menu.Combo:MenuElement({id = "UseR", name = "Auto[R] Kill", value = true})
+	Menu.Combo:MenuElement({id = "UseR", name = "[R] Kill", value = true})
 	Menu.Combo:MenuElement({id = "Draw", name = "Draw Killable FullCombo[onScreen+Minimap]", value = true})	
 	Menu.Combo:MenuElement({type = MENU, id = "W", name = "W Setting"})	
 	Menu.Combo.W:MenuElement({id = "UseW", name = "[W]", value = true}) 
@@ -115,17 +116,19 @@ function LoadScript()
 end
 
 local function GetWindingQRange(startTime)
-	local t = GameTimer() - startTime - 0.5
+	local t = GameTimer() - startTime - 0.75
 	return t <= 0 and 400 or math.min(1100, 400 + 1400 * t)
 end
 
 function Tick()
 if MyHeroNotReady() then return end
-	if (myHero.activeSpell.valid and myHero.activeSpell.name == "PykeQ") then
+	if not isChannelingQ and myHero.activeSpell.valid and myHero.activeSpell.name == "PykeQ" then
 		isChannelingQ = true
 		startTime = GameTimer()
 	elseif not Ready(_Q) then
 		isChannelingQ = false
+		CastQReady = false
+		Control.KeyUp(HK_Q)
 	end
 	if isChannelingQ and Ready(_Q) then
 		local range = GetWindingQRange(startTime)
@@ -136,28 +139,44 @@ if MyHeroNotReady() then return end
 
 local Mode = GetMode()
 	if Mode == "Combo" then
-		Combo()		
+		Combo()	
+		Ult()
 	end
-	Ult()
+end
+
+local function QCastTime(unit)
+	return (((myHero.pos:DistanceTo(unit) - 400) / 140) / 10) + 0.75
 end
 
 function CastQ()
 local target = GetTarget(1100)
 if target == nil then return end
-	if IsValid(target) then		
+	if IsValid(target) then			
 		if Menu.Pred.Change:Value() == 1 then
-			local pred = GetGamsteronPrediction(target, QData, myHero)
+			local pred = GetGamsteronPrediction(target, QData, myHero)			
 			if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then								
-				--SetMovement(false)
-				ControlCastSpell(HK_Q, pred.CastPosition)
-				--SetMovement(true)
+				local Time = QCastTime(pred.CastPosition)
+				SetAttack(false)
+				DelayAction(function()
+					SetMovement(false)
+					Control.SetCursorPos(pred.CastPosition)
+					Control.KeyUp(HK_Q)
+					SetMovement(true)
+				end, Time)
+				SetAttack(true)
 			end
 		else
 			local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-				--SetMovement(false)
-				ControlCastSpell(HK_Q, pred.CastPos)
-				--SetMovement(true)
+				local Time = QCastTime(pred.CastPos)
+				SetAttack(false)
+				DelayAction(function()
+					SetMovement(false)
+					Control.SetCursorPos(pred.CastPos)
+					Control.KeyUp(HK_Q)
+					SetMovement(true)
+				end, Time)
+				SetAttack(true)
 			end	
 		end	
 	end
@@ -169,23 +188,24 @@ if target == nil then return end
 	local buff1 = HasBuff(target, "PykeQMelee")
 	local buff2 = HasBuff(myHero, "PykeQ")
 	local startR = 0
+	local RTarget = nil
 	if not buff1 and not buff2 and Menu.Combo.UseR:Value() and Ready(_R) and IsValid(target) and myHero.pos:DistanceTo(target.pos) < 750 then
         local RDmg = UltDamage()
 		if RDmg >= target.health then
-			if GameTimer() - startR < 2 then return end
+			if GameTimer() - startR < 2 and RTarget == target then return end
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, RData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then					 
 					ControlCastSpell(HK_R, pred.CastPosition)
 					startR = GameTimer()
-					return
+					RTarget = target
 				end
 			else
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, RspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
 					ControlCastSpell(HK_R, pred.CastPos)
 					startR = GameTimer()
-					return
+					RTarget = target
 				end	
 			end
         end
@@ -198,23 +218,25 @@ if target == nil then return end
 	if IsValid(target) then
 		
 		if Ready(_R) and myHero.pos:DistanceTo(target.pos) < 750 and UltDamage() > target.health then return end
-		if (myHero.activeSpell.valid and myHero.activeSpell.name == "PykeQ") then CastQReady = false return end	
+		if myHero.activeSpell.valid and myHero.activeSpell.name == "PykeQ" then return end	
 	
-		if Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 1100 then
+		if Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) >= Menu.Combo.QRange:Value() and myHero.pos:DistanceTo(target.pos) < 1100 then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then													
-					CastQReady = Control.KeyDown(HK_Q)
+					CastQReady = true
+					Control.KeyDown(HK_Q)
 				end
 			else
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-					CastQReady = Control.KeyDown(HK_Q)					
+					CastQReady = true
+					Control.KeyDown(HK_Q)					
 				end
 			end	
 		end	
 			
-		if Menu.Combo.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 300 and Ready(_E) and (Ready(_Q) and not CastQ) or not Ready(_Q) then
+		if Menu.Combo.UseE:Value() and myHero.pos:DistanceTo(target.pos) > 100 and myHero.pos:DistanceTo(target.pos) <= 400 and Ready(_E) and ((Ready(_Q) and not CastQReady) or not Ready(_Q)) then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, EData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then	
@@ -237,4 +259,3 @@ if target == nil then return end
 		end				
 	end
 end
-
