@@ -44,6 +44,7 @@ local TableInsert = table.insert
 local TableRemove = table.remove
 _G.LATENCY = 0.05
 
+
 function LoadUnits()
 	for i = 1, GameHeroCount() do
 		local unit = GameHero(i); Units[i] = {unit = unit, spell = nil}
@@ -55,7 +56,7 @@ function LoadUnits()
 		if turret and turret.isEnemy then TableInsert(Turrets, turret) end
 	end
 end
-
+		
 local function ConvertToHitChance(menuValue, hitChance)
     return menuValue == 1 and _G.PremiumPrediction.HitChance.High(hitChance)
     or menuValue == 2 and _G.PremiumPrediction.HitChance.VeryHigh(hitChance)
@@ -202,6 +203,31 @@ DelayAction(function()
 	LoadUnits()
 	LoadScript()
 end, 0.05)
+
+local function CheckEnemies()
+	local count = 0
+	for i = 1, GameHeroCount() do 
+	local hero = GameHero(i)
+		if hero.team ~= TEAM_ALLY then
+		count = count + 1
+		end
+	end
+	return count
+end
+
+Callback.Add("Tick", function()
+local LoadedEnemys = CheckEnemies() 		
+	if LoadedEnemys >= 1 then return end
+	if LoadedEnemys == 0 then
+		Callback.Add("Draw", function() DrawInfo() end)
+		LoadUnits()
+	end	
+end)
+
+function DrawInfo() 
+	DrawText("Enemys not loaded !!", 24, myHero.pos2D.x, myHero.pos2D.y,DrawColor(0xFF00FF00))
+	DrawText("Press 2x F6", 24, myHero.pos2D.x, myHero.pos2D.y+25,DrawColor(0xFF00FF00))	
+end
 	
 DelayAction(function()
 	if not Menu.Pred then return end
