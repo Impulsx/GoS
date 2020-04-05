@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.15
+    local Version = 0.16
     
     local Files = {
         Lua = {
@@ -555,6 +555,8 @@ local RData =
 Type = _G.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 160, Range = 950, Speed = 2000, Collision = false
 }
 
+local RspellData = {speed = 2000, range = 950, delay = 0.25 + ping, radius = 160, collision = {""}, type = "linear"}
+
 
 
 function Irelia:__init()
@@ -589,9 +591,6 @@ function Irelia:LoadMenu()
 	
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "Irelia", name = "PussyIrelia"})
-
-self.Menu:MenuElement({type = MENU, id = "QSet", name = "Optimize Q Lasthit"})
-	self.Menu.QSet:MenuElement({id = "sec", name = "Wait between Lasthits (default 0.6 sec)", value = 0.6, min = 0.1, max = 5, step = 0.1, identifier = "sec"})
 	
 self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
 	
@@ -671,7 +670,10 @@ self.Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal Settings"})
 	self.Menu.ks:MenuElement({id = "UseR", name = "[R]", value = true})		
 
 	
-self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})		
+self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
+
+	self.Menu.MiscSet:MenuElement({type = MENU, id = "Rrange", name = "Ultimate Range setting"})
+	self.Menu.MiscSet.Rrange:MenuElement({id = "R", name = "Max Cast range [R]", value = 850, min = 0, max = 950, step = 10})		
 
 	--Flee
 	self.Menu.MiscSet:MenuElement({type = MENU, id = "Flee", name = "Flee Mode"})
@@ -718,7 +720,7 @@ self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 	self.Menu.MiscSet.Drawing.XY:MenuElement({id = "y", name = "Pos: [Y]", value = 0, min = 0, max = 860, step = 10})	
 	
 end	
-local LastQ = 0
+
 
 function Irelia:Tick()
 if MyHeroNotReady() then return end
@@ -789,7 +791,7 @@ local Mode = GetMode()
 			ControlCastSpell(HK_W, target)
 		end
 		
-		if myHero.pos:DistanceTo(target.pos) <= 950 and myHero.pos:DistanceTo(target.pos) > 300 and GotBuff(target, "ireliamark") == 0 and Ready(_R) and Ready(_Q) and QDmg*2 < target.health then
+		if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and myHero.pos:DistanceTo(target.pos) > 300 and GotBuff(target, "ireliamark") == 0 and Ready(_R) and Ready(_Q) and QDmg*2 < target.health then
 			self:CastR(target)
 		end	
 
@@ -965,7 +967,7 @@ function Irelia:Draw()
   if myHero.dead then return end
 	
 	if self.Menu.MiscSet.Drawing.DrawR:Value() and Ready(_R) then
-    Draw.Circle(myHero, 950, 1, Draw.Color(255, 225, 255, 10))
+    Draw.Circle(myHero, self.Menu.MiscSet.Rrange.R:Value(), 1, Draw.Color(255, 225, 255, 10))
 	end                                                 
 	if self.Menu.MiscSet.Drawing.DrawQ:Value() and Ready(_Q) then
     Draw.Circle(myHero, 600, 1, Draw.Color(225, 225, 0, 10))
@@ -1028,7 +1030,7 @@ if target == nil then return end
 	if IsValid(target) then
 		local count = GetEnemyCount(600, target)
 		countR = false
-		if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= 950 and self.Menu.ComboSet.Combo.UseRCount:Value() then
+		if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and self.Menu.ComboSet.Combo.UseRCount:Value() then
 			if count >= self.Menu.ComboSet.Combo.RCount:Value() then					
 				countR = true
 				self:CastR(target)
@@ -1056,7 +1058,7 @@ if target == nil then return end
 		end	
 		
 		if self.Menu.ComboSet.Combo.UseR:Value() and Ready(_R) and not Ready(_W) then
-			if myHero.pos:DistanceTo(target.pos) <= 950 and not countR then					
+			if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and not countR then					
 				self:CastR(target)
 
 			end
@@ -1135,27 +1137,23 @@ function Irelia:LastHit()
 			if self.Menu.ClearSet.LastHit.UseItem:Value() then
 				self:UseHydraminion(minion)
 			end	
-        if GameTimer() - LastQ < self.Menu.QSet.sec:Value() then return end     
+            
 			if self.Menu.ClearSet.LastHit.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.LastHit.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
-				if QDmg >= minion.health then
-					local hp = CheckHPPred(minion)
+			local hp = CheckHPPred(minion)
 
-					if hp > 0 and not IsUnderTurret(minion) then	
-						ControlCastSpell(HK_Q, minion)
-						LastQ = GameTimer()
-					end	
+				if hp > 0 and QDmg > minion.health and not IsUnderTurret(minion) then	
+					ControlCastSpell(HK_Q, minion)
+				end	
 
-					if hp > 0 and IsUnderTurret(minion) and AllyMinionUnderTower() then
-						ControlCastSpell(HK_Q, minion)
-						LastQ = GameTimer()
-					end	
-				end
-			end	
+				if hp > 0 and QDmg > minion.health and IsUnderTurret(minion) and AllyMinionUnderTower() then
+					ControlCastSpell(HK_Q, minion)
+
+				end	
+            end
 		end
 	end
 end	
-
 
 function Irelia:AutoQ()
 	for i = 1, GameMinionCount() do
@@ -1165,24 +1163,20 @@ function Irelia:AutoQ()
 			if self.Menu.ClearSet.AutoQ.UseItem:Value() then
 				self:UseHydraminion(minion)
 			end	
-	
-		if GameTimer() - LastQ < self.Menu.QSet.sec:Value() then return end            
+            
 			if self.Menu.ClearSet.AutoQ.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.AutoQ.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
-				if QDmg >= minion.health then
-					local hp = CheckHPPred(minion)
+			local hp = CheckHPPred(minion)
 
-					if hp > 0 and not IsUnderTurret(minion) then	
-						ControlCastSpell(HK_Q, minion)
-						LastQ = GameTimer()
-					end	
+				if hp > 0 and QDmg > minion.health and not IsUnderTurret(minion) then	
+					ControlCastSpell(HK_Q, minion)
+				end	
 
-					if hp > 0 and IsUnderTurret(minion) and AllyMinionUnderTower() then
-						ControlCastSpell(HK_Q, minion)
-						LastQ = GameTimer()
-					end	
-				end
-			end	
+				if hp > 0 and QDmg > minion.health and IsUnderTurret(minion) and AllyMinionUnderTower() then
+					ControlCastSpell(HK_Q, minion)
+
+				end	
+            end
 		end
 	end
 end
@@ -1191,16 +1185,14 @@ function Irelia:StackPassive(target)
 if GotBuff(myHero, "ireliapassivestacksmax") == 1 then return end	
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
-	if GameTimer() - LastQ < self.Menu.QSet.sec:Value() then return end 
+
 		if minion.team == TEAM_ENEMY then
 			if target.pos:DistanceTo(minion.pos) <= 400 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
-				if QDmg >= minion.health then			
-					local hp = CheckHPPred(minion)
-					if hp > 0 then
-						ControlCastSpell(HK_Q, minion)
-						LastQ = GameTimer()
-					end
+			local hp = CheckHPPred(minion)
+				if hp > 0 and QDmg > minion.health then
+					ControlCastSpell(HK_Q, minion)
+
 				end
 			end
 			self:UseHydraminion(minion)
@@ -1211,7 +1203,7 @@ end
 function Irelia:JungleClear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
-	
+
 		if minion.team == TEAM_JUNGLE and IsValid(minion) then
  			
 			if myHero.pos:DistanceTo(minion.pos) <= 825 and self.Menu.ClearSet.JClear.UseW:Value() and Ready(_W) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 then
@@ -1222,15 +1214,12 @@ function Irelia:JungleClear()
 			if self.Menu.ClearSet.JClear.UseItem:Value() then
 				self:UseHydraminion(minion)
 			end				
-			if GameTimer() - LastQ < self.Menu.QSet.sec:Value() then return end 
+			
 			if myHero.pos:DistanceTo(minion.pos) <= 600 and self.Menu.ClearSet.JClear.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 and Ready(_Q) then
 			local QDmg = getdmg("Q", minion, myHero) + self:CalcExtraDmg(minion) 
-				if QDmg >= minion.health then			
-					local hp = CheckHPPred(minion)
-					if hp > 0 then
-						ControlCastSpell(HK_Q, minion)
-						LastQ = GameTimer()
-					end	
+			local hp = CheckHPPred(minion)
+				if hp > 0 and QDmg > minion.health then
+					ControlCastSpell(HK_Q, minion)
 				end				
 			end
         end
@@ -1253,22 +1242,19 @@ function Irelia:Clear()
 			if self.Menu.ClearSet.Clear.UseItem:Value() then
 				self:UseHydraminion(minion)
 			end				
-			if GameTimer() - LastQ < self.Menu.QSet.sec:Value() then return end 
+			
 			if myHero.pos:DistanceTo(minion.pos) <= 600 and self.Menu.ClearSet.Clear.Last.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.Clear.Mana:Value() / 100 and Ready(_Q) then
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
-				if QDmg >= minion.health then			
-					local hp = CheckHPPred(minion)
+			local hp = CheckHPPred(minion)
 
-					if hp > 0 and not IsUnderTurret(minion) then	
-						ControlCastSpell(HK_Q, minion)
-						LastQ = GameTimer()
-					end	
-
-					if hp > 0 and IsUnderTurret(minion) and AllyMinionUnderTower() then
-						ControlCastSpell(HK_Q, minion)
-						LastQ = GameTimer()
-					end	
+				if hp > 0 and QDmg > minion.health and not IsUnderTurret(minion) then	
+					ControlCastSpell(HK_Q, minion)
 				end	
+
+				if hp > 0 and QDmg > minion.health and IsUnderTurret(minion) and AllyMinionUnderTower() then
+					ControlCastSpell(HK_Q, minion)
+
+				end				
 			end
         end
     end
@@ -1297,7 +1283,7 @@ function Irelia:KillSteal()
 				self:CastW(target)
 			end
 		end	
-		if myHero.pos:DistanceTo(target.pos) <= 950 and Ready(_R) and self.Menu.ks.UseR:Value() then
+		if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and Ready(_R) and self.Menu.ks.UseR:Value() then
 			local RDmg = getdmg("R", target, myHero)
 			local hp = target.health
 			if RDmg >= hp then
@@ -1310,16 +1296,14 @@ end
 function Irelia:CastQMinion(target)
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
-		if GameTimer() - LastQ < self.Menu.QSet.sec:Value() then return end 
+
 		if minion.team == TEAM_ENEMY then
 			local Dmg = getdmg("Q", target, myHero) or getdmg("W", target, myHero) or getdmg("E", target, myHero) or getdmg("R", target, myHero)
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
-			if QDmg >= minion.health then			
-				local hp = CheckHPPred(minion)
-				if myHero.pos:DistanceTo(minion.pos) <= 600 and myHero.pos:DistanceTo(minion.pos) > myHero.pos:DistanceTo(target.pos) and not IsUnderTurret(minion) and hp > 0 and target.health > Dmg then
-					ControlCastSpell(HK_Q, minion)
-					LastQ = GameTimer()
-				end
+			local hp = CheckHPPred(minion)
+			if myHero.pos:DistanceTo(minion.pos) <= 600 and myHero.pos:DistanceTo(minion.pos) > myHero.pos:DistanceTo(target.pos) and not IsUnderTurret(minion) and target.health > Dmg and hp > 0 and QDmg > minion.health then
+				ControlCastSpell(HK_Q, minion)
+				
 			end
 		end
 	end
@@ -1328,18 +1312,15 @@ end
 function Irelia:Gapclose(target)
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
-		if GameTimer() - LastQ < self.Menu.QSet.sec:Value() then return end 	
+	
 		if Ready(_Q) and minion.team == TEAM_ENEMY then
 			if GetDistanceSqr(minion.pos, myHero.pos) <= 600*600 and GetDistanceSqr(target.pos, myHero.pos) > GetDistanceSqr(minion.pos, target.pos) and GetDistanceSqr(target.pos, minion.pos) <= 600*600 then
-				local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
-				if QDmg >= minion.health then			
-					local hp = CheckHPPred(minion)
-					if hp > 0 then
-						ControlCastSpell(HK_Q, minion)
-						LastQ = GameTimer()
-					end		
-				end
-			end	
+			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
+			local hp = CheckHPPred(minion)
+				if hp > 0 and QDmg > minion.health then
+					ControlCastSpell(HK_Q, minion)
+				end		
+			end
 		end
 	end	
 end	
@@ -1375,24 +1356,21 @@ end
 function Irelia:Flee()
     local target = GetTarget(1100)     	
 	if target == nil then return end
-	if GameTimer() - LastQ < self.Menu.QSet.sec:Value() then return end 
 	if self.Menu.MiscSet.Flee.Q:Value() then
 		if target.pos:DistanceTo(myHero.pos) < 1000 then
 			if Ready(_Q) then
 				for i = 1, GameMinionCount() do
 				local minion = GameMinion(i)
 					if minion.team == TEAM_ENEMY then
-						local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
-						if QDmg >= minion.health then					
-							local hp = CheckHPPred(minion)
-							if minion.pos:DistanceTo(myHero.pos) <= 600 and target.pos:DistanceTo(myHero.pos) < minion.pos:DistanceTo(target.pos) and hp > 0 then
-								ControlCastSpell(HK_Q, minion)
-								LastQ = GameTimer()
-							end
-						end	
+					local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
+					local hp = CheckHPPred(minion)
+						if minion.pos:DistanceTo(myHero.pos) <= 600 and target.pos:DistanceTo(myHero.pos) < minion.pos:DistanceTo(target.pos) and hp > 0 and QDmg > minion.health then
+							ControlCastSpell(HK_Q, minion)
+						end
 					end	
                 end
-            end          
+            end
+            
 		end
 	end
 end
