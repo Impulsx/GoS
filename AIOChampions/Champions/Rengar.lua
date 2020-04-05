@@ -21,7 +21,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
 	
 	Menu:MenuElement({type = MENU, id = "Prio", name = "Empowered Spell Priority"})	
 	Menu.Prio:MenuElement({id = "Logic", name = "Empowered[Q] / Empowered[E]", key = string.byte("T"), toggle = true})	
@@ -103,7 +103,6 @@ local Mode = GetMode()
 		Combo()
 		DashAktive()		
 	elseif Mode == "Clear" then
-		Buff()
 		Clear()
 		JungleClear()
 	end	
@@ -123,12 +122,16 @@ if myHero.mana < 4 then return end
 end	
 
 function Buff()
-	if HasBuff(myHero, "rengarr") then
+	if HasBuff(myHero, "RengarR") then
 		UltActive = true 
+	else
+		UltActive = false
 	end
 
 	if HasBuff(myHero, "rengarpassivebuff") then
 		Dash = true
+	else
+		Dash = false
 	end
 end
 
@@ -164,6 +167,9 @@ function CastE(unit)
 end
 
 function Combo()
+	if UltActive == true then
+		UltCombo()
+	end	
 	if UltActive == true or Dash == true then return end
 	local target = GetTarget(1100)
 	if target == nil then return end
@@ -171,6 +177,15 @@ function Combo()
 		if Menu.Combo.UseQ:Value() and Ready(_Q) then CastQ(target) end
 		if Menu.Combo.UseW:Value() and Ready(_W) then CastW(target) end
 		if Menu.Combo.UseE:Value() and Ready(_E) then CastE(target) end
+	end
+end
+
+function UltCombo()
+	local target = GetTarget(1100)
+	if target == nil then return end
+		if IsValid(target) then 
+		if Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 850 then ControlCastSpell(HK_Q) end
+		if Menu.Combo.UseE:Value() and Ready(_E) and myHero.pathing.isDashing and myHero.pathing.dashSpeed > 500 then CastE(target) end
 	end
 end
 
@@ -195,7 +210,6 @@ function Clear()
 end
 
 function JungleClear()
-	if UltActive == true then return end
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 		if myHero.pos:DistanceTo(minion.pos) <= 1000 and minion.team == TEAM_JUNGLE and IsValid(minion) then
