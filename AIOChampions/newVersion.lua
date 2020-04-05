@@ -5,7 +5,7 @@ Data = {
     },
     Core = {
         Changelog = "Auto Version ChangeLog Here",
-        Version = 0.14,
+        Version = 0.15,
     },
 
     Champions = {
@@ -131,7 +131,7 @@ Data = {
         },
          Rengar = {
             Changelog = "Rengar Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
          Diana = {
             Changelog = "Diana Changelog Here",
