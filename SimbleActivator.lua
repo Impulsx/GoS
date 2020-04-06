@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.20
+    local Version = 0.21
     
     local Files =
     {
@@ -379,7 +379,8 @@ function Activator:LoadMenu()
 	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteKrugs", name = "Smite Krugs", value = false, leftIcon = "https://puu.sh/rPw6a/3096646ec4.png"})
 	self.Menu.summ.SmiteMenu.AutoSmiter:MenuElement({id = "SmiteCrab", name = "Smite Crab", value = false, leftIcon = "https://puu.sh/rPwaw/10f0766f4d.png"})
 	
-	self.Menu.summ.SmiteMenu:MenuElement({type = MENU, id = "AutoSmiterH", name = "Auto Smite Heroes [Combo Mode]"})	
+	self.Menu.summ.SmiteMenu:MenuElement({type = MENU, id = "AutoSmiterH", name = "Auto Smite Heroes [Combo Mode]"})
+	self.Menu.summ.SmiteMenu.AutoSmiterH:MenuElement({id = "On", name = "Use AutoSmite Enemies", value = true})		
 	self.Menu.summ.SmiteMenu.AutoSmiterH:MenuElement({id = "Enabled", name = "Smite Logic", value = 2, drop = {"AutoSmite Always", "AutoSmite KillSteal"}})
 	self.Menu.summ.SmiteMenu.AutoSmiterH:MenuElement({id = "Ammo", name = "Safe 1 Smite for Jungle", value = true})	
 end
@@ -607,7 +608,7 @@ end
 function Activator:SmiteEnemy()	
 local target = GetTarget(800)
 if target == nil or mySmiteSlot == 0 then return end
-	if myHero.pos:DistanceTo(target.pos) <= (500+myHero.boundingRadius+target.boundingRadius) and IsValid(target) then	
+	if self.Menu.summ.SmiteMenu.AutoSmiterH.On:Value() and myHero.pos:DistanceTo(target.pos) <= (500+myHero.boundingRadius+target.boundingRadius) and IsValid(target) then	
 	local smiteDmg = 20+8*myHero.levelData.lvl;
 	local SData = myHero:GetSpellData(mySmiteSlot);
 	
