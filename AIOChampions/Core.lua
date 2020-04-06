@@ -200,35 +200,10 @@ end
 ]]
 
 DelayAction(function()
-	LoadUnits()
 	LoadScript()
-end, 0.05)
+	LoadUnits()
+end, math.max(0.07, 30 - Game.Timer()))
 
-local function CheckEnemies()
-	local count = 0
-	for i = 1, GameHeroCount() do 
-	local hero = GameHero(i)
-		if hero.team ~= TEAM_ALLY then
-		count = count + 1
-		end
-	end
-	return count
-end
-
-Callback.Add("Tick", function()
-local LoadedEnemys = CheckEnemies() 		
-	if LoadedEnemys >= 1 then return end
-	if LoadedEnemys == 0 then
-		Callback.Add("Draw", function() DrawInfo() end)
-		LoadUnits()
-	end	
-end)
-
-function DrawInfo() 
-	DrawText("Enemys not loaded !!", 24, myHero.pos2D.x, myHero.pos2D.y,DrawColor(0xFF00FF00))
-	DrawText("Press 2x F6", 24, myHero.pos2D.x, myHero.pos2D.y+25,DrawColor(0xFF00FF00))	
-end
-	
 DelayAction(function()
 	if not Menu.Pred then return end
 	if Menu.Pred.Change:Value() == 1 then
@@ -236,5 +211,5 @@ DelayAction(function()
 	else
 		require('PremiumPrediction')
 	end	
-end, 1.0)
+end, math.max(0.07, 33 - Game.Timer()))
 
