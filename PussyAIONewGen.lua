@@ -1,7 +1,7 @@
 if _G.PussyMain then
 	return 
 end
-print ("PussyAIO will load shortly")
+--print ("PussyAIO will load shortly")
 
 local osclock			= os.clock;
 local open               = io.open
@@ -145,10 +145,16 @@ local function AutoUpdate()
 		
 	end
 	
+	local function DrawInfo() 
+	if Game.Timer() > 20 then return end 
+		Draw.Text(myHero.charName.." loads in game after 30 sec", 24, myHero.pos2D.x, myHero.pos2D.y,Draw.Color(0xFF00FF00))	
+	end	
+	
 	local function LoadScript()
 		if CheckSupported() then
 			InitializeScript()
 			LoadLibs()
+			Callback.Add("Draw", function() DrawInfo() end)
 		else
 			print("PussyAIO: Champion not supported: ".. myHero.charName)
 		end
