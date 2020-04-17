@@ -1,5 +1,5 @@
 --[[
-Version: 10.7
+Version: 10.8
 
 Usage:
 
@@ -13,7 +13,7 @@ params:
 getdmg("SKILL",target,source,stagedmg,spelllvl)
 ]]
 
-print("PussyDamageLib 10.7")
+print("PussyDamageLib 10.8")
 
 local DamageReductionTable = {
   ["Braum"] = {buff = "BraumShieldRaise", amount = function(target) return 1 - ({0.3, 0.325, 0.35, 0.375, 0.4})[target:GetSpellData(_E).level] end},
@@ -386,7 +386,7 @@ local DamageLibTable = {
   },
 
   ["Evelynn"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({130, 180, 230, 280, 330})[level] + 1.95 * source.ap end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({90, 105, 120, 135, 150})[level] + 1.95 * source.ap end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({55, 70, 85, 100, 115})[level] + (0.03 + 0.15 / 100 * source.ap) * target.maxHealth end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({125, 250, 375})[level] + 0.75 * source.ap end},
   },
@@ -895,8 +895,8 @@ local DamageLibTable = {
   },
 
   ["Sett"] = {
-    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({90, 120, 150, 180, 210})[level] + 0.1 * source.bonusDamage end}, -- without expended Grit
-    {Slot = "W", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({90, 120, 150, 180, 210})[level] + 0.1 * source.bonusDamage end}, -- True Damage without expended Grit
+    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({80, 105, 130, 155, 180})[level] + 0.1 * source.bonusDamage end}, -- without expended Grit
+    {Slot = "W", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({80, 105, 130, 155, 180})[level] + 0.1 * source.bonusDamage end}, -- True Damage without expended Grit
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 80, 110, 140, 170})[level] + 0.6 * source.totalDamage end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({200, 300, 400})[level] + source.bonusDamage end}, -- without Target BonusHealth
   },  
@@ -1103,7 +1103,7 @@ local DamageLibTable = {
 
   ["Tristana"] = {
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({95, 145, 195, 245, 295})[level] + 0.5 * source.ap end},
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({70, 80, 90, 100, 110})[level] + ({0.5, 0.7, 0.9, 1.1, 1.3})[level] * source.bonusDamage + 0.5 * source.ap end},
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({70, 80, 90, 100, 110})[level] + ({0.5, 0.75, 1, 1.25, 1.5})[level] * source.bonusDamage + 0.5 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({300, 400, 500})[level] + source.ap end},
   },
 
