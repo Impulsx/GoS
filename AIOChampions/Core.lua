@@ -213,3 +213,7 @@ DelayAction(function()
 	end	
 end, math.max(0.07, 33 - Game.Timer()))
 
+Callback.Add("Load", function()	
+	LoadUnits()
+end)
+
