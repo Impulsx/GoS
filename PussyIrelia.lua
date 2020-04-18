@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.16
+    local Version = 0.17
     
     local Files = {
         Lua = {
@@ -127,13 +127,6 @@ local DangerousSpells = {
 	["UrgotR"] = {charName = "Urgot", displayName = "Fear Beyond Death", slot = _R, type = "linear", speed = 3200, range = 1600, delay = 0.4, radius = 80, collision = false},
 
 }
-
-function OnLoad()
-	if table.contains(Heroes, myHero.charName) then
-		_G[myHero.charName]()
-		LoadUnits()
-	end	
-end
 
 function LoadUnits()
 	for i = 1, GameHeroCount() do
@@ -1480,3 +1473,10 @@ function Irelia:CastR(unit)
 		end	
 	end
 end	
+
+Callback.Add("Load", function()	
+	if table.contains(Heroes, myHero.charName) then
+		_G[myHero.charName]()
+		LoadUnits()
+	end	
+end)
