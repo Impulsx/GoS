@@ -93,10 +93,10 @@ Data = {
             Changelog = "Ekko Changelog Here",
             Version = 0.01,
         },
-         LeeSin = {
-            Changelog = "LeeSin Changelog Here",
-            Version = 0.01,
-        },
+         --LeeSin = {
+            --Changelog = "LeeSin Changelog Here",
+            --Version = 0.01,
+        --},
          Sylas = {
             Changelog = "Sylas Changelog Here",
             Version = 0.01,
