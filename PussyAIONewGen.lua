@@ -1,7 +1,6 @@
 if _G.PussyMain then
 	return 
 end
---print ("PussyAIO will load shortly")
 
 local osclock			= os.clock;
 local open               = io.open
@@ -143,7 +142,7 @@ local function AutoUpdate()
 		
 		UpdateVersionControl(currentData)
 		
-	end
+	end	
 	
 	local function Info()
 		Menu = MenuElement({type = MENU, id = "PussyAIOInfo", name = "PussyAio Champion Info"})
@@ -214,10 +213,10 @@ local function AutoUpdate()
 			Draw.Text("Warwick", 20, textPos.x +480, textPos.y - 140, Draw.Color(140, 225, 255, 0))	
 			Draw.Text("XinZhao", 20, textPos.x +480, textPos.y - 120, Draw.Color(140, 225, 255, 0))
 			Draw.Text("Nidalee", 20, textPos.x +480, textPos.y - 100, Draw.Color(140, 225, 255, 0))			
-		end
-	
-		if Game.Timer() > 30 then return end 
-		Draw.Text(myHero.charName.." loads in game after 30 sec", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(0xFF00FF00))	
+		end	
+		
+		--if Game.Timer() > 30 then return end 
+		--Draw.Text(myHero.charName.." loads in game after 30 sec", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(0xFF00FF00))	
 	end	
 	
 	local function LoadScript()
@@ -233,9 +232,8 @@ local function AutoUpdate()
 	
 	GetVersionControl()
 	CheckUpdate()
-	LoadScript()
-		
-end
+	LoadScript()	
+end		
 
 function OnLoad()
 	_G.PussyMain = true
