@@ -1,3 +1,5 @@
+local heroes = false
+local checkCount = 0 
 local menu = 1
 local Orb
 local _OnWaypoint = {}
@@ -199,21 +201,43 @@ print ("range:  "..myHero.activeSpell.range)
 end
 ]]
 
-DelayAction(function()
-	LoadScript()
-	LoadUnits()
-end, math.max(0.07, 30 - Game.Timer()))
-
-DelayAction(function()
-	if not Menu.Pred then return end
-	if Menu.Pred.Change:Value() == 1 then
-		require('GamsteronPrediction')
+local IsLoaded = false
+Callback.Add("Tick", function()  
+	if heroes == false then 
+		for i, unit in pairs(Enemies) do			
+			checkCount = checkCount + 1
+		end
+		if checkCount < 1 then
+			LoadUnits()
+		else
+			heroes = true
+		end
 	else
-		require('PremiumPrediction')
+		if not IsLoaded then
+			LoadScript()
+			DelayAction(function()
+				if not Menu.Pred then return end
+				if Menu.Pred.Change:Value() == 1 then
+					require('GamsteronPrediction')
+				else
+					require('PremiumPrediction')
+				end	
+			end, 1)
+			IsLoaded = true
+		end	
 	end	
-end, math.max(0.07, 33 - Game.Timer()))
-
-Callback.Add("Load", function()	
-	LoadUnits()
 end)
 
+local DrawTime = false
+Callback.Add("Draw", function() 
+	if heroes == false then
+		Draw.Text(myHero.charName.." is Loading !!", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 255, 0, 0))
+	else
+		if not DrawTime then
+			Draw.Text(myHero.charName.." is Ready !!", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 0, 255, 0))
+			DelayAction(function()
+			DrawTime = true
+			end, 4.0)
+		end	
+	end
+end)
