@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.18
+    local Version = 0.19
     
     local Files = {
         Lua = {
@@ -82,13 +82,11 @@ local wClock = 0
 local clock = os.clock
 local Latency = Game.Latency
 local ping = Latency() * 0.001
-local units = {}
 local foundAUnit = false
 local _movementHistory = {}
 local TEAM_ALLY = myHero.team
 local TEAM_ENEMY = 300 - myHero.team
 local TEAM_JUNGLE = 300
-local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
 local wClock = 0
 local _OnVision = {}
 local sqrt = math.sqrt
@@ -152,10 +150,6 @@ local function IsValidCrap(unit)
         return true;
     end
     return false;
-end
-
-local function EnemyHeroes()
-	return Enemies
 end
 
 local function Ready(spell)
@@ -271,7 +265,7 @@ local function GetMinionCount(range, pos)
 	local hero = GameMinion(i)
 	local Range = range * range
 		if hero.team ~= TEAM_ALLY and hero.dead == false and GetDistanceSqr(pos, hero.pos) < Range then
-		count = count + 1
+			count = count + 1
 		end
 	end
 	return count
@@ -335,37 +329,6 @@ local function VectorPointProjectionOnLineSegment(v1, v2, v)
 	local isOnSegment = rS == rL
 	local pointSegment = isOnSegment and pointLine or { x = ax + rS * (bx - ax), y = ay + rS * (by - ay) }
 	return pointSegment, pointLine, isOnSegment
-end
-
-local function CastSpell(spell,pos,range,delay)
-    local range = range or MathHuge
-    local delay = delay or 250
-    local ticker = GetTickCount()
-
-
-    if castSpell.state == 0 and GetDistance(myHero.pos,pos) < range and ticker - castSpell.casting > delay + Latency() and pos:ToScreen().onScreen then
-        castSpell.state = 1
-        castSpell.mouse = mousePos
-        castSpell.tick = ticker
-    end
-    if castSpell.state == 1 then
-        if ticker - castSpell.tick < Latency() then
-            ControlSetCursorPos(pos)
-            ControlKeyDown(spell)
-            ControlKeyUp(spell)
-            castSpell.casting = ticker + delay
-            DelayAction(function()
-                if castSpell.state == 1 then
-                    ControlSetCursorPos(castSpell.mouse)
-                    castSpell.state = 0
-                end
-            end,Latency()/1000)
-        end
-        if ticker - castSpell.casting > Latency() then
-            ControlSetCursorPos(castSpell.mouse)
-            castSpell.state = 0
-        end
-    end
 end
 
 local function GetEnemyHeroes()
@@ -493,19 +456,57 @@ local function GetInventorySlotItem(itemID)
     return nil
 end
 
-local function GetTarget2(range)
-local target = {}
+local function GetPathNodes(unit)
+	local nodes = {}
+	TableInsert(nodes, unit.pos)
+	if unit.pathing.hasMovePath then
+		for i = unit.pathing.pathIndex, unit.pathing.pathCount do
+			path = unit:GetPath(i)
+			TableInsert(nodes, path)
+		end
+	end		
+	return nodes
+end
 
-	for i, hero in pairs(EnemyHeroes()) do
-		local target1 = GetTarget(650)
-		local Range = range * range
-		if hero.isEnemy and not hero.dead then
-			if target1 and target1 ~= hero and GetDistance(hero.pos,target1.pos) < Range then
-				table.insert(target, hero)
+local function GetTargetMS(target)
+	local ms = target.ms
+	return ms
+end
+
+local function PredictUnitPosition(unit, delay)
+	local predictedPosition = unit.pos
+	local timeRemaining = delay
+	local pathNodes = GetPathNodes(unit)
+	for i = 1, #pathNodes -1 do
+		local nodeDistance = GetDistance(pathNodes[i], pathNodes[i +1])
+		local nodeTraversalTime = nodeDistance / GetTargetMS(unit)
+			
+		if timeRemaining > nodeTraversalTime then
+			timeRemaining =  timeRemaining - nodeTraversalTime
+			predictedPosition = pathNodes[i + 1]
+		else
+			local directionVector = (pathNodes[i+1] - pathNodes[i]):Normalized()
+			predictedPosition = pathNodes[i] + directionVector *  GetTargetMS(unit) * timeRemaining
+			break;
+		end
+	end
+	return predictedPosition
+end
+
+local function GetLineTargetCount(source, Pos, delay, speed, width)
+	local Count = 0
+	for i = 1, GameMinionCount() do
+		local minion = GameMinion(i)
+		if minion and minion.team == TEAM_ENEMY and myHero.pos:DistanceTo(minion.pos) <= 1000 and IsValid(minion) then
+			
+			local predictedPos = PredictUnitPosition(minion, delay+ GetDistance(source, minion.pos) / speed)
+			local proj1, pointLine, isOnSegment = VectorPointProjectionOnLineSegment(source, Pos, predictedPos)
+			if proj1 and isOnSegment and (GetDistanceSqr(predictedPos, proj1) <= (minion.boundingRadius + width) * (minion.boundingRadius + width)) then
+				Count = Count + 1
 			end
 		end
 	end
-	return target
+	return Count
 end
 
 local function CheckTitan(itemID)
@@ -524,6 +525,31 @@ local time = range / speed
 		return _G.SDK.HealthPrediction:GetPrediction(unit, time)
 	elseif _G.PremiumOrbwalker then
 		return _G.PremiumOrbwalker:GetHealthPrediction(unit, time)
+	end
+end
+
+local function SetAttack(bool)
+	if _G.EOWLoaded then
+		EOW:SetAttacks(bool)
+	elseif _G.SDK then                                                        
+		_G.SDK.Orbwalker:SetAttack(bool)
+	elseif _G.PremiumOrbwalker then
+		_G.PremiumOrbwalker:SetAttack(bool)	
+	else
+		GOS.BlockAttack = not bool
+	end
+
+end
+
+local function SetMovement(bool)
+	if _G.EOWLoaded then
+		EOW:SetMovements(bool)
+	elseif _G.SDK then
+		_G.SDK.Orbwalker:SetMovement(bool)
+	elseif _G.PremiumOrbwalker then
+		_G.PremiumOrbwalker:SetMovement(bool)	
+	else
+		GOS.BlockMovement = not bool
 	end
 end
 
@@ -627,6 +653,9 @@ self.Menu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
 	self.Menu.ClearSet.Clear.Last:MenuElement({name = " ", drop = {"Is only active, if AutoQ Off)"}})	
 	self.Menu.ClearSet.Clear.Last:MenuElement({id = "UseQ", name = "LastHit[Q]", value = true})	
 	self.Menu.ClearSet.Clear:MenuElement({id = "UseW", name = "[W]", value = true})
+	self.Menu.ClearSet.Clear:MenuElement({id = "UseE", name = "[E] in Line", value = true})	
+	self.Menu.ClearSet.Clear:MenuElement({id = "countEnemy", name = "[E] only if no Enemy near", value = true})	
+	self.Menu.ClearSet.Clear:MenuElement({id = "ECount", name = "min Minions for [E]", value = 4, min = 1, max = 7, step = 1})	
 	self.Menu.ClearSet.Clear:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
 	self.Menu.ClearSet.Clear:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
 	
@@ -693,7 +722,7 @@ self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 	DelayAction(function()	
 		for i, spell in pairs(DangerousSpells) do
 			if not DangerousSpells[i] then return end
-			for j, k in pairs(EnemyHeroes()) do
+			for j, k in pairs(GetEnemyHeroes()) do
 				if spell.charName == k.charName and not self.Menu.MiscSet.WSet.BlockList[i] then
 					if not self.Menu.MiscSet.WSet.BlockList[i] then self.Menu.MiscSet.WSet.BlockList:MenuElement({id = "Dodge"..i, name = ""..spell.charName.." "..self.Slot[spell.slot].." | "..spell.displayName, value = true}) end
 				end
@@ -860,10 +889,10 @@ function Irelia:CalcExtraDmg(unit)
 	local Sheen = GetInventorySlotItem(1027)	
 	local hydra = CheckTitan(3748)	
 	local Passive = GotBuff(myHero, "ireliapassivestacksmax")
-	local TrinDmg = CalcPhysicalDamage(myHero, unit, 2 * (myHero.totalDamage - myHero.bonusDamage))
-	local PassiveDmg = CalcMagicalDamage(myHero, unit, (12 + 3 * myHero.levelData.lvl) + (0.25 * myHero.bonusDamage))	
-	local SheenDmg = CalcPhysicalDamage(myHero, unit, myHero.totalDamage - myHero.bonusDamage)
-	local hydraDmg = CalcPhysicalDamage(myHero, unit, 5 + 0.01 * myHero.maxHealth)
+	local TrinDmg = 2 * (myHero.totalDamage - myHero.bonusDamage)
+	local PassiveDmg = (12 + 3 * myHero.levelData.lvl) + (0.25 * myHero.bonusDamage)	
+	local SheenDmg = myHero.totalDamage - myHero.bonusDamage
+	local hydraDmg = 5 + 0.01 * myHero.maxHealth
 	
 	if Trinity == nil and Sheen == nil and Passive == 0 then
 		total = 0
@@ -1141,19 +1170,25 @@ function Irelia:LastHit()
 			if self.Menu.ClearSet.LastHit.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.LastHit.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
 
-				if QDmg >= minion.health and not IsUnderTurret(minion) then	
-					local hp = CheckHPPred(minion)
-					if hp > 0 and IsValidCrap(minion) then
+				if not IsUnderTurret(minion) then	
+					if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then
+						SetAttack(false)
+						SetMovement(false)
 						ControlCastSpell(HK_Q, minion)
+						SetAttack(true)
+						SetMovement(true)
 					end	
 				end	
 
-				if QDmg >= minion.health and IsUnderTurret(minion) and AllyMinionUnderTower() then
-					local hp = CheckHPPred(minion)
-					if hp > 0 and IsValidCrap(minion) then
+				if IsUnderTurret(minion) and AllyMinionUnderTower() then
+					if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then					
+						SetAttack(false)
+						SetMovement(false)
 						ControlCastSpell(HK_Q, minion)
+						SetAttack(true)
+						SetMovement(true)
 					end
-				end	
+				end
             end
 		end
 	end
@@ -1167,21 +1202,27 @@ function Irelia:AutoQ()
 			if self.Menu.ClearSet.AutoQ.UseItem:Value() then
 				self:UseHydraminion(minion)
 			end	
-            
+
 			if self.Menu.ClearSet.AutoQ.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.AutoQ.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
-
-				if QDmg >= minion.health and not IsUnderTurret(minion) then	
-					local hp = CheckHPPred(minion)
-					if hp > 0 and IsValidCrap(minion) then
+				
+				if not IsUnderTurret(minion) then	
+					if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then
+						SetAttack(false)
+						SetMovement(false)
 						ControlCastSpell(HK_Q, minion)
+						SetAttack(true)
+						SetMovement(true)						
 					end	
 				end	
 
-				if QDmg >= minion.health and IsUnderTurret(minion) and AllyMinionUnderTower() then
-					local hp = CheckHPPred(minion)
-					if hp > 0 and IsValidCrap(minion) then
+				if IsUnderTurret(minion) and AllyMinionUnderTower() then
+					if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then					
+						SetAttack(false)
+						SetMovement(false)
 						ControlCastSpell(HK_Q, minion)
+						SetAttack(true)
+						SetMovement(true)
 					end
 				end	
 			end	
@@ -1197,13 +1238,13 @@ if GotBuff(myHero, "ireliapassivestacksmax") == 1 then return end
 		if minion.team == TEAM_ENEMY then
 			if target.pos:DistanceTo(minion.pos) <= 400 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
-			
-				if QDmg >= minion.health then
-					local hp = CheckHPPred(minion)	
-					if hp > 0 and IsValidCrap(minion) then
-						ControlCastSpell(HK_Q, minion)
-					end
-				end
+				if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then
+					SetAttack(false)
+					SetMovement(false)
+					ControlCastSpell(HK_Q, minion)
+					SetAttack(true)
+					SetMovement(true)
+				end	
 			end
 			self:UseHydraminion(minion)
 		end
@@ -1227,12 +1268,13 @@ function Irelia:JungleClear()
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 600 and self.Menu.ClearSet.JClear.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 and Ready(_Q) then
 			local QDmg = getdmg("Q", minion, myHero) + self:CalcExtraDmg(minion) 
-				if QDmg >= minion.health then
-					local hp = CheckHPPred(minion)	
-					if hp > 0 and IsValidCrap(minion) then
-						ControlCastSpell(HK_Q, minion)
-					end
-				end
+				if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then
+					SetAttack(false)
+					SetMovement(false)
+					ControlCastSpell(HK_Q, minion)
+					SetAttack(true)
+					SetMovement(true)
+				end	
 			end	
         end
     end
@@ -1245,10 +1287,41 @@ function Irelia:Clear()
 		if minion.team == TEAM_ENEMY and IsValid(minion) then
  			
 			if myHero.pos:DistanceTo(minion.pos) <= 825 and self.Menu.ClearSet.Clear.UseW:Value() and Ready(_W) and not Ready(_Q) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.Clear.Mana:Value() / 100 then
-				ControlCastSpell(HK_W, minion.pos)
-                    
+				ControlCastSpell(HK_W, minion.pos)                   
             end 
+			
 
+			if self.Menu.ClearSet.Clear.UseE:Value() and Ready(_E) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.Clear.Mana:Value() / 100 then
+				if self.Menu.ClearSet.Clear.countEnemy:Value() then
+					if GetEnemyCount(2000, myHero) == 0 then 				
+						local Count = GetLineTargetCount(myHero.pos, minion.pos, 0.25+ Game.Latency()/1000, math.huge, 100)
+						if Count >= self.Menu.ClearSet.Clear.ECount:Value() then
+							if myHero:GetSpellData(_E).name == "IreliaE" then
+								ControlCastSpell(HK_E, myHero.pos)
+							end
+							if myHero:GetSpellData(_E).name == "IreliaE2" then
+								local Epos = minion.pos + (myHero.pos - minion.pos): Normalized() * -150
+								SetMovement(false)
+								ControlCastSpell(HK_E, Epos)
+								SetMovement(true)
+							end					
+						end
+					end	
+				else
+					local Count = GetLineTargetCount(myHero.pos, minion.pos, 0.25+ Game.Latency()/1000, math.huge, 100)
+					if Count >= self.Menu.ClearSet.Clear.ECount:Value() then
+						if myHero:GetSpellData(_E).name == "IreliaE" then
+							ControlCastSpell(HK_E, myHero.pos)
+						end
+						if myHero:GetSpellData(_E).name == "IreliaE2" then
+							local Epos = minion.pos + (myHero.pos - minion.pos): Normalized() * -150
+							SetMovement(false)
+							ControlCastSpell(HK_E, Epos)
+							SetMovement(true)
+						end					
+					end					
+				end
+			end
            
 			if self.Menu.ClearSet.AutoQ.Q:Value() then return end
 			if self.Menu.ClearSet.Clear.UseItem:Value() then
@@ -1257,19 +1330,25 @@ function Irelia:Clear()
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 600 and self.Menu.ClearSet.Clear.Last.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.Clear.Mana:Value() / 100 and Ready(_Q) then
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
-				if QDmg >= minion.health and not IsUnderTurret(minion) then	
-					local hp = CheckHPPred(minion)
-					if hp > 0 and IsValidCrap(minion) then
+				if not IsUnderTurret(minion) then	
+					if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then
+						SetAttack(false)
+						SetMovement(false)
 						ControlCastSpell(HK_Q, minion)
+						SetAttack(true)
+						SetMovement(true)
 					end	
 				end	
 
-				if QDmg >= minion.health and IsUnderTurret(minion) and AllyMinionUnderTower() then
-					local hp = CheckHPPred(minion)
-					if hp > 0 and IsValidCrap(minion) then
+				if IsUnderTurret(minion) and AllyMinionUnderTower() then
+					if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then					
+						SetAttack(false)
+						SetMovement(false)
 						ControlCastSpell(HK_Q, minion)
+						SetAttack(true)
+						SetMovement(true)
 					end
-				end			
+				end				
 			end
         end
     end
@@ -1314,15 +1393,15 @@ function Irelia:CastQMinion(target)
 
 		if minion.team == TEAM_ENEMY and IsValid(minion) then
 			local Dmg = getdmg("Q", target, myHero) or getdmg("W", target, myHero) or getdmg("E", target, myHero) or getdmg("R", target, myHero)
-			local hp = CheckHPPred(minion)
 			if myHero.pos:DistanceTo(minion.pos) <= 600 and myHero.pos:DistanceTo(minion.pos) > myHero.pos:DistanceTo(target.pos) and not IsUnderTurret(minion) and target.health > Dmg then
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
-				if QDmg >= minion.health then
-					local hp = CheckHPPred(minion)	
-					if hp > 0 and IsValidCrap(minion) then
-						ControlCastSpell(HK_Q, minion)
-					end
-				end				
+				if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then
+					SetAttack(false)
+					SetMovement(false)
+					ControlCastSpell(HK_Q, minion)
+					SetAttack(true)
+					SetMovement(true)
+				end					
 			end
 		end
 	end
@@ -1335,12 +1414,13 @@ function Irelia:Gapclose(target)
 		if Ready(_Q) and minion.team == TEAM_ENEMY and IsValid(minion) then
 			if GetDistanceSqr(minion.pos, myHero.pos) <= 600*600 and GetDistanceSqr(target.pos, myHero.pos) > GetDistanceSqr(minion.pos, target.pos) and GetDistanceSqr(target.pos, minion.pos) <= 600*600 then
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
-				if QDmg >= minion.health then
-					local hp = CheckHPPred(minion)	
-					if hp > 0 and IsValidCrap(minion) then
-						ControlCastSpell(HK_Q, minion)
-					end
-				end				
+				if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then
+					SetAttack(false)
+					SetMovement(false)
+					ControlCastSpell(HK_Q, minion)
+					SetAttack(true)
+					SetMovement(true)
+				end					
 			end
 		end
 	end	
@@ -1385,17 +1465,17 @@ function Irelia:Flee()
 					if minion.team == TEAM_ENEMY and IsValid(minion) then
 						if minion.pos:DistanceTo(myHero.pos) <= 600 and target.pos:DistanceTo(myHero.pos) < minion.pos:DistanceTo(target.pos) then
 						local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
-							if QDmg >= minion.health then
-								local hp = CheckHPPred(minion)	
-								if hp > 0 and IsValidCrap(minion) then
-									ControlCastSpell(HK_Q, minion)
-								end
-							end
+							if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then
+								SetAttack(false)
+								SetMovement(false)
+								ControlCastSpell(HK_Q, minion)
+								SetAttack(true)
+								SetMovement(true)
+							end	
 						end
 					end	
                 end
-            end
-            
+            end           
 		end
 	end
 end
@@ -1413,15 +1493,14 @@ function Irelia:LineCircleIntersection(p1, p2, circle, radius)
     return nil, nil
 end
 
-function Irelia:GetBestECastPositions(units)
-    local units = GetEnemyHeroes()
+function Irelia:GetBestECastPositions()
     local startPos, endPos, count = nil, nil, 0
     local candidates, unitPositions = {}, {}
-    for i, unit in ipairs(units) do
-        local cp = GetPred(unit,2000,0.75 + ping)
-        if cp then candidates[i], unitPositions[i] = cp, cp end
+    for i, unit in ipairs(Enemies) do
+		local cp = GetPred(unit,775,0.75 + ping)
+		if cp then candidates[i], unitPositions[i] = cp, cp end	
     end
-    local maxCount = #units
+    local maxCount = #Enemies
     for i = 1, maxCount do
         for j = 1, maxCount do
             if candidates[j] ~= candidates[i] then
@@ -1429,46 +1508,43 @@ function Irelia:GetBestECastPositions(units)
             end
         end
     end
-    for i, unit2 in pairs(units) do
-        local cp = GetPred(unit2,2000,0.75 + ping)
-        if cp then
-            if myHero.pos:DistanceTo(cp.pos) < 775 then
-                for i, pos2 in ipairs(candidates) do
-                    if pos2:DistanceTo(cp.pos) < 775 then 
-                        
-                        local ePos = Vector(cp):Extended(pos2, 775)
-                        local number = 0
-                        for i = 1, #unitPositions do
-                            local unitPos = unitPositions[i]   
-                            local pointLine, pointSegment, onSegment = VectorPointProjectionOnLineSegment(cp, ePos, unitPos)
-                            if pointSegment and GetDistance(pointSegment, unitPos) < 1550 then number = number + 1 end 
-                             
-                        end
-                        if number >= 0 then startPos, endPos, count = cp, ePos, number end
-
-                    end
-                end
-            end
-        end
+    for i, unit2 in pairs(Enemies) do
+		local cp = GetPred(unit2,775,0.75 + ping)
+		if cp then
+			if myHero.pos:DistanceTo(cp.pos) < 775 then
+				for i, pos2 in ipairs(candidates) do
+					if pos2:DistanceTo(cp.pos) < 775 then 
+						
+						local ePos = Vector(cp):Extended(pos2, 775)
+						local number = 0
+						for i = 1, #unitPositions do
+							local unitPos = unitPositions[i]   
+							local pointLine, pointSegment, onSegment = VectorPointProjectionOnLineSegment(cp, ePos, unitPos)
+							if pointSegment and GetDistance(pointSegment, unitPos) < 1550 then number = number + 1 end 
+							 
+						end
+						if number >= 0 then 
+							startPos, endPos, count = cp, ePos, number 
+						end
+					end
+				end
+			end
+		end	
     end
     return startPos, endPos, count
 end
 
 function Irelia:CastE2()
-local target = GetTarget(1100)
-	if IsValid(target) and self.Menu.MiscSet.AutoE.UseE:Value() and Ready(_E) and GotBuff(target, "ireliamark") == 0 then
-		local startPos, endPos, count = self:GetBestECastPositions(target)
-		if startPos and endPos and count >= 2 then 
-			local cast1, cast2 = self:LineCircleIntersection(startPos, endPos, myHero.pos, 725)
+	if self.Menu.MiscSet.AutoE.UseE:Value() and Ready(_E) and GetEnemyCount(775, myHero) >= 2 then
+		local startPos, endPos, count = self:GetBestECastPositions()
+		if startPos and endPos then 
+			local cast1, cast2 = self:LineCircleIntersection(startPos, endPos, myHero.pos, 775)
 				if cast1 and cast2 then
 				if myHero:GetSpellData(_E).name == "IreliaE" then
 					ControlCastSpell(HK_E, cast1)
-				elseif myHero:GetSpellData(_E).name == "IreliaE2" then
-					DelayAction(function() 
-					DisableMovement(true)
+				end	
+				if myHero:GetSpellData(_E).name == "IreliaE2" then
 					ControlCastSpell(HK_E, cast2)
-					DisableMovement(false)
-					end, 0.15)
 				end
 			end
 		end
@@ -1485,9 +1561,9 @@ function Irelia:CastE(unit)
         local aimpos = GetPred(unit,math.huge,0.25+ Game.Latency()/1000)
 		if aimpos then
 		Epos = aimpos + (myHero.pos - aimpos): Normalized() * -150
-			DisableMovement(true)
+			SetMovement(false)
 			ControlCastSpell(HK_E, Epos)
-			DisableMovement(false)
+			SetMovement(true)
 		end
 	end
 end
