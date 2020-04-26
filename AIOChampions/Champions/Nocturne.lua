@@ -45,13 +45,36 @@ local function GetEnemyHeroes()
 	return Enemies
 end 
 
+local function GetEnemyHeroesInRange(pos, range)
+local _EnemyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit and unit.isEnemy and GetDistanceSqr(pos, unit.pos) < range and IsValid(unit) then
+			TableInsert(_EnemyHeroes, unit)
+		end
+	end
+	return _EnemyHeroes
+end
+
+local function OnProcessSpell()
+	for i = 1, #Units do
+		local unit = Units[i].unit; local last = Units[i].spell; local spell = unit.activeSpell
+		if spell and last ~= (spell.name .. spell.endTime) and unit.activeSpell.isChanneling then
+			Units[i].spell = spell.name .. spell.endTime; return unit, spell
+		end
+	end
+	return nil, nil
+end
+
 local Rrange = 1750 + 750 * myHero:GetSpellData(_R).level
 
 function LoadScript()
+	OnProcessSpell()
 	RActiv = false
+	SpellsLoaded = false
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -61,6 +84,12 @@ function LoadScript()
 	Menu.Combo:MenuElement({id = "UseR", name = "[R] if killable with FullCombo", value = true})
 	Menu.Combo:MenuElement({id = "range", name = "[R] is range bigger than", value = 1000, min = 0, max = Rrange, step = 10, identifier = "range"})	
 	Menu.Combo:MenuElement({id = "Draw", name = "Draw Killable FullCombo[onScreen+Minimap]", value = true})
+	
+	Menu:MenuElement({type = MENU, id = "spells", name = "Auto [W] Settings (WIP)"})
+	Menu.spells:MenuElement({id = "wblock", name = "[W] Block Spells", value = true})
+	for i, enemy in pairs(GetEnemyHeroes()) do
+		Menu.spells:MenuElement({type = MENU, id = enemy.charName, name = enemy.charName})	
+	end
   
 	--LaneClear Menu
 	Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})
@@ -146,8 +175,39 @@ function LoadScript()
 		end	
 	end)		
 end
+ 
+--Full Credits to Ronin (BlockSpells)
+function LoadBlockSpells()
+	for i = 1, GameHeroCount(i) do
+	local t = GameHero(i)
+		if t and t.isEnemy then		
+			for slot = 0, 3 do
+			local enemy = t
+			local spellName = enemy:GetSpellData(slot).name
+				
+				if slot == 0 then
+					Menu.spells[enemy.charName]:MenuElement({ id = spellName, name = "Block [Q]", value = false })
+				end
+				if slot == 1 then
+					Menu.spells[enemy.charName]:MenuElement({ id = spellName, name = "Block [W]", value = false })
+				end
+				if slot == 2 then
+					Menu.spells[enemy.charName]:MenuElement({ id = spellName, name = "Block [E]", value = false })
+				end
+				if slot == 3 then
+					Menu.spells[enemy.charName]:MenuElement({ id = spellName, name = "Block [R]", value = false })
+				end			
+			end
+		end
+	end
+end
 
 function Tick()
+if not SpellsLoaded then 
+	LoadBlockSpells()
+	SpellsLoaded = true
+end
+
 if MyHeroNotReady() then return end
 local Mode = GetMode()
 	if Mode == "Combo" then
@@ -174,6 +234,43 @@ local Mode = GetMode()
 	else
 		SetAttack(true)
 		SetMovement(true)	
+	end
+
+	if Ready(_W) and Menu.spells.wblock:Value() and SpellsLoaded == true then
+		local unit, spell = OnProcessSpell()
+		--for i = 1, #Units do
+			--local current = GetEnemyHeroesInRange(myHero.pos, 2000)[i]
+			if unit and unit.isEnemy and myHero.pos:DistanceTo(unit.pos) < 3000 and spell then
+				if unit.activeSpell and unit.activeSpell.valid and
+				(unit.activeSpell.target == myHero.handle or 
+				GetDistance(unit.activeSpell.placementPos, myHero.pos) <= myHero.boundingRadius * 2 + unit.activeSpell.width) and not 
+				string.find(unit.activeSpell.name:lower(), "attack") then
+					for j = 0, 3 do
+						local cast = unit:GetSpellData(j)
+						if Menu.spells[unit.charName][cast.name] and Menu.spells[unit.charName][cast.name]:Value() and cast.name == unit.activeSpell.name then
+							local startPos = unit.activeSpell.startPos
+							local placementPos = unit.activeSpell.placementPos
+							local width = 0
+							if unit.activeSpell.width > 0 then
+								width = unit.activeSpell.width
+							else
+								width = 100
+							end
+							local distance = GetDistance(myHero.pos, placementPos)											
+							if unit.activeSpell.target == myHero.handle then
+								ControlCastSpell(HK_W)
+								return
+							else
+								if distance <= width * 2 + myHero.boundingRadius then
+									ControlCastSpell(HK_W)
+								break
+								end
+							end							
+						end
+					end
+				end
+			end
+		--end
 	end	
 end
 
@@ -207,7 +304,8 @@ function Combo()
 local target = GetTarget(1300)     	
 if target == nil then return end
 	if IsValid(target) then
-			
+
+	
 		if myHero.pos:DistanceTo(target.pos) <= 1200 and Ready(_Q) and Menu.Combo.UseQ:Value() then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
