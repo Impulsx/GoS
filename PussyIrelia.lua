@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.19
+    local Version = 0.20
     
     local Files = {
         Lua = {
@@ -578,10 +578,10 @@ Type = _G.SPELLTYPE_LINE, Delay = 0.75 + ping, Radius = 50, Range = 775, Speed =
 
 local RData =
 {
-Type = _G.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 160, Range = 950, Speed = 2000, Collision = false
+Type = _G.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 80, Range = 950, Speed = 2000, Collision = false
 }
 
-local RspellData = {speed = 2000, range = 950, delay = 0.25 + ping, radius = 160, collision = {""}, type = "linear"}
+local RspellData = {speed = 2000, range = 950, delay = 0.25 + ping, radius = 80, collision = {""}, type = "linear"}
 
 
 
@@ -793,7 +793,7 @@ local Mode = GetMode()
 	end
 	
 	local target = GetTarget(1100)     	
-	if target == nil then return end	
+	if target == nil then return end
 	if Mode == "Combo" and IsValid(target) and self.Menu.ComboSet.Burst.Start:Value() and myHero.levelData.lvl >= self.Menu.ComboSet.Burst.Lvl:Value() then
 	local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	 
 	local hp = CheckHPPred(target)	
@@ -820,9 +820,17 @@ local Mode = GetMode()
 			ControlCastSpell(HK_W, target)
 		end
 		
-		if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and myHero.pos:DistanceTo(target.pos) > 300 and GotBuff(target, "ireliamark") == 0 and Ready(_R) and Ready(_Q) and QDmg*2 < target.health then
+		if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and myHero.pos:DistanceTo(target.pos) > 300 and GotBuff(target, "ireliamark") == 0 and Ready(_R) and Ready(_Q) and QDmg*2 > target.health then
 			self:CastR(target)
 		end	
+		
+		local count = GetEnemyCount(400, target)
+		if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and self.Menu.ComboSet.Combo.UseRCount:Value() then
+			if count >= self.Menu.ComboSet.Combo.RCount:Value() then					
+				self:CastR(target)
+
+			end
+		end		
 
 		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
 			 
@@ -1007,10 +1015,6 @@ function Irelia:Draw()
 	if self.Menu.MiscSet.Drawing.DrawW:Value() and Ready(_W) then
     Draw.Circle(myHero, 825, 1, Draw.Color(225, 225, 125, 10))
 	end
-	local textPos = myHero.dir	
-	if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
-		Draw.Text("GsoPred. installed Press 2x F6", 50, textPos.x + 100, textPos.y - 250, Draw.Color(255, 255, 0, 0))
-	end	
 	
 	if self.Menu.ComboSet.Burst.Draw:Value() then
 		Draw.Text("Burst Mode: ", 15, self.Menu.MiscSet.Drawing.XY.x:Value(), self.Menu.MiscSet.Drawing.XY.y:Value()+30, Draw.Color(255, 225, 255, 0))
@@ -1057,7 +1061,7 @@ function Irelia:Combo()
 local target = GetTarget(1100)     	
 if target == nil then return end
 	if IsValid(target) then
-		local count = GetEnemyCount(600, target)
+		local count = GetEnemyCount(400, target)
 		countR = false
 		if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and self.Menu.ComboSet.Combo.UseRCount:Value() then
 			if count >= self.Menu.ComboSet.Combo.RCount:Value() then					
