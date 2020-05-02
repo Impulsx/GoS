@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.20
+    local Version = 0.21
     
     local Files = {
         Lua = {
@@ -335,6 +335,21 @@ local function GetEnemyHeroes()
 	return Enemies
 end 
 
+local function ISMarked(range)
+	local count = 0
+	for i, target in pairs(GetEnemyHeroes()) do
+		local Range = range*range
+		if GetDistanceSqr(myHero.pos, target.pos) <= Range and IsValid(target) and HasBuff(target, "ireliamark") then	
+			count = count + 1	
+		end
+	end
+	if count > 0 then
+		return true
+	else	
+		return false
+	end	
+end
+
 local function DisableMovement(bool)
 	if _G.EOWLoaded then
 		EOW:SetMovements(not bool)
@@ -636,7 +651,7 @@ self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
 	
 	--BurstModeMenu
 	self.Menu.ComboSet:MenuElement({type = MENU, id = "Burst", name = "Burst Mode"})	
-	self.Menu.ComboSet.Burst:MenuElement({name = " ", drop = {"If Burst Active then Combo Inactive"}})	
+	self.Menu.ComboSet.Burst:MenuElement({name = " ", drop = {"If Burst Active then Combo Mode is Inactive"}})	
 	self.Menu.ComboSet.Burst:MenuElement({id = "Start", name = "Use Burst Mode", key = string.byte("U"), toggle = true})
 	self.Menu.ComboSet.Burst:MenuElement({id = "Lvl", name = "Irelia Level to Start Burst", value = 6, min = 6, max = 18, step = 1})
 	self.Menu.ComboSet.Burst:MenuElement({id = "Draw", name = "Draw Text", value = true})	
@@ -676,7 +691,6 @@ self.Menu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
 
 	--AutoQ
 	self.Menu.ClearSet:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ Mode"})
-	self.Menu.ClearSet.AutoQ:MenuElement({id = "UseQ", name = "Auto LastHit Minion", value = true})
 	self.Menu.ClearSet.AutoQ:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
 	self.Menu.ClearSet.AutoQ:MenuElement({id = "Q", name = "Auto Q Toggle Key", key = string.byte("T"), toggle = true})
 	self.Menu.ClearSet.AutoQ:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
@@ -686,7 +700,7 @@ self.Menu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
 	--HarassMenu
 self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})	
 	
-	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Logic", value = 1, drop = {"Marked + Dash back Minion", "Everytime"}})	
+	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Logic", value = 1, drop = {"Marked Target + back killable Minion", "Only Marked Target"}})	
 	self.Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = true})
 	self.Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})
 
@@ -795,11 +809,10 @@ local Mode = GetMode()
 	local target = GetTarget(1100)     	
 	if target == nil then return end
 	if Mode == "Combo" and IsValid(target) and self.Menu.ComboSet.Burst.Start:Value() and myHero.levelData.lvl >= self.Menu.ComboSet.Burst.Lvl:Value() then
-	local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	 
-	local hp = CheckHPPred(target)	
-		if myHero.pos:DistanceTo(target.pos) <= 775 and myHero:GetSpellData(_E).name == "IreliaE2" then
+	
+		if myHero.pos:DistanceTo(target.pos) <= 775 and myHero:GetSpellData(_E).name == "IreliaE2" and not ISMarked(1000) then
 			local aimpos = GetPred(target,math.huge,0.25+ Game.Latency()/1000)
-			if aimpos then
+			if aimpos and not (myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "IreliaR") then
 			Epos = aimpos + (myHero.pos - aimpos): Normalized() * -150
 				DisableMovement(true)
 				ControlCastSpell(HK_E, Epos)
@@ -807,48 +820,60 @@ local Mode = GetMode()
 			end	
 		end			
 		
-		if myHero.pos:DistanceTo(target.pos) <= 600 and myHero:GetSpellData(_E).name == "IreliaE" and Ready(_E) and GotBuff(target, "ireliamark") == 0 then
+		if myHero.pos:DistanceTo(target.pos) <= 600 and myHero:GetSpellData(_E).name == "IreliaE" and Ready(_E) and not ISMarked(1000) then
 			ControlCastSpell(HK_E, myHero.pos)
 		end
 		
 		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and GotBuff(target, "ireliamark") == 1 then
-			ControlCastSpell(HK_Q, target)
-
+			if CheckHPPred(target) >= 1 and IsValid(target) then
+				SetAttack(false)
+				SetMovement(false)
+				ControlCastSpell(HK_Q, target)
+				SetAttack(true)
+				SetMovement(true)
+			end	
 		end		
 
 		if myHero.pos:DistanceTo(target.pos) <= 400 and Ready(_W) and not Ready(_E) then					
 			ControlCastSpell(HK_W, target)
 		end
 		
-		if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and myHero.pos:DistanceTo(target.pos) > 300 and GotBuff(target, "ireliamark") == 0 and Ready(_R) and Ready(_Q) and QDmg*2 > target.health then
-			self:CastR(target)
+		if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and myHero.pos:DistanceTo(target.pos) > 300 and not ISMarked(1000) and Ready(_R) and Ready(_Q) then
+			local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)
+			if QDmg*2 > target.health and not myHero:GetSpellData(_E).name == "IreliaE2" then
+				self:CastR(target)
+			end	
 		end	
 		
 		local count = GetEnemyCount(400, target)
 		if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and self.Menu.ComboSet.Combo.UseRCount:Value() then
-			if count >= self.Menu.ComboSet.Combo.RCount:Value() then					
+			if count >= self.Menu.ComboSet.Combo.RCount:Value() and not myHero:GetSpellData(_E).name == "IreliaE2" and not ISMarked(1000) then					
 				self:CastR(target)
 
 			end
 		end		
 
-		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
-			 
-			if hp > 0 and QDmg > target.health then
+		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then			 
+			local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	 		
+			if (QDmg >= target.health and CheckHPPred(target) >= 1) and IsValid(target) then
+				SetAttack(false)
+				SetMovement(false)
 				ControlCastSpell(HK_Q, target)
-
+				SetAttack(true)
+				SetMovement(true)
 			end
 		end	
 		
-		if QDmg >= target.health and GotBuff(target, "ireliamark") == 0 then
-			if myHero.pos:DistanceTo(target.pos) > 600 and myHero.pos:DistanceTo(target.pos) < 775 then
-				if myHero:GetSpellData(_E).name == "IreliaE" and Ready(_Q) and Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) > 600 and myHero.pos:DistanceTo(target.pos) < 775 and Ready(_Q) and Ready(_E) then
+			local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)			
+			if QDmg >= target.health and GotBuff(target, "ireliamark") == 0 then				
+				if myHero:GetSpellData(_E).name == "IreliaE" then
 					ControlCastSpell(HK_E, myHero.pos)
 				end
 			end
 			if myHero.pos:DistanceTo(target.pos) <= 775 and myHero:GetSpellData(_E).name == "IreliaE2" then
 				local aimpos = GetPred(target,math.huge,0.25+ Game.Latency()/1000)
-				if aimpos then
+				if aimpos and not ISMarked(1000) and not (myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "IreliaR") then
 				Epos = aimpos + (myHero.pos - aimpos): Normalized() * -150
 					DisableMovement(true)
 					ControlCastSpell(HK_E, Epos)
@@ -859,30 +884,36 @@ local Mode = GetMode()
 		self:Gapclose(target)
 		self:UseHydraminion(target)
 		if myHero:GetSpellData(_E).name == "IreliaE2" then return end
-		self:StackPassive(target)
-	
+		self:StackPassive(target)	
 	end	
 end
 
 function Irelia:Ninja()
 local target1 = GetTarget(600)	
 	for i, target2 in pairs(GetEnemyHeroes()) do
-	local Buff = HasBuff(target2, "ireliamark")
 		
-		if myHero.pos:DistanceTo(target2.pos) <= 600 and IsValid(target2) and Ready(_Q) then 
-			if Buff then
-				if target2 ~= target1 then		
+		if Ready(_Q) and GetEnemyCount(600, myHero) >= 2 then 
+			if target2 ~= target1 then
+				if HasBuff(target2, "ireliamark") and myHero.pos:DistanceTo(target2.pos) <= 600 and IsValid(target2) then		
 					local time2 = myHero.pos:DistanceTo(target2.pos) / (1500+myHero.ms)
 					local MarkBuff2 = GetBuffData(target2, "ireliamark")
 					if MarkBuff2.duration > time2 then
+						SetAttack(false)
+						SetMovement(false)
 						ControlCastSpell(HK_Q, target2)
+						SetAttack(true)
+						SetMovement(true)
 					end
-				
-				else
+				end
+				if not HasBuff(target2, "ireliamark") and HasBuff(target1, "ireliamark") and myHero.pos:DistanceTo(target1.pos) <= 600 and IsValid(target1) then
 					local time1 = myHero.pos:DistanceTo(target1.pos) / (1500+myHero.ms)
 					local MarkBuff1 = GetBuffData(target1, "ireliamark")
 					if MarkBuff1.duration > time1 then
+						SetAttack(false)
+						SetMovement(false)
 						ControlCastSpell(HK_Q, target1)
+						SetAttack(true)
+						SetMovement(true)
 					end
 				end	
 			end
@@ -939,8 +970,7 @@ function Irelia:CalcExtraDmg(unit)
 	if Trinity and Sheen == nil and hydra and Passive == 1 then
 		total = TrinDmg + PassiveDmg + hydraDmg
 	end	
-	return total
-		
+	return total		
 end
 
 function Irelia:UseW(i, s)
@@ -1029,7 +1059,7 @@ function Irelia:Draw()
 		end
 	end
 
-	if self.Menu.ClearSet.AutoQ.UseQ:Value() and self.Menu.ClearSet.AutoQ.Draw:Value() then 
+	if self.Menu.ClearSet.AutoQ.Draw:Value() then 
 		Draw.Text("Auto[Q] Minion: ", 15, self.Menu.MiscSet.Drawing.XY.x:Value(), self.Menu.MiscSet.Drawing.XY.y:Value()+15, Draw.Color(255, 225, 255, 0))
 		if self.Menu.ClearSet.AutoQ.Q:Value() then 
 			Draw.Text("ON", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+96, self.Menu.MiscSet.Drawing.XY.y:Value()+15, Draw.Color(255, 0, 255, 0))
@@ -1061,61 +1091,76 @@ function Irelia:Combo()
 local target = GetTarget(1100)     	
 if target == nil then return end
 	if IsValid(target) then
-		local count = GetEnemyCount(400, target)
 		countR = false
 		if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and self.Menu.ComboSet.Combo.UseRCount:Value() then
+			local count = GetEnemyCount(400, target)
 			if count >= self.Menu.ComboSet.Combo.RCount:Value() then					
 				countR = true
 				self:CastR(target)
-
+			else	
+				countR = false
 			end
 		end			
 		
 		if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) then
 			if myHero.pos:DistanceTo(target.pos) <= 725 then					
 				self:CastE(target)
-
 			end
 		end	
 			
 		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and GotBuff(target, "ireliamark") == 1 then
-			ControlCastSpell(HK_Q, target)	
-			
+			SetAttack(false)
+			SetMovement(false)
+			ControlCastSpell(HK_Q, target)
+			SetAttack(true)
+			SetMovement(true)			
 		end
 		
 		if self.Menu.ComboSet.Combo.UseW:Value() and Ready(_W) then
 			if myHero.pos:DistanceTo(target.pos) <= 825 then					
 				ControlCastSpell(HK_W, target)
-
 			end
 		end	
 		
 		if self.Menu.ComboSet.Combo.UseR:Value() and Ready(_R) and not Ready(_W) then
 			if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and not countR then					
 				self:CastR(target)
-
 			end
 		end			
 		
-		if self.Menu.ComboSet.Combo.QLogic:Value() then 
-		local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	 
-		local hp = CheckHPPred(target)
+		if self.Menu.ComboSet.Combo.QLogic:Value() then 				 
 			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
-				if hp > 0 and QDmg > target.health then
-					ControlCastSpell(HK_Q, target)	
+				local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)
+				if (QDmg >= target.health and CheckHPPred(target) >= 1) and IsValid(target) then
+					SetAttack(false)
+					SetMovement(false)
+					ControlCastSpell(HK_Q, target)
+					SetAttack(true)
+					SetMovement(true)	
 				end
 			end			
 			
-			if myHero.pos:DistanceTo(target.pos) >= 300 and myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and (QDmg*2) >= target.health then
-				ControlCastSpell(HK_Q, target)
+			if myHero.pos:DistanceTo(target.pos) >= 300 and myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
+				local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)
+				if (QDmg*2) >= target.health then
+					SetAttack(false)
+					SetMovement(false)
+					ControlCastSpell(HK_Q, target)
+					SetAttack(true)
+					SetMovement(true)
+				end	
 			end		
 		
 		else
-			local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	
-			local hp = CheckHPPred(target) 
+				
 			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
-				if hp > 0 and QDmg > target.health then
-					ControlCastSpell(HK_Q, target)	
+				local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)
+				if (QDmg >= target.health and CheckHPPred(target) >= 1) and IsValid(target) then
+					SetAttack(false)
+					SetMovement(false)
+					ControlCastSpell(HK_Q, target)
+					SetAttack(true)
+					SetMovement(true)	
 				end
 			end
 		end
@@ -1136,27 +1181,35 @@ if target == nil then return end
 	if IsValid(target) then
 				
 		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
-			if self.Menu.Harass.UseQ:Value() ~= 2 and GotBuff(target, "ireliamark") == 1 then
-				ControlCastSpell(HK_Q, target)
-				DelayAction(function()
-				self:CastQMinion(target)
-				end,0.5)
+			if self.Menu.Harass.UseQ:Value() ~= 2 then
+				if GotBuff(target, "ireliamark") == 1 then
+					SetAttack(false)
+					SetMovement(false)
+					ControlCastSpell(HK_Q, target)
+					SetAttack(true)
+					SetMovement(true)
+				end
+				if myHero:GetSpellData(_E).name ~= "IreliaE2" and not HasBuff(target, "ireliamark") then
+					self:CastQMinion(target)
+				end	
 			end	
 			if self.Menu.Harass.UseQ:Value() ~= 1 then
+				SetAttack(false)
+				SetMovement(false)
 				ControlCastSpell(HK_Q, target)
+				SetAttack(true)
+				SetMovement(true)
 			end	
 		end
 		
 		if self.Menu.Harass.UseW:Value() and Ready(_W) then
 			if myHero.pos:DistanceTo(target.pos) <= 825 then					
-				self:CastW(target)
-				
+				self:CastW(target)				
 			end
 		end	
 		if self.Menu.Harass.UseE:Value() and Ready(_E) then
 			if myHero.pos:DistanceTo(target.pos) <= 725 then					
-				self:CastE(target)
-				
+				self:CastE(target)				
 			end
 		end	
 	end	
@@ -1207,7 +1260,7 @@ function Irelia:AutoQ()
 				self:UseHydraminion(minion)
 			end	
 
-			if self.Menu.ClearSet.AutoQ.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.AutoQ.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
+			if myHero.mana/myHero.maxMana >= self.Menu.ClearSet.AutoQ.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
 				
 				if not IsUnderTurret(minion) then	
@@ -1262,8 +1315,7 @@ function Irelia:JungleClear()
 		if minion.team == TEAM_JUNGLE and IsValid(minion) then
  			
 			if myHero.pos:DistanceTo(minion.pos) <= 825 and self.Menu.ClearSet.JClear.UseW:Value() and Ready(_W) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 then
-				ControlCastSpell(HK_W, minion.pos)
-                    
+				ControlCastSpell(HK_W, minion.pos)                  
             end           
            
 			if self.Menu.ClearSet.JClear.UseItem:Value() then
@@ -1359,36 +1411,52 @@ function Irelia:Clear()
 end
 
 function Irelia:KillSteal()
-	local target = GetTarget(1100)     	
-	if target == nil then return end
-	
-	
-	if IsValid(target) then	
-		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and self.Menu.ks.UseQ:Value() then
-			local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	
-			local hp = CheckHPPred(target) 
-			if hp > 0 and QDmg > target.health then
-				ControlCastSpell(HK_Q, target)
-				DelayAction(function()
-				self:CastQMinion(target)
-				end,0.5)
+	for i, target in pairs(GetEnemyHeroes()) do     	
+		
+		if myHero.pos:DistanceTo(target.pos) <= 1000 and IsValid(target) and myHero:GetSpellData(_E).name ~= "IreliaE2" then
+		
+			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and self.Menu.ks.UseQ:Value() then
+				local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)	 
+				if HasBuff(target, "ireliamark") and (QDmg*2) >= target.health then
+					SetAttack(false)
+					SetMovement(false)
+					ControlCastSpell(HK_Q, target)
+					SetAttack(true)
+					SetMovement(true)
+				end	
+				if (QDmg >= target.health and CheckHPPred(target) >= 1) and IsValid(target) then
+					SetAttack(false)
+					SetMovement(false)
+					ControlCastSpell(HK_Q, target)
+					SetAttack(true)
+					SetMovement(true)
+					DelayAction(function()
+					self:CastQMinion(target)
+					end,0.5)
+				end
+			end
+			
+			if myHero.pos:DistanceTo(target.pos) <= 825 and Ready(_W) and self.Menu.ks.UseW:Value() then
+				local WDmg = getdmg("W", target, myHero)
+				local hp = target.health
+				if WDmg >= hp then
+					self:CastW(target)
+				end
+			end
+			
+			if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and myHero.pos:DistanceTo(target.pos) > 300 and Ready(_R) and self.Menu.ks.UseR:Value() then
+				local EDmg = getdmg("E", target, myHero)
+				local WDmg = getdmg("W", target, myHero)
+				local RDmg = getdmg("R", target, myHero)
+				local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg(target)
+				local FullDmg = RDmg + WDmg + EDmg + (QDmg*2)
+				local hp = target.health
+				if FullDmg >= hp and not HasBuff(target, "ireliamark") then
+					self:CastR(target)
+				end
 			end
 		end
-		if myHero.pos:DistanceTo(target.pos) <= 825 and Ready(_W) and self.Menu.ks.UseW:Value() then
-			local WDmg = getdmg("W", target, myHero)
-			local hp = target.health
-			if WDmg >= hp then
-				self:CastW(target)
-			end
-		end	
-		if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and Ready(_R) and self.Menu.ks.UseR:Value() then
-			local RDmg = getdmg("R", target, myHero)
-			local hp = target.health
-			if RDmg >= hp then
-				self:CastR(target)
-			end
-		end
-	end
+	end	
 end	
 
 function Irelia:CastQMinion(target)
@@ -1397,7 +1465,7 @@ function Irelia:CastQMinion(target)
 
 		if minion.team == TEAM_ENEMY and IsValid(minion) then
 			local Dmg = getdmg("Q", target, myHero) or getdmg("W", target, myHero) or getdmg("E", target, myHero) or getdmg("R", target, myHero)
-			if myHero.pos:DistanceTo(minion.pos) <= 600 and myHero.pos:DistanceTo(minion.pos) > myHero.pos:DistanceTo(target.pos) and not IsUnderTurret(minion) and target.health > Dmg then
+			if IsValid(target) and myHero.pos:DistanceTo(minion.pos) <= 600 and myHero.pos:DistanceTo(minion.pos) > myHero.pos:DistanceTo(target.pos) and not IsUnderTurret(minion) and target.health > Dmg then
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
 				if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then
 					SetAttack(false)
@@ -1415,10 +1483,10 @@ function Irelia:Gapclose(target)
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 	
-		if Ready(_Q) and minion.team == TEAM_ENEMY and IsValid(minion) then
-			if GetDistanceSqr(minion.pos, myHero.pos) <= 600*600 and GetDistanceSqr(target.pos, myHero.pos) > GetDistanceSqr(minion.pos, target.pos) and GetDistanceSqr(target.pos, minion.pos) <= 600*600 then
-			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion) 
-				if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then
+		if Ready(_Q) and minion.team == TEAM_ENEMY and myHero.pos:DistanceTo(minion.pos) <= 600 and IsValid(minion) then
+			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg(minion)
+			if QDmg >= minion.health and myHero.pos:DistanceTo(target.pos) > target.pos:DistanceTo(minion.pos) and target.pos:DistanceTo(minion.pos) <= 600 then 
+				if CheckHPPred(minion) >= 1 and IsValidCrap(minion) then
 					SetAttack(false)
 					SetMovement(false)
 					ControlCastSpell(HK_Q, minion)
