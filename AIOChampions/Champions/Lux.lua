@@ -42,7 +42,7 @@ end
 function LoadScript()
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.11"}})	
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQImmo"})
 	Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto[Q]Immobile Target", value = true})
@@ -109,7 +109,7 @@ function LoadScript()
 	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1175, Speed = 1200, Collision = true, MaxCollision = 1, CollisionTypes = {_G.COLLISION_MINION}
 	}
 	
-	QspellData = {speed = 1200, range = 1175, delay = 0.25, radius = 70, collision = {"minion"}, type = "linear"}	
+	QspellData = {speed = 1200, range = 1175, delay = 0.25, radius = 70, collision = {}, type = "linear"}	
 
 	EData =
 	{
@@ -175,7 +175,7 @@ local Mode = GetMode()
 		
 		
 end
-
+--[[
 local function NearestEnemy(entity)
 	local distance = 999999
 	local enemy = nil
@@ -191,7 +191,7 @@ local function NearestEnemy(entity)
 	end
 	return _sqrt(distance), enemy
 end
-
+]]
 
 function AutoQ()
 local target = GetTarget(1300)     	
@@ -212,53 +212,25 @@ if target == nil then return end
 	end
 end
 
-local eMissile = nil
-local eParticle = nil
-
-local function IsETraveling()
-	return eMissile and eMissile.name and eMissile.name == "LuxLightStrikeKugel"
-end
-
-local function IsELanded()
-	return eParticle and eParticle.name and eParticle.name == "E_tar_aoe_sound" --Lux_.+_E_tar_aoe_
+local function IsELanded(unit)
+	local LuxBuff = GetBuffData(myHero, "LuxLightStrikeKugel")
+	local targetBuff = GetBuffData(unit, "slow")	
+	if LuxBuff.count > 0 and targetBuff.count > 0 then
+		return true
+	end
+	return false
 end
 
 function AutoE()
-local target = GetTarget(1300)     	
-if target == nil then return end
-	if IsValid(target) and IsELanded() then
-		if NearestEnemy(eParticle) < 310 then	
+	for i, target in ipairs(GetEnemyHeroes()) do
+		
+		if myHero.pos:DistanceTo(target.pos) <= 1100 and IsValid(target) and IsELanded(target) then	
 			ControlCastSpell(HK_E)
-			eParticle = nil
-		end	
-	else		
+		end		
 
-		local eData = myHero:GetSpellData(_E)
-		if eData.toggleState == 1 then
-
-			if not IsETraveling() then
-				for i = 1, GameMissileCount() do
-					local missile = GameMissile(i)			
-					if missle and missile.name == "LuxLightStrikeKugel" and myHero.pos:DistanceTo(missile.pos) <= 400 then
-						eMissile = missile
-						break
-					end
-				end
-			end
-		elseif eData.toggleState == 2 then		
-			for i = 1, GameParticleCount() do 
-				local particle = GameParticle(i)
-				if particle and particle.name == "E_tar_aoe_sound" then
-					eParticle = particle
-					break
-				end
-			end	
-		end
 		if myHero.pos:DistanceTo(target.pos) <= 1000 and Ready(_E) and IsImmobileTarget(target) then
 			if Menu.AutoE.UseE:Value() then
 				ControlCastSpell(HK_E, target.pos)
-				eMissile = nil
-
 			end
 		end
 	end	
@@ -300,8 +272,8 @@ if target == nil then return end
 			end	
 		end
 		if Menu.Combo.UseE:Value() and Ready(_E) then
-			if IsELanded() then
-				AutoE()
+			if IsELanded(target) then
+				ControlCastSpell(HK_E)
 			elseif myHero.pos:DistanceTo(target.pos) <= 1000 then	
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, EData, myHero)
@@ -338,8 +310,8 @@ if target == nil then return end
 			end
 		end
 		if Menu.Harass.UseE:Value() and Ready(_E) then
-			if IsELanded() then
-				AutoE()
+			if IsELanded(target) then
+				ControlCastSpell(HK_E)
 			elseif myHero.pos:DistanceTo(target.pos) <= 1000 then	
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, EData, myHero)
@@ -364,7 +336,7 @@ local minion = GameMinion(i)
 	local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
 
 		if Menu.Clear.UseE:Value() then
-			if IsELanded() then
+			if IsELanded(minion) then
 				ControlCastSpell(HK_E)
 			elseif mana_ok and Ready(_E) then
 				local count = GetMinionCount(500, minion)
@@ -384,7 +356,7 @@ local minion = GameMinion(i)
 		local mana_ok = myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100
 
 		if Menu.JClear.UseE:Value() then
-			if IsELanded() then
+			if IsELanded(minion) then
 				ControlCastSpell(HK_E)
 			elseif mana_ok and Ready(_E) then
 				ControlCastSpell(HK_E, minion.pos)
