@@ -42,7 +42,7 @@ end
 function LoadScript()
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.11"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.13"}})	
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQImmo"})
 	Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto[Q]Immobile Target", value = true})
@@ -109,21 +109,21 @@ function LoadScript()
 	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1175, Speed = 1200, Collision = true, MaxCollision = 1, CollisionTypes = {_G.COLLISION_MINION}
 	}
 	
-	QspellData = {speed = 1200, range = 1175, delay = 0.25, radius = 70, collision = {}, type = "linear"}	
+	QspellData = {speed = 1200, range = 1175, delay = 0.25, radius = 70, collision = {nil}, type = "linear"}	
 
 	EData =
 	{
 	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 310, Range = 1000, Speed = 1200, Collision = false
 	}
 	
-	EspellData = {speed = 1200, range = 1000, delay = 0.25, radius = 310, collision = {}, type = "circular"}
+	EspellData = {speed = 1200, range = 1000, delay = 0.25, radius = 310, collision = {nil}, type = "circular"}
 
 	RData =
 	{
 	Type = _G.SPELLTYPE_LINE, Delay = 1.0, Radius = 190, Range = 3340, Speed = 1000, Collision = false
 	}
 	
-	RspellData = {speed = 1000, range = 3340, delay = 1.0, radius = 190, collision = {}, type = "linear"}	
+	RspellData = {speed = 1000, range = 3340, delay = 1.0, radius = 190, collision = {nil}, type = "linear"}	
 	
   	                                           
 	if _G.EOWLoaded then
@@ -204,10 +204,13 @@ if target == nil then return end
 				ControlCastSpell(HK_Q, pred.CastPosition)
 			end
 		else
-			local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
-			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-				ControlCastSpell(HK_Q, pred.CastPos)
-			end	
+			local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)		
+			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then 
+				local collisions =_G.PremiumPrediction:IsColliding(myHero, pred.CastPos, QspellData, {"minion"})
+				if collisions and #collisions <= 1 or not collisions then
+					ControlCastSpell(HK_Q, pred.CastPos)
+				end	
+			end		
 		end
 	end
 end
@@ -265,10 +268,13 @@ if target == nil then return end
 					ControlCastSpell(HK_Q, pred.CastPosition)
 				end
 			else
-				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
-				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-					ControlCastSpell(HK_Q, pred.CastPos)
-				end	
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)		
+				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then 
+					local collisions =_G.PremiumPrediction:IsColliding(myHero, pred.CastPos, QspellData, {"minion"})
+					if collisions and #collisions <= 1 or not collisions then
+						ControlCastSpell(HK_Q, pred.CastPos)
+					end	
+				end			
 			end	
 		end
 		if Menu.Combo.UseE:Value() and Ready(_E) then
@@ -303,9 +309,12 @@ if target == nil then return end
 					ControlCastSpell(HK_Q, pred.CastPosition)
 				end
 			else
-				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
-				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-					ControlCastSpell(HK_Q, pred.CastPos)
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)		
+				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then 
+					local collisions =_G.PremiumPrediction:IsColliding(myHero, pred.CastPos, QspellData, {"minion"})
+					if collisions and #collisions <= 1 or not collisions then
+						ControlCastSpell(HK_Q, pred.CastPos)
+					end	
 				end	
 			end
 		end
@@ -414,9 +423,12 @@ function KillstealQ(unit)
 			ControlCastSpell(HK_Q, pred.CastPosition)
 		end
 	else
-		local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, QspellData)
-		if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-			ControlCastSpell(HK_Q, pred.CastPos)
+		local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, QspellData)		
+		if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then 
+			local collisions =_G.PremiumPrediction:IsColliding(myHero, pred.CastPos, QspellData, {"minion"})
+			if collisions and #collisions <= 1 or not collisions then
+				ControlCastSpell(HK_Q, pred.CastPos)
+			end	
 		end	
 	end
 end
