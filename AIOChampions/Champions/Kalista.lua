@@ -43,22 +43,13 @@ local function KillMinionCount(range, pos)
 	return count
 end
 
-local function VectorPointProjectionOnLineSegment(v1, v2, v)
-	local cx, cy, ax, ay, bx, by = v.x, v.z, v1.x, v1.z, v2.x, v2.z
-	local rL = ((cx - ax) * (bx - ax) + (cy - ay) * (by - ay)) / ((bx - ax) ^ 2 + (by - ay) ^ 2)
-	local pointLine = { x = ax + rL * (bx - ax), y = ay + rL * (by - ay) }
-	local rS = rL < 0 and 0 or (rL > 1 and 1 or rL)
-	local isOnSegment = rS == rL
-	local pointSegment = isOnSegment and pointLine or { x = ax + rS * (bx - ax), y = ay + rS * (by - ay) }
-	return pointSegment, pointLine, isOnSegment
-end
-
 local ChampTable = {["Blitzcrank"] = {charName = "Blitzcrank"}, ["Skarner"] = {charName = "Skarner"}, ["TahmKench"] = {charName = "TahmKench"}, ["Sion"] = {charName = "Sion"}}
 local BoundAlly = nil
 
-function LoadScript() 	
+function LoadScript() 
+	HPred()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})	
 	
 	--AutoQ	
 	Menu:MenuElement({type = MENU, id = "AutoQ2", name = "AutoQ"})
@@ -259,16 +250,11 @@ local target = GetTarget(1300)
 if target == nil then return end	
 	
 	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 1150 and Menu.AutoQ2.UseQ:Value() and Ready(_Q) then
-        for i = 1, GameMinionCount() do
-		local minion = GameMinion(i)
-			if myHero.pos:DistanceTo(minion.pos) <= 1150 and minion.team == TEAM_ENEMY and IsValid(minion) then	
-			local QDmg = getdmg("Q", minion, myHero)
-			local pointSegment, pointLine, isOnSegment = VectorPointProjectionOnLineSegment(myHero.pos, target.pos, minion.pos)
-				if isOnSegment and (minion.pos.x - pointSegment.x)^2 + (minion.pos.z - pointSegment.y)^2 < (40 + minion.boundingRadius + 15) * (40 + minion.boundingRadius + 15) and HasBuff(minion, "kalistaexpungemarker") and QDmg >= minion.health then 
-					ControlCastSpell(HK_Q, target.pos)
-				end
-			end	
-        end
+
+		local killCount, nokillCount = HPred:GetLineTargetCount(myHero.pos, target.pos, 0.25, 2100, 80)				
+		if killCount >= 1 and nokillCount == 0 then 
+			ControlCastSpell(HK_Q, target.pos)	
+		end	
 	end
 end
 
@@ -417,4 +403,143 @@ if target == nil then return end
 			end
 		end
 	end
+end
+
+
+----------------------------------------------------------------------------
+------------------------------HPrediction-----------------------------------
+----------------------------------------------------------------------------
+
+class "HPred"
+
+local _tickFrequency = .2
+local _nextTick = Game.Timer()
+
+
+local _OnVision = {}
+function HPred:OnVision(unit)
+	if unit == nil or type(unit) ~= "userdata" then return end
+	if _OnVision[unit.networkID] == nil then _OnVision[unit.networkID] = {visible = unit.visible , tick = GetTickCount(), pos = unit.pos } end
+	if _OnVision[unit.networkID].visible == true and not unit.visible then _OnVision[unit.networkID].visible = false _OnVision[unit.networkID].tick = GetTickCount() end
+	if _OnVision[unit.networkID].visible == false and unit.visible then _OnVision[unit.networkID].visible = true _OnVision[unit.networkID].tick = GetTickCount() _OnVision[unit.networkID].pos = unit.pos end
+	return _OnVision[unit.networkID]
+end
+
+--This must be called manually - It's not on by default because we've tracked down most of the freeze issues to this.
+function HPred:Tick()
+	
+	
+	--Update missile cache
+	--DISABLED UNTIL LATER.
+	--self:CacheMissiles()
+	
+	--Limit how often tick logic runs
+	if _nextTick > Game.Timer() then return end
+	_nextTick = Game.Timer() + _tickFrequency
+	
+	--Update hero movement history	
+	for i = 1, Game.HeroCount() do
+		local t = Game.Hero(i)
+		if t then
+			if t.isEnemy then
+				HPred:OnVision(t)
+			end
+		end
+	end
+	
+	--Do not run rest of logic until freeze issues are fully tracked down
+	if true then return end
+	
+end
+
+function HPred:GetLineTargetCount(source, aimPos, delay, speed, width)
+	local killCount = 0
+	local nokillCount = 0
+	for i = 1, GameMinionCount() do
+	local unit = GameMinion(i)
+		if myHero.pos:DistanceTo(unit.pos) <= 1150 and unit.team == TEAM_ENEMY and IsValid(unit) then		 	
+		
+			local predictedPos = self:PredictUnitPosition(unit, delay+ self:GetDistance(source, unit.pos) / speed)
+			local proj1, pointLine, isOnSegment = self:VectorPointProjectionOnLineSegment(source, aimPos, predictedPos)
+			local QDmg = getdmg("Q", unit, myHero)
+			if proj1 and isOnSegment and (self:GetDistanceSqr(predictedPos, proj1) <= (unit.boundingRadius + width) * (unit.boundingRadius + width)) and (not HasBuff(unit, "kalistaexpungemarker") or HasBuff(unit, "kalistaexpungemarker") and QDmg < unit.health) then
+				nokillCount = nokillCount + 1	
+			end
+			if proj1 and isOnSegment and (self:GetDistanceSqr(predictedPos, proj1) <= (unit.boundingRadius + width) * (unit.boundingRadius + width)) and HasBuff(unit, "kalistaexpungemarker") and QDmg >= unit.health then
+				killCount = killCount + 1			
+			end			
+		end	
+	end	
+	return killCount, nokillCount
+end
+
+function HPred:VectorPointProjectionOnLineSegment(v1, v2, v)
+	assert(v1 and v2 and v, "VectorPointProjectionOnLineSegment: wrong argument types (3 <Vector> expected)")
+	local cx, cy, ax, ay, bx, by = v.x, (v.z or v.y), v1.x, (v1.z or v1.y), v2.x, (v2.z or v2.y)
+	local rL = ((cx - ax) * (bx - ax) + (cy - ay) * (by - ay)) / ((bx - ax) * (bx - ax) + (by - ay) * (by - ay))
+	local pointLine = { x = ax + rL * (bx - ax), y = ay + rL * (by - ay) }
+	local rS = rL < 0 and 0 or (rL > 1 and 1 or rL)
+	local isOnSegment = rS == rL
+	local pointSegment = isOnSegment and pointLine or { x = ax + rS * (bx - ax), y = ay + rS * (by - ay) }
+	return pointSegment, pointLine, isOnSegment
+end
+
+function HPred:PredictUnitPosition(unit, delay)
+	local predictedPosition = unit.pos
+	local timeRemaining = delay
+	local pathNodes = self:GetPathNodes(unit)
+	for i = 1, #pathNodes -1 do
+		local nodeDistance = self:GetDistance(pathNodes[i], pathNodes[i +1])
+		local nodeTraversalTime = nodeDistance / self:GetTargetMS(unit)
+			
+		if timeRemaining > nodeTraversalTime then
+			--This node of the path will be completed before the delay has finished. Move on to the next node if one remains
+			timeRemaining =  timeRemaining - nodeTraversalTime
+			predictedPosition = pathNodes[i + 1]
+		else
+			local directionVector = (pathNodes[i+1] - pathNodes[i]):Normalized()
+			predictedPosition = pathNodes[i] + directionVector *  self:GetTargetMS(unit) * timeRemaining
+			break;
+		end
+	end
+	return predictedPosition
+end
+
+function HPred:GetPathNodes(unit)
+	local nodes = {}
+	table.insert(nodes, unit.pos)
+	if unit.pathing.hasMovePath then
+		for i = unit.pathing.pathIndex, unit.pathing.pathCount do
+			path = unit:GetPath(i)
+			table.insert(nodes, path)
+		end
+	end		
+	return nodes
+end
+
+function HPred:CanTarget(target, allowInvisible)
+	return target.isEnemy and target.alive and target.health > 0  and (allowInvisible or target.visible) and target.isTargetable
+end
+
+function HPred:GetTargetMS(target)
+	local ms = target.pathing.isDashing and target.pathing.dashSpeed or target.ms
+	return ms
+end
+
+function HPred:GetDistanceSqr(p1, p2)
+	if not p1 or not p2 then
+		local dInfo = debug.getinfo(2)
+		print("Undefined GetDistanceSqr target. Please report. Method: " .. dInfo.name .. "  Line: " .. dInfo.linedefined)
+		return math.huge
+	end
+	return (p1.x - p2.x) *  (p1.x - p2.x) + ((p1.z or p1.y) - (p2.z or p2.y)) * ((p1.z or p1.y) - (p2.z or p2.y)) 
+end
+
+function HPred:GetDistance(p1, p2)
+	if not p1 or not p2 then
+		local dInfo = debug.getinfo(2)
+		print("Undefined GetDistance target. Please report. Method: " .. dInfo.name .. "  Line: " .. dInfo.linedefined)
+		return math.huge
+	end
+	return math.sqrt(self:GetDistanceSqr(p1, p2))
 end
