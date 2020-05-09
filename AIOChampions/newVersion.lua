@@ -143,7 +143,7 @@ Data = {
         },
           Nocturne = {
             Changelog = "Nocturne Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         }, 
           Garen = {
             Changelog = "Garen Changelog Here",
