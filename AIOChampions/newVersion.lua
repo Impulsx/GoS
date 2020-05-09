@@ -19,7 +19,7 @@ Data = {
         },
         Lux = {
             Changelog = "Lux Changelog Here",
-            Version = 0.09,
+            Version = 0.11,
         },
         Soraka = {
             Changelog = "Soraka Changelog Here",
