@@ -42,7 +42,7 @@ end
 function LoadScript()
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})	
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQImmo"})
 	Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto[Q]Immobile Target", value = true})
@@ -106,7 +106,7 @@ function LoadScript()
 	
 	QData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1175, Speed = 1200, Collision = true, MaxCollision = 1, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1175, Speed = 1200, Collision = true, MaxCollision = 1, CollisionTypes = {_G.COLLISION_MINION}
 	}
 	
 	QspellData = {speed = 1200, range = 1175, delay = 0.25, radius = 70, collision = {"minion"}, type = "linear"}	
@@ -280,7 +280,6 @@ if target == nil then return end
 		end
 	end
 end
-
 
 function Combo()
 local target = GetTarget(1300)     	
