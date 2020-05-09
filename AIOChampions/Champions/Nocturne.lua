@@ -74,7 +74,7 @@ function LoadScript()
 	SpellsLoaded = false
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -184,17 +184,16 @@ function LoadBlockSpells()
 			for slot = 0, 3 do
 			local enemy = t
 			local spellName = enemy:GetSpellData(slot).name
-				
-				if slot == 0 then
+				if slot == 0 and Menu.spells[enemy.charName] then
 					Menu.spells[enemy.charName]:MenuElement({ id = spellName, name = "Block [Q]", value = false })
 				end
-				if slot == 1 then
+				if slot == 1 and Menu.spells[enemy.charName] then
 					Menu.spells[enemy.charName]:MenuElement({ id = spellName, name = "Block [W]", value = false })
 				end
-				if slot == 2 then
+				if slot == 2 and Menu.spells[enemy.charName] then
 					Menu.spells[enemy.charName]:MenuElement({ id = spellName, name = "Block [E]", value = false })
 				end
-				if slot == 3 then
+				if slot == 3 and Menu.spells[enemy.charName] then
 					Menu.spells[enemy.charName]:MenuElement({ id = spellName, name = "Block [R]", value = false })
 				end			
 			end
@@ -371,4 +370,3 @@ function JungleClear()
         end
     end
 end
-
