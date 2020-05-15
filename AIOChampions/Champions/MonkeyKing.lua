@@ -1,14 +1,11 @@
-local function GetMinionCount(range, pos)
-    local pos = pos.pos
-	local count = 0
-	for i = 1,GameMinionCount() do
-	local hero = GameMinion(i)
-	local Range = range * range
-		if hero.team ~= TEAM_ALLY and hero.dead == false and GetDistanceSqr(pos, hero.pos) < Range then
-		count = count + 1
+local function HasBuff(unit, buffname)
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff.name == buffname and buff.count > 0 then 
+			return true
 		end
 	end
-	return count
+	return false
 end
 
 local function GetEnemyHeroes()
@@ -33,16 +30,16 @@ local function CanUse(spell)
 					myHero:GetSpellData(_W).mana +
 					myHero:GetSpellData(_E).mana +
 					myHero:GetSpellData(_R).mana
-    return GameCanUseSpell(spell) == 0 and Mana <= myHero.mana
+    return myHero:GetSpellData(spell).level > 0 and Mana <= myHero.mana
 end
 
-local Qrange = 50 + 25 * myHero:GetSpellData(_Q).level
+local Qrange = (50 + 25 * myHero:GetSpellData(_Q).level) + 200
 local SpellsReady = false
 
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -53,16 +50,16 @@ function LoadScript()
   
 	--LaneClear Menu
 	Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})
-	Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})
-	Menu.Clear:MenuElement({id = "UseQM", name = "Use[Q] min Minions", value = 2, min = 1, max = 7, step = 1, identifier = "Minion/s"})	
+	Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	Menu.Clear:MenuElement({id = "UseE", name = "[E]", value = true})
-	Menu.Clear:MenuElement({id = "UseEM", name = "Use[E] min Minions", value = 2, min = 1, max = 7, step = 1, identifier = "Minion/s"})  
+	Menu.Clear:MenuElement({id = "UseW", name = "[W]", value = true})  
 	Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear", value = 40, min = 0, max = 100, identifier = "%"})
 	
 	--JungleClear
 	Menu:MenuElement({type = MENU, id = "JClear", name = "JungelClear"})
 	Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true})         	
 	Menu.JClear:MenuElement({id = "UseE", name = "[E]", value = true})
+	Menu.JClear:MenuElement({id = "UseW", name = "[W]", value = true})	
 	Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"}) 		
 	
 	--Prediction
@@ -117,31 +114,27 @@ local Mode = GetMode()
 	if Mode == "Combo" then
 		CheckComboMode()	
 	elseif Mode == "Clear" then
-		--Clear()
-		--JungleClear()
+		Clear()
+		JungleClear()
 	end
 	
-	local spell = myHero.activeSpell
-	if spell and spell.valid and spell.isChanneling and spell.name = "" then
-		SetAttack(false)
-	else
-		SetAttack(true)
-	end
-	
-	if CanUse(_Q) and CanUse(_W) and CanUse(_E) and CanUse(_R) then
+	if 	CanUse(_Q) and CanUse(_W) and CanUse(_E) and CanUse(_R) then
 		SpellsReady = true
-	end	
+	end			
 end
 
 function CheckComboMode()
 	local Enemies = GetEnemyCount(1500, myHero)
 	if SpellsReady then
-		if Enemies >= 2 then		
+		if Enemies >= 2 then
+			print("Combo2")		
 			Combo2()
 		else
+			print("Combo1")		
 			Combo1()
 		end
 	else
+		print("Combo3")
 		Combo3()
 	end	
 end
@@ -150,9 +143,10 @@ function Combo1()
 local target = GetTarget(1000)     	
 if target == nil then return end
 	if IsValid(target) then
+		local casted = false	
 		local AA = false
 		local spell = myHero.activeSpell
-		if spell and spell.valid and spell.isAutoAttack then
+		if spell and spell.isAutoAttack and spell.spellWasCast then
 			AA = true
 		end
 
@@ -163,10 +157,7 @@ if target == nil then return end
 		if myHero.pos:DistanceTo(target.pos) < 625 then
 			
 			if Ready(_E) then
-				if AA then
-					ControlCastSpell(HK_E, target)
-					AA = false
-				end	
+				ControlCastSpell(HK_E, target)
 			end
 
 			if Ready(_W) and not Ready(_E) then				
@@ -184,12 +175,14 @@ if target == nil then return end
 			end	
 
 			if Ready(_R) and not Ready(_Q) then				
+				SetAttack(false)
+				casted = true
 				ControlCastSpell(HK_R)
-			end	
-			
-			if Ready(_R) then -- R2 name
-				ControlCastSpell(HK_R)
-			end				
+				DelayAction(function()
+				SetAttack(true)
+				casted = false
+				end,2)
+			end					
 		end	
 	end	
 end	
@@ -198,7 +191,9 @@ function Combo2()
 local target = GetTarget(1000)     	
 if target == nil then return end
 	if IsValid(target) then
-
+		local buff = HasBuff(myHero, "monkeykingspinrecast")
+		local castR = false
+		local casted = false
 		if not Ready(_R) then
 			SpellsReady = false
 		end
@@ -213,16 +208,30 @@ if target == nil then return end
 				ControlCastSpell(HK_W, target.pos)
 			end
 			
-			if Ready(_R) and not Ready(_W) then				
+			if Ready(_R) and not Ready(_W) and not casted then				
+				SetAttack(false)
+				casted = true
 				ControlCastSpell(HK_R)
-			end				
-		
-			if Ready(_Q) and not Ready(_R) then -- R2 name
-				ControlCastSpell(HK_Q)
+				castR = true				
+				DelayAction(function()
+				SetAttack(true)
+				casted = false
+				end, 2.0)
 			end	
+
+			if Ready(_Q) and castR then				
+				ControlCastSpell(HK_Q)
+				castR = false
+			end			
 			
-			if Ready(_R) and not Ready(_Q) then 
+			if buff and not Ready(_Q) and not casted then 
+				SetAttack(false)
+				casted = true
 				ControlCastSpell(HK_R)
+				DelayAction(function()
+				SetAttack(true)
+				casted = false
+				end, 2.0)
 			end			
 		end	
 	end	
@@ -234,15 +243,12 @@ if target == nil then return end
 	if IsValid(target) then
 		local AA = false
 		local spell = myHero.activeSpell
-		if spell and spell.valid and spell.isAutoAttack then
+		if spell and spell.isAutoAttack and spell.spellWasCast then
 			AA = true
 		end
 			
 		if Ready(_E) and myHero.pos:DistanceTo(target.pos) < 625 then
-			if AA then
-				ControlCastSpell(HK_E, target)
-				AA = false
-			end	
+			ControlCastSpell(HK_E, target)
 		end
 
 		if Ready(_W) and myHero.pos:DistanceTo(target.pos) < 300 then				
@@ -265,22 +271,20 @@ function Clear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 	
-		if myHero.pos:DistanceTo(minion.pos) <= 1300 and minion.team == TEAM_ENEMY and IsValid(minion) then
+		if myHero.pos:DistanceTo(minion.pos) <= 700 and minion.team == TEAM_ENEMY and IsValid(minion) then
             
             
-			if myHero.pos:DistanceTo(minion.pos) < 1200 and Menu.Clear.UseQ:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 and Ready(_Q) then
-				local count = GetMinionCount(100, minion)
-				if count >= Menu.Clear.UseQM:Value() then
-					ControlCastSpell(HK_Q, minion.pos)
-				end	
+			if myHero.pos:DistanceTo(minion.pos) < Qrange and Menu.Clear.UseQ:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 and Ready(_Q) then
+				ControlCastSpell(HK_Q)	
             end
                       
-			if myHero.pos:DistanceTo(minion.pos) < 425 and Ready(_E) and Menu.Clear.UseE:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
-				local count = GetMinionCount(100, minion)
-				if count >= Menu.Clear.UseEM:Value() then
-					ControlCastSpell(HK_E, minion)
-                end    
+			if myHero.pos:DistanceTo(minion.pos) < 625 and Ready(_E) and Menu.Clear.UseE:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
+				ControlCastSpell(HK_E, minion)   
             end
+			
+			if myHero.pos:DistanceTo(minion.pos) < 300 and Ready(_W) and Menu.Clear.UseW:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
+				ControlCastSpell(HK_W, minion.pos)   
+            end			
         end
     end
 end
@@ -289,16 +293,20 @@ function JungleClear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 	
-		if myHero.pos:DistanceTo(minion.pos) <= 1300 and minion.team == TEAM_JUNGLE and IsValid(minion) then
+		if myHero.pos:DistanceTo(minion.pos) <= 700 and minion.team == TEAM_JUNGLE and IsValid(minion) then
             
             
-			if myHero.pos:DistanceTo(minion.pos) < 1200 and Menu.Clear.UseQ:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 and Ready(_Q) then
-				ControlCastSpell(HK_Q, minion.pos)
+			if myHero.pos:DistanceTo(minion.pos) < Qrange and Menu.Clear.UseQ:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 and Ready(_Q) then
+				ControlCastSpell(HK_Q)
             end
                       
-			if myHero.pos:DistanceTo(minion.pos) < 425 and Ready(_E) and Menu.Clear.UseE:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
+			if myHero.pos:DistanceTo(minion.pos) < 625 and Ready(_E) and Menu.Clear.UseE:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
 				ControlCastSpell(HK_E, minion)    
             end
+			
+			if myHero.pos:DistanceTo(minion.pos) < 300 and Ready(_W) and Menu.Clear.UseW:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
+				ControlCastSpell(HK_W, minion.pos)    
+            end			
         end
     end
 end
