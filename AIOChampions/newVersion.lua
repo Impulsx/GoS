@@ -156,7 +156,11 @@ Data = {
           Renekton = {
             Changelog = "Renekton Changelog Here",
             Version = 0.02,
-        },         
+        },
+          MonkeyKing = {
+            Changelog = "MonkeyKing Changelog Here",
+            Version = 0.01,
+        },        
     },
 }
 
