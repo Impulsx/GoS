@@ -193,7 +193,8 @@ local function AutoUpdate()
 			Draw.Text("Mordekaiser", 20, textPos.x +80, textPos.y - 80, Draw.Color(140, 225, 255, 0))
 			Draw.Text("Qiyana", 20, textPos.x +80, textPos.y - 60, Draw.Color(140, 225, 255, 0))
 			Draw.Text("Renekton", 20, textPos.x +80, textPos.y - 40, Draw.Color(140, 225, 255, 0))	
-			Draw.Text("Sylas", 20, textPos.x +80, textPos.y - 20, Draw.Color(140, 225, 255, 0))			
+			Draw.Text("Sylas", 20, textPos.x +80, textPos.y - 20, Draw.Color(140, 225, 255, 0))	
+			Draw.Text("Wukong", 20, textPos.x +80, textPos.y, Draw.Color(140, 225, 255, 0))				
 
 			--Supp--
 			Draw.Text("---SUP---", 30, textPos.x +250, textPos.y - 250, Draw.Color(140, 0, 255, 0))
