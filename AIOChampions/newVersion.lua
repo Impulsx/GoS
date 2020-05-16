@@ -1,7 +1,7 @@
 Data = {
 
     Loader = {
-        Version = 0.13,
+        Version = 0.14,
     },
     Core = {
         Changelog = "Auto Version ChangeLog Here",
@@ -159,7 +159,7 @@ Data = {
         },
           MonkeyKing = {
             Changelog = "MonkeyKing Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         },        
     },
 }
