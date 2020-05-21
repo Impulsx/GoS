@@ -160,6 +160,10 @@ Data = {
           MonkeyKing = {
             Changelog = "MonkeyKing Changelog Here",
             Version = 0.01,
+        }, 
+          Blitzcrank = {
+            Changelog = "Blitzcrank Changelog Here",
+            Version = 0.01,
         },        
     },
 }
