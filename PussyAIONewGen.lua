@@ -209,12 +209,13 @@ local function AutoUpdate()
 			--Jungle--
 			Draw.Text("---JGL---", 30, textPos.x +450, textPos.y - 250, Draw.Color(140, 0, 255, 0))
 			Draw.Rect(textPos.x +440, textPos.y - 220, 120, 2, Draw.Color(140, 0, 255, 0))
-			Draw.Text("Nocturne", 20, textPos.x +480, textPos.y - 200, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Rengar", 20, textPos.x +480, textPos.y - 180, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Sett", 20, textPos.x +480, textPos.y - 160, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Warwick", 20, textPos.x +480, textPos.y - 140, Draw.Color(140, 225, 255, 0))	
-			Draw.Text("XinZhao", 20, textPos.x +480, textPos.y - 120, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Nidalee", 20, textPos.x +480, textPos.y - 100, Draw.Color(140, 225, 255, 0))			
+			Draw.Text("FiddleSticks", 20, textPos.x +480, textPos.y - 200, Draw.Color(140, 225, 255, 0))			
+			Draw.Text("Nocturne", 20, textPos.x +480, textPos.y - 180, Draw.Color(140, 225, 255, 0))
+			Draw.Text("Rengar", 20, textPos.x +480, textPos.y - 160, Draw.Color(140, 225, 255, 0))
+			Draw.Text("Sett", 20, textPos.x +480, textPos.y - 140, Draw.Color(140, 225, 255, 0))
+			Draw.Text("Warwick", 20, textPos.x +480, textPos.y - 120, Draw.Color(140, 225, 255, 0))	
+			Draw.Text("XinZhao", 20, textPos.x +480, textPos.y - 100, Draw.Color(140, 225, 255, 0))
+			Draw.Text("Nidalee", 20, textPos.x +480, textPos.y - 80, Draw.Color(140, 225, 255, 0))			
 		end	
 	end	
 	
