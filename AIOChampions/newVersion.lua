@@ -164,7 +164,11 @@ Data = {
           Blitzcrank = {
             Changelog = "Blitzcrank Changelog Here",
             Version = 0.02,
-        },         
+        }, 
+           Fiddlesticks = {
+            Changelog = "Fiddlesticks Changelog Here",
+            Version = 0.01,
+        },        
     },
 }
 
