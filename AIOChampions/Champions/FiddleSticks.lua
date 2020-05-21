@@ -55,10 +55,18 @@ local function GetCircularAOEPos(points, radius)
     end
 end
 
+local function GetInventorySlotItem(itemID)
+    assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
+    for _, j in pairs({ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6, ITEM_7}) do
+        if myHero:GetItemData(j).itemID == itemID and myHero:GetSpellData(j).currentCd == 0 then return j end
+    end
+    return nil
+end
+
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})			
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -69,7 +77,9 @@ function LoadScript()
 	--UltSettings
 	Menu.Combo:MenuElement({type = MENU, id = "Ult", name = "Ultimate Settings"})	
 	Menu.Combo.Ult:MenuElement({id = "UseRcount", name = "Use[R] count targets", value = true})
-	Menu.Combo.Ult:MenuElement({id = "Rcount", name = "Use[R] min Targets", value = 2, min = 1, max = 5}) 
+	Menu.Combo.Ult:MenuElement({id = "ward", name = "Use Double [Ward]", value = true})	
+	Menu.Combo.Ult:MenuElement({id = "Rcount", name = "Use[R] min Targets", value = 2, min = 2, max = 5}) 
+	Menu.Combo.Ult:MenuElement({name = " ", drop = {"--------------------------"}})	
 	Menu.Combo.Ult:MenuElement({id = "UseR", name = "Use[R] single target [HP check]", value = true})
 	Menu.Combo.Ult:MenuElement({id = "Rhp", name = " Is single target Hp lower than -->", value = 40, min = 0, max = 100, identifier = "%"}) 
 
@@ -144,6 +154,9 @@ function LoadScript()
 	end)		
 end
 
+local ActiveUlt = false
+local ActiveW = false
+
 function Tick()
 if MyHeroNotReady() then return end
 local Mode = GetMode()
@@ -155,7 +168,7 @@ local Mode = GetMode()
 	elseif Mode == "Clear" then
 		Clear()
 		JungleClear()		
-	end	
+	end
 end	
 
 function Combo()
@@ -163,11 +176,11 @@ local target = GetTarget(1000)
 if target == nil then return end
 	if IsValid(target) then
 	
-		if myHero.pos:DistanceTo(target.pos) <= 575 and Menu.Combo.UseQ:Value() and Ready(_Q) then
+		if myHero.pos:DistanceTo(target.pos) <= 575 and Menu.Combo.UseQ:Value() and Ready(_Q) and not ActiveW then
 			ControlCastSpell(HK_Q, target)
 		end			
 		
-		if myHero.pos:DistanceTo(target.pos) < 800 and Menu.Combo.UseE:Value() and Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) < 800 and Menu.Combo.UseE:Value() and Ready(_E) and not ActiveW then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, EData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then				
@@ -182,22 +195,40 @@ if target == nil then return end
 		end
 		
 		if myHero.pos:DistanceTo(target.pos) <= 300 and Menu.Combo.UseW:Value() and Ready(_W) then
-			ControlCastSpell(HK_W)
-		end				
+			ActiveW = true
+			ControlCastSpell(HK_W)	
+			SetAttack(false)
+		end	
+		
+		if ActiveW and myHero.activeSpell.valid and myHero.activeSpell.name == "FiddleSticksW" then
+			SetMovement(false)
+		else
+			SetAttack(true)
+			SetMovement(true)
+			ActiveW = false
+		end
 	end
 end
 
 function Ult()
 	if Menu.Combo.Ult.UseRcount:Value() then	
-		for i, units in pairs(GetEnemyHeroes()) do
-			local ActiveUlt = false
-			local bestPos, count = GetCircularAOEPos(units, 600)
+		for i, unit in pairs(GetEnemyHeroes()) do
+			local points = {}
+			if unit and myHero.pos:DistanceTo(unit.pos) <= 1100 then TableInsert(points, unit.pos) end
+			local bestPos, count1 = GetCircularAOEPos(points, 600)
 			if ActiveUlt then
-				if myHero.activeSpell.valid and myHero.activeSpell.name == "FiddlesticksR" then
+				if myHero.activeSpell.valid and myHero.activeSpell.name == "FiddleSticksR" then
 					if bestPos and myHero.pos:DistanceTo(bestPos) > 300 then
-						Control.SetCursorPos(bestPos)
-						Control.mouse_event(MOUSEEVENTF_RIGHTDOWN)
-						Control.mouse_event(MOUSEEVENTF_RIGHTUP)
+						if not ActiveW then
+							Control.SetCursorPos(bestPos)
+							Control.mouse_event(MOUSEEVENTF_RIGHTDOWN)
+							Control.mouse_event(MOUSEEVENTF_RIGHTUP)
+						end
+						if ActiveW and myHero.pos:DistanceTo(bestPos) > 450 then
+							Control.SetCursorPos(bestPos)
+							Control.mouse_event(MOUSEEVENTF_RIGHTDOWN)
+							Control.mouse_event(MOUSEEVENTF_RIGHTUP)
+						end	
 					end
 				else
 					ActiveUlt = false
@@ -209,10 +240,14 @@ function Ult()
 			if Ready(_R) then
 				local count1 = GetEnemyCount(2000, myHero)
 				if count1 >= Menu.Combo.Ult.Rcount:Value() then
-					if bestPos and count >= Menu.Combo.Ult.Rcount:Value() and myHero.pos:DistanceTo(bestPos) < 800 then
+					if bestPos and count1 >= Menu.Combo.Ult.Rcount:Value() and myHero.pos:DistanceTo(bestPos) < 800 then
+						local double = GetInventorySlotItem(3330)
 						SetMovement(false)
 						ControlCastSpell(HK_R, bestPos)
 						ActiveUlt = true
+						if Menu.Combo.Ult.ward:Value() and double then
+							ControlCastSpell(ItemHotKey[double], bestPos)
+						end	
 					end	
 				end
 			end
@@ -220,7 +255,7 @@ function Ult()
 	end
 	
 	local target = GetTarget(1000)
-	if target == nil then return end
+	if target == nil then return end	
 	if IsValid(target) then	
 		if myHero.pos:DistanceTo(target.pos) < 800 and Ready(_R) and Menu.Combo.Ult.UseR:Value() then
 			if target.health/target.maxHealth <= Menu.Combo.Ult.Rhp:Value() / 100 then
