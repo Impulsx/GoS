@@ -199,11 +199,12 @@ local function AutoUpdate()
 			--Supp--
 			Draw.Text("---SUP---", 30, textPos.x +250, textPos.y - 250, Draw.Color(140, 0, 255, 0))
 			Draw.Rect(textPos.x +240, textPos.y - 220, 120, 2, Draw.Color(140, 0, 255, 0))
-			Draw.Text("Morgana", 20, textPos.x +280, textPos.y - 200, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Pyke", 20, textPos.x +280, textPos.y - 180, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Soraka", 20, textPos.x +280, textPos.y - 160, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Sona", 20, textPos.x +280, textPos.y - 140, Draw.Color(140, 225, 255, 0))	
-			Draw.Text("Zyra", 20, textPos.x +280, textPos.y - 120, Draw.Color(140, 225, 255, 0))			
+			Draw.Text("Blitzcrank", 20, textPos.x +280, textPos.y - 200, Draw.Color(140, 225, 255, 0))			
+			Draw.Text("Morgana", 20, textPos.x +280, textPos.y - 180, Draw.Color(140, 225, 255, 0))
+			Draw.Text("Pyke", 20, textPos.x +280, textPos.y - 160, Draw.Color(140, 225, 255, 0))
+			Draw.Text("Soraka", 20, textPos.x +280, textPos.y - 140, Draw.Color(140, 225, 255, 0))
+			Draw.Text("Sona", 20, textPos.x +280, textPos.y - 120, Draw.Color(140, 225, 255, 0))	
+			Draw.Text("Zyra", 20, textPos.x +280, textPos.y - 100, Draw.Color(140, 225, 255, 0))			
 
 			--Jungle--
 			Draw.Text("---JGL---", 30, textPos.x +450, textPos.y - 250, Draw.Color(140, 0, 255, 0))
@@ -215,9 +216,6 @@ local function AutoUpdate()
 			Draw.Text("XinZhao", 20, textPos.x +480, textPos.y - 120, Draw.Color(140, 225, 255, 0))
 			Draw.Text("Nidalee", 20, textPos.x +480, textPos.y - 100, Draw.Color(140, 225, 255, 0))			
 		end	
-		
-		--if Game.Timer() > 30 then return end 
-		--Draw.Text(myHero.charName.." loads in game after 30 sec", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(0xFF00FF00))	
 	end	
 	
 	local function LoadScript()
