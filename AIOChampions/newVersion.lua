@@ -168,6 +168,10 @@ Data = {
            FiddleSticks = {
             Changelog = "Fiddlesticks Changelog Here",
             Version = 0.02,
+        }, 
+           Zed = {
+            Changelog = "Zed Changelog Here",
+            Version = 0.01,
         },        
     },
 }
