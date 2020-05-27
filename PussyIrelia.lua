@@ -662,7 +662,7 @@ function Irelia:LoadMenu()
 	
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "Irelia", name = "PussyIrelia"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.22"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 0.23"}})
 	
 self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
 	
@@ -875,11 +875,11 @@ local Mode = GetMode()
 			ControlCastSpell(HK_W, target)
 		end
 		
-		if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and myHero.pos:DistanceTo(target.pos) > 300 and Ready(_R) and Ready(_Q) then
+		if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and myHero.pos:DistanceTo(target.pos) > 200 and Ready(_R) and Ready(_Q) then
 			local count = GetEnemyCount(1500, myHero)
 			local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg()
 			local RDmg = getdmg("R", target, myHero)
-			if (QDmg * 2 + RDmg) > target.health and myHero:GetSpellData(_E).name ~= "IreliaE2" and count == 1 then
+			if ((QDmg * 3) + RDmg) > target.health and count == 1 then
 				self:CastR(target)
 			end	
 		end	
@@ -1318,7 +1318,7 @@ if HasBuff(myHero, "ireliapassivestacksmax") then return end
     local minion = GameMinion(i)
 
 		if minion.team == TEAM_ENEMY then
-			if target.pos:DistanceTo(minion.pos) <= 400 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
+			if target.pos:DistanceTo(minion.pos) <= 400 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) and not HasBuff(target, "ireliamark") then
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg() 
 				if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then
 					CastSpell(HK_Q, minion.pos)
@@ -1427,7 +1427,7 @@ function Irelia:CastQMinion(target)
 			local Dmg = getdmg("Q", target, myHero) or getdmg("W", target, myHero) or getdmg("E", target, myHero) or getdmg("R", target, myHero)
 			if IsValid(target) and myHero.pos:DistanceTo(minion.pos) <= 600 and target.pos:DistanceTo(myHero.pos) < minion.pos:DistanceTo(target.pos) and not IsUnderTurret(minion) and target.health > Dmg then
 			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg() 
-				if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then
+				if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) and not HasBuff(target, "ireliamark") then
 					CastSpell(HK_Q, minion.pos)
 				end					
 			end
@@ -1440,12 +1440,23 @@ function Irelia:Gapclose(target)
     local minion = GameMinion(i)
 	
 		if Ready(_Q) and minion.team == TEAM_ENEMY and myHero.pos:DistanceTo(minion.pos) <= 600 and IsValid(minion) then
-			local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg()
-			if QDmg >= minion.health and myHero.pos:DistanceTo(target.pos) > target.pos:DistanceTo(minion.pos) and target.pos:DistanceTo(minion.pos) <= 600 then 
-				if CheckHPPred(minion) >= 1 and IsValidCrap(minion) then
-					CastSpell(HK_Q, minion.pos)
-				end					
-			end
+			if myHero.pos:DistanceTo(target.pos) > 600 and HasBuff(target, "ireliamark") then
+				local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg()
+				if QDmg >= minion.health and myHero.pos:DistanceTo(target.pos) > target.pos:DistanceTo(minion.pos) and target.pos:DistanceTo(minion.pos) <= 600 then 
+					if CheckHPPred(minion) >= 1 and IsValidCrap(minion) then
+						CastSpell(HK_Q, minion.pos)
+					end					
+				end
+			else
+				if myHero.pos:DistanceTo(target.pos) < 600 and not HasBuff(target, "ireliamark") then
+					local QDmg = getdmg("Q", minion, myHero, 2) + self:CalcExtraDmg()
+					if QDmg >= minion.health and myHero.pos:DistanceTo(target.pos) > target.pos:DistanceTo(minion.pos) and target.pos:DistanceTo(minion.pos) <= 600 then 
+						if CheckHPPred(minion) >= 1 and IsValidCrap(minion) then
+							CastSpell(HK_Q, minion.pos)
+						end					
+					end				
+				end
+			end	
 		end
 	end	
 end	
