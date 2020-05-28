@@ -508,9 +508,10 @@ if target == nil then return end
 
 	if Menu.Combo.UseR:Value() and Ready(_R) then
 		if myHero.pos:DistanceTo(target.pos) < 700 and IsValid(target) then
+			local count = GetEnemyCount(2000, myHero)
 			local Dmg = GetDmgSpells(target)
 			local Hp = target.health
-			if Dmg > Hp then
+			if Dmg > Hp and count == 1 then
 				CastR(target)
 			end
 		end
