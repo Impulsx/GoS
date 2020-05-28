@@ -142,7 +142,29 @@ local function GetEnemyHeroes()
 	return Enemies
 end 
 
+local function HasBuff(unit, buffName)
+    local buffCount = unit.buffCount
+    if buffCount == nil or buffCount < 0 or buffCount > 100000 then
+        print("buff api error: buffCount = "..buffCount)
+    	return nil
+	end
+
+    for i = 0, buffCount do
+		local buff = unit:GetBuff(i)
+        if buff and buff.count > 0 and buff.name == buffName then 
+            return true
+		end
+	end
+	return false
+end
+
 local function IsImmobileTarget(unit)
+    local buffCount = unit.buffCount
+    if buffCount == nil or buffCount < 0 or buffCount > 100000 then
+        print("buff api error: buffCount = "..buffCount)
+    	return nil
+	end
+
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
 		if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.name == 10 ) and buff.count > 0 then
@@ -155,10 +177,9 @@ end
 local function GetEnemyCount(range, pos)
     local pos = pos.pos
 	local count = 0
-	for i = 1, GameHeroCount() do 
-	local hero = GameHero(i)
+	for i, hero in pairs(GetEnemyHeroes()) do
 	local Range = range * range
-		if hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
+		if GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
 		count = count + 1
 		end
 	end
@@ -176,33 +197,6 @@ local function GetMinionCount(range, pos)
 		end
 	end
 	return count
-end
-
-local function DistanceSquared(p1, p2)
-	local dx, dy = p2.x - p1.x, p2.z - p1.z
-	return dx * dx + dy * dy
-end
-
-local function GetCircularAOEPos(points, radius)
-    local bestPos, count = Vector(0, 0, 0), #points
-    if count == 0 then return nil, 0 end
-    if count == 1 then return points[1], 1 end
-    local inside, furthest, id = 0, 0, 0
-    for i, point in ipairs(points) do
-        bestPos = bestPos + point
-    end
-    bestPos = bestPos / count
-    for i, point in ipairs(points) do
-        local distSqr = DistanceSquared(bestPos, point)
-        if distSqr < radius * radius then inside = inside + 1 end
-        if distSqr > furthest then furthest = distSqr; id = i end
-    end
-    if inside == count then
-        return bestPos, count
-    else
-        TableRemove(points, id)
-        return GetCircularAOEPos(points, radius)
-    end
 end
 
 local function VectorPointProjectionOnLineSegment(v1, v2, v)
@@ -265,15 +259,31 @@ local function GetDmgSpells(unit)
 	else
 		Damage = Damage + 0
 	end
+	
+	if HasBuff(myHero, "volibearpapplicator") then
+		local LvL = myHero.levelData.lvl
+		if LvL <= 3 then
+			Damage = Damage + (10 + 1 * LvL) + 0.4 * myHero.ap
+		elseif LvL <= 6 and LvL > 3 then
+			Damage = Damage + (10 + 2 * LvL) + 0.4 * myHero.ap	
+		elseif LvL <= 13 and LvL > 6 then
+			Damage = Damage + (10 + 3 * LvL) + 0.4 * myHero.ap
+		elseif LvL > 13 then
+			Damage = Damage + (10 + 4 * LvL) + 0.4 * myHero.ap	
+		end	
+	else
+		Damage = Damage + 0
+	end	
 	return Damage
 end
 
 function LoadScript()
 	OnProcessSpell() 
-	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
+	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0
+	CanUlt = false	
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})		
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})		
 	
 	--AutoQ	
 	Menu:MenuElement({type = MENU, id = "QSet", name = "AutoQ"})	
@@ -286,14 +296,18 @@ function LoadScript()
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
-	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
-	Menu.Combo:MenuElement({id = "Q", name = "[Q] range is greater than -->", value = 400, min = 0, max = 1200, step = 10})		
+	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
-	Menu.Combo:MenuElement({id = "E", name = "Use [E] in -->", value = 1, drop = {"Shield range (425)", "Full range (1200)"}})	
-	Menu.Combo:MenuElement({id = "UseR", name = "[R] Single Target [full Dmg Calc.]", value = true})
+	Menu.Combo:MenuElement({id = "E", name = "Use [E] in -->", value = 1, drop = {"Shield range (425)", "Full range (1200)"}})
+	Menu.Combo:MenuElement({name = " ", drop = {"---- Ult Settings ----"}})
+	Menu.Combo:MenuElement({id = "UseR", name = "[R] Single Target [full Dmg Calc.]", value = true})	
+	Menu.Combo:MenuElement({name = " ", drop = {"----------------------"}})	
 	Menu.Combo:MenuElement({id = "UseR2", name = "[R] Multible Targets", value = true})	
-	Menu.Combo:MenuElement({id = "UseRM", name = "Use [R] min Targets", value = 3, min = 1, max = 5})	
+	Menu.Combo:MenuElement({id = "UseRM", name = "min Targets", value = 2, min = 1, max = 5})
+	Menu.Combo:MenuElement({name = " ", drop = {"----------------------"}})	
+	Menu.Combo:MenuElement({id = "UseR3", name = "[R] Low Voli Hp", value = true})	
+	Menu.Combo:MenuElement({id = "UseRH", name = "If Voli Hp lower than -->", value = 50, min = 0, max = 100, identifier = "%"})	
 
 	--HarassMenu
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
@@ -324,15 +338,15 @@ function LoadScript()
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
 	Menu.Pred:MenuElement({name = " ", drop = {"After change Prediction Typ press 2xF6"}})		
-	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 2, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
 	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 	Menu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 1, drop = {"Normal", "High", "Immobile"}})
  
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
-	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})	
-	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})
-	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})	
+	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})	
+	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})	
 	Menu.Drawing:MenuElement({id = "Kill", name = "Draw Killable Targets [possible Dmg]", value = true})
 	
 	Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
@@ -356,10 +370,10 @@ function LoadScript()
 
 	RData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 250, Range = 700, Speed = 750, Collision = false
+	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 500, Range = 700, Speed = 750, Collision = false
 	}
 	
-	RspellData = {speed = 750, range = 700, delay = 0.25, radius = 250, collision = {nil}, type = "linear"}	
+	RspellData = {speed = 750, range = 700, delay = 0.25, radius = 500, collision = {nil}, type = "circular"}	
   	                                           
 	if _G.EOWLoaded then
 		Orb = 1
@@ -402,7 +416,6 @@ end
 
 function Tick()
 if MyHeroNotReady() then return end
-
 local Mode = GetMode()
 	if Mode == "Combo" then
 		Combo()
@@ -433,7 +446,8 @@ function ProcessSpell()
 		local type = Detected.type
 		if type == "targeted" then
 			if spell.target == myHero.handle then 
-				ControlCastSpell(HK_Q)
+				Control.KeyDown(HK_Q)
+				Control.KeyUp(HK_Q)
 				TableRemove(DetectedSpells, i)				
 			end
 		else
@@ -458,8 +472,9 @@ function UseQ(i, s)
 		if s.type == "circular" or s.type == "linear" then 
 			if GetDistanceSqr(myHero.pos, endPos) < (s.radius + myHero.boundingRadius) ^ 2 or GetDistanceSqr(myHero.pos, Col) < (s.radius + myHero.boundingRadius * 1.25) ^ 2 then
 				local t = s.speed ~= MathHuge and CalculateCollisionTime(startPos, endPos, myHero.pos, s.startTime, s.speed, s.delay) or 0.29
-				if t < 0.3 then
-					ControlCastSpell(HK_Q)
+				if t < 0.6 then
+					Control.KeyDown(HK_Q)
+					Control.KeyUp(HK_Q)
 				end				
 			end
 		end	
@@ -494,41 +509,54 @@ function KillSteal()
 end
 
 function Ult()
-local target = GetTarget(800)
-if target == nil then return end
+	if Ready(_R) then
+		local target = GetTarget(1200)
+		if target == nil then return end
+		local countTarget = GetEnemyCount(500, target)
+		local countMyHero = GetEnemyCount(2000, myHero)
 	
-	if Menu.Combo.UseR2:Value() and Ready(_R) then		
-		if myHero.pos:DistanceTo(target.pos) < 700 and IsValid(target) then
-			local count = GetEnemyCount(500, target)
-			if count >= Menu.Combo.UseRM:Value() then
-				CastR(target)
+		if Menu.Combo.UseR2:Value() then		
+			if myHero.pos:DistanceTo(target.pos) < 700 and IsValid(target) then
+				if countTarget >= Menu.Combo.UseRM:Value() then
+					CanUlt = true
+					CastR(target)
+				end
 			end
 		end
-	end
 
-	if Menu.Combo.UseR:Value() and Ready(_R) then
-		if myHero.pos:DistanceTo(target.pos) < 700 and IsValid(target) then
-			local count = GetEnemyCount(2000, myHero)
-			local Dmg = GetDmgSpells(target)
-			local Hp = target.health
-			if Dmg > Hp and count == 1 then
-				CastR(target)
+		if Menu.Combo.UseR:Value() and countMyHero == 1 then
+			if myHero.pos:DistanceTo(target.pos) < 700 and IsValid(target) then
+				local Dmg = GetDmgSpells(target)
+				local Hp = target.health
+				if Dmg > Hp then
+					CanUlt = true
+					CastR(target)
+				end
 			end
 		end
+		
+		if Menu.Combo.UseR3:Value() then
+			if myHero.pos:DistanceTo(target.pos) < 700 and IsValid(target) then
+				if myHero.health/myHero.maxHealth <= Menu.Combo.UseRH:Value() / 100 then
+					CanUlt = true
+					CastR(target)
+				end
+			end
+		end	
 	end
+	CanUlt = false	
 end	
 
 function Combo()
 local target = GetTarget(1200)
 if target == nil then return end
-	if IsValid(target) then
-		local WRange = myHero:GetSpellData(_W).range
+	if IsValid(target) and CanUlt == false then
 		
-		if Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) > Menu.Combo.Q:Value() then
+		if Menu.Combo.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 500 and myHero.attackData.state == 2 then
 			ControlCastSpell(HK_Q, target.pos)
         end
        
-		if Menu.Combo.UseW:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) <= WRange then
+		if Menu.Combo.UseW:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) <= 380 then
 			ControlCastSpell(HK_W, target)	
         end
 		
@@ -552,11 +580,11 @@ if target == nil then return end
 	if IsValid(target) then
         local mana_ok = myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value() / 100
         
-		if Menu.Harass.UseQ:Value() and Ready(_Q) and mana_ok and myHero.pos:DistanceTo(target.pos) < 500 then
+		if Menu.Harass.UseQ:Value() and Ready(_Q) and mana_ok and myHero.pos:DistanceTo(target.pos) < 500 and myHero.attackData.state == 2 then
 			ControlCastSpell(HK_Q, target.pos)
         end
 		
-        if Menu.Harass.UseW:Value() and Ready(_W) and mana_ok and myHero.pos:DistanceTo(target.pos) <= 325 then
+        if Menu.Harass.UseW:Value() and Ready(_W) and mana_ok and myHero.pos:DistanceTo(target.pos) <= 380 then
 			ControlCastSpell(HK_W, target)
         end	
 		
@@ -600,23 +628,21 @@ function Clear()
         if minion.team == TEAM_ENEMY then
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
             
-			if Menu.Clear.UseQ:Value() and Ready(_Q) and mana_ok and myHero.pos:DistanceTo(minion.pos) < 500 and IsValid(minion) then
+			if Menu.Clear.UseQ:Value() and Ready(_Q) and mana_ok and myHero.pos:DistanceTo(minion.pos) < 500 and IsValid(minion) and myHero.attackData.state == 2 then
 				ControlCastSpell(HK_Q, minion.pos)	
             end
 			
-            if Menu.Clear.UseW:Value() and Ready(_W) and mana_ok and myHero.pos:DistanceTo(minion.pos) < 325 and IsValid(minion) then
+            if Menu.Clear.UseW:Value() and Ready(_W) and mana_ok and myHero.pos:DistanceTo(minion.pos) < 380 and IsValid(minion) then
 				ControlCastSpell(HK_W, minion)
             end
 			
 			
             if Menu.Clear.UseE:Value() and Ready(_E) and mana_ok then
-				local points = {}
 				if myHero.pos:DistanceTo(minion.pos) < 1200 and IsValid(minion) then 
-					TableInsert(points, minion.pos) 
-				end
-				local bestPos, count = GetCircularAOEPos(points, 600)
-				if bestPos and count >= Menu.Clear.UseEM:Value() then
-					ControlCastSpell(HK_E, bestPos)	
+					local count = GetMinionCount(325, minion) 
+					if count >= Menu.Clear.UseEM:Value() then
+						ControlCastSpell(HK_E, minion.pos)
+					end	
 				end
             end			
         end
@@ -629,23 +655,16 @@ function JungleClear()
         if minion.team == TEAM_JUNGLE then
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100
             
-			if Menu.JClear.UseQ:Value() and Ready(_Q) and mana_ok and myHero.pos:DistanceTo(minion.pos) < 500 and IsValid(minion) then
+			if Menu.JClear.UseQ:Value() and Ready(_Q) and mana_ok and myHero.pos:DistanceTo(minion.pos) < 500 and IsValid(minion) and myHero.attackData.state == 2 then
                 ControlCastSpell(HK_Q, minion.pos)
             end
 			
-            if Menu.JClear.UseW:Value() and Ready(_W) and mana_ok and myHero.pos:DistanceTo(minion.pos) < 500 and IsValid(minion) then	
+            if Menu.JClear.UseW:Value() and Ready(_W) and mana_ok and myHero.pos:DistanceTo(minion.pos) < 380 and IsValid(minion) then	
 				ControlCastSpell(HK_W, minion)	
             end
 			
             if Menu.JClear.UseE:Value() and Ready(_E) and mana_ok then
-				local points = {}
 				if myHero.pos:DistanceTo(minion.pos) < 1200 and IsValid(minion) then 
-					TableInsert(points, minion.pos) 
-				end
-				local bestPos, count = GetCircularAOEPos(points, 600)
-				if bestPos and count >= 2 then
-					ControlCastSpell(HK_E, bestPos)
-				else
 					ControlCastSpell(HK_E, minion.pos)				
 				end
             end			
