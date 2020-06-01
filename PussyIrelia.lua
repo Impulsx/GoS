@@ -2,7 +2,7 @@ local Heroes = {"Irelia"}
 
 if not table.contains(Heroes, myHero.charName) then return end
 
-
+require "DamageLib"
 
 
 ----------------------------------------------------
@@ -10,28 +10,33 @@ if not table.contains(Heroes, myHero.charName) then return end
 ----------------------------------------------------
 
 if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
-	print("GsoPred. installed Press 2x F6")
 	DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-EXT/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
-	while not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") do end
+	print("gamsteronPred. installed Press 2x F6")
+	return
 end
 
 if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
-	print("PremiumPred. installed Press 2x F6")
 	DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
-	while not FileExist(COMMON_PATH .. "PremiumPrediction.lua") do end
+	print("PremiumPred. installed Press 2x F6")
+	return
 end
 
 if not FileExist(COMMON_PATH .. "GGPrediction.lua") then
-	print("GGPrediction installed Press 2x F6")
 	DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GG/master/GGPrediction.lua", COMMON_PATH .. "GGPrediction.lua", function() end)
-	while not FileExist(COMMON_PATH .. "GGPrediction.lua") do end
+	print("GGPrediction installed Press 2x F6")
+	return
 end
 
+local InfoBoxPos = false
+if FileExist(COMMON_PATH .. "PussyBoxPos.lua") then
+	InfoBoxPos = true
+	require "PussyBoxPos"
+end
 
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.24
+    local Version = 0.25
     
     local Files = {
         Lua = {
@@ -47,7 +52,7 @@ do
     }
     
     local function AutoUpdate()
-        
+
         local function DownloadFile(url, path, fileName)
             DownloadFileAsync(url, path .. fileName, function() end)
             while not FileExist(path .. fileName) do end
@@ -74,14 +79,16 @@ do
     
     AutoUpdate()
 
-end
-
-
+end 
 
 ----------------------------------------------------
 --|                    Utils                     |--
 ----------------------------------------------------
 
+local DrawSaved = false
+local LoadPos = false
+local Down = false
+local UnLockBox = false
 local DrawTime = false
 local checkCount = 0 
 local heroes = false
@@ -103,6 +110,7 @@ local TableRemove = table.remove
 local GameTimer = Game.Timer
 local Allies, Enemies, Turrets, Units = {}, {}, {}, {}
 local Orb
+local DrawRect = Draw.Rect
 local DrawCircle = Draw.Circle
 local DrawColor = Draw.Color
 local DrawText = Draw.Text
@@ -121,7 +129,6 @@ local GameIsChatOpen = Game.IsChatOpen
 local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
 _G.LATENCY = 0.05
 
-require "DamageLib"
 
 local DangerousSpells = {
 	["CaitlynAceintheHole"] = {charName = "Caitlyn", slot = _R, type = "targeted", displayName = "Ace in the Hole", range = 3500},
@@ -177,6 +184,12 @@ end
 
 local function GetDistance2D(p1,p2)
     return sqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y))
+end
+
+local function DistanceSquared(p1, p2)
+	local dx, dy = p2.x - p1.x, p2.y - p1.y
+	--print(math.floor((dx * dx + dy * dy)/10000))
+	return math.floor((dx * dx + dy * dy)/10000)
 end
 
 function GetTarget(range) 
@@ -378,7 +391,7 @@ local function ISMarked(range)
 	local count = 0
 	for i, target in ipairs(GetEnemyHeroes()) do
 		local Range = range*range
-		if GetDistanceSqr(myHero.pos, target.pos) <= Range and IsValid(target) and HasBuff(target, "ireliamark") then	
+		if target and GetDistanceSqr(myHero.pos, target.pos) <= Range and IsValid(target) and HasBuff(target, "ireliamark") then	
 			count = count + 1	
 		end
 	end
@@ -565,8 +578,8 @@ local time = range / speed
 	end
 end
 
-local function CastSpell(spell, pos)
-	local delay = 250
+local function CastSpell(spell, pos, delay)
+	local delay = delay or 0.25
 	local ticker = GetTickCount()
 
 	if castSpell.state == 0 and ticker - castSpell.casting > delay + Latency() then
@@ -608,8 +621,17 @@ local function MyHeroNotReady()
     return myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero)
 end
 
-
-
+local function ActiveModes()
+	local Mode = GetMode()	
+	if Mode == "Combo" or 
+	   Mode == "Harass" or 
+	   Mode == "Clear" or 
+	   Mode == "Flee" or 
+	   Mode == "LastHit" then
+	   return true
+	end
+	return false
+end
 
 ----------------------------------------------------
 --|                Champion               		|--
@@ -619,16 +641,20 @@ class "Irelia"
 
 
 local RData = {Type = _G.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 80, Range = 950, Speed = 2000, Collision = false}
-
 local RspellData = {speed = 2000, range = 950, delay = 0.25 + ping, radius = 80, collision = {nil}, type = "linear"}
-
 local PredLoaded = false
+
 function Irelia:__init()
+	self.Window = {x = Game.Resolution().x * 0.5, y = Game.Resolution().y * 0.5}
+	self.AllowMove = nil
+	self.ButtonDown = false
 	self.DetectedMissiles = {}; self.DetectedSpells = {}; self.Target = nil; self.Timer = 0 	
 	self.charging = false
-	self:LoadMenu()                                            
+	self:LoadMenu()
+
 	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("Draw", function() self:Draw() end) 
+	Callback.Add("Draw", function() self:Draw() end)
+	Callback.Add("WndMsg", function(...) self:OnWndMsg(...) end)
 	
 	if _G.EOWLoaded then
 		Orb = 1
@@ -655,41 +681,82 @@ function Irelia:__init()
 				PredLoaded = true					
 			end
 		end, 1)	
-	end	
+	end
 end
 
-function Irelia:LoadMenu()                     
-	
+function Irelia:IsOnButton(pt)
+	local x, y = self.Window.x, self.Window.y
+	return pt.x >= x + 72 and pt.x <= x + 169
+		and pt.y >= y + 127 and pt.y <= y + 143
+end
+
+function Irelia:IsInStatusBox(pt, pos)
+	if pos == 1 then
+		return pt.x >= self.Window.x and pt.x <= self.Window.x + 240
+			and pt.y >= self.Window.y and pt.y <= self.Window.y + 153
+	elseif pos == 2 then
+		return pt.x >= self.Window.x and pt.x <= self.Window.x + 240
+			and pt.y >= self.Window.y and pt.y <= self.Window.y + 20 and pt.y >= self.Window.y
+	elseif pos == 3 then
+		return pt.x >= self.Window.x and pt.x <= self.Window.x + 240
+			and pt.y >= self.Window.y and pt.y <= self.Window.y + 40 and pt.y >= self.Window.y + 20
+	elseif pos == 4 then
+		return pt.x >= self.Window.x and pt.x <= self.Window.x + 240
+			and pt.y >= self.Window.y and pt.y <= self.Window.y + 60 and pt.y >= self.Window.y + 40
+	elseif pos == 5 then
+		return pt.x >= self.Window.x and pt.x <= self.Window.x + 240
+			and pt.y >= self.Window.y and pt.y <= self.Window.y + 80 and pt.y >= self.Window.y + 60
+	elseif pos == 6 then
+		return pt.x >= self.Window.x and pt.x <= self.Window.x + 240
+			and pt.y >= self.Window.y and pt.y <= self.Window.y + 100 and pt.y >= self.Window.y + 80
+	elseif pos == 7 then
+		return pt.x >= self.Window.x and pt.x <= self.Window.x + 240
+			and pt.y >= self.Window.y and pt.y <= self.Window.y + 120 and pt.y >= self.Window.y + 100			
+	end		
+end
+
+function Irelia:OnWndMsg(msg, wParam)
+	if self.ButtonDown then return end
+	if self:IsOnButton(cursorPos) then
+		DelayAction(function()
+			Down = true
+			self.ButtonDown = true
+		end,0.3)	
+	end	
+	self.AllowMove = msg == 513 and wParam == 0 and self:IsInStatusBox(cursorPos, 1)
+		and {x = self.Window.x - cursorPos.x, y = self.Window.y - cursorPos.y} or nil
+	if msg ~= 256 then return end
+end
+
+function Irelia:LoadMenu()                     	
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "Irelia", name = "PussyIrelia"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.23"}})
-	
+self.Menu:MenuElement({name = " ", drop = {"Version 0.25"}})
+
 self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
 	
 	--ComboMenu  
 	self.Menu.ComboSet:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
 	self.Menu.ComboSet.Combo:MenuElement({name = " ", drop = {"E1, W, R, Q, E2, Q + (Q when kill / almost kill)"}})
-	self.Menu.ComboSet.Combo:MenuElement({id = "QLogic", name = "Last[Q]Almost Kill or Kill", key = string.byte("Z"), value = false, toggle = true})
+	self.Menu.ComboSet.Combo:MenuElement({id = "LogicQ", name = "Last[Q]Almost Kill or Kill", key = 0x61, value = false, toggle = true})
 	self.Menu.ComboSet.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	self.Menu.ComboSet.Combo:MenuElement({id = "UseW", name = "[W]", value = false})
 	self.Menu.ComboSet.Combo:MenuElement({id = "UseE", name = "[E]", value = true})	
-	self.Menu.ComboSet.Combo:MenuElement({id = "UseR", name = "[R]Single Target if killable", value = true})
+	self.Menu.ComboSet.Combo:MenuElement({id = "UseR", name = "[R]Single Target if almost killable", value = true})
 	self.Menu.ComboSet.Combo:MenuElement({id = "UseRCount", name = "Auto[R] Multiple Enemys", value = true})	
 	self.Menu.ComboSet.Combo:MenuElement({id = "RCount", name = "Multiple Enemys", value = 2, min = 2, max = 5, step = 1})
 	self.Menu.ComboSet.Combo:MenuElement({id = "Gap", name = "Gapclose [Q]", value = true})
-	self.Menu.ComboSet.Combo:MenuElement({id = "Stack", name = "Stack Passive near Target/Minion", value = true})	
-	self.Menu.ComboSet.Combo:MenuElement({id = "Draw", name = "Draw QLogic Text", value = true})	
+	self.Menu.ComboSet.Combo:MenuElement({id = "Stack", name = "Stack Passive near Target/Minion", value = true})		
 	
 	--BurstModeMenu
 	self.Menu.ComboSet:MenuElement({type = MENU, id = "Burst", name = "Burst Mode"})	
 	self.Menu.ComboSet.Burst:MenuElement({name = " ", drop = {"If Burst Active then Combo Mode is Inactive"}})	
-	self.Menu.ComboSet.Burst:MenuElement({id = "Start", name = "Use Burst Mode", key = string.byte("U"), toggle = true})
-	self.Menu.ComboSet.Burst:MenuElement({id = "Lvl", name = "Irelia Level to Start Burst", value = 6, min = 6, max = 18, step = 1})
-	self.Menu.ComboSet.Burst:MenuElement({id = "Draw", name = "Draw Text", value = true})	
+	self.Menu.ComboSet.Burst:MenuElement({id = "StartB", name = "Use Burst Mode", key = 0x62, value = true, toggle = true})
+	self.Menu.ComboSet.Burst:MenuElement({id = "Lvl", name = "Irelia Level to Start Burst", value = 6, min = 6, max = 18, step = 1})	
 
 
 	self.Menu.ComboSet:MenuElement({type = MENU, id = "Ninja", name = "Ninja Mode"})
-	self.Menu.ComboSet.Ninja:MenuElement({id = "Q", name = "Q on all Marked Enemys", key = string.byte("I"), toggle = true})
+	self.Menu.ComboSet.Ninja:MenuElement({id = "UseQ", name = "Q on all Marked Enemys", key = 0x63, value = true, toggle = true})
 
 self.Menu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
 
@@ -723,9 +790,8 @@ self.Menu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
 	--AutoQ
 	self.Menu.ClearSet:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ Mode"})
 	self.Menu.ClearSet.AutoQ:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = false})	
-	self.Menu.ClearSet.AutoQ:MenuElement({id = "Q", name = "Auto Q Toggle Key", key = string.byte("T"), value = false, toggle = true})
-	self.Menu.ClearSet.AutoQ:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
-	self.Menu.ClearSet.AutoQ:MenuElement({id = "Draw", name = "Draw On/Off Text", value = true})	
+	self.Menu.ClearSet.AutoQ:MenuElement({id = "UseQ", name = "Auto Q Toggle Key", key = 0x64, value = false, toggle = true})
+	self.Menu.ClearSet.AutoQ:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})		
 
 
 	--HarassMenu
@@ -754,14 +820,14 @@ self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 	self.Menu.MiscSet.Flee:MenuElement({id = "Q", name = "Flee[Q]", value = true})	
 
 	--AutoE 
-	self.Menu.MiscSet:MenuElement({type = MENU, id = "AutoE", name = "AutoE Mode"})
-	self.Menu.MiscSet.AutoE:MenuElement({id = "UseE", name = "2-5 Enemys stunable", value = false})	
+	self.Menu.MiscSet:MenuElement({type = MENU, id = "AutoECount", name = "AutoE Mode"})
+	self.Menu.MiscSet.AutoECount:MenuElement({id = "UseE", name = "Auto E 2 - 5 Enemies", key = 0x65, value = true, toggle = true})	
 	
 	--AutoW Dangerous Spells
 	self.Menu.MiscSet:MenuElement({id = "WSet", name = "AutoW Mode [Test]", type = MENU})
 	self.Menu.MiscSet.WSet:MenuElement({name = " ", drop = {"Supported Spells"}})
 	self.Menu.MiscSet.WSet:MenuElement({name = " ", drop = {"[DravenR,JinxR,JayceQ,LeeSinR,CaitlynR,UrgotR]"}})	
-	self.Menu.MiscSet.WSet:MenuElement({id = "UseW", name = "Auto[W] Dangerous Spells", value = false})
+	self.Menu.MiscSet.WSet:MenuElement({id = "UseW", name = "Auto W Dangerous Spells", key = 0x66, value = false, toggle = true})
 	self.Menu.MiscSet.WSet:MenuElement({id = "BlockList", name = "Block List", type = MENU})	
 	self.Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
 	DelayAction(function()	
@@ -788,15 +854,22 @@ self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
-	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
-	self.Menu.MiscSet.Drawing:MenuElement({type = MENU, id = "XY", name = "Text Pos Settings"})	
-	self.Menu.MiscSet.Drawing.XY:MenuElement({id = "x", name = "Pos: [X]", value = 0, min = 500, max = 1500, step = 10})
-	self.Menu.MiscSet.Drawing.XY:MenuElement({id = "y", name = "Pos: [Y]", value = 0, min = 0, max = 860, step = 10})	
+	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})	
+	self.Menu.MiscSet.Drawing:MenuElement({type = MENU, id = "XY", name = "Info Box Settings"})
+	self.Menu.MiscSet.Drawing.XY:MenuElement({id = "OnOff", name = "Draw Status Box", key = 0x67, value = true, toggle = true})
+	self.Menu.MiscSet.Drawing.XY:MenuElement({id = "Key", name = "Draw HotKey Info", value = true})	
+	self.Menu.MiscSet.Drawing.XY:MenuElement({id = "Hide", name = "Hide Info Box if active Mode", value = true})	
+	self.Menu.MiscSet.Drawing.XY:MenuElement({id = "T", name = "Status Box transparency", value = 120, min = 0, max = 223, step = 10})	
 	
 end	
 
-
 function Irelia:Tick()
+	self:CheckInfoBox()	
+	if Control.IsKeyDown(0x69) then
+		self.ButtonDown = false
+		UnLockBox = true
+	end
+	
 	if heroes == false then 
 		for i, unit in pairs(Enemies) do			
 			checkCount = checkCount + 1
@@ -806,18 +879,19 @@ function Irelia:Tick()
 		else
 			heroes = true
 		end
-	end	
+	end
+ 	
 if MyHeroNotReady() then return end
 
 local Mode = GetMode()
 		if Mode == "Combo" then
-			if self.Menu.ComboSet.Ninja.Q:Value() then
+			if self.Menu.ComboSet.Ninja.UseQ:Value() then
 				self:Ninja()
 			end	
-			if self.Menu.ComboSet.Burst.Start:Value() and myHero.levelData.lvl <= self.Menu.ComboSet.Burst.Lvl:Value() then
+			if self.Menu.ComboSet.Burst.StartB:Value() and myHero.levelData.lvl <= self.Menu.ComboSet.Burst.Lvl:Value() then
 				self:Combo()
 			end
-			if not self.Menu.ComboSet.Burst.Start:Value() then
+			if not self.Menu.ComboSet.Burst.StartB:Value() then
 				self:Combo()
 			end	
 		elseif Mode == "Harass" then
@@ -836,7 +910,7 @@ local Mode = GetMode()
 	self:KillSteal()
 	self:CastE2()
 
-	if self.Menu.ClearSet.AutoQ.Q:Value() and Mode ~= "Combo" then
+	if self.Menu.ClearSet.AutoQ.UseQ:Value() and Mode ~= "Combo" then
 		self:AutoQ()
 	end	
 
@@ -849,9 +923,9 @@ local Mode = GetMode()
 	
 	local target = GetTarget(1100)     	
 	if target == nil then return end
-	if Mode == "Combo" and IsValid(target) and self.Menu.ComboSet.Burst.Start:Value() and myHero.levelData.lvl >= self.Menu.ComboSet.Burst.Lvl:Value() then
+	if Mode == "Combo" and IsValid(target) and self.Menu.ComboSet.Burst.StartB:Value() and myHero.levelData.lvl >= self.Menu.ComboSet.Burst.Lvl:Value() then
 	
-		if myHero.pos:DistanceTo(target.pos) <= 775 and myHero:GetSpellData(_E).name == "IreliaE2" and not ISMarked(1000) then
+		if myHero.pos:DistanceTo(target.pos) <= 775 and myHero:GetSpellData(_E).toggleState == 0 and not ISMarked(1000) then
 			local aimpos = GetPred(target,math.huge,0.25+ Game.Latency()/1000)
 			if aimpos and not (myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "IreliaR") then
 			Epos = aimpos + (myHero.pos - aimpos): Normalized() * -150
@@ -861,7 +935,7 @@ local Mode = GetMode()
 			end	
 		end			
 		
-		if myHero.pos:DistanceTo(target.pos) <= 600 and myHero:GetSpellData(_E).name == "IreliaE" and Ready(_E) and not ISMarked(1000) then
+		if myHero.pos:DistanceTo(target.pos) <= 600 and myHero:GetSpellData(_E).toggleState == 1 and Ready(_E) and not ISMarked(1000) then
 			ControlCastSpell(HK_E, myHero.pos)
 		end
 		
@@ -875,18 +949,20 @@ local Mode = GetMode()
 			ControlCastSpell(HK_W, target)
 		end
 		
-		if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and myHero.pos:DistanceTo(target.pos) > 200 and Ready(_R) and Ready(_Q) then
+		if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and Ready(_R) and Ready(_Q) then
 			local count = GetEnemyCount(1500, myHero)
+			local AADmg = getdmg("AA", target, myHero) + self:CalcExtraDmg()
 			local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg()
 			local RDmg = getdmg("R", target, myHero)
-			if ((QDmg * 3) + RDmg) > target.health and count == 1 then
+			local FullDmg = ((QDmg * 3) + RDmg + (AADmg * 4))
+			if FullDmg > target.health and count == 1 then
 				self:CastR(target)
 			end	
-		end	
+		end
 		
 		local count = GetEnemyCount(400, target)
 		if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and self.Menu.ComboSet.Combo.UseRCount:Value() then
-			if count >= self.Menu.ComboSet.Combo.RCount:Value() and not myHero:GetSpellData(_E).name == "IreliaE2" and not ISMarked(1000) then					
+			if count >= self.Menu.ComboSet.Combo.RCount:Value() and not myHero:GetSpellData(_E).toggleState == 0 then					
 				self:CastR(target)
 			end
 		end		
@@ -901,11 +977,11 @@ local Mode = GetMode()
 		if myHero.pos:DistanceTo(target.pos) > 600 and myHero.pos:DistanceTo(target.pos) < 775 and Ready(_Q) and Ready(_E) then
 			local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg()			
 			if QDmg >= target.health and not HasBuff(target, "ireliamark") then				
-				if myHero:GetSpellData(_E).name == "IreliaE" then
+				if myHero:GetSpellData(_E).toggleState == 1 then
 					ControlCastSpell(HK_E, myHero.pos)
 				end
 			end
-			if myHero.pos:DistanceTo(target.pos) <= 775 and myHero:GetSpellData(_E).name == "IreliaE2" then
+			if myHero.pos:DistanceTo(target.pos) <= 775 and myHero:GetSpellData(_E).toggleState == 0 then
 				local aimpos = GetPred(target,math.huge,0.25+ Game.Latency()/1000)
 				if aimpos and not ISMarked(1000) and not (myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "IreliaR") then
 				Epos = aimpos + (myHero.pos - aimpos): Normalized() * -150
@@ -927,7 +1003,7 @@ local target1 = GetTarget(1200)
 	for i, target2 in ipairs(GetEnemyHeroes()) do
 		
 		if Ready(_Q) and GetEnemyCount(1200, myHero) >= 2 then 
-			if target2 ~= target1 then
+			if target2 and target1 and target2 ~= target1 then
 				if HasBuff(target2, "ireliamark") and myHero.pos:DistanceTo(target2.pos) <= 600 and IsValid(target2) then		
 					local time2 = myHero.pos:DistanceTo(target2.pos) / (1500+myHero.ms)
 					local MarkBuff2 = GetBuffData(target2, "ireliamark")
@@ -1041,75 +1117,6 @@ local hydraitem = GetInventorySlotItem(3748) or GetInventorySlotItem(3077) or Ge
 		ControlCastSpell(keybindings[hydraitem])
 	end
 end
- 
-function Irelia:Draw()
-	
-	if heroes == false then
-		Draw.Text(myHero.charName.." is Loading !!", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 255, 0, 0))
-	else
-		if DrawTime == false then
-			Draw.Text(myHero.charName.." is Ready !!", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 0, 255, 0))
-			DelayAction(function()
-			DrawTime = true
-			end, 4.0)
-		end	
-	end
-
-	if myHero.dead then return end
-	
-	if self.Menu.MiscSet.Drawing.DrawR:Value() and Ready(_R) then
-    Draw.Circle(myHero, self.Menu.MiscSet.Rrange.R:Value(), 1, Draw.Color(255, 225, 255, 10))
-	end                                                 
-	if self.Menu.MiscSet.Drawing.DrawQ:Value() and Ready(_Q) then
-    Draw.Circle(myHero, 600, 1, Draw.Color(225, 225, 0, 10))
-	end
-	if self.Menu.MiscSet.Drawing.DrawE:Value() and Ready(_E) then
-    Draw.Circle(myHero, 775, 1, Draw.Color(225, 225, 125, 10))
-	end
-	if self.Menu.MiscSet.Drawing.DrawW:Value() and Ready(_W) then
-    Draw.Circle(myHero, 825, 1, Draw.Color(225, 225, 125, 10))
-	end
-	
-	if self.Menu.ComboSet.Burst.Draw:Value() then
-		Draw.Text("Burst Mode: ", 15, self.Menu.MiscSet.Drawing.XY.x:Value(), self.Menu.MiscSet.Drawing.XY.y:Value()+30, Draw.Color(255, 225, 255, 0))
-		if self.Menu.ComboSet.Burst.Start:Value() then
-			if myHero.levelData.lvl >= self.Menu.ComboSet.Burst.Lvl:Value() then
-				Draw.Text("Active", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+74, self.Menu.MiscSet.Drawing.XY.y:Value()+30, Draw.Color(255, 0, 255, 0))
-			else
-				Draw.Text("Level too low", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+74, self.Menu.MiscSet.Drawing.XY.y:Value()+30, Draw.Color(255, 255, 0, 0)) 
-			end
-		else
-			Draw.Text("OFF", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+74, self.Menu.MiscSet.Drawing.XY.y:Value()+30, Draw.Color(255, 255, 0, 0)) 
-		end
-	end
-
-	if self.Menu.ClearSet.AutoQ.Draw:Value() then 
-		Draw.Text("Auto[Q] Minion: ", 15, self.Menu.MiscSet.Drawing.XY.x:Value(), self.Menu.MiscSet.Drawing.XY.y:Value()+15, Draw.Color(255, 225, 255, 0))
-		if self.Menu.ClearSet.AutoQ.Q:Value() then 
-			Draw.Text("ON", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+96, self.Menu.MiscSet.Drawing.XY.y:Value()+15, Draw.Color(255, 0, 255, 0))
-		else
-			Draw.Text("OFF", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+96, self.Menu.MiscSet.Drawing.XY.y:Value()+15, Draw.Color(255, 255, 0, 0)) 
-		end	
-	end	
-	
-	Draw.Text("Ninja Mode: ", 15, self.Menu.MiscSet.Drawing.XY.x:Value(), self.Menu.MiscSet.Drawing.XY.y:Value()+45, Draw.Color(255, 225, 255, 0))	
-	if self.Menu.ComboSet.Ninja.Q:Value() then 
-
-		Draw.Text("ON", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+74, self.Menu.MiscSet.Drawing.XY.y:Value()+45, Draw.Color(255, 0, 255, 0))
-	else
-		Draw.Text("OFF", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+74, self.Menu.MiscSet.Drawing.XY.y:Value()+45, Draw.Color(255, 255, 0, 0)) 
-		
-	end	
-
-	if self.Menu.ComboSet.Combo.Draw:Value() then
-		Draw.Text(" Last[Q] Combo Mode: ", 15, self.Menu.MiscSet.Drawing.XY.x:Value()-3, self.Menu.MiscSet.Drawing.XY.y:Value(), Draw.Color(255, 225, 255, 0))
-		if self.Menu.ComboSet.Combo.QLogic:Value() then
-			Draw.Text("Almost Kill", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+132, self.Menu.MiscSet.Drawing.XY.y:Value(), Draw.Color(255, 0, 255, 0))
-		else
-			Draw.Text("Kill", 15, self.Menu.MiscSet.Drawing.XY.x:Value()+132, self.Menu.MiscSet.Drawing.XY.y:Value(), Draw.Color(255, 0, 255, 0)) 
-		end	
-	end		
-end
 
 function Irelia:Combo()
 local target = GetTarget(1100)     	
@@ -1149,7 +1156,7 @@ if target == nil then return end
 			end
 		end			
 		
-		if self.Menu.ComboSet.Combo.QLogic:Value() then 				 
+		if self.Menu.ComboSet.Combo.LogicQ:Value() then 				 
 			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
 				local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg()
 				if (QDmg >= target.health and CheckHPPred(target) >= 1) and IsValid(target) then
@@ -1218,7 +1225,7 @@ end
 function Irelia:KillSteal()
 	for i, target in ipairs(GetEnemyHeroes()) do     	
 		
-		if myHero.pos:DistanceTo(target.pos) <= 1000 and IsValid(target) and myHero:GetSpellData(_E).name ~= "IreliaE2" then
+		if target and myHero.pos:DistanceTo(target.pos) <= 1000 and IsValid(target) and myHero:GetSpellData(_E).name ~= "IreliaE2" then
 		
 			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and self.Menu.ks.UseQ:Value() then
 				local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg()	 
@@ -1396,7 +1403,7 @@ function Irelia:Clear()
 				end
 			end
            
-			if self.Menu.ClearSet.AutoQ.Q:Value() then return end
+			if self.Menu.ClearSet.AutoQ.UseQ:Value() then return end
 			if self.Menu.ClearSet.Clear.UseItem:Value() then
 				self:UseHydraminion(minion)
 			end				
@@ -1518,46 +1525,47 @@ function Irelia:LineCircleIntersection(p1, p2, circle, radius)
     local c = (p1.x - circle.x) * (p1.x - circle.x) + (p1.z - circle.z) * (p1.z - circle.z) - (radius * radius)
     local delta = b * b - 4 * a * c
     if delta >= 0 then
-        local t1, t2 = (-b + math.sqrt(delta)) / (2 * a), (-b - math.sqrt(delta)) / (2 * a)
+        local t1, t2 = (-b + math.sqrt(delta)) / (2 * a), (-b - math.sqrt(delta)) / (2 * a)		
         return Vector(p1.x + t1 * dx, p1.y, p1.z + t1 * dy), Vector(p1.x + t2 * dx, p1.y, p1.z + t2 * dy)
     end
     return nil, nil
 end
 
-function Irelia:GetBestECastPositions()
-    local startPos, endPos, count = nil, nil, 0
+function Irelia:GetBestECastPositions(units)   
+	local startPos, endPos, count = nil, nil, 0
     local candidates, unitPositions = {}, {}
-    for i, unit in ipairs(Enemies) do
-		local cp = GetPred(unit,775,0.75 + ping)
-		if cp then candidates[i], unitPositions[i] = cp, cp end	
+    for i, unit in ipairs(units) do
+		if unit then
+			local cp = GetPred(unit, 775, 0.25)
+			if cp then candidates[i], unitPositions[i] = cp, cp end
+		end	
     end
-    local maxCount = #Enemies
+    local maxCount = #units
     for i = 1, maxCount do
         for j = 1, maxCount do
             if candidates[j] ~= candidates[i] then
-                table.insert(candidates, Vector(candidates[j] + candidates[i]) / 2)
+                TableInsert(candidates, Vector(candidates[j] + candidates[i]) / 2)
             end
         end
     end
-    for i, unit2 in pairs(Enemies) do
-		local cp = GetPred(unit2,775,0.75 + ping)
-		if cp then
-			if myHero.pos:DistanceTo(cp.pos) < 775 then
+    for i, unit2 in pairs(units) do
+        if unit2 and unit2.pos:DistanceTo(myHero.pos) < 875 then
+			local cp = GetPred(unit2, 775, 0.25)
+			if cp then
 				for i, pos2 in ipairs(candidates) do
-					if pos2:DistanceTo(cp.pos) < 775 then 
-						
+					if pos2 and pos2:DistanceTo(myHero.pos) < 875 then
+						--local range = pos2:DistanceTo(cp)*2+150
 						local ePos = Vector(cp):Extended(pos2, 775)
 						local number = 0
 						for i = 1, #unitPositions do
-							local unitPos = unitPositions[i]   
-							local pointLine, pointSegment, onSegment = VectorPointProjectionOnLineSegment(cp, ePos, unitPos)
-							if pointSegment and GetDistance(pointSegment, unitPos) < 1550 then number = number + 1 end 
-							 
+							local unitPos = unitPositions[i]
+							if unitPos:DistanceTo(myHero.pos) < 875 and ePos:DistanceTo(myHero.pos) < 875 then
+								local pointLine, pointSegment, onSegment = VectorPointProjectionOnLineSegment(cp, ePos, unitPos)
+								if pointSegment and DistanceSquared(pointSegment, unitPos) < 8400 then number = number + 1 end 
+							end	
 						end
-						if number >= 0 then 
-							startPos, endPos, count = cp, ePos, number 
-						end
-					end
+						if number >= count then startPos, endPos, count = cp, ePos, number end
+					end	
 				end
 			end
 		end	
@@ -1566,17 +1574,15 @@ function Irelia:GetBestECastPositions()
 end
 
 function Irelia:CastE2()
-	if self.Menu.MiscSet.AutoE.UseE:Value() and Ready(_E) and GetEnemyCount(775, myHero) >= 2 then
-		local startPos, endPos, count = self:GetBestECastPositions()
-		if startPos and endPos then 
-			local cast1, cast2 = self:LineCircleIntersection(startPos, endPos, myHero.pos, 775)
-				if cast1 and cast2 then
-				if myHero:GetSpellData(_E).name == "IreliaE" then
-					ControlCastSpell(HK_E, cast1)
-				end	
-				if myHero:GetSpellData(_E).name == "IreliaE2" then
-					ControlCastSpell(HK_E, cast2)
-				end
+	if self.Menu.MiscSet.AutoECount.UseE:Value() and Ready(_E) then
+		local startPos, endPos, count = self:GetBestECastPositions(Enemies)
+		if count >= 2 and startPos and endPos then 
+			local E1Pos, E2Pos = self:LineCircleIntersection(startPos, endPos, myHero.pos, 775)
+			if myHero:GetSpellData(_E).toggleState == 1 then
+				CastSpell(HK_E, E1Pos, 0.1)
+			end	
+			if myHero:GetSpellData(_E).toggleState == 0 then
+				CastSpell(HK_E, E2Pos, 0.1)
 			end
 		end
 	end	
@@ -1622,10 +1628,279 @@ function Irelia:CastGGPred(unit)
 		ControlCastSpell(HK_R, RPrediction.CastPosition)
 	end	
 end
+
+function Irelia:CheckInfoBox() 
+	if InfoBoxPos == true and LoadPos == false then
+		local PosX, PosY = BoxPosition()
+		self.Window.x = PosX
+		self.Window.y = PosY
+		self.ButtonDown = true
+		LoadPos = true
+	end
+	
+	if UnLockBox then
+		DelayAction(function()
+			UnLockBox = false
+		end,2)
+	end	
+
+	if Down then
+		DrawSaved = true
+		self:SaveBox()
+		DelayAction(function()
+			DrawSaved = false
+			Down = false
+		end,2)
+	end
+end
+
+function Irelia:SaveBox()         
+	local f = io.open(COMMON_PATH .. "PussyBoxPos.lua", "w")
+	f:write("function BoxPosition() \n")		
+	f:write("local x = " .. self.Window.x .. "\n")	
+	f:write("local y = " .. self.Window.y .. "\n")	
+	f:write("return x, y \n")
+	f:write("end")	
+	f:close()
+end
+ 
+function Irelia:Draw()
+	
+	if heroes == false then
+		Draw.Text(myHero.charName.." is Loading !!", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 255, 0, 0))
+	else
+		if DrawTime == false then
+			Draw.Text(myHero.charName.." is Ready !!", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 0, 255, 0))
+			DelayAction(function()
+			DrawTime = true
+			end, 4.0)
+		end	
+	end
+
+	if myHero.dead then return end
+	
+	if self.Menu.MiscSet.Drawing.DrawR:Value() and Ready(_R) then
+    DrawCircle(myHero, self.Menu.MiscSet.Rrange.R:Value(), 1, DrawColor(255, 225, 255, 10))
+	end                                                 
+	if self.Menu.MiscSet.Drawing.DrawQ:Value() and Ready(_Q) then
+    DrawCircle(myHero, 600, 1, DrawColor(225, 225, 0, 10))
+	end
+	if self.Menu.MiscSet.Drawing.DrawE:Value() and Ready(_E) then
+    DrawCircle(myHero, 775, 1, DrawColor(225, 225, 125, 10))
+	end
+	if self.Menu.MiscSet.Drawing.DrawW:Value() and Ready(_W) then
+    DrawCircle(myHero, 825, 1, DrawColor(225, 225, 125, 10))
+	end
+	
+	--////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+
+	if Game.IsChatOpen() or myHero.dead or not self.Menu.MiscSet.Drawing.XY.OnOff:Value() then return end
+	local ActiveMenu = self.Menu.MiscSet.Drawing.XY.Key:Value()
+	local Trans = self.Menu.MiscSet.Drawing.XY.T:Value()	
+	local black, red, blue, green, white, yellow = DrawColor(Trans+32, 23, 23, 23), DrawColor(Trans, 220, 20, 60), DrawColor(Trans, 0, 191, 255), DrawColor(Trans, 50, 205, 50), DrawColor(Trans, 255, 255, 255), DrawColor(Trans, 225, 255, 0)	
+
+	if self.Menu.MiscSet.Drawing.XY.Hide:Value() then
+	 	if ActiveModes() then return end
+		
+		if self.AllowMove then 
+			self.Window = {x = cursorPos.x + self.AllowMove.x, y = cursorPos.y + self.AllowMove.y}
+		end	
+						
+		if DrawSaved then
+			DrawRect(self.Window.x, self.Window.y, 240, 128, black)
+			DrawText("SAVED", 50, self.Window.x + 60, self.Window.y + 40, DrawColor(255, 0, 191, 255))			
+		elseif UnLockBox then
+			DrawRect(self.Window.x, self.Window.y, 240, 128, black)
+			DrawText("UNLOCKED", 50, self.Window.x + 15, self.Window.y + 40, DrawColor(255, 220, 20, 60))		
+		else					
+			if self.ButtonDown == false then
+				DrawRect(self.Window.x, self.Window.y, 240, 128, black)
+				if self:IsInStatusBox(cursorPos, 1) then
+					DrawRect(self.Window.x, self.Window.y - 30, 240, 40, black)
+					DrawText("--- Hold left MouseButton and move Info Box ---", 10, self.Window.x + 20, self.Window.y - 20, blue)
+					DrawRect(self.Window.x, self.Window.y + 125, 240, 20, blue)
+					DrawRect(self.Window.x + 72, self.Window.y + 127, 97, 16, black)			
+					DrawText("Save Pos Button", 14, self.Window.x + 76, self.Window.y + 128, white)	
+				end
+			else
+				DrawRect(self.Window.x, self.Window.y, 240, 148, black)
+				DrawText("Unlock Info Box:", 15, self.Window.x + 10, self.Window.y + 125, white)
+				DrawText("NumPad 9", 15, self.Window.x + 153, self.Window.y + 125, green)
+			end
+
+			if self:IsInStatusBox(cursorPos, 2) and ActiveMenu then
+				DrawText("Standard Hotkey = NumPad 1", 15, self.Window.x + 10, self.Window.y + 5, yellow)
+			else
+				DrawText("Last Q Combo Mode:", 15, self.Window.x + 10, self.Window.y + 5, white)
+				if self.Menu.ComboSet.Combo.LogicQ:Value() then
+					DrawText("Almost Kill", 15, self.Window.x + 153, self.Window.y + 5, green)		
+				else
+					DrawText("Kill", 15, self.Window.x + 153, self.Window.y + 5, green)
+				end	
+			end
+
+			if self:IsInStatusBox(cursorPos, 3) and ActiveMenu then
+				DrawText("Standard Hotkey = NumPad 2", 15, self.Window.x + 10, self.Window.y + 25, yellow)
+			else		
+				DrawText("Burst Mode:", 15, self.Window.x + 10, self.Window.y + 25, white)
+				if self.Menu.ComboSet.Burst.StartB:Value() then
+					if myHero.levelData.lvl >= self.Menu.ComboSet.Burst.Lvl:Value() then
+						DrawText("Active", 15, self.Window.x + 153, self.Window.y + 25, green)
+					else
+						DrawText("Wait for LvL ".. self.Menu.ComboSet.Burst.Lvl:Value(), 15, self.Window.x + 153, self.Window.y + 25, red) 
+					end
+				else
+					DrawText("OFF", 15, self.Window.x + 153, self.Window.y + 25, red) 
+				end	
+			end
+			
+			if self:IsInStatusBox(cursorPos, 4) and ActiveMenu then
+				DrawText("Standard Hotkey = NumPad 3", 15, self.Window.x + 10, self.Window.y + 45, yellow)
+			else		
+				DrawText("Ninja Mode:", 15, self.Window.x + 10, self.Window.y + 45, white)
+				if self.Menu.ComboSet.Ninja.UseQ:Value() then 
+					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 45, green)
+				else
+					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 45, red) 			
+				end	
+			end	
+
+			if self:IsInStatusBox(cursorPos, 5) and ActiveMenu then
+				DrawText("Standard Hotkey = NumPad 4", 15, self.Window.x + 10, self.Window.y + 65, yellow)
+			else
+				DrawText("Auto Q Minion:", 15, self.Window.x + 10, self.Window.y + 65, white)
+				if self.Menu.ClearSet.AutoQ.UseQ:Value() then 
+					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 65, green)
+				else
+					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 65, red)
+				end
+			end	
+			
+			if self:IsInStatusBox(cursorPos, 6) and ActiveMenu then
+				DrawText("Standard Hotkey = NumPad 5", 15, self.Window.x + 10, self.Window.y + 85, yellow)
+			else		
+				DrawText("Auto E 2-5 Enemies:", 15, self.Window.x + 10, self.Window.y + 85, white)
+				if self.Menu.MiscSet.AutoECount.UseE:Value() then 
+					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 85, green)
+				else
+					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 85, red)
+				end
+			end	
+			
+			if self:IsInStatusBox(cursorPos, 7) and ActiveMenu then
+				DrawText("Standard Hotkey = NumPad 6", 15, self.Window.x + 10, self.Window.y + 105, yellow)
+			else		
+				DrawText("Auto W Danger Spells:", 15, self.Window.x + 10, self.Window.y + 105, white)
+				if self.Menu.MiscSet.WSet.UseW:Value() then 
+					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 105, green)
+				else
+					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 105, red)
+				end
+			end
+		end
+	else
+		if self.AllowMove then 
+			self.Window = {x = cursorPos.x + self.AllowMove.x, y = cursorPos.y + self.AllowMove.y}
+		end	
+						
+		if DrawSaved then
+			DrawRect(self.Window.x, self.Window.y, 240, 128, black)
+			DrawText("SAVED", 50, self.Window.x + 60, self.Window.y + 40, DrawColor(255, 0, 191, 255))			
+		elseif UnLockBox then
+			DrawRect(self.Window.x, self.Window.y, 240, 128, black)
+			DrawText("UNLOCKED", 50, self.Window.x + 15, self.Window.y + 40, DrawColor(255, 220, 20, 60))		
+		else					
+			if self.ButtonDown == false then
+				DrawRect(self.Window.x, self.Window.y, 240, 128, black)
+				if self:IsInStatusBox(cursorPos, 1) then
+					DrawRect(self.Window.x, self.Window.y - 30, 240, 40, black)
+					DrawText("--- Hold left MouseButton and move Info Box ---", 10, self.Window.x + 20, self.Window.y - 20, blue)
+					DrawRect(self.Window.x, self.Window.y + 125, 240, 20, blue)
+					DrawRect(self.Window.x + 72, self.Window.y + 127, 97, 16, black)			
+					DrawText("Save Pos Button", 14, self.Window.x + 76, self.Window.y + 128, white)	
+				end
+			else
+				DrawRect(self.Window.x, self.Window.y, 240, 148, black)
+				DrawText("Unlock Info Box:", 15, self.Window.x + 10, self.Window.y + 125, white)
+				DrawText("NumPad 9", 15, self.Window.x + 153, self.Window.y + 125, green)
+			end
+
+			if self:IsInStatusBox(cursorPos, 2) and ActiveMenu then
+				DrawText("Standard Hotkey = NumPad 1", 15, self.Window.x + 10, self.Window.y + 5, yellow)
+			else
+				DrawText("Last Q Combo Mode:", 15, self.Window.x + 10, self.Window.y + 5, white)
+				if self.Menu.ComboSet.Combo.LogicQ:Value() then
+					DrawText("Almost Kill", 15, self.Window.x + 153, self.Window.y + 5, green)		
+				else
+					DrawText("Kill", 15, self.Window.x + 153, self.Window.y + 5, green)
+				end	
+			end
+
+			if self:IsInStatusBox(cursorPos, 3) and ActiveMenu then
+				DrawText("Standard Hotkey = NumPad 2", 15, self.Window.x + 10, self.Window.y + 25, yellow)
+			else		
+				DrawText("Burst Mode:", 15, self.Window.x + 10, self.Window.y + 25, white)
+				if self.Menu.ComboSet.Burst.StartB:Value() then
+					if myHero.levelData.lvl >= self.Menu.ComboSet.Burst.Lvl:Value() then
+						DrawText("Active", 15, self.Window.x + 153, self.Window.y + 25, green)
+					else
+						DrawText("Wait for LvL ".. self.Menu.ComboSet.Burst.Lvl:Value(), 15, self.Window.x + 153, self.Window.y + 25, red) 
+					end
+				else
+					DrawText("OFF", 15, self.Window.x + 153, self.Window.y + 25, red) 
+				end	
+			end
+			
+			if self:IsInStatusBox(cursorPos, 4) and ActiveMenu then
+				DrawText("Standard Hotkey = NumPad 3", 15, self.Window.x + 10, self.Window.y + 45, yellow)
+			else		
+				DrawText("Ninja Mode:", 15, self.Window.x + 10, self.Window.y + 45, white)
+				if self.Menu.ComboSet.Ninja.UseQ:Value() then 
+					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 45, green)
+				else
+					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 45, red) 			
+				end	
+			end	
+
+			if self:IsInStatusBox(cursorPos, 5) and ActiveMenu then
+				DrawText("Standard Hotkey = NumPad 4", 15, self.Window.x + 10, self.Window.y + 65, yellow)
+			else
+				DrawText("Auto Q Minion:", 15, self.Window.x + 10, self.Window.y + 65, white)
+				if self.Menu.ClearSet.AutoQ.UseQ:Value() then 
+					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 65, green)
+				else
+					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 65, red)
+				end
+			end	
+			
+			if self:IsInStatusBox(cursorPos, 6) and ActiveMenu then
+				DrawText("Standard Hotkey = NumPad 5", 15, self.Window.x + 10, self.Window.y + 85, yellow)
+			else		
+				DrawText("Auto E 2-5 Enemies:", 15, self.Window.x + 10, self.Window.y + 85, white)
+				if self.Menu.MiscSet.AutoECount.UseE:Value() then 
+					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 85, green)
+				else
+					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 85, red)
+				end
+			end	
+			
+			if self:IsInStatusBox(cursorPos, 7) and ActiveMenu then
+				DrawText("Standard Hotkey = NumPad 6", 15, self.Window.x + 10, self.Window.y + 105, yellow)
+			else		
+				DrawText("Auto W Danger Spells:", 15, self.Window.x + 10, self.Window.y + 105, white)
+				if self.Menu.MiscSet.WSet.UseW:Value() then 
+					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 105, green)
+				else
+					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 105, red)
+				end
+			end
+		end
+	end	
+end
 	
 Callback.Add("Load", function()	
 	if table.contains(Heroes, myHero.charName) then	
 		_G[myHero.charName]()
-		LoadUnits()		
+		LoadUnits()	
 	end	
 end)
