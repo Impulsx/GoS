@@ -206,7 +206,7 @@ function LoadScript()
 	UltActive = false
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
 	
 	Menu:MenuElement({type = MENU, id = "WSet", name = "AutoW Incomming CC Spells"})	
 	Menu.WSet:MenuElement({id = "UseW", name = "AutoW CC Spells", value = true})	
