@@ -214,6 +214,7 @@ function LoadScript()
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	Menu.Combo:MenuElement({id = "Active", name = "Semi manual key [Q]", key = string.byte("T")})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})		
 	
@@ -318,13 +319,16 @@ local Mode = GetMode()
 	if Mode == "Combo" and not WActiv then
 		Combo()
 		Ult()
+		if myHero:GetSpellData(_R).level > 0 and Menu.Combo.Ult.RDance:Value() then
+			DanceTarget()	
+		end		
 	elseif Mode == "Harass" and not WActiv then
 		Harass()
 	elseif Mode == "Clear" and not WActiv then
 		Clear()
 		JungleClear()			
 	end	
-	--print(Enemies)
+
 	KillSteal()	
 	
 	if HasBuff(myHero, "FioraW") then
@@ -339,13 +343,10 @@ local Mode = GetMode()
 	else
 		SetAttack(true)
 		SetMovement(true)	
-	end
+	end	
 	
-	if Menu.Combo.Ult.RDance:Value() and HasBuff(myHero, "fiorarbuff") then
-		DanceTarget()
-		SetMovement(false)
-	else
-		SetMovement(true)	
+	if Menu.Combo.Active:Value() then
+		SemiQ()
 	end	
 
 	if Menu.WSet.UseW:Value() and Ready(_W) then
@@ -452,11 +453,14 @@ if target == nil then return end
 	if IsValid(target) and HasBuff(target, "fiorarmark") then
 		local castPos = Vector(target.pos) - (Vector(myHero.pos) - Vector(target.pos)):Perpendicular():Normalized() * 225	
 		if myHero.attackData.state == 3 then 
+			SetMovement(false)
 			Control.SetCursorPos(castPos)
 			Control.mouse_event(MOUSEEVENTF_RIGHTDOWN)
 			Control.mouse_event(MOUSEEVENTF_RIGHTUP)
+			SetMovement(true)
 		end		
 	end
+	SetMovement(true)
 end
 	
 function Ult()
@@ -477,12 +481,33 @@ if target == nil then return end
 	end
 end
 
+function SemiQ()
+local target = GetTarget(500)
+if target == nil then return end
+	if IsValid(target) then
+        
+		if myHero.pos:DistanceTo(target.pos) < 400 and Ready(_Q) then
+			if Menu.Pred.Change:Value() == 1 then
+				local pred = GetGamsteronPrediction(target, QData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
+					Control.CastSpell(HK_Q, pred.CastPosition)
+				end
+			else
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
+					Control.CastSpell(HK_Q, pred.CastPos)
+				end	
+			end
+        end
+	end
+end
+
 function Combo()
 local target = GetTarget(500)
 if target == nil then return end
 	if IsValid(target) then
         
-		if Menu.Combo.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 400 and Ready(_Q) then
+		if Menu.Combo.UseQ:Value() or Menu.Combo.Active:Value() and myHero.pos:DistanceTo(target.pos) < 400 and Ready(_Q) then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
