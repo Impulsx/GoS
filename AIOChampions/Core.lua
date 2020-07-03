@@ -106,6 +106,26 @@ function GetMode()
 	elseif Orb == 5 then
 	  return _G.PremiumOrbwalker:GetMode()
 	end
+	
+    if _G.SDK then
+        return 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] and "Combo"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] and "Harass"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] and "Clear"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] and "Clear"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] and "LastHit"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] and "Flee"
+		or nil
+    
+	elseif _G.PremiumOrbwalker then
+		return _G.PremiumOrbwalker:GetMode()
+	end
+	return nil	
 end
 
 function GetTarget(range) 
@@ -130,6 +150,16 @@ function GetTarget(range)
     elseif _G.gsoSDK then
 		return _G.gsoSDK.TS:GetTarget()
 	
+	elseif _G.PremiumOrbwalker then
+		return _G.PremiumOrbwalker:GetTarget(range)
+	end	
+	
+	if _G.SDK then
+		if myHero.ap > myHero.totalDamage then
+			return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
+		else
+			return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL);
+		end
 	elseif _G.PremiumOrbwalker then
 		return _G.PremiumOrbwalker:GetTarget(range)
 	end	
@@ -186,7 +216,95 @@ local function IsRecalling(unit)
 	end 
 	return false
 end 
+--[[
+local function CastPred(unit, spell, type)		
+	local SpellType
+	if type == _G.SPELLTYPE_LINE then
+		SpellType = GGPrediction.SPELLTYPE_LINE
+	elseif type == _G.SPELLTYPE_CIRCLE then
+		SpellType = GGPrediction.SPELLTYPE_CIRCLE
+	elseif type == _G.SPELLTYPE_CONE then
+		SpellType = GGPrediction.SPELLTYPE_CONE
+	end	
 	
+	if spell == Q then
+		if Menu.Pred.Change:Value() == 1 then
+			local pred = GetGamsteronPrediction(unit, QData, myHero)
+			if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
+				ControlCastSpell(HK_Q, pred.CastPosition)
+			end
+		elseif Menu.Pred.Change:Value() == 2 then
+			local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, QspellData)
+			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
+				ControlCastSpell(HK_Q, pred.CastPos)
+			end
+		else		
+			local Prediction = GGPrediction:SpellPrediction({Type = SpellType, Delay = QData.Delay, Radius = QData.Radius, Range = QData.Range, Speed = QData.Speed, Collision = QData.Collision, MaxCollision = QData.MaxCollision, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+				  Prediction:GetPrediction(unit, myHero)
+			if Prediction:CanHit(Menu.Pred.PredQ:Value()+1) then
+				ControlCastSpell(HK_Q, Prediction.CastPosition)
+			end
+		end	
+		
+	elseif spell == W then
+		if Menu.Pred.Change:Value() == 1 then
+			local pred = GetGamsteronPrediction(unit, WData, myHero)
+			if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
+				ControlCastSpell(HK_W, pred.CastPosition)
+			end
+		elseif Menu.Pred.Change:Value() == 2 then
+			local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, WspellData)
+			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
+				ControlCastSpell(HK_W, pred.CastPos)
+			end
+		else		
+			local Prediction = GGPrediction:SpellPrediction({Type = SpellType, Delay = WData.Delay, Radius = WData.Radius, Range = WData.Range, Speed = WData.Speed, Collision = WData.Collision, MaxCollision = WData.MaxCollision, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+				  Prediction:GetPrediction(unit, myHero)
+			if Prediction:CanHit(Menu.Pred.PredW:Value()+1) then
+				ControlCastSpell(HK_W, Prediction.CastPosition)
+			end	
+		end	
+		
+	elseif spell == E then
+		if Menu.Pred.Change:Value() == 1 then
+			local pred = GetGamsteronPrediction(unit, EData, myHero)
+			if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
+				ControlCastSpell(HK_E, pred.CastPosition)
+			end
+		elseif Menu.Pred.Change:Value() == 2 then
+			local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, EspellData)
+			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
+				ControlCastSpell(HK_E, pred.CastPos)
+			end
+		else				
+			local Prediction = GGPrediction:SpellPrediction({Type = SpellType, Delay = EData.Delay, Radius = EData.Radius, Range = EData.Range, Speed = EData.Speed, Collision = EData.Collision, MaxCollision = EData.MaxCollision, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+				  Prediction:GetPrediction(unit, myHero)
+			if Prediction:CanHit(Menu.Pred.PredE:Value()+1) then
+				ControlCastSpell(HK_E, Prediction.CastPosition)
+			end
+		end	
+		
+	elseif spell == R then
+		if Menu.Pred.Change:Value() == 1 then
+			local pred = GetGamsteronPrediction(unit, RData, myHero)
+			if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
+				ControlCastSpell(HK_R, pred.CastPosition)
+			end
+		elseif Menu.Pred.Change:Value() == 2 then
+			local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, RspellData)
+			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
+				ControlCastSpell(HK_R, pred.CastPos)
+			end
+		else		
+			local Prediction = GGPrediction:SpellPrediction({Type = SpellType, Delay = RData.Delay, Radius = RData.Radius, Range = RData.Range, Speed = RData.Speed, Collision = RData.Collision, MaxCollision = RData.MaxCollision, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+				  Prediction:GetPrediction(unit, myHero)
+			if Prediction:CanHit(Menu.Pred.PredR:Value()+1) then
+				ControlCastSpell(HK_R, Prediction.CastPosition)
+			end
+		end	
+	end
+end
+]]	
 local function MyHeroNotReady()
     return myHero.dead or GameIsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero)
 end
@@ -212,15 +330,17 @@ Callback.Add("Tick", function()
 		else
 			heroes = true
 		end
-	else
+	else	
 		if not IsLoaded then
 			LoadScript()
 			DelayAction(function()
 				if not Menu.Pred then return end
 				if Menu.Pred.Change:Value() == 1 then
 					require('GamsteronPrediction')
-				else
+				elseif Menu.Pred.Change:Value() == 2 then
 					require('PremiumPrediction')
+				else
+					require('GGPrediction')
 				end	
 			end, 1)
 			IsLoaded = true
