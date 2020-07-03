@@ -166,7 +166,7 @@ local RTime = 0
 function LoadScript()
 	--OnProcessSpell()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})			
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
