@@ -6,19 +6,6 @@ local function GetAllyHeroes()
 	return Allies
 end
 
-local function GetEnemyCount(range, pos)
-    local pos = pos.pos
-	local count = 0
-	for i = 1, GameHeroCount() do 
-	local hero = GameHero(i)
-	local Range = range * range
-		if hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
-		count = count + 1
-		end
-	end
-	return count
-end
-
 local function GetMinionCount(range, pos)
     local pos = pos.pos
 	local count = 0
@@ -32,10 +19,23 @@ local function GetMinionCount(range, pos)
 	return count
 end
 
-local function IsUnderTurret(unit)
+local function GetEnemyCount(range, pos)
+	local count = 0
+	for i = 1, GameHeroCount() do 
+	local hero = GameHero(i)
+	local Range = range * range
+		if hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
+		count = count + 1
+		end
+	end
+	return count
+end
+
+local function IsUnderTurret(unit, radius)
     for i = 1, GameTurretCount() do
         local turret = GameTurret(i)
-        local range = (turret.boundingRadius + 750 + unit.boundingRadius / 2)
+        local Bradius = radius or unit.boundingRadius / 2
+		local range = (turret.boundingRadius + 750 + Bradius)
         if turret.isEnemy and not turret.dead then
             if turret.pos:DistanceTo(unit.pos) < range then
                 return true
@@ -46,7 +46,7 @@ local function IsUnderTurret(unit)
 end
 
 local function DistanceSquared(p1, p2)
-	local dx, dy = p2.x - p1.x, p2.z - p1.z
+	local dx, dy = p2.x - p1.x, p2.y - p1.y
 	return dx * dx + dy * dy
 end
 
@@ -70,35 +70,6 @@ local function GetCircularAOEPos(points, radius)
         TableRemove(points, id)
         return GetCircularAOEPos(points, radius)
     end
-end
-
-local function CastSpell(spell, pos)
-	local delay = 250
-	local ticker = GetTickCount()
-
-	if castSpell.state == 0 and ticker - castSpell.casting > delay + Latency() then
-		castSpell.state = 1
-		castSpell.mouse = mousePos
-		castSpell.tick = ticker
-	end
-	if castSpell.state == 1 then
-		if ticker - castSpell.tick < Latency() then
-			Control.SetCursorPos(pos)
-			Control.KeyDown(spell)
-			Control.KeyUp(spell)
-			castSpell.casting = ticker + delay
-			DelayAction(function()
-				if castSpell.state == 1 then
-					Control.SetCursorPos(castSpell.mouse)
-					castSpell.state = 0
-				end
-			end,Latency()/1000)
-		end
-		if ticker - castSpell.casting > Latency() then
-			Control.SetCursorPos(castSpell.mouse)
-			castSpell.state = 0
-		end
-	end
 end
 
 local function HasBuff(unit, buffname)
@@ -148,23 +119,61 @@ local function GetDamage(spell)
 	return damage
 end
 
-local Wshadow 		= 	{}
-local Rshadow 		= 	{}
+local function VectorPointProjectionOnLineSegment(v1, v2, v)
+	local cx, cy, ax, ay, bx, by = v.x, v.z, v1.x, v1.z, v2.x, v2.z
+	local rL = ((cx - ax) * (bx - ax) + (cy - ay) * (by - ay)) / ((bx - ax) ^ 2 + (by - ay) ^ 2)
+	local pointLine = { x = ax + rL * (bx - ax), y = ay + rL * (by - ay) }
+	local rS = rL < 0 and 0 or (rL > 1 and 1 or rL)
+	local isOnSegment = rS == rL
+	local pointSegment = isOnSegment and pointLine or { x = ax + rS * (bx - ax), y = ay + rS * (by - ay) }
+	return pointSegment, pointLine, isOnSegment
+end
+
+local function MinionCollision(unit, position)
+	for i = 1,GameMinionCount() do
+		local minion = GameMinion(i)
+		if minion.isTargetable and minion.team == TEAM_ENEMY and minion.dead == false then
+			local linesegment, line, isOnSegment = VectorPointProjectionOnLineSegment(unit, position, minion.pos)
+			if linesegment and isOnSegment and (GetDistanceSqr(minion.pos, linesegment) <= (minion.boundingRadius + 55) * (minion.boundingRadius + 55)) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local function OnProcessSpell()
+	for i = 1, #Units do
+		local unit = Units[i].unit; local last = Units[i].spell; local spell = unit.activeSpell
+		if spell and last ~= (spell.name .. spell.endTime) and unit.activeSpell.isChanneling then
+			Units[i].spell = spell.name .. spell.endTime; return unit, spell
+		end
+	end
+	return nil, nil
+end
+
+local Rtarget 		= 	{}
+local R1casted 		= 	false
+local SpellsLoaded 	= 	false 
+local Qdmg 			= 	0
+local Wshadow 		= 	nil
+local Rshadow 		= 	nil
 local QEKillable 	= 	false
 local UltKillable 	= 	false
-local UltTarget 	= 	nil
-local Wtime 		= 	5000
+local WTime = 0
+local RTime = 0
 
 function LoadScript()
-	
+	--OnProcessSpell()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"TestVersion [WIP]"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})			
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
-	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
+	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
-	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})	
+	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
+	Menu.Combo:MenuElement({id = "Change", name = "[E] Logic", value = 1, drop = {"Auto [E]", "ComboKey [E]"}})	
 	
 	--UltSettings
 	Menu.Combo:MenuElement({type = MENU, id = "Ult", name = "Ultimate Settings"})
@@ -172,16 +181,18 @@ function LoadScript()
 	Menu.Combo.Ult:MenuElement({name = " ", drop = {"Ult-Logic: Calc. completely possible Dmg"}})	
 	Menu.Combo.Ult:MenuElement({id = "IGN", name = "Use Ignite for KS and active Ult", value = true})			
 	Menu.Combo.Ult:MenuElement({id = "UseRTower", name = "Kill[R] Dive under Tower", value = true})
+	Menu.Combo.Ult:MenuElement({id = "UseR2", name = "[R2]or[W2] Back after donate deathmark", value = true})	
 	Menu.Combo.Ult:MenuElement({id = "UseRBack", name = "[R2]Back if Zed Hp low", value = true})
 	Menu.Combo.Ult:MenuElement({id = "Hp", name = "[R2]Back if Zed Hp lower than -->", value = 15, min = 0, max = 100, identifier = "%"})	
 
-	--[[HarassMenu
+	--HarassMenu
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
 	Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	Menu.Harass:MenuElement({id = "UseW", name = "[W1]", value = true})	
 	Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})	
+	Menu.Harass:MenuElement({id = "Change", name = "[E] Logic", value = 1, drop = {"Auto [E]", "HarassKey [E]"}})	
 	Menu.Harass:MenuElement({id = "Mana", name = "Min Energy to Harass", value = 40, min = 0, max = 100, identifier = "%"})
-  
+  --[[
 	--LaneClear Menu
 	Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear"})	
 	Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = false})		
@@ -206,81 +217,241 @@ function LoadScript()
 ]]
 	--KillSteal
 	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
-	Menu.ks:MenuElement({id = "UseQE", name = "KS: [W1]>[E]>[Q]", value = true})	
+	Menu.ks:MenuElement({id = "UseQE", name = "KS: [W1]>[E]>[Q]", value = true})
+
+	Menu:MenuElement({type = MENU, id = "spells", name = "Evade"})
+	Menu.spells:MenuElement({id = "wblock", name = "Evade[W] MousePos", value = true})		
+	Menu.spells:MenuElement({id = "rblock", name = "Evade[R] if not ready [W]", value = true})
+	for i, enemy in pairs(GetEnemyHeroes()) do
+		Menu.spells:MenuElement({type = MENU, id = enemy.charName, name = enemy.charName})	
+	end	
 	
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
+	Menu.Pred:MenuElement({name = " ", drop = {"After change Prediction Typ press 2xF6"}})	
 	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 2, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
-	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})
-	Menu.Pred:MenuElement({id = "QC", name = "[Q Combo Mode] check minion collision", value = false})
-	Menu.Pred:MenuElement({id = "QH", name = "[Q Harass Mode] check minion collision", value = false})	
+	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
+	Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
 	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})	
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
-	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})	
+	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
+	Menu.Drawing:MenuElement({id = "Kill", name = "Draw Kill Text onScreen/Minimap", value = true})	
 
-	if Menu.Pred.QC:Value() then
-		QDataC =
-		{
-		Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 900, Speed = 1700,  Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}
-		}
-		
-		QspellDataC = {speed = 1700, range = 900, delay = 0.25, radius = 55, type = "linear",  collision = {"minion"}}
-	else
-		QDataC =
-		{
-		Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 900, Speed = 1700, Collision = false
-		}
-		
-		QspellDataC = {speed = 1700, range = 900, delay = 0.25, radius = 55, type = "linear", collision = {nil}}	
+
+	QData ={Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 900, Speed = 900,  Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}
+	}
+	
+	QspellData = {speed = 900, range = 900, delay = 0.25, radius = 55, type = "linear",  collision = {"minion"}
+	}
+	
+	WData ={
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 290, Range = 900, Speed = 1750, Collision = false
+	}
+	
+	WspellData = {speed = 1750, range = 900, delay = 0.25, radius = 290, type = "linear", collision = {nil}
+	}	
+
+	Callback.Add("Tick", function() Tick() end)
+	Callback.Add("Draw", function() Drawing() end)	
+end
+
+function LoadBlockSpells()
+	for i = 1, GameHeroCount(i) do
+	local t = GameHero(i)
+		if t and t.isEnemy then		
+			for slot = 0, 3 do
+			local enemy = t
+			local spellName = enemy:GetSpellData(slot).name
+				if slot == 0 and Menu.spells[enemy.charName] then
+					Menu.spells[enemy.charName]:MenuElement({ id = spellName, name = "Block [Q]", value = false })
+				end
+				if slot == 1 and Menu.spells[enemy.charName] then
+					Menu.spells[enemy.charName]:MenuElement({ id = spellName, name = "Block [W]", value = false })
+				end
+				if slot == 2 and Menu.spells[enemy.charName] then
+					Menu.spells[enemy.charName]:MenuElement({ id = spellName, name = "Block [E]", value = false })
+				end
+				if slot == 3 and Menu.spells[enemy.charName] then
+					Menu.spells[enemy.charName]:MenuElement({ id = spellName, name = "Block [R]", value = true })
+				end			
+			end
+		end
+	end
+end
+
+function Tick()
+if not SpellsLoaded then 
+	LoadBlockSpells()
+	SpellsLoaded = true
+end
+
+if MyHeroNotReady() then return end
+local Mode = GetMode()
+	if Mode == "Combo" then
+		if not QEKillable then
+			Ult()
+			if not UltKillable then
+				Q()
+				W()
+				if Menu.Combo.Change:Value() == 2 then
+					E()
+				end	
+			end
+		end	
+	elseif Mode == "Harass" then
+		Q()
+		W()
+		if Menu.Harass.Change:Value() == 2 then
+			E()
+		end
+	--elseif Mode == "Clear" then
+		--Clear()
+		--JungleClear()
+	--elseif Mode == "Flee" then
+		--if Menu.Flee.key:Value() then
+			--Flee()
+		--end	
 	end
 	
-	if Menu.Pred.QH:Value() then	
-		QDataH =
-		{
-		Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 900, Speed = 1700, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}
-		}
-		
-		QspellDataH = {speed = 1700, range = 900, delay = 0.25, radius = 55, type = "linear", collision = {"minion"}}
-	else
-		QDataH =
-		{
-		Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 900, Speed = 1700, Collision = false
-		}
-		
-		QspellDataH = {speed = 1700, range = 900, delay = 0.25, radius = 55, type = "linear", collision = {nil}}
+	if R1casted and myHero:GetSpellData(_R).name == "ZedR2" then
+		Control.CastSpell(HK_R)
+		R1casted = false
 	end	
-  	                                           
-	if _G.EOWLoaded then
-		Orb = 1
-	elseif _G.SDK and _G.SDK.Orbwalker then
-		Orb = 2
-	elseif _G.GOS then
-		Orb = 3
-	elseif _G.gsoSDK then
-		Orb = 4
-	elseif _G.PremiumOrbwalker then
-		Orb = 5		
-	end	
-	Callback.Add("Tick", function() Tick() end)
-	
-	Callback.Add("Draw", function()
-		if Menu.Drawing.DrawR:Value() and Ready(_R) then
-		DrawCircle(myHero, 625, 1, DrawColor(255, 225, 255, 10))
-		end                                                 
-		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-		DrawCircle(myHero, 900, 1, DrawColor(225, 225, 0, 10))
-		end
-		if Menu.Drawing.DrawW:Value() and Ready(_W) then
-		DrawCircle(myHero, 650, 1, DrawColor(225, 225, 0, 10))
-		end		
-		if Menu.Drawing.DrawE:Value() and Ready(_E) then
-		DrawCircle(myHero, 290, 1, DrawColor(225, 225, 125, 10))
-		end	
 
+	if Wshadow ~= nil and (WTime + 5) < GameTimer() then
+		WTime 	= 0
+		Wshadow = nil
+	end
+	
+	if Rshadow ~= nil and (RTime + 6.5) < GameTimer() then
+		RTime 	= 0
+		Rshadow = nil
+	end			
+	
+	if Menu.Combo.Change:Value() == 1 or Menu.Harass.Change:Value() == 1 then
+		AutoE()
+	end	
+
+	if Menu.ks.UseQE:Value() then
+		QEKill()
+	end
+
+	if Ready(_W) and Menu.spells.wblock:Value() and SpellsLoaded == true then
+		EvadeW()
+	end	
+
+	if Ready(_R) and (not Ready(_W) or not Menu.spells.wblock:Value()) and Menu.spells.rblock:Value() and SpellsLoaded == true then
+		EvadeR()
+	end	
+	AutoBack()
+end
+
+function EvadeW()
+local unit, spell = OnProcessSpell()
+	if unit and unit.isEnemy and myHero.pos:DistanceTo(unit.pos) < 3000 and spell then
+		if unit.activeSpell and unit.activeSpell.valid and
+		(unit.activeSpell.target == myHero.handle or 
+		GetDistance(unit.activeSpell.placementPos, myHero.pos) <= myHero.boundingRadius * 2 + unit.activeSpell.width) and not 
+		string.find(unit.activeSpell.name:lower(), "attack") then
+			for j = 0, 3 do
+				local cast = unit:GetSpellData(j)
+				if Menu.spells[unit.charName][cast.name] and Menu.spells[unit.charName][cast.name]:Value() and cast.name == unit.activeSpell.name then
+					local startPos = unit.activeSpell.startPos
+					local placementPos = unit.activeSpell.placementPos
+					local width = 0
+					if unit.activeSpell.width > 0 then
+						width = unit.activeSpell.width
+					else
+						width = 100
+					end
+					local distance = GetDistance(myHero.pos, placementPos)											
+					if unit.activeSpell.target == myHero.handle then
+						CastEvadeW()
+						return
+					else
+						if distance <= width * 2 + myHero.boundingRadius then
+							CastEvadeW()
+						break
+						end
+					end							
+				end
+			end
+		end
+	end
+end
+
+function CastEvadeW()	
+	Control.CastSpell(HK_W, mousePos)
+	WTime = GameTimer()
+	DelayAction(function()
+		Control.CastSpell(HK_W)
+	end,0.2)		
+end
+
+function EvadeR()
+local unit, spell = OnProcessSpell()
+	if unit and unit.isEnemy and myHero.pos:DistanceTo(unit.pos) < 3000 and spell then
+		if unit.activeSpell and unit.activeSpell.valid and
+		(unit.activeSpell.target == myHero.handle or 
+		GetDistance(unit.activeSpell.placementPos, myHero.pos) <= myHero.boundingRadius * 2 + unit.activeSpell.width) and not 
+		string.find(unit.activeSpell.name:lower(), "attack") then
+			for j = 0, 3 do
+				local cast = unit:GetSpellData(j)
+				if Menu.spells[unit.charName][cast.name] and Menu.spells[unit.charName][cast.name]:Value() and cast.name == unit.activeSpell.name then
+					local startPos = unit.activeSpell.startPos
+					local placementPos = unit.activeSpell.placementPos
+					local width = 0
+					if unit.activeSpell.width > 0 then
+						width = unit.activeSpell.width
+					else
+						width = 100
+					end
+					local distance = GetDistance(myHero.pos, placementPos)											
+					if unit.activeSpell.target == myHero.handle then
+						CastEvadeR()
+						return
+					else
+						if distance <= width * 2 + myHero.boundingRadius then
+							CastEvadeR()
+						break
+						end
+					end							
+				end
+			end
+		end
+	end
+end
+
+function CastEvadeR()
+	for i, enemy in pairs(GetEnemyHeroes()) do
+		if enemy and myHero.pos:DistanceTo(enemy.pos) <= 625 and IsValid(enemy) then
+			Control.CastSpell(HK_R, enemy)
+			R1casted = true
+		end
+	end
+end	
+
+function Drawing()
+	if myHero.dead then return end
+
+	if Menu.Drawing.DrawR:Value() and Ready(_R) then
+	DrawCircle(myHero, 625, 1, DrawColor(255, 225, 255, 10))
+	end                                                 
+	if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
+	DrawCircle(myHero, 900, 1, DrawColor(225, 225, 0, 10))
+	end
+	if Menu.Drawing.DrawW:Value() and Ready(_W) then
+	DrawCircle(myHero, 650, 1, DrawColor(225, 225, 0, 10))
+	end		
+	if Menu.Drawing.DrawE:Value() and Ready(_E) then
+	DrawCircle(myHero, 290, 1, DrawColor(225, 225, 125, 10))
+	end	
+
+	if Menu.Drawing.Kill:Value() then
 		for i, target in pairs(GetEnemyHeroes()) do
 			local Qdmg2		= Ready(_Q) and GetDamage(HK_Q) or 0
 			local Edmg2 	= Ready(_E) and GetDamage(HK_E) or 0
@@ -294,132 +465,169 @@ function LoadScript()
 			local QEDmg 	= (Qdmg + Edmg) - (target.hpRegen*3)
 			local currentEnergyNeeded = GetEnergy()
 			if Ready(_R) then
-				if myHero.pos:DistanceTo(target.pos) <= 20000 and IsValid(target) and target.health < TotalDmg and myHero.mana > currentEnergyNeeded then 
+				if myHero.pos:DistanceTo(target.pos) <= 5000 and IsValid(target) and target.health < TotalDmg and myHero.mana > currentEnergyNeeded then 
 					DrawText("Kill", 24, target.pos2D.x, target.pos2D.y,DrawColor(255, 255, 0, 0))
 					DrawText("Kill", 10, target.posMM.x - 15, target.posMM.y - 15,DrawColor(255, 255, 0, 0))			
 				end
 			else
-				if myHero.pos:DistanceTo(target.pos) <= 20000 and IsValid(target) and target.health < QEDmg then
+				if myHero.pos:DistanceTo(target.pos) <= 5000 and IsValid(target) and target.health < QEDmg then
 					DrawText("Kill", 24, target.pos2D.x, target.pos2D.y,DrawColor(255, 255, 0, 0))
 					DrawText("Kill", 10, target.posMM.x - 15, target.posMM.y - 15,DrawColor(255, 255, 0, 0))	
 				end				
 			end	
 		end	
-	end)		
+	end	
 end
 
-function Tick()
-if MyHeroNotReady() then return end
-local Mode = GetMode()
-	if Mode == "Combo" then
-		if not QEKillable then
-			Ult()
-			Combo()
-		end	
-	--elseif Mode == "Harass" then
-		--Harass()
-	--elseif Mode == "Clear" then
-		--Clear()
-		--JungleClear()
-	--elseif Mode == "Flee" then
-		--if Menu.Flee.key:Value() then
-			--Flee()
-		--end	
-	end
-	if UltTarget and UltTarget.health <= 5 then
-		ControlCastSpell(HK_R)
-		UltTarget = nil
-	end
-	if Menu.ks.UseQE:Value() then
-		QEKill()
-	end	
-end	
-
-function Combo()
-local target = GetTarget(1000)
-if target == nil then return end
-	if IsValid(target) and not UltKillable then
-		local Wready = false
-		local QcanCast = false
-		local Qready = false
-		
-		if QcanCast then
-			SetMovement(false)
-		else
-			SetMovement(true)
-		end	
-		
-		if Ready(_Q) or myHero:GetSpellData(_Q).currentCd < 3 then
-			Qready = true
-		else
-			Qready = false
-		end		
-		
-		if Ready(_W) or myHero:GetSpellData(_W).currentCd < 3 then
-			Wready = true
-		end	
-		
-		if myHero.pos:DistanceTo(target.pos) < 900 and Menu.Combo.UseQ:Value() then
-			if Wready then
-				if Menu.Pred.Change:Value() == 1 then
-					local pred = GetGamsteronPrediction(target, QDataC, myHero)
-					if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 and Ready(_Q) then
-						QcanCast = true
-						if myHero:GetSpellData(_W).name == "ZedW2" then
-							CastSpell(HK_Q, pred.CastPosition)
-							Wready = false
-							QcanCast = false
-						end	
-					end
-				else
-					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellDataC)
-					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) and Ready(_Q) then
-						QcanCast = true
-						if myHero:GetSpellData(_W).name == "ZedW2" then					
-							CastSpell(HK_Q, pred.CastPos)
-							Wready = false
-							QcanCast = false
-						end						
-					end	
-				end
-			else
-				if Menu.Pred.Change:Value() == 1 then
-					local pred = GetGamsteronPrediction(target, QDataC, myHero)
-					if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 and Ready(_Q) then
-						CastSpell(HK_Q, pred.CastPosition)
-					end
-				else
-					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellDataC)
-					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) and Ready(_Q) then					
-						CastSpell(HK_Q, pred.CastPos)					
-					end	
-				end			
-			end	
-		end	
+local function CastQ(aim, unit)
+	if Ready(_Q) then
 	
-		if myHero.pos:DistanceTo(target.pos) <= 290 or myHero:GetSpellData(_W).name == "ZedW2" and Menu.Combo.UseE:Value() and Ready(_E) then
-			ControlCastSpell(HK_E)
-		end	
-				
-		if Menu.Combo.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).name ~= "ZedW2" then
-			local Time = GetTickCount()
-			if Qready then
-				if QcanCast and (Wtime + 5000) < Time then
-					CastSpell(HK_W, target.pos)
-					Wtime = Time
-				end
-			else
-				if Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 890 and myHero:GetSpellData(_W).name ~= "ZedW2" and (Wtime + 5000) < Time then
-					CastSpell(HK_W, target.pos)
-					Wtime = Time
-				end	
-			end	
+		if Menu.Pred.Change:Value() == 1 then
+			local pred = GetGamsteronPrediction(aim, QData, unit)
+			if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
+				Control.CastSpell(HK_Q, pred.CastPosition)
+			end
+		
+		elseif Menu.Pred.Change:Value() == 2 then
+			local pred = _G.PremiumPrediction:GetPrediction(unit, aim, QspellData)
+			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then					
+				Control.CastSpell(HK_Q, pred.CastPos)
+			end		
 		end	
 	end
+end
+
+local function CastW(aim, unit)
+	if Ready(_W) and castSpell.state == 0 then
+	
+		if Menu.Pred.Change:Value() == 1 then
+			local pred1 = GetGamsteronPrediction(aim, WData, unit)
+			if pred1.Hitchance >= Menu.Pred.PredW:Value()+1 then
+				Control.CastSpell(HK_W, pred1.CastPosition)
+				WTime = GameTimer()
+				Wshadow = pred1.CastPosition
+			end
+		elseif Menu.Pred.Change:Value() == 2 then
+			local pred2 = _G.PremiumPrediction:GetPrediction(unit, aim, WspellData)
+			if pred2.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred2.HitChance) then					
+				Control.CastSpell(HK_W, pred2.CastPos)
+				WTime = GameTimer()
+				Wshadow = pred2.CastPos				
+			end						
+		end
+	end	
+end
+
+function Q()
+local target = GetTarget(2000)
+if target == nil then return end
+    if Ready(_Q) and ((Menu.Combo.UseQ:Value() and GetMode() == "Combo") or (Menu.Harass.UseQ:Value() and GetMode() == "Harass")) then
+
+		if myHero.pos:DistanceTo(target.pos) <= 850 and not Ready(_W) then
+			CastQ(target, myHero)
+		end
+		
+		if myHero.pos:DistanceTo(target.pos) <= 850 and ((Wshadow ~= nil) or (Rshadow ~= nil)) then
+			Control.CastSpell(HK_Q, target.pos)			
+		end
+		
+		if myHero.pos:DistanceTo(target.pos) > 850 then	
+			
+			if Wshadow ~= nil and Wshadow:DistanceTo(target.pos) <= 850 then
+				Control.CastSpell(HK_Q, target.pos)
+				
+			end
+			
+			if Rshadow ~= nil and Rshadow:DistanceTo(target.pos) <= 850 then
+				Control.CastSpell(HK_Q, target.pos)
+				
+			end
+		end	
+    end
+end
+
+function W()
+local target = GetTarget(2000)
+if target == nil then return end    
+    if Ready(_W) and ((Menu.Combo.UseW:Value() and GetMode() == "Combo") or (Menu.Harass.UseW:Value() and GetMode() == "Harass")) then
+
+		if myHero:GetSpellData(_W).name ~= "ZedW2" then
+			if Ready(_Q) and not Ready(_E) then
+				if myHero.pos:DistanceTo(target.pos) <= 1800 then
+					if myHero.pos:DistanceTo(target.pos) <= 900 then
+						CastW(target, myHero)
+						DelayAction(function()
+							Control.CastSpell(HK_Q, target.pos)
+						end,0.2)	
+						return
+					else
+						Control.CastSpell(HK_W, target.pos)
+						return
+					end	
+				end
+			else
+				if Ready(_Q) and Ready(_E) then
+					if myHero.pos:DistanceTo(target.pos) < 900 then
+						CastW(target, myHero)
+						DelayAction(function()
+							Control.CastSpell(HK_Q, target.pos)
+						end,0.2)
+						return
+					end	
+				end	
+			end
+		end
+    end
+end
+
+function E()
+	for i, target in pairs(GetEnemyHeroes()) do 
+		if Ready(_E) and ((Menu.Combo.UseE:Value() and GetMode() == "Combo") or (Menu.Harass.UseE:Value() and GetMode() == "Harass")) and myHero.pos:DistanceTo(target.pos) <= 2000 and IsValid(target) then
+		
+			if myHero.pos:DistanceTo(target.pos) < 290 then
+				Control.CastSpell(HK_E)
+			end	
+				
+			if Wshadow ~= nil then
+				if Wshadow:DistanceTo(target.pos) < 290 then
+					Control.CastSpell(HK_E)
+				end
+			end
+			
+			if Rshadow ~= nil then
+				if Rshadow:DistanceTo(target.pos) < 290 then
+					Control.CastSpell(HK_E)
+				end
+			end
+		end
+	end	
+end
+
+function AutoE()
+	for i, target in pairs(GetEnemyHeroes()) do 
+		if Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 2000 and IsValid(target) then
+		
+			if myHero.pos:DistanceTo(target.pos) < 290 then
+				Control.CastSpell(HK_E)
+			end	
+				
+			if Wshadow ~= nil then
+				if Wshadow:DistanceTo(target.pos) < 290 then
+					Control.CastSpell(HK_E)
+				end
+			end
+			
+			if Rshadow ~= nil then
+				if Rshadow:DistanceTo(target.pos) < 290 then
+					Control.CastSpell(HK_E)
+				end
+			end
+		end
+	end	
 end
 
 function Ult()
-local target = GetTarget(1400)
+local target = GetTarget(2500)
 if target == nil then return end	
 	if IsValid(target) then	
 		local Qdmg2		= Ready(_Q) and GetDamage(HK_Q) or 0
@@ -433,77 +641,127 @@ if target == nil then return end
 		local TotalDmg 	= (Qdmg + Edmg + Rdmg + IGdmg + ((Qdmg2 + Edmg2 + physical)*(0.1 + 0.15 * myHero:GetSpellData(_R).level)) + ((physical + magical) * 2)) - (target.hpRegen*3) 
 		local currentEnergyNeeded = GetEnergy()
 		
-		if Menu.Combo.Ult.IGN:Value() and myHero.pos:DistanceTo(target.pos) <= 600 and (HasBuff(target, "zedrdeathmark") or IGdmg - (target.hpRegen*3) > target.health) then
+		if Menu.Combo.Ult.IGN:Value() and myHero.pos:DistanceTo(target.pos) <= 600 and (UltKillable or IGdmg - (target.hpRegen*3) > target.health) then
 			if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and GameCanUseSpell(SUMMONER_1) == 0 then
-				ControlCastSpell(HK_SUMMONER_1, target)
+				Control.CastSpell(HK_SUMMONER_1, target)
 			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and GameCanUseSpell(SUMMONER_2) == 0 then
-				ControlCastSpell(HK_SUMMONER_2, target)
+				Control.CastSpell(HK_SUMMONER_2, target)
 			end	
 		end	
 		
-		if Menu.Combo.Ult.UseR:Value() and Menu.Combo.Ult.UseRBack:Value() and myHero:GetSpellData(_R).name == "ZedR2" then
-
-			if UltTarget == nil and HasBuff(target, "zedrdeathmark") then
-				UltTarget = target
-			end	
-	
+		if Menu.Combo.Ult.UseR:Value() and Menu.Combo.Ult.UseRBack:Value() and myHero:GetSpellData(_R).name == "ZedR2" then	
 			if myHero.health/myHero.maxHealth <= Menu.Combo.Ult.Hp:Value() / 100 then
-				ControlCastSpell(HK_R)
-				UltTarget = nil
+				Control.CastSpell(HK_R)
 			end	
 		end		
 		
-		if Menu.Combo.Ult.UseR:Value() and Ready(_R) and myHero:GetSpellData(_R).name ~= "ZedR2" then		
-			
-			if Ready(_W) and (target.health < Qdmg*2 and Ready(_Q)) or (target.health < Edmg and Ready(_E)) or (target.health < Qdmg*2+Edmg and Ready(_Q) and Ready(_E)) then return end
-			
+		if Menu.Combo.Ult.UseR:Value() and Ready(_R) and myHero:GetSpellData(_R).name ~= "ZedR2" then					
 			if myHero.pos:DistanceTo(target.pos) <= 625 then
 			
 				if Menu.Combo.Ult.UseRTower:Value() then
 					if target.health < TotalDmg and myHero.mana > currentEnergyNeeded then
 						UltKillable = true
-						Control.SetCursorPos(target)
-						Control.KeyDown(HK_R)
-						Control.KeyUp(HK_R)
-						UltKillable = false
+						Rshadow = myHero.pos
+						DelayAction(function()
+							Control.CastSpell(HK_R, target)
+							TableInsert(Rtarget, target) 
+							RTime = GameTimer()
+							UltKillable = false
+						end,0.2)
+						return
 					end
 				else
 					for i, ally in pairs(GetAllyHeroes()) do
 						if target.health < TotalDmg and myHero.mana > currentEnergyNeeded then
 							if not IsUnderTurret(target) or (IsUnderTurret(target) and ally.pos:DistanceTo(target.pos) < 900 and IsUnderTurret(ally)) then
 								UltKillable = true
-								Control.SetCursorPos(target)
-								Control.KeyDown(HK_R)
-								Control.KeyUp(HK_R)
-								UltKillable = false
+								Rshadow = myHero.pos
+								DelayAction(function()
+									Control.CastSpell(HK_R, target)
+									TableInsert(Rtarget, target)
+									RTime = GameTimer()
+									UltKillable = false
+								end,0.2)
+								return
 							end	
 						end	
 					end	
-				end
-				
+				end				
 			else
-				if Ready(_W) and myHero:GetSpellData(_W).name ~= "ZedW2" and myHero.pos:DistanceTo(target.pos) > 700 and myHero.pos:DistanceTo(target.pos) < 1250 and target.health < TotalDmg and myHero.mana > currentEnergyNeeded then
-					local EnemyCount = GetEnemyCount(800, target)
-					if Menu.Combo.Ult.UseRTower:Value() and EnemyCount == 1 then
-						UltKillable = true
-						CastSpell(HK_W, target.pos)
-						DelayAction(function()
-							ControlCastSpell(HK_W)
-						end,0.2)	
-					else
-						for i, ally in pairs(GetAllyHeroes()) do
-							if (not IsUnderTurret(target) and EnemyCount == 1) or (IsUnderTurret(target) and ally.pos:DistanceTo(target.pos) < 800 and IsUnderTurret(ally)) then
-								UltKillable = true
-								CastSpell(HK_W, target.pos)
-								DelayAction(function()
-									ControlCastSpell(HK_W)
-								end,0.2)
+				if Wshadow ~= nil then
+					if Ready(_W) and myHero:GetSpellData(_W).toggleState == 2 and target.health < TotalDmg and myHero.mana > currentEnergyNeeded and Wshadow:DistanceTo(target.pos) <= 625 then
+						if Menu.Combo.Ult.UseRTower:Value() then
+							UltKillable = true
+							Wshadow = myHero.pos
+							Control.CastSpell(HK_W)
+							DelayAction(function()
+								UltKillable = false
+							end,0.2)	
+						else
+							for i, ally in pairs(GetAllyHeroes()) do
+								if not IsUnderTurret(target) or (IsUnderTurret(target) and ally.pos:DistanceTo(target.pos) < 800 and IsUnderTurret(ally)) then
+									UltKillable = true
+									Wshadow = myHero.pos
+									Control.CastSpell(HK_W)
+									DelayAction(function()
+										UltKillable = false
+									end,0.2)
+								end	
 							end	
-						end	
-					end			
+						end
+					end
+				else
+					if myHero:GetSpellData(_W).toggleState == 0 then
+						if Ready(_W) and target.health < TotalDmg and myHero.mana > currentEnergyNeeded then
+							
+							if myHero.pos:DistanceTo(target.pos) <= 1250 then
+								if Menu.Combo.Ult.UseRTower:Value() then
+									UltKillable = true
+									Control.CastSpell(HK_W, target.pos)
+									DelayAction(function()
+										UltKillable = false
+									end,0.2)
+								else
+									for i, ally in pairs(GetAllyHeroes()) do
+										if not IsUnderTurret(target) or (IsUnderTurret(target) and ally.pos:DistanceTo(target.pos) < 800 and IsUnderTurret(ally)) then
+											UltKillable = true
+											Control.CastSpell(HK_W, target.pos)
+											DelayAction(function()
+												UltKillable = false
+											end,0.2)
+										end
+									end	
+								end	
+							end
+						end
+					else
+						if Ready(_W) and myHero:GetSpellData(_W).toggleState == 2 and target.health < TotalDmg and myHero.mana > currentEnergyNeeded then
+							Wshadow = myHero.pos
+							Control.CastSpell(HK_W)
+						end
+					end	
 				end	
 			end
 		end	
+	end	
+end
+
+function AutoBack()
+	for i, target in pairs(Rtarget) do
+		
+		if Menu.Combo.Ult.UseR2:Value() and HasBuff(myHero, "ZedR2") and Rshadow ~= nil and target then
+			if GetEnemyCount(600, myHero.pos) > 1 or IsUnderTurret(myHero) then
+				if (GetDistance(target.pos, myHero.pos) < GetDistance(target.pos, Rshadow)) and GetEnemyCount(400, Rshadow) == 0 then
+					DelayAction(function()
+						Control.CastSpell(HK_R)
+					end,2)	
+				end
+				
+				if Wshadow ~= nil and myHero:GetSpellData(_W).toggleState == 2 and GetEnemyCount(400, Wshadow) == 0 then
+					Control.CastSpell(HK_W)
+				end	
+			end	
+		end
 	end	
 end
 
@@ -512,59 +770,23 @@ function QEKill()
 		if myHero.pos:DistanceTo(target.pos) < 900 and IsValid(target) then
 			local Qdmg 	= Ready(_Q) and getdmg("Q", target, myHero) or 0
 			local Edmg 	= Ready(_E) and getdmg("E", target, myHero) or 0
-			local QEdmg = (Qdmg + Edmg) - (target.hpRegen*3)		
-			if Ready(_W) and myHero:GetSpellData(_W).name ~= "ZedW2" and target.health < QEdmg then
+			local QEdmg = (Qdmg + Edmg)
+			local currentEnergyNeeded = GetEnergy()
+			
+			if Ready(_W) and myHero:GetSpellData(_W).name ~= "ZedW2" and target.health < QEdmg and myHero.mana > currentEnergyNeeded then
 				QEKillable = true
-				local Time = GetTickCount()
-				if (Wtime + 5000) < Time then
-					CastSpell(HK_W, target.pos)
-					Wtime = Time
-				end
+				Control.CastSpell(HK_W, target.pos)
 			end
-			if myHero:GetSpellData(_W).name == "ZedW2" then
-				if Ready(_E) then
-					ControlCastSpell(HK_E)
-				end			
-				if Ready(_Q) then
-					CastSpell(HK_Q, target.pos)
-					QEKillable = false
-				end	
+			if myHero:GetSpellData(_W).toggleState == 2 and target.health < QEdmg and myHero.mana > currentEnergyNeeded then
+				E()			
+				Q()	
 			end	
-		end	
+		end
+		QEKillable = false
 	end
 end	
 --[[
 
-
-function Harass()
-local target = GetTarget(1000)
-if target == nil then return end
-	if IsValid(target) then
-        local mana_ok = myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value() / 100
-        
-		if myHero.pos:DistanceTo(target.pos) <= 575 and Menu.Harass.UseQ:Value() and Ready(_Q) and mana_ok then
-			ControlCastSpell(HK_Q, target)
-		end			
-		
-		if myHero.pos:DistanceTo(target.pos) < 800 and Menu.Harass.UseE:Value() and Ready(_E) and mana_ok then
-			if Menu.Pred.Change:Value() == 1 then
-				local pred = GetGamsteronPrediction(target, EData, myHero)
-				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then				
-					ControlCastSpell(HK_E, pred.CastPosition)					
-				end
-			else
-				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
-				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then			
-					ControlCastSpell(HK_E, pred.CastPos)					
-				end	
-			end
-		end
-		
-		if myHero.pos:DistanceTo(target.pos) <= 300 and Menu.Harass.UseW:Value() and Ready(_W) and mana_ok then
-			ControlCastSpell(HK_W)
-		end		
-	end
-end	
 
 function Clear()
     for i = 1, GameMinionCount() do
@@ -573,18 +795,18 @@ function Clear()
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
             
 			if Menu.Clear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 575 and IsValid(minion) and Ready(_Q) then
-				ControlCastSpell(HK_Q, minion)
+				Control.CastSpell(HK_Q, minion)
             end
 			
             if Menu.Clear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 600 and IsValid(minion) and Ready(_W) then
                 local count = GetMinionCount(575, minion)
 				if count >= Menu.Clear.UseWM:Value() then
-					ControlCastSpell(HK_W)
+					Control.CastSpell(HK_W)
 				end
             end
 			
 			if Menu.Clear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and Ready(_E) then
-				ControlCastSpell(HK_E, minion.pos)
+				Control.CastSpell(HK_E, minion.pos)
             end			
         end
     end
@@ -597,15 +819,15 @@ function JungleClear()
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100
             
 			if Menu.JClear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 575 and IsValid(minion) and Ready(_Q) then
-                ControlCastSpell(HK_Q, minion.pos)
+                Control.CastSpell(HK_Q, minion.pos)
             end
 			
             if Menu.JClear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 550 and IsValid(minion) and Ready(_W) then	
-				ControlCastSpell(HK_W)
+				Control.CastSpell(HK_W)
             end
 			
 			if Menu.JClear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and Ready(_E) then
-				ControlCastSpell(HK_E, minion.pos)
+				Control.CastSpell(HK_E, minion.pos)
             end			
         end
     end
