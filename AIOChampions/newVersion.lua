@@ -1,11 +1,11 @@
 Data = {
 
     Loader = {
-        Version = 0.16,
+        Version = 0.17,
     },
     Core = {
         Changelog = "Auto Version ChangeLog Here",
-        Version = 0.18,
+        Version = 0.19,
     },
 
     Champions = {
@@ -71,7 +71,7 @@ Data = {
         },
         Qiyana = {
             Changelog = "Qiyana Changelog Here",
-            Version = 0.09,
+            Version = 0.10,
         },
         Malzahar = {
             Changelog = "Malzahar Changelog Here",
@@ -127,7 +127,7 @@ Data = {
         },
          Sett = {
             Changelog = "Sett Changelog Here",
-            Version = 0.05,
+            Version = 0.06,
         },
          Rengar = {
             Changelog = "Rengar Changelog Here",
@@ -171,7 +171,7 @@ Data = {
         }, 
            Zed = {
             Changelog = "Zed Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         },
            Volibear = {
             Changelog = "Volibear Changelog Here",
