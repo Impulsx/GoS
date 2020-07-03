@@ -78,17 +78,21 @@ local function AutoUpdate()
 		
 
 		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
-			print("GsoPred. installed Press 2x F6")
 			DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-EXT/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
-			while not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") do end
+			print("gamsteronPred. installed Press 2x F6")
+			return
 		end
-		
-			
-		
+
 		if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
-			print("PremiumPred. installed Press 2x F6")
 			DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
-			while not FileExist(COMMON_PATH .. "PremiumPrediction.lua") do end
+			print("PremiumPred. installed Press 2x F6")
+			return
+		end
+
+		if not FileExist(COMMON_PATH .. "GGPrediction.lua") then
+			DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GG/master/GGPrediction.lua", COMMON_PATH .. "GGPrediction.lua", function() end)
+			print("GGPrediction installed Press 2x F6")
+			return
 		end
 	end	
 	
@@ -178,8 +182,9 @@ local function AutoUpdate()
 			Draw.Text("Malzahar", 20, textPos.x - 123, textPos.y - 100, Draw.Color(140, 225, 255, 0))
 			Draw.Text("Neeko", 20, textPos.x - 123, textPos.y - 80, Draw.Color(140, 225, 255, 0))
 			Draw.Text("Ryze", 20, textPos.x - 123, textPos.y - 60, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Veigar", 20, textPos.x - 123, textPos.y - 40, Draw.Color(140, 225, 255, 0))	
-			Draw.Text("Zoe", 20, textPos.x - 123, textPos.y - 20, Draw.Color(140, 225, 255, 0))			
+			Draw.Text("Veigar", 20, textPos.x - 123, textPos.y - 40, Draw.Color(140, 225, 255, 0))
+			Draw.Text("Zed", 20, textPos.x - 123, textPos.y - 20, Draw.Color(140, 225, 255, 0))			
+			Draw.Text("Zoe", 20, textPos.x - 123, textPos.y, Draw.Color(140, 225, 255, 0))			
 
 			--TOP--
 			Draw.Text("---TOP---", 30, textPos.x +50, textPos.y - 250, Draw.Color(140, 0, 255, 0))
@@ -194,7 +199,8 @@ local function AutoUpdate()
 			Draw.Text("Qiyana", 20, textPos.x +80, textPos.y - 60, Draw.Color(140, 225, 255, 0))
 			Draw.Text("Renekton", 20, textPos.x +80, textPos.y - 40, Draw.Color(140, 225, 255, 0))	
 			Draw.Text("Sylas", 20, textPos.x +80, textPos.y - 20, Draw.Color(140, 225, 255, 0))	
-			Draw.Text("Wukong", 20, textPos.x +80, textPos.y, Draw.Color(140, 225, 255, 0))				
+			Draw.Text("Volibear", 20, textPos.x +80, textPos.y, Draw.Color(140, 225, 255, 0))			
+			Draw.Text("Wukong", 20, textPos.x +80, textPos.y + 20, Draw.Color(140, 225, 255, 0))				
 
 			--Supp--
 			Draw.Text("---SUP---", 30, textPos.x +250, textPos.y - 250, Draw.Color(140, 0, 255, 0))
