@@ -49,7 +49,7 @@ local BoundAlly = nil
 function LoadScript() 
 	HPred()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})	
 	
 	--AutoQ	
 	Menu:MenuElement({type = MENU, id = "AutoQ2", name = "AutoQ"})
@@ -134,18 +134,7 @@ function LoadScript()
 	}
 	
 	QspellData = {speed = 2100, range = 1150, delay = 0.25, radius = 40, collision = {"minion"}, type = "linear"}	
-  	                                           
-	if _G.EOWLoaded then
-		Orb = 1
-	elseif _G.SDK and _G.SDK.Orbwalker then
-		Orb = 2
-	elseif _G.GOS then
-		Orb = 3
-	elseif _G.gsoSDK then
-		Orb = 4
-	elseif _G.PremiumOrbwalker then
-		Orb = 5		
-	end	
+	
 	Callback.Add("Tick", function() Tick() end)
 	
 	Callback.Add("Draw", function()
@@ -228,17 +217,17 @@ if target == nil then return end
 		if Ready(_R) and myHero.health/myHero.maxHealth >= Menu.ally.MyHP:Value()/100 then
 			
 			if BoundAlly.charName == "Blitzcrank" and HasBuff(target, "rocketgrab2") then
-				ControlCastSpell(HK_R)
+				Control.CastSpell(HK_R)
 			
 			elseif BoundAlly.charName == "Skarner" and HasBuff(target, "SkarnerImpale") then
-				ControlCastSpell(HK_R)
+				Control.CastSpell(HK_R)
 			
 			elseif BoundAlly.charName == "TahmKench" and HasBuff(target, "tahmkenchwdevoured") then
-				ControlCastSpell(HK_R)
+				Control.CastSpell(HK_R)
 			
 			elseif BoundAlly.charName == "Sion" and (BoundAlly.activeSpell and BoundAlly.activeSpell.valid and BoundAlly.activeSpell.name == "SionR") then
 				DelayAction(function()
-				ControlCastSpell(HK_R) 
+				Control.CastSpell(HK_R) 
 				end, 0.3)
 			end
 		end
@@ -253,7 +242,7 @@ if target == nil then return end
 
 		local killCount, nokillCount = HPred:GetLineTargetCount(myHero.pos, target.pos, 0.25, 2100, 80)				
 		if killCount >= 1 and nokillCount == 0 then 
-			ControlCastSpell(HK_Q, target.pos)	
+			Control.CastSpell(HK_Q, target.pos)	
 		end	
 	end
 end
@@ -264,7 +253,7 @@ if target == nil then return end
 	if Menu.AutoE.UseE:Value() and IsValid(target) and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 1100 then	
 	local buff = GetBuffData(target, "kalistaexpungemarker")	
 		if buff and buff.duration > 0 and buff.duration <= Menu.AutoE.UseEM:Value() and buff.count >= Menu.AutoE.count:Value() then  
-			ControlCastSpell(HK_E)				
+			Control.CastSpell(HK_E)				
 		end
 	end	
 end
@@ -276,7 +265,7 @@ if target == nil then return end
 	local buff = HasBuff(target, "kalistaexpungemarker")	
 	local count = KillMinionCount(1100, myHero)	
 		if buff and count >= 1 then  
-			ControlCastSpell(HK_E)				
+			Control.CastSpell(HK_E)				
 		end
 	end	
 end
@@ -285,7 +274,7 @@ function AutoR()
 	if BoundAlly then
 		if myHero.pos:DistanceTo(BoundAlly.pos) <= 1200 and IsValid(BoundAlly) and Menu.AutoR.UseR:Value() and Ready(_R) then
 			if BoundAlly.health/BoundAlly.maxHealth <= Menu.AutoR.Heal:Value()/100 then
-				ControlCastSpell(HK_R)
+				Control.CastSpell(HK_R)
 			end
 		end
 	end
@@ -300,12 +289,12 @@ if target == nil then return end
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-					ControlCastSpell(HK_Q, pred.CastPosition)
+					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
 			else
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-					ControlCastSpell(HK_Q, pred.CastPos)
+					Control.CastSpell(HK_Q, pred.CastPos)
 				end	
 			end	
 		end		
@@ -321,7 +310,7 @@ function Clear()
 			if mana_ok and Ready(_E) then
 			local count = KillMinionCount(1100, myHero)	
 				if count >= Menu.Clear.Emin:Value() then
-					ControlCastSpell(HK_E)
+					Control.CastSpell(HK_E)
 				end
 			end
 		end
@@ -350,10 +339,10 @@ function JungleClear()
 		local EDmg = getdmg("E", minion, myHero)
             if Menu.JClear.UseE:Value() and mana_ok and Ready(_E) then  
 				if EpicMonster(minion) and EDmg/2 >= minion.health then
-					ControlCastSpell(HK_E)
+					Control.CastSpell(HK_E)
 				end	
 				if not EpicMonster(minion) and EDmg >= minion.health then
-					ControlCastSpell(HK_E)
+					Control.CastSpell(HK_E)
 				end	
             end
         end
@@ -367,7 +356,7 @@ function KillMinion()
 			if Menu.AutoE.E:Value() and Ready(_E) then
 			local count = KillMinionCount(1100, myHero)	
 				if count >= Menu.AutoE.Emin:Value() then
-					ControlCastSpell(HK_E)
+					Control.CastSpell(HK_E)
 				end
 			end
         end
@@ -385,12 +374,12 @@ if target == nil then return end
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, QData, myHero)
 					if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-						ControlCastSpell(HK_Q, pred.CastPosition)
+						Control.CastSpell(HK_Q, pred.CastPosition)
 					end
 				else
 					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-						ControlCastSpell(HK_Q, pred.CastPos)
+						Control.CastSpell(HK_Q, pred.CastPos)
 					end	
 				end
 			end
@@ -399,7 +388,7 @@ if target == nil then return end
 		if myHero.pos:DistanceTo(target.pos) <= 1100 and Ready(_E) then
 			local EDmg = getdmg("E", target, myHero)
 			if EDmg >= target.health then
-				ControlCastSpell(HK_E)
+				Control.CastSpell(HK_E)
 			end
 		end
 	end
