@@ -151,7 +151,7 @@ Data = {
         }, 
           Pyke = {
             Changelog = "Pyke Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         }, 
           Renekton = {
             Changelog = "Renekton Changelog Here",
