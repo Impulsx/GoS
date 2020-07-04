@@ -47,7 +47,7 @@ Data = {
         }, 
         Warwick = {
             Changelog = "Warwick Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         },
         Veigar = {
             Changelog = "Veigar Changelog Here",
