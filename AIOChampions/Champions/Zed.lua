@@ -166,7 +166,7 @@ local RTime = 0
 function LoadScript()
 	--OnProcessSpell()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})			
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -249,10 +249,10 @@ function LoadScript()
 	}
 	
 	WData ={
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 290, Range = 900, Speed = 1750, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 290, Range = 900, Speed = 2500, Collision = false
 	}
 	
-	WspellData = {speed = 1750, range = 900, delay = 0.25, radius = 290, type = "linear", collision = {nil}
+	WspellData = {speed = 2500, range = 900, delay = 0.25, radius = 290, type = "linear", collision = {nil}
 	}	
 
 	Callback.Add("Tick", function() Tick() end)
