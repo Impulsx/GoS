@@ -36,7 +36,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.25
+    local Version = 0.26
     
     local Files = {
         Lua = {
@@ -114,7 +114,6 @@ local DrawRect = Draw.Rect
 local DrawCircle = Draw.Circle
 local DrawColor = Draw.Color
 local DrawText = Draw.Text
-local ControlCastSpell = Control.CastSpell
 local ControlSetCursorPos = Control.SetCursorPos
 local ControlKeyUp = Control.KeyUp
 local ControlKeyDown = Control.KeyDown
@@ -193,62 +192,37 @@ local function DistanceSquared(p1, p2)
 end
 
 function GetTarget(range) 
-	if Orb == 1 then
+	if _G.SDK then
 		if myHero.ap > myHero.totalDamage then
-			return EOW:GetTarget(range, EOW.ap_dec, myHero.pos)
+			return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
 		else
-			return EOW:GetTarget(range, EOW.ad_dec, myHero.pos)
+			return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL);
 		end
-	elseif Orb == 2 and TargetSelector then
-		if myHero.ap > myHero.totalDamage then
-			return TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL)
-		else
-			return TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL)
-		end
-	elseif _G.GOS then
-		if myHero.ap > myHero.totalDamage then
-			return GOS:GetTarget(range, "AP")
-		else
-			return GOS:GetTarget(range, "AD")
-        end
-    elseif _G.gsoSDK then
-		return _G.gsoSDK.TS:GetTarget()
-	
 	elseif _G.PremiumOrbwalker then
 		return _G.PremiumOrbwalker:GetTarget(range)
-	end	
+	end
 end
 
 function GetMode()   
-    if Orb == 1 then
-        if combo == 1 then
-            return 'Combo'
-        elseif harass == 2 then
-            return 'Harass'
-        elseif lastHit == 3 then
-            return 'Lasthit'
-        elseif laneClear == 4 then
-            return 'Clear'
-        end
-    elseif Orb == 2 then
-		if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
-			return "Combo"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
-			return "Harass"	
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] or _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
-			return "Clear"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] then
-			return "LastHit"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
-			return "Flee"
-		end
-    elseif Orb == 3 then
-        return GOS:GetMode()
-    elseif Orb == 4 then
-        return _G.gsoSDK.Orbwalker:GetMode()
-	elseif Orb == 5 then
-	  return _G.PremiumOrbwalker:GetMode()
+    if _G.SDK then
+        return 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] and "Combo"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] and "Harass"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] and "LaneClear"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] and "LaneClear"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] and "LastHit"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] and "Flee"
+		or nil
+    
+	elseif _G.PremiumOrbwalker then
+		return _G.PremiumOrbwalker:GetMode()
 	end
+	return nil
 end
 
 local function SetAttack(bool)
@@ -655,18 +629,6 @@ function Irelia:__init()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
 	Callback.Add("WndMsg", function(...) self:OnWndMsg(...) end)
-	
-	if _G.EOWLoaded then
-		Orb = 1
-	elseif _G.SDK and _G.SDK.Orbwalker then
-		Orb = 2
-	elseif _G.GOS then
-		Orb = 3
-	elseif _G.gsoSDK then
-		Orb = 4
-	elseif _G.PremiumOrbwalker then
-		Orb = 5		
-	end
 
 	if not PredLoaded then
 		DelayAction(function()
@@ -731,7 +693,7 @@ end
 function Irelia:LoadMenu()                     	
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "Irelia", name = "PussyIrelia"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.25"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 0.26"}})
 
 self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
 	
@@ -930,13 +892,13 @@ local Mode = GetMode()
 			if aimpos and not (myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "IreliaR") then
 			Epos = aimpos + (myHero.pos - aimpos): Normalized() * -150
 				SetMovement(false)
-				ControlCastSpell(HK_E, Epos)
+				Control.CastSpell(HK_E, Epos)
 				SetMovement(true)
 			end	
 		end			
 		
 		if myHero.pos:DistanceTo(target.pos) <= 600 and myHero:GetSpellData(_E).toggleState == 1 and Ready(_E) and not ISMarked(1000) then
-			ControlCastSpell(HK_E, myHero.pos)
+			Control.CastSpell(HK_E, myHero.pos)
 		end
 		
 		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and HasBuff(target, "ireliamark") then
@@ -946,7 +908,7 @@ local Mode = GetMode()
 		end		
 
 		if self.Menu.ComboSet.Combo.UseW:Value() and myHero.pos:DistanceTo(target.pos) <= 400 and Ready(_W) and not Ready(_E) then					
-			ControlCastSpell(HK_W, target)
+			Control.CastSpell(HK_W, target)
 		end
 		
 		if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and Ready(_R) and Ready(_Q) then
@@ -978,7 +940,7 @@ local Mode = GetMode()
 			local QDmg = getdmg("Q", target, myHero) + self:CalcExtraDmg()			
 			if QDmg >= target.health and not HasBuff(target, "ireliamark") then				
 				if myHero:GetSpellData(_E).toggleState == 1 then
-					ControlCastSpell(HK_E, myHero.pos)
+					Control.CastSpell(HK_E, myHero.pos)
 				end
 			end
 			if myHero.pos:DistanceTo(target.pos) <= 775 and myHero:GetSpellData(_E).toggleState == 0 then
@@ -986,7 +948,7 @@ local Mode = GetMode()
 				if aimpos and not ISMarked(1000) and not (myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "IreliaR") then
 				Epos = aimpos + (myHero.pos - aimpos): Normalized() * -150
 					SetMovement(false)
-					ControlCastSpell(HK_E, Epos)
+					Control.CastSpell(HK_E, Epos)
 					SetMovement(true)
 				end	
 			end
@@ -1114,7 +1076,7 @@ end
 function Irelia:UseHydraminion(unit)
 local hydraitem = GetInventorySlotItem(3748) or GetInventorySlotItem(3077) or GetInventorySlotItem(3074)
 	if hydraitem and myHero.pos:DistanceTo(unit.pos) <= 400 then
-		ControlCastSpell(keybindings[hydraitem])
+		Control.CastSpell(keybindings[hydraitem])
 	end
 end
 
@@ -1141,7 +1103,7 @@ if target == nil then return end
 		
 		if self.Menu.ComboSet.Combo.UseW:Value() and Ready(_W) then
 			if myHero.pos:DistanceTo(target.pos) <= 825 then					
-				ControlCastSpell(HK_W, target)
+				Control.CastSpell(HK_W, target)
 			end
 		end	
 		
@@ -1343,7 +1305,7 @@ function Irelia:JungleClear()
 		if minion.team == TEAM_JUNGLE and IsValid(minion) then
  			
 			if myHero.pos:DistanceTo(minion.pos) <= 825 and self.Menu.ClearSet.JClear.UseW:Value() and Ready(_W) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 then
-				ControlCastSpell(HK_W, minion.pos)                  
+				Control.CastSpell(HK_W, minion.pos)                  
             end           
            
 			if self.Menu.ClearSet.JClear.UseItem:Value() then
@@ -1367,7 +1329,7 @@ function Irelia:Clear()
 		if minion.team == TEAM_ENEMY and IsValid(minion) then
  			
 			if myHero.pos:DistanceTo(minion.pos) <= 825 and self.Menu.ClearSet.Clear.UseW:Value() and Ready(_W) and not Ready(_Q) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.Clear.Mana:Value() / 100 then
-				ControlCastSpell(HK_W, minion.pos)                   
+				Control.CastSpell(HK_W, minion.pos)                   
             end 
 			
 
@@ -1377,12 +1339,12 @@ function Irelia:Clear()
 						local Count = GetLineTargetCount(myHero.pos, minion.pos, 0.25+ Game.Latency()/1000, math.huge, 100)
 						if Count >= self.Menu.ClearSet.Clear.ECount:Value() then
 							if myHero:GetSpellData(_E).name == "IreliaE" then
-								ControlCastSpell(HK_E, myHero.pos)
+								Control.CastSpell(HK_E, myHero.pos)
 							end
 							if myHero:GetSpellData(_E).name == "IreliaE2" then
 								local Epos = minion.pos + (myHero.pos - minion.pos): Normalized() * -150
 								SetMovement(false)
-								ControlCastSpell(HK_E, Epos)
+								Control.CastSpell(HK_E, Epos)
 								SetMovement(true)
 							end					
 						end
@@ -1391,12 +1353,12 @@ function Irelia:Clear()
 					local Count = GetLineTargetCount(myHero.pos, minion.pos, 0.25+ Game.Latency()/1000, math.huge, 100)
 					if Count >= self.Menu.ClearSet.Clear.ECount:Value() then
 						if myHero:GetSpellData(_E).name == "IreliaE" then
-							ControlCastSpell(HK_E, myHero.pos)
+							Control.CastSpell(HK_E, myHero.pos)
 						end
 						if myHero:GetSpellData(_E).name == "IreliaE2" then
 							local Epos = minion.pos + (myHero.pos - minion.pos): Normalized() * -150
 							SetMovement(false)
-							ControlCastSpell(HK_E, Epos)
+							Control.CastSpell(HK_E, Epos)
 							SetMovement(true)
 						end					
 					end					
@@ -1502,10 +1464,10 @@ function Irelia:CastW(target)
         end
 		
 		if HasBuff(myHero, "ireliawdefense") and (target.pos:DistanceTo(myHero.pos) > 600) then
-			ControlCastSpell(HK_W, aim)
+			Control.CastSpell(HK_W, aim)
 			charging = false
 		elseif HasBuff(myHero, "ireliawdefense") and clock() - wClock >= 0.5 and target.pos:DistanceTo(myHero.pos) < 825 then
-			ControlCastSpell(HK_W, aim)
+			Control.CastSpell(HK_W, aim)
 			charging = false
 		end		
         
@@ -1591,7 +1553,7 @@ end
 function Irelia:CastE(unit)
 
     if myHero:GetSpellData(_E).name == "IreliaE"  and not HasBuff(unit, "ireliamark") then
-		ControlCastSpell(HK_E, myHero.pos)
+		Control.CastSpell(HK_E, myHero.pos)
     end
 	
     if myHero:GetSpellData(_E).name == "IreliaE2" then
@@ -1599,7 +1561,7 @@ function Irelia:CastE(unit)
 		if aimpos then
 		Epos = aimpos + (myHero.pos - aimpos): Normalized() * -150
 			SetMovement(false)
-			ControlCastSpell(HK_E, Epos)
+			Control.CastSpell(HK_E, Epos)
 			SetMovement(true)
 		end
 	end
@@ -1609,12 +1571,12 @@ function Irelia:CastR(unit)
 	if self.Menu.MiscSet.Pred.Change:Value() == 1 then
 		local pred = GetGamsteronPrediction(unit, RData, myHero)
 		if pred.Hitchance >= self.Menu.MiscSet.Pred.PredR:Value()+1 then
-			ControlCastSpell(HK_R, pred.CastPosition)
+			Control.CastSpell(HK_R, pred.CastPosition)
 		end
 	elseif self.Menu.MiscSet.Pred.Change:Value() == 2 then
 		local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, RspellData)
 		if pred.CastPos and ConvertToHitChance(self.Menu.MiscSet.Pred.PredR:Value(), pred.HitChance) then
-			ControlCastSpell(HK_R, pred.CastPos)
+			Control.CastSpell(HK_R, pred.CastPos)
 		end
 	else
 		self:CastGGPred(unit)	
@@ -1625,7 +1587,7 @@ function Irelia:CastGGPred(unit)
 	local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 80, Range = 950, Speed = 2000, Collision = false})
 		  RPrediction:GetPrediction(unit, myHero)
 	if RPrediction:CanHit(self.Menu.MiscSet.Pred.PredR:Value()+1) then
-		ControlCastSpell(HK_R, RPrediction.CastPosition)
+		Control.CastSpell(HK_R, RPrediction.CastPosition)
 	end	
 end
 
