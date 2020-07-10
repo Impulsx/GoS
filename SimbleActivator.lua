@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.21
+    local Version = 0.22
     
     local Files =
     {
@@ -53,7 +53,6 @@ end
 
 class "Activator"
 
-local menu = 1
 local Allies, Enemies, Turrets, Units = {}, {}, {}, {}
 local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
 local ItemHotKey = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2,[ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6,}
@@ -61,7 +60,6 @@ local Orb
 local DrawCircle = Draw.Circle
 local DrawColor = Draw.Color
 local DrawText = Draw.Text
-local ControlCastSpell = Control.CastSpell
 local GameHeroCount = Game.HeroCount
 local GameHero = Game.Hero
 local GameMinionCount = Game.MinionCount
@@ -75,6 +73,7 @@ local TableRemove = table.remove
 local TEAM_ALLY = myHero.team
 local TEAM_ENEMY = 300 - myHero.team
 local TEAM_JUNGLE = 300
+local AllyMenuLoaded = false
 
 local myPotTicks = 0;
 local myHealTicks = 0;
@@ -112,58 +111,37 @@ local function Ready(spell)
 end
 
 local function GetTarget(range) 
-	if Orb == 1 then
+	if _G.SDK then
 		if myHero.ap > myHero.totalDamage then
-			return EOW:GetTarget(range, EOW.ap_dec, myHero.pos)
+			return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
 		else
-			return EOW:GetTarget(range, EOW.ad_dec, myHero.pos)
+			return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL);
 		end
-	elseif Orb == 2 and SDK.TargetSelector then
-		if myHero.ap > myHero.totalDamage then
-			return SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL)
-		else
-			return SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL)
-		end
-	elseif _G.GOS then
-		if myHero.ap > myHero.totalDamage then
-			return GOS:GetTarget(range, "AP")
-		else
-			return GOS:GetTarget(range, "AD")
-        end
-    elseif _G.gsoSDK then
-		return _G.gsoSDK.TS:GetTarget()
+	elseif _G.PremiumOrbwalker then
+		return _G.PremiumOrbwalker:GetTarget(range)
 	end
 end
 
 local function GetMode()
+    if _G.SDK then
+        return 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] and "Combo"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] and "Harass"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] and "LaneClear"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] and "LaneClear"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] and "LastHit"
+        or 
+		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] and "Flee"
+		or nil
     
-    if Orb == 1 then
-        if combo == 1 then
-            return 'Combo'
-        elseif harass == 2 then
-            return 'Harass'
-        elseif lastHit == 3 then
-            return 'Lasthit'
-        elseif laneClear == 4 then
-            return 'Clear'
-        end
-    elseif Orb == 2 then
-		if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
-			return "Combo"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
-			return "Harass"	
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] or _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
-			return "Clear"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] then
-			return "LastHit"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
-			return "Flee"
-		end
-    elseif Orb == 3 then
-        return GOS:GetMode()
-    elseif Orb == 4 then
-        return _G.gsoSDK.Orbwalker:GetMode()
-    end
+	elseif _G.PremiumOrbwalker then
+		return _G.PremiumOrbwalker:GetMode()
+	end
+	return nil
 end
 
 local function GetAllyHeroes() 
@@ -236,25 +214,16 @@ function Activator:__init()
 	self:OnLoad()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:OnDraw() end)
-	if _G.EOWLoaded then
-		Orb = 1
-	elseif _G.SDK and _G.SDK.Orbwalker then
-		Orb = 2
-	elseif _G.GOS then
-		Orb = 3
-	elseif _G.gsoSDK then
-		Orb = 4
-	end	
 end
 
 function Activator:LoadMenu()
     
     self.Menu = MenuElement({type = MENU, id = "Activator", leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png"})
-    
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.22"}})    
 	
 	--Shield/Heal MyHero
-    self.Menu:MenuElement({id = "ZS", name = "MyHero Shield+Heal Items", type = MENU})
-    self.Menu.ZS:MenuElement({id = "self", name = "MyHero Shield+Heal Items", type = MENU})	
+    self.Menu:MenuElement({id = "ZS", name = "MyHero/Ally Shield + Heal Items", type = MENU})
+    self.Menu.ZS:MenuElement({id = "self", name = "MyHero Shield + Heal Items", type = MENU})	
 
     self.Menu.ZS.self:MenuElement({id = "UseZ", name = "Zhonya's", value = true, leftIcon = "https://de.share-your-photo.com/img/76fbcec284.jpg"})
 	self.Menu.ZS.self:MenuElement({id = "myHPZ", name = "[HP Setting]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
@@ -282,19 +251,21 @@ function Activator:LoadMenu()
 ------------------------------------------------------------------------------------------------------------------------------------------------------	
 	--Shield/Heal Ally    
 	
-	self.Menu.ZS:MenuElement({id = "ally", name = "Ally Shield+Heal Items", type = MENU})
- 
-    self.Menu.ZS.ally:MenuElement({id = "Red", name = "Redemption", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/94/Redemption_item.png"})
-	self.Menu.ZS.ally:MenuElement({id = "allyHP", name = "[AllyHP]", value = 30, min = 0, max = 100, step = 1, identifier = "%"}) 
- 
-	self.Menu.ZS.ally:MenuElement({id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3190.png"})	
-	self.Menu.ZS.ally:MenuElement({id = "IronHP", name = "[AllyHP]", value = 30, min = 0, max = 100, step = 1, identifier = "%"})	
-    
-    self.Menu.ZS.ally:MenuElement({id = "Mika", name = "Mikael's Crucible[AntiCC]", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3222.png"})    
+	self.Menu.ZS:MenuElement({id = "ally", name = "Ally Shield + Heal Items", type = MENU}) 
+
+	DelayAction(function()		
+		for i = 1, GameHeroCount() do
+        local unit = GameHero(i)
+			if unit and unit.team == myHero.team and unit ~= myHero then
+				self.Menu.ZS.ally:MenuElement({id = unit.charName, name = unit.charName, type = MENU}) 
+			end	
+		end
+	end,0.3)
+
 -----------------------------------------------------------------------------------------------------------------------------------------------------------
 	--Target Items
 
-    self.Menu:MenuElement({id = "Dmg", name = "TargetItems[ComboMode]", type = MENU})
+    self.Menu:MenuElement({id = "Dmg", name = "TargetItems [ComboMode]", type = MENU})
 	
  	self.Menu.Dmg:MenuElement({id = "Spell", name = "Spellbinder", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/0f/Spellbinder_item.png"})    
 	self.Menu.Dmg:MenuElement({id = "Tia", name = "Tiamat", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3077.png"})    
@@ -384,8 +355,25 @@ function Activator:LoadMenu()
 	self.Menu.summ.SmiteMenu.AutoSmiterH:MenuElement({id = "Enabled", name = "Smite Logic", value = 2, drop = {"AutoSmite Always", "AutoSmite KillSteal"}})
 	self.Menu.summ.SmiteMenu.AutoSmiterH:MenuElement({id = "Ammo", name = "Safe 1 Smite for Jungle", value = true})	
 end
+
+function Activator:LoadAllyMenu()
+	for i, unit in ipairs(GetAllyHeroes()) do
+		if self.Menu.ZS.ally[unit.charName] then
+			self.Menu.ZS.ally[unit.charName]:MenuElement({ id = "Red", name = "Use Redemption", value = true, leftIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/94/Redemption_item.png"})
+			self.Menu.ZS.ally[unit.charName]:MenuElement({id = "allyHP", name = "[AllyHP] Redemption", value = 30, min = 0, max = 100, step = 1, identifier = "%"}) 
+			self.Menu.ZS.ally[unit.charName]:MenuElement({ id = "Iron", name = "Use Iron Solari", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3190.png"})
+			self.Menu.ZS.ally[unit.charName]:MenuElement({id = "IronHP", name = "[AllyHP] Iron Solari", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
+			self.Menu.ZS.ally[unit.charName]:MenuElement({ id = "Mika", name = "Use Mikael's Crucible[AntiCC]", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/item/3222.png"})			
+		end
+	end
+end	
 	
 function Activator:Tick()
+if not AllyMenuLoaded then 
+	self:LoadAllyMenu()
+	AllyMenuLoaded = true
+end
+
 if MyHeroNotReady() then return end  
 local Mode = GetMode()
 	if Mode == "Combo" then
@@ -568,9 +556,9 @@ function Activator:AutoSmiteMinion(type,minion)
 	if self.Menu.summ.SmiteMenu.AutoSmiter[type]:Value() then
 		if minion.pos2D.onScreen then
 			if mySmiteSlot == SUMMONER_1 then
-				ControlCastSpell(HK_SUMMONER_1,minion)
+				Control.CastSpell(HK_SUMMONER_1,minion)
 			else
-				ControlCastSpell(HK_SUMMONER_2,minion)
+				Control.CastSpell(HK_SUMMONER_2,minion)
 			end
 		end
 	end
@@ -622,11 +610,11 @@ if target == nil or mySmiteSlot == 0 then return end
 
 							if target.health <= smiteDmg then
 								if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
-									ControlCastSpell(HK_SUMMONER_1,target)
+									Control.CastSpell(HK_SUMMONER_1,target)
 									
 								end	
 								if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
-									ControlCastSpell(HK_SUMMONER_2,target)
+									Control.CastSpell(HK_SUMMONER_2,target)
 								end
 							end
 						end
@@ -637,10 +625,10 @@ if target == nil or mySmiteSlot == 0 then return end
 						if (SData.ammo > 1) then
 
 							if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
-								ControlCastSpell(HK_SUMMONER_1,target)
+								Control.CastSpell(HK_SUMMONER_1,target)
 							end	
 							if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
-								ControlCastSpell(HK_SUMMONER_2,target)
+								Control.CastSpell(HK_SUMMONER_2,target)
 							end
 						end
 					end
@@ -654,11 +642,11 @@ if target == nil or mySmiteSlot == 0 then return end
 
 							if target.health <= smiteDmg then
 								if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
-									ControlCastSpell(HK_SUMMONER_1,target)
+									Control.CastSpell(HK_SUMMONER_1,target)
 									
 								end	
 								if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
-									ControlCastSpell(HK_SUMMONER_2,target)
+									Control.CastSpell(HK_SUMMONER_2,target)
 								end
 							end
 						end
@@ -669,10 +657,10 @@ if target == nil or mySmiteSlot == 0 then return end
 						if (SData.ammo > 0) then
 
 							if mySmiteSlot == SUMMONER_1 and Ready(SUMMONER_1) then
-								ControlCastSpell(HK_SUMMONER_1,target)
+								Control.CastSpell(HK_SUMMONER_1,target)
 							end	
 							if mySmiteSlot == SUMMONER_2 and Ready(SUMMONER_2) then
-								ControlCastSpell(HK_SUMMONER_2,target)
+								Control.CastSpell(HK_SUMMONER_2,target)
 							end
 						end
 					end
@@ -701,11 +689,11 @@ if target == nil then return end
 local Omen, Glory = GetInventorySlotItem(3143), GetInventorySlotItem(3800)   	
 	if IsValid(target) then		
 		if Omen and self.Menu.Dmg.Omen:Value() and self:EnemiesAround(myHero, 500) >= self.Menu.Dmg.Ocount:Value() and myHero.pos:DistanceTo(target.pos) <= 450 then
-            ControlCastSpell(ItemHotKey[Omen])
+            Control.CastSpell(ItemHotKey[Omen])
         end	
 
 		if Glory and self.Menu.Dmg.Glory:Value() and myHero.pos:DistanceTo(target.pos) <= 250 and self:EnemiesAround(myHero, 450) >= self.Menu.Dmg.Gcount:Value() then
-            ControlCastSpell(ItemHotKey[Glory])
+            Control.CastSpell(ItemHotKey[Glory])
         end
 	end
 end
@@ -717,27 +705,27 @@ local Zo, St, Se, Ed, Mi, Qu, Mik, Iro, Re = GetInventorySlotItem(3157), GetInve
 	if self:EnemiesAround(myHero, 1000) > 0 then
         
 		if Zo and self.Menu.ZS.self.UseZ:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHPZ:Value()/100 then
-            ControlCastSpell(ItemHotKey[Zo])
+            Control.CastSpell(ItemHotKey[Zo])
         end
     
 		if St and self.Menu.ZS.self.UseS:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHPS:Value()/100 then
-            ControlCastSpell(ItemHotKey[St])
+            Control.CastSpell(ItemHotKey[St])
         end
 		
 		if Se and self.Menu.ZS.self.Sera:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.SeraHP:Value()/100 then
-            ControlCastSpell(ItemHotKey[Se])
+            Control.CastSpell(ItemHotKey[Se])
         end	
 
 		if Ed and self.Menu.ZS.self.Edge:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.EdgeHP:Value()/100 then
-            ControlCastSpell(ItemHotKey[Ed])
+            Control.CastSpell(ItemHotKey[Ed])
         end
 
 		if Iro and self.Menu.ZS.self.Iron:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.IronHP:Value()/100 then
-            ControlCastSpell(ItemHotKey[Iro])
+            Control.CastSpell(ItemHotKey[Iro])
         end	
 
 		if Re and self.Menu.ZS.self.Red:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.RedHP:Value()/100 then
-            ControlCastSpell(ItemHotKey[Re], myHero.pos)
+            Control.CastSpell(ItemHotKey[Re], myHero.pos)
         end			
     end
 	
@@ -746,15 +734,15 @@ local Zo, St, Se, Ed, Mi, Qu, Mik, Iro, Re = GetInventorySlotItem(3157), GetInve
 	if Immobile then
 		
 		if Mi and self.Menu.ZS.self.Mira:Value() then
-            ControlCastSpell(ItemHotKey[Mi])
+            Control.CastSpell(ItemHotKey[Mi])
         end
 		
 		if Qu and self.Menu.ZS.self.Quick:Value() then
-            ControlCastSpell(ItemHotKey[Qu])
+            Control.CastSpell(ItemHotKey[Qu])
         end
 
 		if Mik and self.Menu.ZS.self.Mika:Value() then
-            ControlCastSpell(ItemHotKey[Mik], myHero)
+            Control.CastSpell(ItemHotKey[Mik], myHero)
         end		
 	end
 end
@@ -764,10 +752,10 @@ function Activator:QSS()
     local S, Z = GetInventorySlotItem(2420), GetInventorySlotItem(3157)
     if self.Menu.ZS.self.QSS.UseSZ:Value() and hasBuff then
         if S then
-			ControlCastSpell(ItemHotKey[S])
+			Control.CastSpell(ItemHotKey[S])
 		end	
 		if Z then
-			ControlCastSpell(ItemHotKey[Z])
+			Control.CastSpell(ItemHotKey[Z])
 		end	
     end
 end
@@ -776,35 +764,26 @@ end
 
 function Activator:Ally()
 	for i, ally in pairs(GetAllyHeroes()) do
-	local EnemyNear = self:EnemiesAround(ally, 1500)	
-	local Re = GetInventorySlotItem(3107)	
-		if Re and self.Menu.ZS.ally.Red:Value() and ally.health/ally.maxHealth < self.Menu.ZS.ally.allyHP:Value()/100 and myHero.pos:DistanceTo(ally.pos) <= 5500 and EnemyNear > 0 then
+		local EnemyNear = self:EnemiesAround(ally, 1500)	
+		local Re, Mik, Iro = GetInventorySlotItem(3107), GetInventorySlotItem(3222), GetInventorySlotItem(3190)	
+		if Re and self.Menu.ZS.ally[ally.charName].Red and self.Menu.ZS.ally[ally.charName].Red:Value() and ally.health/ally.maxHealth < self.Menu.ZS.ally[ally.charName].allyHP:Value()/100 and myHero.pos:DistanceTo(ally.pos) <= 5500 and EnemyNear > 0 and not ally.dead then
 			
 			if ally.pos:To2D().onScreen then						
-				ControlCastSpell(ItemHotKey[Re], ally.pos) 
+				Control.CastSpell(ItemHotKey[Re], ally.pos) 
 				
 			elseif not ally.pos:To2D().onScreen then			
 				CastSpellMM(ItemHotKey[Re], ally.pos, 5500)
 			end
 		end
-	end	
-
-local target = GetTarget(1500)
-if target == nil then return end
-local Mik, Iro = GetInventorySlotItem(3222), GetInventorySlotItem(3190)   
-	
-	for i, ally in pairs(GetAllyHeroes()) do
-	local Immobile = Cleans(ally)
-		if Iro and self.Menu.ZS.ally.Iron:Value() and ally.health/ally.maxHealth < self.Menu.ZS.ally.IronHP:Value()/100 and myHero.pos:DistanceTo(ally.pos) <= 600 and not ally.dead then
-            ControlCastSpell(ItemHotKey[Iro])
+		
+		if Iro and self.Menu.ZS.ally[ally.charName].Iron and self.Menu.ZS.ally[ally.charName].Iron:Value() and ally.health/ally.maxHealth < self.Menu.ZS.ally[ally.charName].IronHP:Value()/100 and myHero.pos:DistanceTo(ally.pos) <= 600 and EnemyNear > 0 and not ally.dead then
+            Control.CastSpell(ItemHotKey[Iro])
         end				
 
-		if myHero.pos:DistanceTo(ally.pos) <= 600 and not ally.dead and Immobile then
-			if Mik and self.Menu.ZS.ally.Mika:Value() then
-				ControlCastSpell(ItemHotKey[Mik], ally)
-			end	
+		if Mik and self.Menu.ZS.ally[ally.charName].Mika and self.Menu.ZS.ally[ally.charName].Mika:Value() and myHero.pos:DistanceTo(ally.pos) <= 600 and not ally.dead and Cleans(ally) and EnemyNear > 0 then
+			Control.CastSpell(ItemHotKey[Mik], ally)
         end		
-	end
+	end	
 end
 
 -- Target Items -----------------------------
@@ -816,51 +795,51 @@ local Tia, Rave, Tita, Blade, Bilg, Glp, Gun, Proto, Omen, Glory, Twin, Spell = 
 	if IsValid(target) then
         
 		if Tia and self.Menu.Dmg.Tia:Value() and myHero.pos:DistanceTo(target.pos) <= 400 then
-            ControlCastSpell(ItemHotKey[Tia])
+            Control.CastSpell(ItemHotKey[Tia])
         end
 		
 		if Rave and self.Menu.Dmg.Rave:Value() and myHero.pos:DistanceTo(target.pos) <= 400 then
-            ControlCastSpell(ItemHotKey[Rave])
+            Control.CastSpell(ItemHotKey[Rave])
         end
 		
 		if Tita and self.Menu.Dmg.Tita:Value() and myHero.pos:DistanceTo(target.pos) <= 400 then
-            ControlCastSpell(ItemHotKey[Tita])
+            Control.CastSpell(ItemHotKey[Tita])
         end
 		
 		if Blade and self.Menu.Dmg.Blade:Value() and myHero.pos:DistanceTo(target.pos) <= 550 then
-            ControlCastSpell(ItemHotKey[Blade])
+            Control.CastSpell(ItemHotKey[Blade])
         end
 		
 		if Bilg and self.Menu.Dmg.Bilg:Value() and myHero.pos:DistanceTo(target.pos) <= 550 then
-            ControlCastSpell(ItemHotKey[Bilg])
+            Control.CastSpell(ItemHotKey[Bilg])
         end	
 
 		if Glp and self.Menu.Dmg.Glp:Value() and myHero.pos:DistanceTo(target.pos) <= 800 then
-            ControlCastSpell(ItemHotKey[Glp], target.pos)
+            Control.CastSpell(ItemHotKey[Glp], target.pos)
         end	
 
 		if Gun and self.Menu.Dmg.Gun:Value() and myHero.pos:DistanceTo(target.pos) <= 700 then
-            ControlCastSpell(ItemHotKey[Gun], target.pos)
+            Control.CastSpell(ItemHotKey[Gun], target.pos)
         end
 
 		if Proto and self.Menu.Dmg.Proto:Value() and myHero.pos:DistanceTo(target.pos) <= 800 then
-            ControlCastSpell(ItemHotKey[Proto], target.pos)
+            Control.CastSpell(ItemHotKey[Proto], target.pos)
         end	
 
 		if Omen and self.Menu.Dmg.Omen:Value() and myHero.pos:DistanceTo(target.pos) <= 500 then
-            ControlCastSpell(ItemHotKey[Omen])
+            Control.CastSpell(ItemHotKey[Omen])
         end	
 
 		if Glory and self.Menu.Dmg.Glory:Value() and myHero.pos:DistanceTo(target.pos) <= 450 then
-            ControlCastSpell(ItemHotKey[Glory])
+            Control.CastSpell(ItemHotKey[Glory])
         end	
 
 		if Twin and self.Menu.Dmg.Twin:Value() and myHero.pos:DistanceTo(target.pos) <= self.Menu.Dmg.maxRange:Value() and myHero.pos:DistanceTo(target.pos) >= self.Menu.Dmg.minRange:Value() then
-            ControlCastSpell(ItemHotKey[Twin])
+            Control.CastSpell(ItemHotKey[Twin])
         end	
 
 		if Spell and self.Menu.Dmg.Spell:Value() and myHero.pos:DistanceTo(target.pos) <= 600 then
-            ControlCastSpell(ItemHotKey[Spell])
+            Control.CastSpell(ItemHotKey[Spell])
         end		
     end
 end
@@ -901,16 +880,16 @@ if (myPotTicks + 1000 < GetTickCount()) and self.Menu.Healing.Enabled:Value() th
 	end	
 	if (currentlyDrinkingPotion == false) and myHero.health/myHero.maxHealth <= self.Menu.Healing.UsePotsPercent:Value()/100 then
 		if HealthPotionSlot and self.Menu.Healing.UsePots:Value() then
-			ControlCastSpell(ItemHotKey[HealthPotionSlot])
+			Control.CastSpell(ItemHotKey[HealthPotionSlot])
 		end
 		if CookiePotionSlot and self.Menu.Healing.UseCookies:Value() then
-			ControlCastSpell(ItemHotKey[CookiePotionSlot])
+			Control.CastSpell(ItemHotKey[CookiePotionSlot])
 		end
 		if RefillablePotSlot and self.Menu.Healing.UseRefill:Value() then
-			ControlCastSpell(ItemHotKey[RefillablePotSlot])
+			Control.CastSpell(ItemHotKey[RefillablePotSlot])
 		end
 		if CorruptPotionSlot and self.Menu.Healing.UseCorrupt:Value() then
-			ControlCastSpell(ItemHotKey[CorruptPotionSlot])
+			Control.CastSpell(ItemHotKey[CorruptPotionSlot])
 		end
 	end
 end
@@ -927,9 +906,9 @@ if target == nil then return end
     if IsValid(target) then
         if self.Menu.summ.heal.self:Value() and MyHp <= self.Menu.summ.heal.selfhp:Value()/100 then
             if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and Ready(SUMMONER_1) then
-                ControlCastSpell(HK_SUMMONER_1, myHero)
+                Control.CastSpell(HK_SUMMONER_1, myHero)
             elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" and Ready(SUMMONER_2) then
-                ControlCastSpell(HK_SUMMONER_2, myHero)
+                Control.CastSpell(HK_SUMMONER_2, myHero)
             end
         end
         for i, ally in pairs(GetAllyHeroes()) do
@@ -937,35 +916,35 @@ if target == nil then return end
             if self.Menu.summ.heal.ally:Value() and AllyHp <= self.Menu.summ.heal.allyhp:Value()/100 then
                 if IsValid(ally) and myHero.pos:DistanceTo(ally.pos) <= 850 and not ally.dead then
                     if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and Ready(SUMMONER_1) then
-                        ControlCastSpell(HK_SUMMONER_1, ally)
+                        Control.CastSpell(HK_SUMMONER_1, ally)
                     elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" and Ready(SUMMONER_2) then
-                        ControlCastSpell(HK_SUMMONER_2, ally)
+                        Control.CastSpell(HK_SUMMONER_2, ally)
                     end
                 end
             end
         end
         if self.Menu.summ.barr.self:Value() and MyHp <= self.Menu.summ.barr.selfhp:Value()/100 then
             if myHero:GetSpellData(SUMMONER_1).name == "SummonerBarrier" and Ready(SUMMONER_1) then
-                ControlCastSpell(HK_SUMMONER_1, myHero)
+                Control.CastSpell(HK_SUMMONER_1, myHero)
             elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBarrier" and Ready(SUMMONER_2) then
-                ControlCastSpell(HK_SUMMONER_2, myHero)
+                Control.CastSpell(HK_SUMMONER_2, myHero)
             end
         end
         local Immobile = Cleans(myHero)
         if self.Menu.summ.clean.self:Value() and Immobile then
             if myHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) then
-                ControlCastSpell(HK_SUMMONER_1, myHero)
+                Control.CastSpell(HK_SUMMONER_1, myHero)
             elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBoost" and Ready(SUMMONER_2) then
-                ControlCastSpell(HK_SUMMONER_2, myHero)
+                Control.CastSpell(HK_SUMMONER_2, myHero)
             end
         end
         local TargetHp = target.health/target.maxHealth
         if self.Menu.summ.ex.target:Value() then
             if myHero.pos:DistanceTo(target.pos) <= 650 and TargetHp <= self.Menu.summ.ex.hp:Value()/100 then
                 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" and Ready(SUMMONER_1) then
-                    ControlCastSpell(HK_SUMMONER_1, target)
+                    Control.CastSpell(HK_SUMMONER_1, target)
                 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and Ready(SUMMONER_2) then
-                    ControlCastSpell(HK_SUMMONER_2, target)
+                    Control.CastSpell(HK_SUMMONER_2, target)
                 end
             end
         end
@@ -980,18 +959,18 @@ if target == nil then return end
         if self.Menu.summ.ign.ST:Value() == 1 then
 			if TargetHp <= self.Menu.summ.ign.hp:Value()/100 and myHero.pos:DistanceTo(target.pos) <= 600 then
                 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
-                    ControlCastSpell(HK_SUMMONER_1, target)
+                    Control.CastSpell(HK_SUMMONER_1, target)
                 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
-                    ControlCastSpell(HK_SUMMONER_2, target)
+                    Control.CastSpell(HK_SUMMONER_2, target)
                 end
             end
         elseif self.Menu.summ.ign.ST:Value() == 2 then       
 			local IGdamage = 50 + 20 * myHero.levelData.lvl
 			if myHero.pos:DistanceTo(target.pos) <= 600 and target.health  <= IGdamage then
                 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
-                    ControlCastSpell(HK_SUMMONER_1, target)
+                    Control.CastSpell(HK_SUMMONER_1, target)
                 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
-                    ControlCastSpell(HK_SUMMONER_2, target)
+                    Control.CastSpell(HK_SUMMONER_2, target)
                 end
             end
         end		
