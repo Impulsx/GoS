@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.22
+    local Version = 0.23
     
     local Files =
     {
@@ -214,15 +214,32 @@ function Activator:__init()
 	self:OnLoad()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:OnDraw() end)
+	
 end
 
 function Activator:LoadMenu()
     
     self.Menu = MenuElement({type = MENU, id = "Activator", leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png"})
-	self.Menu:MenuElement({name = " ", drop = {"Version 0.22"}})    
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.23"}})    
 	
 	--Shield/Heal MyHero
     self.Menu:MenuElement({id = "ZS", name = "MyHero/Ally Shield + Heal Items", type = MENU})
+	
+	self.Menu.ZS:MenuElement({type = MENU, id = "MikaCC", name = "CC Settings: Mikael's / Qss"})			
+	self.Menu.ZS.MikaCC:MenuElement({ id = "Stun", name = "Use on Stun", value = true})
+	self.Menu.ZS.MikaCC:MenuElement({ id = "Silence", name = "Use on Silence", value = true})
+	self.Menu.ZS.MikaCC:MenuElement({ id = "Taunt", name = "Use on Taunt", value = true})
+	self.Menu.ZS.MikaCC:MenuElement({ id = "Polymorph", name = "Use on Polymorph", value = true})
+	self.Menu.ZS.MikaCC:MenuElement({ id = "Slow", name = "Use on Slow", value = true})
+	self.Menu.ZS.MikaCC:MenuElement({ id = "Snare", name = "Use on Snare", value = true})
+	self.Menu.ZS.MikaCC:MenuElement({ id = "Fear", name = "Use on Fear", value = true})
+	self.Menu.ZS.MikaCC:MenuElement({ id = "Charm", name = "Use on Charm", value = true})
+	self.Menu.ZS.MikaCC:MenuElement({ id = "Suppression", name = "Use on Suppression", value = true})
+	self.Menu.ZS.MikaCC:MenuElement({ id = "Blind", name = "Use on Blind", value = true})
+	self.Menu.ZS.MikaCC:MenuElement({ id = "KnockUp", name = "Use on KnockUp", value = true})
+	self.Menu.ZS.MikaCC:MenuElement({ id = "KnockBack", name = "Use on KnockBack", value = true})
+	self.Menu.ZS.MikaCC:MenuElement({ id = "Disarm", name = "Use on Disarm", value = true})	
+	
     self.Menu.ZS:MenuElement({id = "self", name = "MyHero Shield + Heal Items", type = MENU})	
 
     self.Menu.ZS.self:MenuElement({id = "UseZ", name = "Zhonya's", value = true, leftIcon = "https://de.share-your-photo.com/img/76fbcec284.jpg"})
@@ -442,38 +459,6 @@ function Activator:GetSmite(smiteSlot)
 	return returnVal;
 end
 
-local CleanBuffs =
-{
-    [5] = true,
-    [7] = true,
-    [8] = true,
-	[9] = true,
-	[10] = true,
-	[11] = true,
-	[20] = true,
-    [21] = true,
-    [22] = true,
-	[24] = true,
-    [25] = true,
-	[28] = true,
-    [31] = true,
-    [34] = true 
-}
-
-local function Cleans(unit)
-    for i = 0, unit.buffCount do
-        local buff = unit:GetBuff(i)
-        if buff then
-            local bCount = buff.count;
-            local bType = buff.type;
-            if (bCount and bType and bCount > 0 and CleanBuffs[bType]) then
-                return true
-            end
-        end
-    end
-    return false
-end
-
 local function IsValid(unit)
     if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) then
         return true;
@@ -497,6 +482,38 @@ local function HasBuff(unit, buffname)
 		end
 	end
 	return false
+end
+
+function Activator:Cleans(unit)
+	local CleanBuffs =
+	{
+		[5]  = self.Menu.ZS.MikaCC.Stun:Value(),				--Stun
+		[7]  = self.Menu.ZS.MikaCC.Silence:Value(),				--Silence
+		[8]  = self.Menu.ZS.MikaCC.Taunt:Value(),				--Taunt
+		[9]  = self.Menu.ZS.MikaCC.Polymorph:Value(),			--Polymorph
+		[10] = self.Menu.ZS.MikaCC.Slow:Value(),				--Slow
+		[11] = self.Menu.ZS.MikaCC.Snare:Value(),				--Snare
+		[21] = self.Menu.ZS.MikaCC.Fear:Value(),				--Fear
+		[22] = self.Menu.ZS.MikaCC.Charm:Value(),				--Charm
+		[24] = self.Menu.ZS.MikaCC.Suppression:Value(),			--Suppression
+		[25] = self.Menu.ZS.MikaCC.Blind:Value(),				--Blind
+		[29] = self.Menu.ZS.MikaCC.KnockUp:Value(),				--KnockUp
+		[30] = self.Menu.ZS.MikaCC.KnockBack:Value(),			--KnockBack
+		[31] = self.Menu.ZS.MikaCC.Disarm:Value()				--Disarm
+	}    
+	
+	for i = 0, unit.buffCount do
+        local buff = unit:GetBuff(i)
+        if buff then
+		--print(buff.type)
+            local bCount = buff.count;
+            local bType = buff.type;
+            if (bCount and bType and bCount > 0 and CleanBuffs[bType]) then
+                return true
+            end
+        end
+    end
+    return false
 end
 
 function Activator:EnemiesAround(pos, range)
@@ -729,7 +746,7 @@ local Zo, St, Se, Ed, Mi, Qu, Mik, Iro, Re = GetInventorySlotItem(3157), GetInve
         end			
     end
 	
-	local Immobile = Cleans(myHero)
+	local Immobile = self:Cleans(myHero)
 
 	if Immobile then
 		
@@ -780,7 +797,7 @@ function Activator:Ally()
             Control.CastSpell(ItemHotKey[Iro])
         end				
 
-		if Mik and self.Menu.ZS.ally[ally.charName].Mika and self.Menu.ZS.ally[ally.charName].Mika:Value() and myHero.pos:DistanceTo(ally.pos) <= 600 and not ally.dead and Cleans(ally) and EnemyNear > 0 then
+		if Mik and self.Menu.ZS.ally[ally.charName].Mika and self.Menu.ZS.ally[ally.charName].Mika:Value() and myHero.pos:DistanceTo(ally.pos) <= 600 and not ally.dead and self:Cleans(ally) and EnemyNear > 0 then
 			Control.CastSpell(ItemHotKey[Mik], ally)
         end		
 	end	
@@ -930,7 +947,7 @@ if target == nil then return end
                 Control.CastSpell(HK_SUMMONER_2, myHero)
             end
         end
-        local Immobile = Cleans(myHero)
+        local Immobile = self:Cleans(myHero)
         if self.Menu.summ.clean.self:Value() and Immobile then
             if myHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) then
                 Control.CastSpell(HK_SUMMONER_1, myHero)
