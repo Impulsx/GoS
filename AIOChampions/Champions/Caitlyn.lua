@@ -94,7 +94,7 @@ local TrapCount = 0
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.12"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.13"}})	
 
 	--AutoW  
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})		
@@ -364,7 +364,7 @@ function KillSteal()
 		if Menu.ks.UseR:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) <= 3500 and myHero.pos:DistanceTo(target.pos) >= Menu.ks.Rrange:Value() then
 			local count = EnemyInRange(Menu.ks.enemy:Value())
 			local RDmg = getdmg("R", target, myHero) 
-			if RDmg >= target.health and count == 0 then			
+			if RDmg >= target.health and count == 0 and IsValid(target) then			
 				if Menu.ks.Turret:Value() then	
 					if not IsUnderTurret(myHero) then	
 						if target.pos2D.onScreen then 		
