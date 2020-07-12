@@ -36,7 +36,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.26
+    local Version = 0.27
     
     local Files = {
         Lua = {
@@ -693,7 +693,7 @@ end
 function Irelia:LoadMenu()                     	
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "Irelia", name = "PussyIrelia"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.26"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 0.27"}})
 
 self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
 	
@@ -858,7 +858,7 @@ local Mode = GetMode()
 			end	
 		elseif Mode == "Harass" then
 			self:Harass()
-		elseif Mode == "Clear" then
+		elseif Mode == "LaneClear" then
 			self:JungleClear()
 			self:Clear()
 		elseif Mode == "Flee" then
