@@ -94,7 +94,7 @@ local TrapCount = 0
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.13"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.14"}})	
 
 	--AutoW  
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})		
@@ -332,8 +332,7 @@ end
 function AutoE()
 	for i, target in ipairs(GetEnemyHeroes()) do
 		if Menu.AntiGap[target.networkID] and Menu.AntiGap[target.networkID]:Value() and myHero.pos:DistanceTo(target.pos) < 1000 then
-            if target and Ready(_E) and target.pathing.isDashing and target.pathing.dashSpeed > 0 and myHero.pos:DistanceTo(target.pos) < 600 then	
-				print("Cast")
+            if target and Ready(_E) and target.pathing.isDashing and target.pathing.dashSpeed > 0 and myHero.pos:DistanceTo(target.pos) < 600 and not IsImmobileTarget(target) then	
 				Control.CastSpell(HK_E, target.pos)
 			end
 		end 
