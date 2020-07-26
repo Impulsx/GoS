@@ -42,7 +42,7 @@ do
         Version = {
             Path = SCRIPT_PATH,
             Name = "PussyLillia.version",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyIrelia.version"
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyLillia.version"
         }
     }
     
