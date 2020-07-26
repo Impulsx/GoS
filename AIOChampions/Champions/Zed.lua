@@ -103,17 +103,17 @@ local function GetDamage(spell)
 	
 	if spell == HK_Q then
 		if GameCanUseSpell(_Q) == 0 then
-			damage = (myHero:GetSpellData(_Q).level * 35 + 45) + AD 
+			damage = damage + ((myHero:GetSpellData(_Q).level * 35 + 45) + AD)
 		end
 	elseif spell == HK_E then
 		if GameCanUseSpell(_E) == 0 then
-			damage = (myHero:GetSpellData(_E).level * 25 + 45) + AD * 0.8
+			damage = damage + ((myHero:GetSpellData(_E).level * 25 + 45) + AD * 0.8)
 		end
 	elseif spell == Ignite then
 		if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and GameCanUseSpell(SUMMONER_1) == 0 then
-			damage = 50 + 20 * myHero.levelData.lvl
+			damage = damage +  (50 + 20 * myHero.levelData.lvl)
 		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and GameCanUseSpell(SUMMONER_2) == 0 then
-			damage = 50 + 20 * myHero.levelData.lvl
+			damage = damage +  (50 + 20 * myHero.levelData.lvl)
 		end	
 	end
 	return damage
@@ -166,7 +166,7 @@ local RTime = 0
 function LoadScript()
 	--OnProcessSpell()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})			
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
