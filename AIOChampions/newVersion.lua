@@ -87,7 +87,7 @@ Data = {
         },
          Ahri = {
             Changelog = "Ahri Changelog Here",
-            Version = 0.09,
+            Version = 0.10,
         },
          Ekko = {
             Changelog = "Ekko Changelog Here",
@@ -163,7 +163,7 @@ Data = {
         },
           Blitzcrank = {
             Changelog = "Blitzcrank Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         }, 
            FiddleSticks = {
             Changelog = "Fiddlesticks Changelog Here",
