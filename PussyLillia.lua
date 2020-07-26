@@ -31,7 +31,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.01
+    local Version = 0.02
     
     local Files = {
         Lua = {
@@ -375,7 +375,7 @@ self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
 	--ComboMenu  
 	self.Menu.ComboSet:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
 	self.Menu.ComboSet.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
-	self.Menu.ComboSet.Combo:MenuElement({id = "QLogic", name = "[Q] Logic", value = 1, drop = {"Auto Q only outer range (TrueDmg)", "Auto Q always"}})	
+	self.Menu.ComboSet.Combo:MenuElement({id = "QLogic", name = "[Q] Logic", value = 1, drop = {"Q only outer range (TrueDmg)", "Q always"}})	
 	self.Menu.ComboSet.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	self.Menu.ComboSet.Combo:MenuElement({id = "UseE", name = "[E] only in Cast range", value = true})	
 	self.Menu.ComboSet.Combo:MenuElement({id = "UseR", name = "[R]Single Target if killable", value = true})
