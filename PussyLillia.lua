@@ -31,7 +31,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.02
+    local Version = 0.03
     
     local Files = {
         Lua = {
@@ -342,6 +342,12 @@ function Lillia:__init()
 
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
+	
+	if _G.SDK then
+		_G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
+	elseif _G.PremiumOrbwalker then
+		_G.PremiumOrbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
+	end	
 
 	if PredLoaded == false then
 		DelayAction(function()
@@ -362,7 +368,7 @@ end
 function Lillia:LoadMenu()                     	
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "PussyLillia", name = "PussyLillia"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.01"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 
 	--AutoQ
 self.Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ Mode"})	
@@ -404,6 +410,10 @@ self.Menu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
 
 	
 self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
+
+	self.Menu.MiscSet:MenuElement({type = MENU, id = "BlockAA", name = "Block AutoAttack"})
+	self.Menu.MiscSet.BlockAA:MenuElement({name = " ", drop = {"BlockAA (Combo/AutoQ) if Q Ready or almost Ready"}})	
+	self.Menu.MiscSet.BlockAA:MenuElement({id = "Block", name = "Toggle Key", key = string.byte("Z"), value = true, toggle = true})
 							
 	--Prediction
 	self.Menu.MiscSet:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
@@ -411,10 +421,11 @@ self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 	self.Menu.MiscSet.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 2, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
 	self.Menu.MiscSet.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})
 	self.Menu.MiscSet.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})	
- 
+
 	--Drawing 
 	self.Menu.MiscSet:MenuElement({type = MENU, id = "Drawing", name = "Drawings Mode"})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "Draw_AutoQ", name = "Draw Auto Q indictator", value = true})
+	self.Menu.MiscSet.Drawing:MenuElement({id = "Draw_BlockAA", name = "Draw Block AA indictator", value = true})	
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
@@ -444,14 +455,25 @@ local Mode = GetMode()
 		self:Clear()	
 	end
 
-	if Mode ~= "Combo" and self.Menu.AutoQ.UseQ:Value() and Ready(_Q) then
+	if Mode ~= "Combo" and self.Menu.AutoQ.UseQ:Value() then
 		self:AutoQ()
 	end	
 end
 
-function Lillia:AutoQ()
+function Lillia:OnPreAttack(args)
+	if self.Menu.MiscSet.BlockAA.Block:Value() then
+		local Mode = GetMode()
+		if ((Mode == "Combo" or self.Menu.AutoQ.UseQ:Value()) and (Ready(_Q) or myHero:GetSpellData(_Q).currentCd < 1.5)) then
+			args.Process = false; return
+		else
+			args.Process = true;
+		end
+	end	
+end
+
+function Lillia:AutoQ()	
 	for i, target in ipairs(GetEnemyHeroes()) do 		
-		if target and myHero.pos:DistanceTo(target.pos) <= 475 and IsValid(target) then			
+		if target and myHero.pos:DistanceTo(target.pos) <= 475 and IsValid(target) and Ready(_Q) then			
 			if self.Menu.AutoQ.QLogic:Value() == 1 then
 				if myHero.pos:DistanceTo(target.pos) > (225+target.boundingRadius) then
 					Control.CastSpell(HK_Q)
@@ -467,6 +489,7 @@ function Lillia:Combo()
 local target = GetTarget(2000)     	
 if target == nil then return end
 	if IsValid(target) then
+
 		if self.Menu.ComboSet.Combo.UseQ:Value() and Ready(_Q) then
 			if self.Menu.ComboSet.Combo.QLogic:Value() == 1 then
 				if myHero.pos:DistanceTo(target.pos) < 475 and myHero.pos:DistanceTo(target.pos) > (225+target.boundingRadius) then
@@ -620,21 +643,32 @@ function Lillia:Draw()
 	end
 
 	if myHero.dead then return end
+	local posX, posY
+	local mePos = myHero.pos:To2D()	
 	
-if self.Menu.MiscSet.Drawing.Draw_AutoQ:Value()  then
-            local posX, posY
-			local mePos = myHero.pos:To2D()
-			posX = mePos.x - 50
-			posY = mePos.y
+	if self.Menu.MiscSet.Drawing.Draw_AutoQ:Value() then
 
-            if self.Menu.AutoQ.UseQ:Value() then
-                Draw.Text("Auto Q Enabled", (15), posX, posY, Draw.Color(240, 000, 255, 000))
-            else
-                Draw.Text("Auto Q Disabled", (15), posX, posY, Draw.Color(255, 255, 000, 000)) 
-            end
-        end
+		posX = mePos.x - 50
+		posY = mePos.y
+
+		if self.Menu.AutoQ.UseQ:Value() then
+			Draw.Text("Auto Q Enabled", (15), posX, posY, Draw.Color(240, 000, 255, 000))
+		else
+			Draw.Text("Auto Q Disabled", (15), posX, posY, Draw.Color(255, 255, 000, 000)) 
+		end
+	end
 	
-	
+	if self.Menu.MiscSet.Drawing.Draw_BlockAA:Value() then	
+
+		posX = mePos.x - 50
+		posY = mePos.y + 16
+
+		if self.Menu.MiscSet.BlockAA.Block:Value() then
+			Draw.Text("Block AA Enabled", (15), posX, posY, Draw.Color(240, 000, 255, 000))
+		else
+			Draw.Text("Block AA Disabled", (15), posX, posY, Draw.Color(255, 255, 000, 000)) 
+		end
+	end	
 	
 	
 	if self.Menu.MiscSet.Drawing.DrawR:Value() and Ready(_R) then
