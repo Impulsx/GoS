@@ -5,7 +5,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.01
+    local Version = 0.02
     
     local Files = {
         Lua = {
@@ -41,7 +41,7 @@ do
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
             print("New YuumiBot Version Press 2x F6")
         else
-            print("YuumiBot loaded")
+            print("YuumiBot Start after 30sec ingame")
         end
     
     end
@@ -67,10 +67,8 @@ local MathHuge = math.huge
 local TableInsert = table.insert
 local GameTimer = Game.Timer
 local Allies, Enemies, Turrets, Units = {}, {}, {}, {}
-local Orb
 local DrawColor = Draw.Color
 local DrawText = Draw.Text
-local ControlCastSpell = Control.CastSpell
 local ControlSetCursorPos = Control.SetCursorPos
 local ControlKeyUp = Control.KeyUp
 local ControlKeyDown = Control.KeyDown
@@ -102,8 +100,8 @@ ItemList[#ItemList+1] = {"dark",1082,350,5}			--- Dark Seal
 ItemList[#ItemList+1] = {"fiendish",3108,900,5}		--- Fiendish Codex
 ItemList[#ItemList+1] = {"athen",3174,400,nil} 		--- Athenes Unholy Grail
 ItemList[#ItemList+1] = {"forbidden",3114,800,7}	--- Forbidden Idol
-ItemList[#ItemList+1] = {"aether",3113,850,7}		--- Aether Wisp
 ItemList[#ItemList+1] = {"ardent",3504,650,nil}	  	--- Ardent Censer
+--ItemList[#ItemList+1] = {"aether",3113,850,9}		--- Aether Wisp
 ItemList[#ItemList+1] = {"chalice",3028,800,9} 		--- Chalice of Harmony
 ItemList[#ItemList+1] = {"mejai",3041,1050,nil}		--- Mejais Soulstealer
 ItemList[#ItemList+1] = {"mikael",3222,1300,nil}	--- Mikaels Crucible
@@ -200,30 +198,11 @@ local function GetDistance(pos1, pos2)
 end
 
 function GetTarget(range) 
-	if Orb == 1 then
-		if myHero.ap > myHero.totalDamage then
-			return EOW:GetTarget(range, EOW.ap_dec, myHero.pos)
-		else
-			return EOW:GetTarget(range, EOW.ad_dec, myHero.pos)
-		end
-	elseif Orb == 2 and TargetSelector then
-		if myHero.ap > myHero.totalDamage then
-			return TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL)
-		else
-			return TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL)
-		end
-	elseif _G.GOS then
-		if myHero.ap > myHero.totalDamage then
-			return GOS:GetTarget(range, "AP")
-		else
-			return GOS:GetTarget(range, "AD")
-        end
-    elseif _G.gsoSDK then
-		return _G.gsoSDK.TS:GetTarget()
-	
+	if _G.SDK then
+		return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
 	elseif _G.PremiumOrbwalker then
 		return _G.PremiumOrbwalker:GetTarget(range)
-	end	
+	end
 end
 
 keybindings = { [ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6}
@@ -265,7 +244,7 @@ end
 
 local function BuffCheck()
 	for i, Ally in pairs(GetAllyHeroes()) do
-		if HasBuff(Ally, "YuumiWAlly") then
+		if Ally and HasBuff(Ally, "YuumiWAlly") then
 			return true
 		end
 	end
@@ -331,11 +310,10 @@ local function GetEnemyCount(range, pos)
 end
 
 local function GetAllyCount(range, pos)
-    local pos = pos.pos
 	local count = 0
 	for i, hero in pairs(GetAllyHeroes()) do
 	local Range = range * range
-		if GetDistanceSqr(pos, hero.pos) < Range then
+		if hero and GetDistanceSqr(pos, hero.pos) < Range then
 		count = count + 1
 		end
 	end
@@ -426,19 +404,19 @@ local function ClickMM(pos,range,delay)
 	if castSpell.state == 1 then
 		if ticker - castSpell.tick < Latency() then
 			local castPosMM = pos:ToMM()
-			ControlSetCursorPos(castPosMM.x,castPosMM.y)
+			Control.SetCursorPos(castPosMM.x,castPosMM.y)
 			Control.mouse_event(MOUSEEVENTF_RIGHTDOWN)
 			Control.mouse_event(MOUSEEVENTF_RIGHTUP)
 			castSpell.casting = ticker + delay
 			DelayAction(function()
 				if castSpell.state == 1 then
-					ControlSetCursorPos(castSpell.mouse)
+					Control.SetCursorPos(castSpell.mouse)
 					castSpell.state = 0
 				end
 			end,Latency()/1000)
 		end
 		if ticker - castSpell.casting > Latency() then
-			ControlSetCursorPos(castSpell.mouse)
+			Control.SetCursorPos(castSpell.mouse)
 			castSpell.state = 0
 		end
 	end
@@ -480,30 +458,24 @@ end
 
 class "Yuumi"
 
-
+local foundMain = false
 
 function Yuumi:__init()
+	self.RecallForBuy = false
 	self.levelUP = false
 	Items = ItemList
 	AllySide = t(myHero.team == 100, "Blue", "Red")
 	EnemySide = t(myHero.team == 200, "Blue", "Red")
 	StartPoint = t(AllySide == "Blue", Vector(105,33,134), Vector(14576,466,14693))
 	EnemyStartPoint = t(AllySide == "Red", Vector(105,33,134), Vector(14576,466,14693))
- 	
+	LanePoint = t(AllySide == "Blue", Vector(10572,49,858), Vector(14014,53,4458)) 
+	BuffPoint = t(AllySide == "Blue", Vector(7960,53,3872), Vector(11132,51,6954)) 	
+ 	self.MainAlly = {}
+	
 	self:LoadMenu()                                            
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)	
-	if _G.EOWLoaded then
-		Orb = 1
-	elseif _G.SDK and _G.SDK.Orbwalker then
-		Orb = 2
-	elseif _G.GOS then
-		Orb = 3
-	elseif _G.gsoSDK then
-		Orb = 4
-	elseif _G.PremiumOrbwalker then
-		Orb = 5		
-	end
+
 end
 
 function Yuumi:LoadMenu()                     
@@ -522,7 +494,7 @@ function Yuumi:LoadMenu()
 	
 	self.Menu:MenuElement({type = MENU, id = "AutoR", name = "Ultimate Settings"})
 	self.Menu.AutoR:MenuElement({id = "UseRE", name = "Use[R] min Immobile Targets", value = 1, min = 1, max = 5})	
-	self.Menu.AutoR:MenuElement({id = "UseRM", name = "Use[R] min Targets", value = 3, min = 1, max = 5})		
+	self.Menu.AutoR:MenuElement({id = "UseRM", name = "Use[R] min Targets", value = 2, min = 1, max = 5})		
 	
 	self.Menu:MenuElement({type = MENU, id = "summ", name = "Summoner Spells"})	
     self.Menu.summ:MenuElement({type = MENU, id = "ex", name = "Exhaust"})
@@ -535,6 +507,10 @@ function Yuumi:LoadMenu()
 	self.Menu:MenuElement({type = MENU, id = "item", name = "Redemption Settings"})	
     self.Menu.item:MenuElement({id = "hp", name = "SingleAlly HP lower than -->", value = 30, min = 5, max = 100, identifier = "%"})  
 	self.Menu.item:MenuElement({id = "min", name = "min Allies under 50% in Radius", value = 2, min = 2, max = 5})	
+	
+	self.Menu:MenuElement({type = MENU, id = "recall", name = "Recall Settings"})
+	self.Menu.recall:MenuElement({name = " ", drop = {"Recall if enough gold and no enemy near"}})	
+    self.Menu.recall:MenuElement({id = "start", name = "Recall if Gold bigger than -->", value = 2000, min = 500, max = 10000, step = 100, identifier = "Gold"})  	
 
 	self.Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
 	self.Menu.Drawing:MenuElement({type = MENU, id = "XY", name = "InfoText Position"})	
@@ -544,50 +520,9 @@ function Yuumi:LoadMenu()
 end
 
 function Yuumi:Tick()
-local count = GetAllyCount(20000, myHero)
+local count = GetAllyCount(20000, myHero.pos)
 	if count == 0 then
-		LoadUnits()
-		
-		if l then
-			DelayAction(function()
-				l = false
-			end,1)
-		end					
-		if not l then
-			DelayAction(function()
-				o = true
-			end,0.1)
-		end
-		if o then
-			DelayAction(function()
-				a = true
-			end,0.1)
-		end
-		if a then
-			DelayAction(function()
-				d = true
-			end,0.1)
-		end
-		if d then
-			DelayAction(function()
-				i = true
-			end,0.1)
-		end
-		if i then
-			DelayAction(function()
-				n = true
-			end,0.1)
-		end
-		if n then
-			DelayAction(function()
-				g = true
-			end,0.1)
-		end
-		if g then	
-			DelayAction(function()
-				l = true o = false a = false d = false i = false n = false g = false
-			end,1)		
-		end		
+		LoadUnits()	
 	end	
 	
 	if count > 0 and self.Menu.start.On:Value() then
@@ -598,25 +533,43 @@ local count = GetAllyCount(20000, myHero)
 
 		if BaseCheck() then	
 			if BuffCheck() then
-				ControlCastSpell(HK_W)
+				Control.CastSpell(HK_W)
 			else
 				DelayAction(function()
 					self:CheckBuy()
 				end,1)
 			end
 		end
-		
-		if not BaseCheck() then
-			--self:HitTower()	
-			self:Redemption()
-			if Redempt then return end
-			self:SearchMain()
-			self:AutoE()
-			self:AutoR()
-			self:Summoner()
-			self:LvlUp()
-			self:Mikaels()			
-		end
+
+		if myHero.gold > self.Menu.recall.start:Value() and GetEnemyCount(2000, myHero) == 0 then
+			local spell = myHero:GetSpellData(_W)
+			if spell.name ~= "YuumiW" then
+				Control.CastSpell(HK_W)
+			else
+				self:NextTower()
+			end	
+		else
+			if not BaseCheck() then
+				if self.RecallForBuy and not IsRecalling(myHero) and Control.IsKeyDown("B") then
+					Control.KeyUp("B")
+					self.RecallForBuy = false
+				end
+			
+				--self:HitTower()	
+				self:Redemption()
+				self:SearchMainAlly()
+				if Redempt then return end
+				self:SearchMain()
+				self:AutoE()
+				self:LvlUp()
+				local spell = myHero:GetSpellData(_W)
+				if spell.name ~= "YuumiW" then
+					self:AutoR()
+					self:Summoner()
+					self:Mikaels()
+				end	
+			end
+		end	
 	end
 end 
 
@@ -632,42 +585,18 @@ function Yuumi:Draw()
 	else
 		DrawText("OFF", 15, self.Menu.Drawing.XY.x:Value()+74, self.Menu.Drawing.XY.y:Value()+15, DrawColor(255, 255, 0, 0)) 
 	end
-	for i, Ally in pairs(GetAllyHeroes()) do
-		local bestAlly = Yuumi:MainAlly()
-		DrawText("Main Ally: ", 15, self.Menu.Drawing.XY.x:Value(), self.Menu.Drawing.XY.y:Value()+30, DrawColor(255, 225, 255, 0))
-		DrawText("Status: ", 15, self.Menu.Drawing.XY.x:Value(), self.Menu.Drawing.XY.y:Value()+45, DrawColor(255, 225, 255, 0))	
-		if bestAlly then
+
+	DrawText("Main Ally: ", 15, self.Menu.Drawing.XY.x:Value(), self.Menu.Drawing.XY.y:Value()+30, DrawColor(255, 225, 255, 0))
+	DrawText("Status: ", 15, self.Menu.Drawing.XY.x:Value(), self.Menu.Drawing.XY.y:Value()+45, DrawColor(255, 225, 255, 0))	
+		
+	if foundMain == true then		
+		for i, bestAlly in ipairs(self.MainAlly) do
 			DrawText("".. bestAlly.charName, 15, self.Menu.Drawing.XY.x:Value()+74, self.Menu.Drawing.XY.y:Value()+30, DrawColor(255, 0, 255, 0))
-			DrawText("Ready", 15, self.Menu.Drawing.XY.x:Value()+74, self.Menu.Drawing.XY.y:Value()+45, DrawColor(255, 0, 255, 0))		
-		else		
-			if Ally and not bestAlly then return end
-			if not l then
-				DrawText("L", 15, self.Menu.Drawing.XY.x:Value()+74, self.Menu.Drawing.XY.y:Value()+45, DrawColor(255, 255, 0, 0))
-			end
-			if o then
-				DrawText(" o", 15, self.Menu.Drawing.XY.x:Value()+75, self.Menu.Drawing.XY.y:Value()+45, DrawColor(255, 255, 0, 0))
-			end
-			if a then
-				DrawText("  a", 15, self.Menu.Drawing.XY.x:Value()+78, self.Menu.Drawing.XY.y:Value()+45, DrawColor(255, 255, 0, 0))
-			end
-			if d then
-				DrawText("   d", 15, self.Menu.Drawing.XY.x:Value()+81, self.Menu.Drawing.XY.y:Value()+45, DrawColor(255, 255, 0, 0))
-			end
-			if i then
-				DrawText("    i", 15, self.Menu.Drawing.XY.x:Value()+84, self.Menu.Drawing.XY.y:Value()+45, DrawColor(255, 255, 0, 0))
-			end
-			if n then
-				DrawText("     n", 15, self.Menu.Drawing.XY.x:Value()+85, self.Menu.Drawing.XY.y:Value()+45, DrawColor(255, 255, 0, 0))
-			end
-			if g then
-				DrawText("      g", 15, self.Menu.Drawing.XY.x:Value()+88, self.Menu.Drawing.XY.y:Value()+45, DrawColor(255, 255, 0, 0))			
-			end
-		end
-		if Ally and not bestAlly then
-			local NextAlly = NearestAlly(myHero.pos, 30000)
-			DrawText("".. NextAlly.charName, 15, self.Menu.Drawing.XY.x:Value()+74, self.Menu.Drawing.XY.y:Value()+30, DrawColor(255, 0, 255, 0))
 			DrawText("Ready", 15, self.Menu.Drawing.XY.x:Value()+74, self.Menu.Drawing.XY.y:Value()+45, DrawColor(255, 0, 255, 0))
 		end	
+	else
+		DrawText("Search", 15, self.Menu.Drawing.XY.x:Value()+74, self.Menu.Drawing.XY.y:Value()+30, DrawColor(255, 0, 255, 0))
+		DrawText("Walk BotLane", 15, self.Menu.Drawing.XY.x:Value()+74, self.Menu.Drawing.XY.y:Value()+45, DrawColor(255, 0, 255, 0))		
 	end	
 end
 
@@ -680,7 +609,7 @@ function Yuumi:LvlUp()
 		
 		if levelPoints > 0 then
 		 	
-			skillingOrder = {'Q','E','Q','E','Q','R','Q','E','Q','E','R','Q','E','W','W','R','W','W'}				
+			skillingOrder = {'E','Q','E','Q','E','R','E','Q','E','Q','R','E','Q','W','W','R','W','W'}				
 
 			local QL, WL, EL, RL = 0, 1, 0, 0
 
@@ -753,21 +682,38 @@ function Yuumi:LvlUp()
 	end
 end
 
-function Yuumi:MainAlly()
+function Yuumi:SearchMainAlly()
+if foundMain then return end
 local Allys = GetAllyHeroes()
-local bestAlly, highest = nil, 0
 
 	for i = 1, #Allys do
 		local ally = Allys[i]
-		if ally.range >= 500 then
-			local amount = ally.totalDamage
-			if amount > highest then
-				highest = amount
-				bestAlly = ally
+		
+		if GetAllyCount(2300, LanePoint) == 1 then 
+			if ally.pos:DistanceTo(LanePoint) < 2300 then
+				foundMain = true
+				TableInsert(self.MainAlly, ally)
+			end
+			
+		else
+			if GetAllyCount(2300, LanePoint) > 1 then 
+				local highest = 0
+				local amount = ally.totalDamage
+				if ally.range >= 500 and amount > highest then
+					highest = amount
+					foundMain = true
+					TableInsert(self.MainAlly, ally)
+				end			
+			else
+				if GetAllyCount(1500, BuffPoint) <= 2 then 
+					if ally.pos:DistanceTo(BuffPoint) < 1500 and ally:GetSpellData(SUMMONER_1).name ~= "SummonerSmite" and ally:GetSpellData(SUMMONER_2).name ~= "SummonerSmite" then
+						foundMain = true
+						TableInsert(self.MainAlly, ally)
+					end
+				end	
 			end
 		end	
 	end
-	return bestAlly
 end
 
 function Yuumi:LowestAlly()
@@ -798,13 +744,13 @@ return end
 				
 			if IsUnderTurret(Ally) and spell.name ~= "YuumiW" then
 				TowerHit = true
-				ControlCastSpell(HK_W)
+				Control.CastSpell(HK_W)
 				
 			end	
 		end
 		
 		if spell.name == "YuumiW" then
-			ControlCastSpell(HK_Q, turret.pos)
+			Control.CastSpell(HK_Q, turret.pos)
 		end	
 		
 		if myHero.pos:DistanceTo(Ally.pos) <= 2000 and not IsUnderTurret(Ally) then
@@ -813,56 +759,65 @@ return end
 	end	
 end	
 ]]
-function Yuumi:SearchMain()	
-	local bestAlly = self:MainAlly()	
+function Yuumi:SearchMain()
+		
 	local ready = true
 	if not Ready(_W) then
 		self:NextTower()
 	end	
-	
-	if bestAlly and IsValid(bestAlly) then
-		if not HasBuff(bestAlly, "YuumiWAlly") and Ready(_W) and ready then
-			if myHero.pos:DistanceTo(bestAlly.pos) > 700 then
+
+	local ClickDelay = 0
+	if foundMain then
+		for i, bestAlly in ipairs(self.MainAlly) do	
+			if bestAlly and IsValid(bestAlly) then
 				local spell = myHero:GetSpellData(_W)
-				if spell.name == "YuumiW" then
-					local pos = bestAlly.pos
-					ClickMM(pos,20000,1)
+				if spell.name ~= "YuumiW" and bestAlly.pos:DistanceTo(LanePoint) < 2300 and not HasBuff(bestAlly, "YuumiWAlly") then
+					Control.CastSpell(HK_W)
 				end	
 				
-			else
-				ControlCastSpell(HK_W, bestAlly)
-				ready = false
-				if HasBuff(bestAlly, "YuumiWAlly") then
-					ready = true
+				if not HasBuff(bestAlly, "YuumiWAlly") and Ready(_W) and ready then
+					if myHero.pos:DistanceTo(bestAlly.pos) > 700 and (GameTimer() - ClickDelay) > 1.5 then
+						local spell = myHero:GetSpellData(_W)
+						if spell.name == "YuumiW" then
+							local pos = bestAlly.pos
+							ClickDelay = GameTimer()
+							ClickMM(pos,20000)
+						end	
+						
+					else
+						Control.CastSpell(HK_W, bestAlly)
+						ready = false
+						if HasBuff(bestAlly, "YuumiWAlly") then
+							ready = true
+						end
+					end
 				end
+			else
+				self:Next()
 			end
 		end	
-	else	
-		self:Next()
-	end		
-end	
-
-function Yuumi:NextTower()
-local Tower = NearestTower(myHero.pos, 20000)		
-	if Tower then
-		local pos = Tower.pos
-		ClickMM(pos,20000,1)
 	else
-		local pos = StartPoint
-		ClickMM(pos,20000,1)		
-	end	
-end
+		local pos = LanePoint
+		if pos:To2D().onScreen then return end
+		if (GameTimer() - ClickDelay) > 1.5 then
+			ClickDelay = GameTimer()
+			ClickMM(pos,20000)
+		end	
+	end
+end	
 
 function Yuumi:Next()
 local Ally = NearestAlly(myHero.pos, 20000)	
 local ready = true	
-	if IsValid(Ally) then
+local ClickDelay = 0	
+	if Ally and IsValid(Ally) then
 		if Ready(_W) and not HasBuff(Ally, "YuumiWAlly") and ready then
-			if myHero.pos:DistanceTo(Ally.pos) > 700 then
+			if myHero.pos:DistanceTo(Ally.pos) > 700 and (GameTimer() - ClickDelay) > 1.5 then
 				local pos = Ally.pos
-				ClickMM(pos,20000,1)
+				ClickDelay = GameTimer()
+				ClickMM(pos,20000)
 			else
-				ControlCastSpell(HK_W, Ally)
+				Control.CastSpell(HK_W, Ally)
 				ready = false
 				if HasBuff(Ally, "YuumiWAlly") then
 					ready = true
@@ -871,7 +826,32 @@ local ready = true
 		end
 	else
 		local pos = StartPoint
-		ClickMM(pos,20000,1)		
+		if pos:To2D().onScreen then return end
+		if (GameTimer() - ClickDelay) > 1.5 then		
+			ClickDelay = GameTimer()
+			ClickMM(pos,20000)
+		end	
+	end	
+end
+
+function Yuumi:NextTower()
+local Tower = NearestTower(myHero.pos, 20000)		
+	
+	if myHero.gold > self.Menu.recall.start:Value() and myHero.pos:DistanceTo(Tower.pos) < 200 and not Control.IsKeyDown("B") then
+	    Control.KeyDown("B")
+		self.RecallForBuy = true
+	end
+	
+	if Tower then
+		local Tpos = Tower.pos
+		if myHero.pos:DistanceTo(Tpos) > 700 then
+			ClickMM(Tpos,10000,1)
+		end	
+	else
+		local Spos = StartPoint
+		if myHero.pos:DistanceTo(Spos) > 700 then		
+			ClickMM(Spos,20000,1)
+		end	
 	end	
 end	
 
@@ -880,13 +860,13 @@ local target = GetTarget(1200)
 if target == nil then return end		
 	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 900 and Ready(_R) then	
 		if GetImmobileCount(400, target) >= self.Menu.AutoR.UseRE:Value() then   
-			ControlCastSpell(HK_R, target.pos)
+			Control.CastSpell(HK_R, target.pos)
 		end
 	end
 	
 	if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 500 and Ready(_R) then 
 		if GetEnemyCount(400, target) >= self.Menu.AutoR.UseRM:Value() then   
-			ControlCastSpell(HK_R, target.pos)
+			Control.CastSpell(HK_R, target.pos)
 		end
 	end		
 end	
@@ -899,7 +879,7 @@ function Yuumi:Redemption()
 		if Re and ally.health/ally.maxHealth <= self.Menu.item.hp:Value()/100 and myHero.pos:DistanceTo(ally.pos) <= 5500 then
 			Redempt = true
 			if ally.pos:To2D().onScreen then						
-				ControlCastSpell(ItemHotKey[Re], ally.pos) 
+				Control.CastSpell(ItemHotKey[Re], ally.pos) 
 				Redempt = false
 			elseif not ally.pos:To2D().onScreen then			
 				CastSpellMM(ItemHotKey[Re], ally.pos, 5500)
@@ -910,7 +890,7 @@ function Yuumi:Redemption()
 		if Re and ally.health/ally.maxHealth <= 0.5 and count >= self.Menu.item.min:Value() and myHero.pos:DistanceTo(ally.pos) <= 5500 then
 			Redempt = true
 			if ally.pos:To2D().onScreen then						
-				ControlCastSpell(ItemHotKey[Re], ally.pos) 
+				Control.CastSpell(ItemHotKey[Re], ally.pos) 
 				Redempt = false
 			elseif not ally.pos:To2D().onScreen then			
 				CastSpellMM(ItemHotKey[Re], ally.pos, 5500)
@@ -927,52 +907,53 @@ function Yuumi:Mikaels()
 		local ImmoMe = Cleans(myHero)			
 
 		if Mik and myHero.pos:DistanceTo(ally.pos) <= 600 and IsValid(ally) and ImmoAlly then
-			ControlCastSpell(ItemHotKey[Mik], ally)	
+			Control.CastSpell(ItemHotKey[Mik], ally)	
         end
 
 		if Mik and ImmoMe then
-			ControlCastSpell(ItemHotKey[Mik], myHero)	
+			Control.CastSpell(ItemHotKey[Mik], myHero)	
         end			
 	end
 end		
 
 
 function Yuumi:AutoE()
-	for i, Ally in pairs(GetAllyHeroes()) do	
-		local bestAlly = self:MainAlly()
+	--for i, Ally in pairs(GetAllyHeroes()) do	
 		local lowAlly = self:LowestAlly()
 		local spell = myHero:GetSpellData(_W)
 					 
 		if Ready(_E) and spell.name == "YuumiW" then
 			if myHero.health/myHero.maxHealth <= self.Menu.AutoE.myHP:Value() / 100 then
-				ControlCastSpell(HK_E)
+				Control.CastSpell(HK_E)
 			end
 		end
 		
-		if HasBuff(bestAlly, "YuumiWAlly") and Ready(_E) then
-			if bestAlly.health/bestAlly.maxHealth <= self.Menu.AutoE.MainHP:Value() / 100 then 	
-				ControlCastSpell(HK_E)
-				
-			elseif lowAlly and lowAlly ~= bestAlly and IsValid(lowAlly) and lowAlly.health/lowAlly.maxHealth <= self.Menu.AutoE.AllyHP:Value() / 100  and Ready(_E) and Ready(_W) then
-				ControlCastSpell(HK_W, lowAlly)
+		for k, bestAlly in ipairs(self.MainAlly) do
+			if bestAlly and HasBuff(bestAlly, "YuumiWAlly") and Ready(_E) then
+				if bestAlly.health/bestAlly.maxHealth <= self.Menu.AutoE.MainHP:Value() / 100 then 	
+					Control.CastSpell(HK_E)
+					
+				elseif lowAlly and lowAlly ~= bestAlly and IsValid(lowAlly) and lowAlly.health/lowAlly.maxHealth <= self.Menu.AutoE.AllyHP:Value() / 100  and Ready(_E) and Ready(_W) then
+					Control.CastSpell(HK_W, lowAlly)
+				end
+			end	
+			
+			if lowAlly and HasBuff(lowAlly, "YuumiWAlly") and Ready(_E) then
+				if lowAlly ~= bestAlly and lowAlly.health/lowAlly.maxHealth <= self.Menu.AutoE.AllyHP:Value() / 100  and Ready(_E) then
+					Control.CastSpell(HK_E)
+				end
 			end
+			--[[
+			if HasBuff(Ally, "YuumiWAlly") and Ally ~= bestAlly and Ready(_E) then
+				if Ally.health/Ally.maxHealth <= self.Menu.AutoE.AllyHP:Value() / 100 then 	
+					Control.CastSpell(HK_E)
+					
+				elseif lowAlly and lowAlly ~= Ally and IsValid(lowAlly) and lowAlly.health/lowAlly.maxHealth <= self.Menu.AutoE.AllyHP:Value() / 100  and Ready(_E) and Ready(_W) then
+					Control.CastSpell(HK_W, lowAlly)
+				end
+			end	]]
 		end	
-		
-		if lowAlly and HasBuff(lowAlly, "YuumiWAlly") and Ready(_E) then
-			if lowAlly ~= bestAlly and lowAlly.health/lowAlly.maxHealth <= self.Menu.AutoE.AllyHP:Value() / 100  and Ready(_E) then
-				ControlCastSpell(HK_E)
-			end
-		end
-		
-		if HasBuff(Ally, "YuumiWAlly") and Ally ~= bestAlly and Ready(_E) then
-			if Ally.health/Ally.maxHealth <= self.Menu.AutoE.AllyHP:Value() / 100 then 	
-				ControlCastSpell(HK_E)
-				
-			elseif lowAlly and lowAlly ~= Ally and IsValid(lowAlly) and lowAlly.health/lowAlly.maxHealth <= self.Menu.AutoE.AllyHP:Value() / 100  and Ready(_E) and Ready(_W) then
-				ControlCastSpell(HK_W, lowAlly)
-			end
-		end		
-	end
+	--end
 end	
 
 function Yuumi:Summoner()
@@ -984,9 +965,9 @@ if target == nil then return end
 		if self.Menu.summ.ex.target:Value() then
             if myHero.pos:DistanceTo(target.pos) <= 650 and TargetHp <= self.Menu.summ.ex.hp:Value()/100 then
                 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" and isReady(SUMMONER_1) then
-                    ControlCastSpell(HK_SUMMONER_1, target)
+                    Control.CastSpell(HK_SUMMONER_1, target)
                 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and isReady(SUMMONER_2) then
-                    ControlCastSpell(HK_SUMMONER_2, target)
+                    Control.CastSpell(HK_SUMMONER_2, target)
                 end
             end
         end
@@ -994,18 +975,18 @@ if target == nil then return end
         if self.Menu.summ.ign.ST:Value() == 1 then
 			if TargetHp <= self.Menu.summ.ign.hp:Value()/100 and myHero.pos:DistanceTo(target.pos) <= 600 then
                 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and isReady(SUMMONER_1) then
-                    ControlCastSpell(HK_SUMMONER_1, target)
+                    Control.CastSpell(HK_SUMMONER_1, target)
                 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and isReady(SUMMONER_2) then
-                    ControlCastSpell(HK_SUMMONER_2, target)
+                    Control.CastSpell(HK_SUMMONER_2, target)
                 end
             end
         elseif self.Menu.summ.ign.ST:Value() == 2 then       
 			local IGdamage = 50 + 20 * myHero.levelData.lvl
 			if myHero.pos:DistanceTo(target.pos) <= 600 and target.health  <= IGdamage then
                 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and isReady(SUMMONER_1) then
-                    ControlCastSpell(HK_SUMMONER_1, target)
+                    Control.CastSpell(HK_SUMMONER_1, target)
                 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and isReady(SUMMONER_2) then
-                    ControlCastSpell(HK_SUMMONER_2, target)
+                    Control.CastSpell(HK_SUMMONER_2, target)
                 end
             end
         end			
@@ -1025,7 +1006,7 @@ end
 
 local function SelectSearchFieldBuy()
 	KeyCombo(17,"L")
-end
+end	
 
 local function PutKey(key)
 	if key == "." then
@@ -1144,7 +1125,7 @@ function Yuumi:Buy()
 		Next = true 
 		DelayAction(function()
 			if Control.IsKeyDown("L") then
-				ControlKeyUp("L") 
+				Control.KeyUp("L") 
 			elseif Control.IsKeyDown(17) then
 				ControlKeyUp(17)
 				buystate = 3
