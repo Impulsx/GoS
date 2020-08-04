@@ -36,7 +36,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.28
+    local Version = 0.29
     
     local Files = {
         Lua = {
@@ -684,7 +684,7 @@ end
 function Irelia:LoadMenu()                     	
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "Irelia", name = "PussyIrelia"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.28"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 0.29"}})
 
 self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
 	
@@ -770,7 +770,8 @@ self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 
 	--Flee
 	self.Menu.MiscSet:MenuElement({type = MENU, id = "Flee", name = "Flee Mode"})
-	self.Menu.MiscSet.Flee:MenuElement({id = "Q", name = "Flee[Q]", value = true})	
+	self.Menu.MiscSet.Flee:MenuElement({id = "Q", name = "Flee [Q]", value = true})	
+	self.Menu.MiscSet.Flee:MenuElement({id = "Q2", name = "Flee [Q] even on non killable minions", value = false})	
 
 	--AutoE 
 	self.Menu.MiscSet:MenuElement({type = MENU, id = "AutoECount", name = "AutoE Mode"})
@@ -1243,7 +1244,7 @@ if HasBuff(myHero, "ireliapassivestacksmax") then return end
 		if minion.team == TEAM_ENEMY then
 			if target.pos:DistanceTo(minion.pos) <= 400 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) and not HasBuff(target, "ireliamark") then
 			local QDmg = getdmg("Q", minion, myHero, 2) + CalcExtraDmg() 
-				if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then
+				if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValid(minion) then
 					Control.CastSpell(HK_Q, minion)
 				end	
 			end
@@ -1362,41 +1363,36 @@ function Irelia:Gapclose(target)
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 	
-		if Ready(_Q) and minion.team == TEAM_ENEMY and myHero.pos:DistanceTo(minion.pos) <= 600 and IsValid(minion) then
-			if myHero.pos:DistanceTo(target.pos) > 600 and HasBuff(target, "ireliamark") then
-				local QDmg = getdmg("Q", minion, myHero, 2) + CalcExtraDmg()
-				if QDmg >= minion.health and myHero.pos:DistanceTo(target.pos) > target.pos:DistanceTo(minion.pos) and target.pos:DistanceTo(minion.pos) <= 600 then 
-					if CheckHPPred(minion) >= 1 and IsValidCrap(minion) then
-						Control.CastSpell(HK_Q, minion)
-					end					
-				end
-			else
-				if myHero.pos:DistanceTo(target.pos) < 600 and not HasBuff(target, "ireliamark") then
-					local QDmg = getdmg("Q", minion, myHero, 2) + CalcExtraDmg()
-					if QDmg >= minion.health and myHero.pos:DistanceTo(target.pos) > target.pos:DistanceTo(minion.pos) and target.pos:DistanceTo(minion.pos) <= 600 then 
-						if CheckHPPred(minion) >= 1 and IsValidCrap(minion) then
-							Control.CastSpell(HK_Q, minion)
-						end					
-					end				
-				end
+		if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 600 and minion.team == TEAM_ENEMY and IsValid(minion) then
+			local QDmg = getdmg("Q", minion, myHero, 2) + CalcExtraDmg()
+			if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and myHero.pos:DistanceTo(target.pos) > target.pos:DistanceTo(minion.pos) then 
+				Control.CastSpell(HK_Q, minion)				
 			end	
 		end
 	end	
 end	
 
 function Irelia:Flee()
-    local target = GetTarget(1100)     	
+    local target = GetTarget(2000)     	
 	if target == nil then return end
 	if self.Menu.MiscSet.Flee.Q:Value() then
-		if target.pos:DistanceTo(myHero.pos) < 1000 then
+		if target.pos:DistanceTo(myHero.pos) < 2000 then
 			if Ready(_Q) then
 				for i = 1, GameMinionCount() do
 				local minion = GameMinion(i)
 					if minion.team == TEAM_ENEMY and IsValid(minion) then
 						if minion.pos:DistanceTo(myHero.pos) <= 600 and target.pos:DistanceTo(myHero.pos) < minion.pos:DistanceTo(target.pos) then
-						local QDmg = getdmg("Q", minion, myHero, 2) + CalcExtraDmg() 
-							if (QDmg >= minion.health and CheckHPPred(minion) >= 1) and IsValidCrap(minion) then
-								Control.CastSpell(HK_Q, minion)
+							local QDmg = getdmg("Q", minion, myHero, 2) + CalcExtraDmg()
+							if self.Menu.MiscSet.Flee.Q2:Value() then 							
+								if (QDmg >= minion.health and CheckHPPred(minion) >= 1) then								
+									Control.CastSpell(HK_Q, minion)
+								else
+									Control.CastSpell(HK_Q, minion)
+								end	
+							else
+								if (QDmg >= minion.health and CheckHPPred(minion) >= 1) then								
+									Control.CastSpell(HK_Q, minion)	
+								end	
 							end	
 						end
 					end	
