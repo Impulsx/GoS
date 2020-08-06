@@ -15,6 +15,20 @@ local function GetEnemyCount(range, pos)
 	return count
 end
 
+local function GetKillCount()
+	local count = 0
+	for i = 1, GameHeroCount() do 
+	local hero = GameHero(i)
+		if hero and hero.team ~= TEAM_ALLY and IsValid(hero) then			
+			local RDmg = getdmg("R", hero, myHero)
+			if hero.health < RDmg then
+				count = count + 1
+			end	
+		end
+	end
+	return count
+end
+
 local function GetMinionCount(range, pos)
     local pos = pos.pos
 	local count = 0
@@ -39,11 +53,10 @@ local function HasBuff(unit, buffname)
 end
 
 local CanUlt = false
-local KillRCount = 0
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 	
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "QSet", name = "AutoQ"})
@@ -51,6 +64,10 @@ function LoadScript()
 	Menu.QSet:MenuElement({id = "UseQ", name = "AutoQ LastHit Minions", value = true})	
 	Menu.QSet:MenuElement({id = "UseQH", name = "Use in Harass Mode???", value = true})	
 	Menu.QSet:MenuElement({id = "Mana", name = "Min Mana", value = 30, min = 0, max = 100, identifier = "%"})
+	Menu.QSet:MenuElement({name = " ", drop = {"-----------------------------"}})	
+	Menu.QSet:MenuElement({name = " ", drop = {"if CastQ too early then then increase CastTime"}})
+	Menu.QSet:MenuElement({name = " ", drop = {"if CastQ too late then then decrease CastTime"}})	
+	Menu.QSet:MenuElement({id = "hp", name = "CastTime Option", value = 100, min = 0, max = 300, step = 10})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -67,7 +84,6 @@ function LoadScript()
 	Menu.Ult:MenuElement({id = "draw", name = "Draw possible Kill Count", value = true})
 	Menu.Ult:MenuElement({id = "x", name = "TextPos: [X]", value = 0, min = 0, max = 1500, step = 10})
 	Menu.Ult:MenuElement({id = "y", name = "TextPos: [Y]", value = 0, min = 0, max = 860, step = 10})
-	Menu.Ult:MenuElement({id = "size", name = "Text Size", value = 20, min = 15, max = 40, step = 1})
 
 	--HarassMenu  
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
@@ -91,12 +107,13 @@ function LoadScript()
 	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})	
 	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
 	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
- 
+
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
 	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
+	Menu.Drawing:MenuElement({id = "Draw_AutoQ", name = "Draw Auto Q indictator", value = true})	
 
 	QData =
 	{
@@ -110,6 +127,20 @@ function LoadScript()
 	Callback.Add("Draw", function()
 		if myHero.dead then return end
 		
+		local mePos = myHero.pos:To2D()	
+		
+		if Menu.Drawing.Draw_AutoQ:Value() then
+
+			posX = mePos.x - 50
+			posY = mePos.y
+
+			if Menu.QSet.UseQ:Value() then
+				Draw.Text("Auto Q Enabled", (15), posX, posY, Draw.Color(240, 000, 255, 000))
+			else
+				Draw.Text("Auto Q Disabled", (15), posX, posY, Draw.Color(255, 255, 000, 000)) 
+			end
+		end		
+		
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
 			DrawCircle(myHero, 875, 1, DrawColor(255, 225, 255, 10))
 		end                                                 
@@ -119,20 +150,30 @@ function LoadScript()
 		if Menu.Drawing.DrawW:Value() and Ready(_W) then
 			DrawCircle(myHero, 1000, 1, DrawColor(225, 225, 125, 10))
 		end
-		if Menu.Ult.draw:Value() then
-			DrawText("Kill Count: ", Menu.Ult.size:Value(), Pos.x + Menu.Ult.x:Value()+50, Pos.y + Menu.Ult.y:Value(), DrawColor(255, 0, 255, 0))
-			if Ready(_R) then
-				DrawText(KillRCount, Menu.Ult.size:Value(), Pos.x + Menu.Ult.x:Value(), Pos.y + Menu.Ult.y:Value(), DrawColor(255, 0, 255, 0))
-			else
-				DrawText("0", Menu.Ult.size:Value(), Pos.x + Menu.Ult.x:Value(), Pos.y + Menu.Ult.y:Value(), DrawColor(255, 0, 255, 0))
-			end	
-		end
+		
+		if myHero:GetSpellData(_R).level > 0 then
+			if Menu.Ult.draw:Value() then
+				local KillRCount = GetKillCount()
+				if Ready(_R) then				
+					if KillRCount >= Menu.Ult.count:Value() then
+						DrawText("Kill Count: ", 21, Menu.Ult.x:Value(), Menu.Ult.y:Value()+15, DrawColor(255, 0, 255, 0))
+						DrawText(KillRCount, 21, Menu.Ult.x:Value()+85, Menu.Ult.y:Value()+15, DrawColor(255, 0, 255, 0))
+					else
+						DrawText("Kill Count: ", 21, Menu.Ult.x:Value(), Menu.Ult.y:Value()+15, DrawColor(255, 255, 0, 0))
+						DrawText(KillRCount, 21, Menu.Ult.x:Value()+85, Menu.Ult.y:Value()+15, DrawColor(255, 255, 0, 0))
+					end
+				else
+					DrawText("Kill Count: ", 21, Menu.Ult.x:Value(), Menu.Ult.y:Value()+15, DrawColor(255, 255, 0, 0))
+					DrawText("0", 21, Menu.Ult.x:Value()+85, Menu.Ult.y:Value()+15, DrawColor(255, 255, 0, 0))
+				end	
+			end
+		end	
 	end)		
 end
 
 function Tick()
-if CanUlt and not Ready(_R) then
-	CanUlt = false
+if not GameIsChatOpen() and HasBuff(myHero, "KarthusDeathDefiedBuff") then
+	AutoUlt()
 end	
 
 if MyHeroNotReady() then return end
@@ -148,7 +189,11 @@ local Mode = GetMode()
 	elseif Menu.QSet.UseQ:Value() then
 		AutoQ()
 	end	
-
+	
+	if HasBuff(myHero, "KarthusDefile") and (GetEnemyCount(500, myHero) == 0 and GetMinionCount(500, myHero) == 0) then 
+		Control.CastSpell(HK_E)
+		return
+	end
 	AutoUlt()
 end
 
@@ -179,7 +224,7 @@ if target == nil then return end
        
 		if Menu.Combo.UseE:Value() and Ready(_E) then
 			local count = GetEnemyCount(500, myHero)
-			local EBuff = HasBuff(myHero, "karthusdefile")
+			local EBuff = HasBuff(myHero, "KarthusDefile")
 			if count == 0 and EBuff or myHero.mana/myHero.maxMana < Menu.Combo.Mana:Value() / 100 then
 				Control.CastSpell(HK_E)
 				return
@@ -235,7 +280,7 @@ end
 function Clear()
     for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
-        if myHero.pos:DistanceTo(minion.pos) < 800 and minion.team == TEAM_ENEMY and IsValid(minion) then
+        if myHero.pos:DistanceTo(minion.pos) < 800 and minion.team == TEAM_ENEMY and IsValid(minion) and CanUlt == false then
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
             
 			if Menu.Clear.UseQ:Value() and mana_ok and Ready(_Q) then
@@ -244,7 +289,7 @@ function Clear()
 			
             if Menu.Clear.UseE:Value() and Ready(_E) then
 				local count = GetMinionCount(500, myHero)
-				local EBuff = HasBuff(myHero, "karthusdefile")
+				local EBuff = HasBuff(myHero, "KarthusDefile")
 				if count == 0 and EBuff or myHero.mana/myHero.maxMana <= Menu.Clear.Mana:Value() / 100 then
 					Control.CastSpell(HK_E)
 					return
@@ -261,7 +306,7 @@ end
 function JungleClear()
     for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
-        if myHero.pos:DistanceTo(minion.pos) < 800 and minion.team == TEAM_JUNGLE and IsValid(minion) then
+        if myHero.pos:DistanceTo(minion.pos) < 800 and minion.team == TEAM_JUNGLE and IsValid(minion) and CanUlt == false then
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100
             
 			if Menu.JClear.UseQ:Value() and mana_ok and Ready(_Q) then
@@ -269,7 +314,7 @@ function JungleClear()
             end
 			
             if Menu.JClear.UseE:Value() and Ready(_E) then
-				local EBuff = HasBuff(myHero, "karthusdefile")
+				local EBuff = HasBuff(myHero, "KarthusDefile")
 				if myHero.pos:DistanceTo(minion.pos) > 500 and EBuff or myHero.mana/myHero.maxMana <= Menu.Clear.Mana:Value() / 100 then
 					Control.CastSpell(HK_E)
 					return
@@ -285,23 +330,15 @@ end
 
 function AutoUlt()
 	if Ready(_R) then
-		local Rtargets = GetEnemyHeroes()
-		for i = 1, #Rtargets do
-			local target = Rtargets[i]
-			if target and target.health > 0 then
-				local RDmg = getdmg("R", target, myHero)
-				if target.health < RDmg then
-					KillRCount = KillRCount + 1
-				end       
-			end
-		end	
+		local KillRCount = GetKillCount()
 		
 		if Menu.Ult.UseR:Value() and KillRCount >= Menu.Ult.count:Value() and GetEnemyCount(Menu.Ult.range:Value(), myHero) == 0 then
 			CanUlt = true
 			Control.CastSpell(HK_R)
 			return
 		end
-	end	
+	end
+	CanUlt = false
 end
 
 function AutoQ()
@@ -309,14 +346,10 @@ function AutoQ()
 		for i = 1, GameMinionCount() do
 		local minion = GameMinion(i)
 			if myHero.pos:DistanceTo(minion.pos) <= 850 and minion.team == TEAM_ENEMY and IsValid(minion) then
-				local Q1Dmg = getdmg("Q", minion, myHero, 1) -- single
-				local Q2Dmg = getdmg("Q", minion, myHero, 2) -- aoe
-				if minion.health < Q1Dmg and GetMinionCount(160, minion) == 0 then
-					Control.CastSpell(HK_Q, minion.pos)
-				else
-					if minion.health < Q2Dmg and GetMinionCount(160, minion) > 0 then
-						Control.CastSpell(HK_Q, minion.pos)	
-					end	
+				local Q1Dmg = getdmg("Q", minion, myHero, 1) 
+				--local Q2Dmg = getdmg("Q", minion, myHero, 2)  -- aoe
+				if Q1Dmg >= (minion.health+Menu.QSet.hp:Value()) then
+					Control.CastSpell(HK_Q, minion.pos)	
 				end	
 			end
 		end
