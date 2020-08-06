@@ -176,7 +176,11 @@ Data = {
            Volibear = {
             Changelog = "Volibear Changelog Here",
             Version = 0.01,
-        },        
+        },
+           Karthus = {
+            Changelog = "Karthus Changelog Here",
+            Version = 0.01,
+        },         
     },
 }
 
