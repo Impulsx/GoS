@@ -19,9 +19,10 @@ local function GetKillCount()
 	local count = 0
 	for i = 1, GameHeroCount() do 
 	local hero = GameHero(i)
-		if hero and hero.team ~= TEAM_ALLY and IsValid(hero) then			
+		if hero and hero.team ~= TEAM_ALLY and IsValid(hero) then						
 			local RDmg = getdmg("R", hero, myHero)
-			if hero.health < RDmg then
+			local Hp = hero.health + (6 * hero.hpRegen)
+			if hero.health <= RDmg then
 				count = count + 1
 			end	
 		end
@@ -56,7 +57,7 @@ local CanUlt = false
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
 	
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "QSet", name = "AutoQ"})
@@ -78,9 +79,13 @@ function LoadScript()
 
 	--UltMenu  
 	Menu:MenuElement({type = MENU, id = "Ult", name = "Ultimate Settings"})
-	Menu.Ult:MenuElement({id = "UseR", name = "Auto [R]", value = true})
+	Menu.Ult:MenuElement({id = "UseR", name = "Auto [R] (Karthus lives)", value = true})
 	Menu.Ult:MenuElement({id = "count", name = "Min killable Targets", value = 2, min = 1, max = 5, step = 1, identifier = "Target/s"})	
-	Menu.Ult:MenuElement({id = "range", name = "If no Enemy in near", value = 1200, min = 0, max = 3000, step = 10, identifier = "range"})
+	Menu.Ult:MenuElement({id = "range", name = "If no Enemy in near", value = 1200, min = 0, max = 3000, step = 10, identifier = "range"})	
+	Menu.Ult:MenuElement({name = " ", drop = {"-----------------------------"}})		
+	Menu.Ult:MenuElement({id = "UseR2", name = "Auto [R] (Karthus is dead)", value = true})
+	Menu.Ult:MenuElement({id = "count2", name = "Min killable Targets", value = 1, min = 1, max = 5, step = 1, identifier = "Target/s"})
+	Menu.Ult:MenuElement({name = " ", drop = {"-----------------------------"}})	
 	Menu.Ult:MenuElement({id = "draw", name = "Draw possible Kill Count", value = true})
 	Menu.Ult:MenuElement({id = "x", name = "TextPos: [X]", value = 0, min = 0, max = 1500, step = 10})
 	Menu.Ult:MenuElement({id = "y", name = "TextPos: [Y]", value = 0, min = 0, max = 860, step = 10})
@@ -156,15 +161,15 @@ function LoadScript()
 				local KillRCount = GetKillCount()
 				if Ready(_R) then				
 					if KillRCount >= Menu.Ult.count:Value() then
-						DrawText("Kill Count: ", 21, Menu.Ult.x:Value(), Menu.Ult.y:Value()+15, DrawColor(255, 0, 255, 0))
-						DrawText(KillRCount, 21, Menu.Ult.x:Value()+85, Menu.Ult.y:Value()+15, DrawColor(255, 0, 255, 0))
+						DrawText("Ult Kill Count: ", 21, Menu.Ult.x:Value(), Menu.Ult.y:Value()+15, DrawColor(255, 0, 255, 0))
+						DrawText(KillRCount, 21, Menu.Ult.x:Value()+115, Menu.Ult.y:Value()+15, DrawColor(255, 0, 255, 0))
 					else
-						DrawText("Kill Count: ", 21, Menu.Ult.x:Value(), Menu.Ult.y:Value()+15, DrawColor(255, 255, 0, 0))
-						DrawText(KillRCount, 21, Menu.Ult.x:Value()+85, Menu.Ult.y:Value()+15, DrawColor(255, 255, 0, 0))
+						DrawText("Ult Kill Count: ", 21, Menu.Ult.x:Value(), Menu.Ult.y:Value()+15, DrawColor(255, 255, 0, 0))
+						DrawText(KillRCount, 21, Menu.Ult.x:Value()+115, Menu.Ult.y:Value()+15, DrawColor(255, 255, 0, 0))
 					end
 				else
-					DrawText("Kill Count: ", 21, Menu.Ult.x:Value(), Menu.Ult.y:Value()+15, DrawColor(255, 255, 0, 0))
-					DrawText("0", 21, Menu.Ult.x:Value()+85, Menu.Ult.y:Value()+15, DrawColor(255, 255, 0, 0))
+					DrawText("Ult Kill Count: ", 21, Menu.Ult.x:Value(), Menu.Ult.y:Value()+15, DrawColor(255, 255, 0, 0))
+					DrawText("0", 21, Menu.Ult.x:Value()+115, Menu.Ult.y:Value()+15, DrawColor(255, 255, 0, 0))
 				end	
 			end
 		end	
@@ -173,7 +178,10 @@ end
 
 function Tick()
 if not GameIsChatOpen() and HasBuff(myHero, "KarthusDeathDefiedBuff") then
+	SetMovement(false)
 	AutoUlt()
+else
+	SetMovement(true)	
 end	
 
 if MyHeroNotReady() then return end
@@ -332,11 +340,19 @@ function AutoUlt()
 	if Ready(_R) then
 		local KillRCount = GetKillCount()
 		
-		if Menu.Ult.UseR:Value() and KillRCount >= Menu.Ult.count:Value() and GetEnemyCount(Menu.Ult.range:Value(), myHero) == 0 then
-			CanUlt = true
-			Control.CastSpell(HK_R)
-			return
-		end
+		if HasBuff(myHero, "KarthusDeathDefiedBuff") and Menu.Ult.UseR2:Value() then
+			if KillRCount >= Menu.Ult.count2:Value() then
+				CanUlt = true
+				Control.CastSpell(HK_R)	
+			end		
+		else
+			if Menu.Ult.UseR:Value() and KillRCount >= Menu.Ult.count:Value() then
+				if GetEnemyCount(Menu.Ult.range:Value(), myHero) == 0 then
+					CanUlt = true
+					Control.CastSpell(HK_R)	
+				end	
+			end
+		end	
 	end
 	CanUlt = false
 end
