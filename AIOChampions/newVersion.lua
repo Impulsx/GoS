@@ -43,7 +43,7 @@ Data = {
         }, 
          Neeko = {
             Changelog = "Neeko Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         }, 
         Warwick = {
             Changelog = "Warwick Changelog Here",
