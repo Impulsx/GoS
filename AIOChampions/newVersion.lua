@@ -39,7 +39,7 @@ Data = {
         },
         Ryze = {
             Changelog = "Ryze Changelog Here",
-            Version = 0.11,
+            Version = 0.12,
         }, 
          Neeko = {
             Changelog = "Neeko Changelog Here",
