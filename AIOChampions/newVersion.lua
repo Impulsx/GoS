@@ -19,7 +19,7 @@ Data = {
         },
         Lux = {
             Changelog = "Lux Changelog Here",
-            Version = 0.13,
+            Version = 0.14,
         },
         Soraka = {
             Changelog = "Soraka Changelog Here",
@@ -55,7 +55,7 @@ Data = {
         },
         Tristana = {
             Changelog = "Tristana Changelog Here",
-            Version = 0.07,
+            Version = 0.08,
         }, 
         Sona = {
             Changelog = "Sona Changelog Here",
@@ -63,7 +63,7 @@ Data = {
         }, 
         Morgana = {
             Changelog = "Morgana Changelog Here",
-            Version = 0.07,
+            Version = 0.08,
         },
         Kassadin = {
             Changelog = "Kassadin Changelog Here",
@@ -107,7 +107,7 @@ Data = {
         },
          Caitlyn = {
             Changelog = "Caitlyn Changelog Here",
-            Version = 0.14,
+            Version = 0.15,
         },
           Kaisa = {
             Changelog = "Kaisa Changelog Here",
@@ -163,7 +163,7 @@ Data = {
         },
           Blitzcrank = {
             Changelog = "Blitzcrank Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         }, 
            FiddleSticks = {
             Changelog = "Fiddlesticks Changelog Here",
