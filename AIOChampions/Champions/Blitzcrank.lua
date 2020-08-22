@@ -1,5 +1,12 @@
 local function GetEnemyHeroes()
-	return Enemies
+	local _EnemyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.team ~= myHero.team then
+			TableInsert(_EnemyHeroes, unit)
+		end
+	end
+	return _EnemyHeroes
 end
 
 local function GetEnemyCount(range, pos)
@@ -31,7 +38,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
 	
 	Menu:MenuElement({type = MENU, id = "Q", name = "Auto Q + E"})
 	Menu.Q:MenuElement({name = " ", drop = {"Auto [Q] + [E] under Ally Tower"}})		
@@ -54,12 +61,14 @@ function LoadScript()
 
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
-	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 2, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
-	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
+	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})	
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
+	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
 
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
-	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] MaxRange", value = false})
+	Menu.Drawing:MenuElement({id = "DrawQ2", name = "Draw [Q] MinRange", value = false})	
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})	
 
@@ -80,6 +89,9 @@ function LoadScript()
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
 		DrawCircle(myHero, Menu.Combo.Qrange:Value(), 1, DrawColor(225, 225, 0, 10))
 		end
+		if Menu.Drawing.DrawQ2:Value() and Ready(_Q) then
+		DrawCircle(myHero, Menu.Combo.Qrange2:Value(), 1, DrawColor(225, 225, 0, 10))
+		end		
 		if Menu.Drawing.DrawE:Value() and Ready(_E) then
 		DrawCircle(myHero, 300, 1, DrawColor(225, 225, 125, 10))
 		end		
@@ -99,7 +111,7 @@ function AutoQ()
 	for i, target in ipairs(GetEnemyHeroes()) do    	
 	if myHero.pos:DistanceTo(target.pos) > 1200 then return end	
 	
-		if myHero.pos:DistanceTo(target.pos) <= 250 and Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) <= 250 and IsValid(target) and Ready(_E) then
 			Control.CastSpell(HK_E, target)
 		end	
 		
@@ -113,13 +125,15 @@ function AutoQ()
 						Control.CastSpell(HK_Q, pred.CastPosition)
 						SetMovement(true)						
 					end
-				else
+				elseif Menu.Pred.Change:Value() == 2 then
 					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
 						SetMovement(false)
 						Control.CastSpell(HK_Q, pred.CastPos)
 						SetMovement(true)						
 					end	
+				else
+					CastGGPred(target)
 				end
 			end	
 		end
@@ -142,18 +156,16 @@ if target == nil then return end
 		if myHero.pos:DistanceTo(target.pos) <= Menu.Combo.Qrange:Value() and myHero.pos:DistanceTo(target.pos) > Menu.Combo.Qrange2:Value() and Menu.Combo.UseQ:Value() and Ready(_Q) then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
-				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-					SetMovement(false)				
-					Control.CastSpell(HK_Q, pred.CastPosition)
-					SetMovement(true)					
+				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then				
+					Control.CastSpell(HK_Q, pred.CastPosition)					
+				end
+			elseif Menu.Pred.Change:Value() == 2 then
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then			
+					Control.CastSpell(HK_Q, pred.CastPos)					
 				end
 			else
-				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
-				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-					SetMovement(false)				
-					Control.CastSpell(HK_Q, pred.CastPos)
-					SetMovement(true)					
-				end	
+				CastGGPred(target)
 			end
 		end
 		
@@ -170,4 +182,12 @@ if target == nil then return end
 			end
 		end		
 	end
-end	
+end
+
+function CastGGPred(unit)
+	local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 35, Range = 1150, Speed = 1800, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+	QPrediction:GetPrediction(unit, myHero)
+	if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+		Control.CastSpell(HK_Q, QPrediction.CastPosition)
+	end	
+end
