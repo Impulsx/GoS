@@ -1,9 +1,23 @@
 local function GetEnemyHeroes()
-	return Enemies
+	local _EnemyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.team ~= myHero.team then
+			TableInsert(_EnemyHeroes, unit)
+		end
+	end
+	return _EnemyHeroes
 end 
 
 local function GetAllyHeroes()
-	return Allies
+	local _AllyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.isAlly and not unit.isMe then
+			TableInsert(_AllyHeroes, unit)
+		end
+	end
+	return _AllyHeroes
 end 
 
 local function HasBuff(unit, buffname)
@@ -32,7 +46,7 @@ local function KillMinionCount(range, pos)
 	for i = 1,GameMinionCount() do
 	local minion = GameMinion(i)
 	local Range = range * range
-		if minion.team ~= TEAM_ALLY and minion.dead == false and GetDistanceSqr(pos, minion.pos) < Range then
+		if minion.team == TEAM_ENEMY and minion.dead == false and GetDistanceSqr(pos, minion.pos) < Range then
 			local buff = HasBuff(minion, "kalistaexpungemarker")
 			local EDmg = getdmg("E", minion, myHero)
 			if buff and EDmg >= minion.health then
@@ -49,7 +63,7 @@ local BoundAlly = nil
 function LoadScript() 
 	HPred()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.11"}})	
 	
 	--AutoQ	
 	Menu:MenuElement({type = MENU, id = "AutoQ2", name = "AutoQ"})
@@ -80,12 +94,10 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear"})			
 	Menu.Clear:MenuElement({id = "UseE", name = "[E]LastHit", value = true}) 
 	Menu.Clear:MenuElement({id = "Emin", name = "[E] If Kill X Minion ", value = 2, min = 1, max = 6, step = 1, identifier = "Minion/s"})	
-	Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to LaneClear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
 	Menu:MenuElement({type = MENU, id = "JClear", name = "JungleClear"})         	
-	Menu.JClear:MenuElement({id = "UseE", name = "[E]LastHit", value = true})	
-	Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
+	Menu.JClear:MenuElement({id = "UseE", name = "[E]LastHit", value = true})	 
  
 	--KillSteal
 	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
@@ -94,8 +106,8 @@ function LoadScript()
 
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
-	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})	
-	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
+	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
 	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 
 	--Drawing 
@@ -291,58 +303,61 @@ if target == nil then return end
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
 					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
-			else
+			elseif Menu.Pred.Change:Value() == 2 then
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
 					Control.CastSpell(HK_Q, pred.CastPos)
-				end	
+				end
+			else
+				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 40, Range = 1150, Speed = 2100, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+				QPrediction:GetPrediction(target, myHero)
+				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+					Control.CastSpell(HK_Q, QPrediction.CastPosition)
+				end				
 			end	
 		end		
 	end	
 end	
 
 function Clear()
-    for i = 1, GameMinionCount() do
-    local minion = GameMinion(i)
-	local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
-
-		if myHero.pos:DistanceTo(minion.pos) <= 1100 and minion.team == TEAM_ENEMY and IsValid(minion) and Menu.Clear.UseE:Value() then
-			if mana_ok and Ready(_E) then
-			local count = KillMinionCount(1100, myHero)	
-				if count >= Menu.Clear.Emin:Value() then
-					Control.CastSpell(HK_E)
-				end
-			end
+	if Ready(_E) and Menu.Clear.UseE:Value() then
+	local count = KillMinionCount(1100, myHero)	
+		if count >= Menu.Clear.Emin:Value() then
+			Control.CastSpell(HK_E)
 		end
 	end
 end
 
 local function EpicMonster(unit)
-	if unit.charName ==
-		"SRU_Baron" or unit.charName ==
-		"SRU_RiftHerald" or unit.charName ==
-		"SRU_Dragon_Water" or unit.charName ==
-		"SRU_Dragon_Fire" or unit.charName ==
-		"SRU_Dragon_Earth" or unit.charName ==
-		"SRU_Dragon_Air" or unit.charName ==		
-		"SRU_Dragon_Elder" then
+	if unit.charName == "SRU_Baron" 
+		or unit.charName == "SRU_RiftHerald" 
+		or unit.charName == "SRU_Dragon_Water" 
+		or unit.charName == "SRU_Dragon_Fire" 
+		or unit.charName == "SRU_Dragon_Earth" 
+		or unit.charName == "SRU_Dragon_Air" 
+		or unit.charName ==	"SRU_Dragon_Elder" then
 		return true
+	else
+		return false
 	end
-	return false
 end
 
 function JungleClear()	
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
         if myHero.pos:DistanceTo(minion.pos) <= 1100 and minion.team == TEAM_JUNGLE and IsValid(minion) then
-        local mana_ok = myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100
-		local EDmg = getdmg("E", minion, myHero)
-            if Menu.JClear.UseE:Value() and mana_ok and Ready(_E) then  
-				if EpicMonster(minion) and EDmg/2 >= minion.health then
-					Control.CastSpell(HK_E)
-				end	
-				if not EpicMonster(minion) and EDmg >= minion.health then
-					Control.CastSpell(HK_E)
+				
+            if Menu.JClear.UseE:Value() and Ready(_E) then  	
+				if EpicMonster(minion) then
+					local EDmg2 = getdmg("E", minion, myHero) / 2
+					if EDmg2 > minion.health and HasBuff(minion, "kalistaexpungemarker") then	
+						Control.CastSpell(HK_E)
+					end	
+				else
+					local EDmg = getdmg("E", minion, myHero)
+					if EDmg > minion.health and HasBuff(minion, "kalistaexpungemarker") then
+						Control.CastSpell(HK_E)
+					end	
 				end	
             end
         end
@@ -350,17 +365,12 @@ function JungleClear()
 end
 
 function KillMinion()
-    for i = 1, GameMinionCount() do
-    local minion = GameMinion(i)
-        if myHero.pos:DistanceTo(minion.pos) <= 1100 and minion.team == TEAM_ENEMY and IsValid(minion) then
-			if Menu.AutoE.E:Value() and Ready(_E) then
-			local count = KillMinionCount(1100, myHero)	
-				if count >= Menu.AutoE.Emin:Value() then
-					Control.CastSpell(HK_E)
-				end
-			end
-        end
-    end
+	if Menu.AutoE.E:Value() and Ready(_E) then
+	local count = KillMinionCount(1100, myHero)	
+		if count >= Menu.AutoE.Emin:Value() then
+			Control.CastSpell(HK_E)
+		end
+	end
 end
 
 function KillSteal()
@@ -376,12 +386,18 @@ if target == nil then return end
 					if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
 						Control.CastSpell(HK_Q, pred.CastPosition)
 					end
-				else
+				elseif Menu.Pred.Change:Value() == 2 then
 					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
 						Control.CastSpell(HK_Q, pred.CastPos)
-					end	
-				end
+					end
+				else
+					local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 40, Range = 1150, Speed = 2100, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+					QPrediction:GetPrediction(target, myHero)
+					if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+						Control.CastSpell(HK_Q, QPrediction.CastPosition)
+					end				
+				end	
 			end
 		end
 		
