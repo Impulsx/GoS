@@ -39,7 +39,7 @@ Data = {
         },
         Ryze = {
             Changelog = "Ryze Changelog Here",
-            Version = 0.12,
+            Version = 0.13,
         }, 
          Neeko = {
             Changelog = "Neeko Changelog Here",
@@ -67,7 +67,7 @@ Data = {
         },
         Kassadin = {
             Changelog = "Kassadin Changelog Here",
-            Version = 0.10,
+            Version = 0.11,
         },
         Qiyana = {
             Changelog = "Qiyana Changelog Here",
@@ -75,7 +75,7 @@ Data = {
         },
         Malzahar = {
             Changelog = "Malzahar Changelog Here",
-            Version = 0.07,
+            Version = 0.08,
         }, 
         Camille = {
             Changelog = "Camille Changelog Here",
@@ -83,15 +83,15 @@ Data = {
         },
          Jhin = {
             Changelog = "Jhin Changelog Here",
-            Version = 0.07,
+            Version = 0.08,
         },
          Ahri = {
             Changelog = "Ahri Changelog Here",
-            Version = 0.10,
+            Version = 0.11,
         },
          Ekko = {
             Changelog = "Ekko Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         }, 
          --LeeSin = {
             --Changelog = "LeeSin Changelog Here",
@@ -119,7 +119,7 @@ Data = {
         },
          Kalista = {
             Changelog = "Kalista Changelog Here",
-            Version = 0.10,
+            Version = 0.11,
         },
          Akali = {
             Changelog = "Akali Changelog Here",
