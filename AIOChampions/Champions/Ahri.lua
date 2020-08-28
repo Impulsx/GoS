@@ -60,7 +60,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.11"}})
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -96,7 +96,8 @@ function LoadScript()
 	
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
-	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
+	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
 	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 	
@@ -109,17 +110,17 @@ function LoadScript()
 	
 	QData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 880, Speed = 1100, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 880, Speed = 1100, Collision = false
 	}
 	
-	QspellData = {speed = 1100, range = 880, delay = 0.25, radius = 100, collision = {}, type = "linear"}		
+	QspellData = {speed = 1100, range = 880, delay = 0.25, radius = 90, collision = {nil}, type = "linear"}		
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 975, Speed = 1550, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION,_G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 975, Speed = 1600, Collision = true, CollisionTypes = {_G.COLLISION_MINION}
 	}
 	
-	EspellData = {speed = 1550, range = 975, delay = 0.25, radius = 60, collision = {"minion"}, type = "linear"}		
+	EspellData = {speed = 1600, range = 975, delay = 0.25, radius = 60, collision = {"minion"}, type = "linear"}		
 
   	                                          
 	Callback.Add("Tick", function() Tick() end)
@@ -206,13 +207,19 @@ if target == nil then return end
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, EData, myHero)
 					if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
-						Ecast = Control.CastSpell(HK_E, pred.CastPosition)
+						Control.CastSpell(HK_E, pred.CastPosition)
 					end
-				else
+				elseif Menu.Pred.Change:Value() == 2 then
 					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
 					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
-						Ecast = Control.CastSpell(HK_E, pred.CastPos)
-					end	
+						Control.CastSpell(HK_E, pred.CastPos)
+					end
+				else
+					local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 975, Speed = 1600, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+					EPrediction:GetPrediction(target, myHero)
+					if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+						Control.CastSpell(HK_E, EPrediction.CastPosition)
+					end				
 				end
 			end			
 			
@@ -222,11 +229,17 @@ if target == nil then return end
 					if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
 						Control.CastSpell(HK_Q, pred.CastPosition)
 					end
-				else
+				elseif Menu.Pred.Change:Value() == 2 then
 					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
 						Control.CastSpell(HK_Q, pred.CastPos)
-					end	
+					end
+				else
+					local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 880, Speed = 1100, Collision = false})
+					QPrediction:GetPrediction(target, myHero)
+					if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+						Control.CastSpell(HK_Q, QPrediction.CastPosition)
+					end				
 				end
 			end
 
@@ -242,11 +255,17 @@ if target == nil then return end
 					if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
 						Control.CastSpell(HK_E, pred.CastPosition)
 					end
-				else
+				elseif Menu.Pred.Change:Value() == 2 then
 					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
 					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
 						Control.CastSpell(HK_E, pred.CastPos)
-					end	
+					end
+				else
+					local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 975, Speed = 1600, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+					EPrediction:GetPrediction(target, myHero)
+					if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+						Control.CastSpell(HK_E, EPrediction.CastPosition)
+					end				
 				end
 			end			
 			
@@ -256,11 +275,17 @@ if target == nil then return end
 					if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
 						Control.CastSpell(HK_Q, pred.CastPosition)
 					end
-				else
+				elseif Menu.Pred.Change:Value() == 2 then
 					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
 						Control.CastSpell(HK_Q, pred.CastPos)
-					end	
+					end
+				else
+					local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 880, Speed = 1100, Collision = false})
+					QPrediction:GetPrediction(target, myHero)
+					if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+						Control.CastSpell(HK_Q, QPrediction.CastPosition)
+					end				
 				end
 			end
 
@@ -281,11 +306,17 @@ if target == nil then return end
 				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
 					Control.CastSpell(HK_E, pred.CastPosition)
 				end
-			else
+			elseif Menu.Pred.Change:Value() == 2 then
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
 					Control.CastSpell(HK_E, pred.CastPos)
-				end	
+				end
+			else
+				local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 975, Speed = 1600, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+				EPrediction:GetPrediction(target, myHero)
+				if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+					Control.CastSpell(HK_E, EPrediction.CastPosition)
+				end				
 			end
 		end		
 		
@@ -296,11 +327,17 @@ if target == nil then return end
 					if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
 						Control.CastSpell(HK_Q, pred.CastPosition)
 					end
-				else
+				elseif Menu.Pred.Change:Value() == 2 then
 					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
 						Control.CastSpell(HK_Q, pred.CastPos)
-					end	
+					end
+				else
+					local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 880, Speed = 1100, Collision = false})
+					QPrediction:GetPrediction(target, myHero)
+					if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+						Control.CastSpell(HK_Q, QPrediction.CastPosition)
+					end				
 				end
 			end
 		end
@@ -359,11 +396,17 @@ local Immobile = IsImmobileTarget(target)
 				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
 					Control.CastSpell(HK_E, pred.CastPosition)
 				end
-			else
+			elseif Menu.Pred.Change:Value() == 2 then
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
 					Control.CastSpell(HK_E, pred.CastPos)
-				end	
+				end
+			else
+				local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 975, Speed = 1600, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+				EPrediction:GetPrediction(target, myHero)
+				if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+					Control.CastSpell(HK_E, EPrediction.CastPosition)
+				end				
 			end
 		end
 		
@@ -373,11 +416,17 @@ local Immobile = IsImmobileTarget(target)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
 					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
-			else
+			elseif Menu.Pred.Change:Value() == 2 then
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
 					Control.CastSpell(HK_Q, pred.CastPos)
-				end	
+				end
+			else
+				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 880, Speed = 1100, Collision = false})
+				QPrediction:GetPrediction(target, myHero)
+				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+					Control.CastSpell(HK_Q, QPrediction.CastPosition)
+				end				
 			end
 		end	
 	end
