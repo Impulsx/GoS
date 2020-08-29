@@ -5,7 +5,7 @@ Data = {
     },
     Core = {
         Changelog = "Auto Version ChangeLog Here",
-        Version = 0.19,
+        Version = 0.20,
     },
 
     Champions = {
@@ -35,7 +35,7 @@ Data = {
         }, 
         Nidalee = {
             Changelog = "Nidalee Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         },
         Ryze = {
             Changelog = "Ryze Changelog Here",
@@ -51,7 +51,7 @@ Data = {
         },
         Veigar = {
             Changelog = "Veigar Changelog Here",
-            Version = 0.05,
+            Version = 0.06,
         },
         Tristana = {
             Changelog = "Tristana Changelog Here",
@@ -99,7 +99,7 @@ Data = {
         --},
          Sylas = {
             Changelog = "Sylas Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         }, 
          Zoe = {
             Changelog = "Zoe Changelog Here",
@@ -115,7 +115,7 @@ Data = {
         },
          Chogath = {
             Changelog = "Chogath Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
          Kalista = {
             Changelog = "Kalista Changelog Here",
@@ -123,7 +123,7 @@ Data = {
         },
          Akali = {
             Changelog = "Akali Changelog Here",
-            Version = 0.05,
+            Version = 0.06,
         },
          Sett = {
             Changelog = "Sett Changelog Here",
@@ -135,7 +135,7 @@ Data = {
         },
          Diana = {
             Changelog = "Diana Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         },
           Fiora = {
             Changelog = "Fiora Changelog Here",
@@ -147,7 +147,7 @@ Data = {
         }, 
           Garen = {
             Changelog = "Garen Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         }, 
           Pyke = {
             Changelog = "Pyke Changelog Here",
@@ -159,7 +159,7 @@ Data = {
         },
           MonkeyKing = {
             Changelog = "MonkeyKing Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         },
           Blitzcrank = {
             Changelog = "Blitzcrank Changelog Here",
@@ -171,7 +171,7 @@ Data = {
         }, 
            Zed = {
             Changelog = "Zed Changelog Here",
-            Version = 0.05,
+            Version = 0.06,
         },
            Volibear = {
             Changelog = "Volibear Changelog Here",
