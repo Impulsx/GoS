@@ -48,13 +48,20 @@ local function GetBuffData(unit, buffname)
 end
 
 local function EnemyHeroes()
-	return Enemies
+	local _EnemyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.team ~= myHero.team then
+			TableInsert(_EnemyHeroes, unit)
+		end
+	end
+	return _EnemyHeroes
 end
 
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
@@ -100,7 +107,8 @@ function LoadScript()
 	
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
-	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
+	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
 	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 	
 	--JungleSteal
@@ -123,19 +131,7 @@ function LoadScript()
 	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 250, Range = 925, Speed = 3200, Collision = false
 	}
 	
-	QspellData = {speed = 3200, range = 925, delay = 0.25, radius = 250, collision = {}, type = "circular"}	
-
-	if _G.EOWLoaded then
-		Orb = 1
-	elseif _G.SDK and _G.SDK.Orbwalker then
-		Orb = 2
-	elseif _G.GOS then
-		Orb = 3
-	elseif _G.gsoSDK then
-		Orb = 4
-	elseif _G.PremiumOrbwalker then
-		Orb = 5		
-	end	
+	QspellData = {speed = 3200, range = 925, delay = 0.25, radius = 250, collision = {nil}, type = "circular"}	
 	
 	Callback.Add("Tick", function() Tick() end)
 	
@@ -183,22 +179,28 @@ if target == nil then return end
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-					ControlCastSpell(HK_Q, pred.CastPosition)
+					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
-			else
+			elseif Menu.Pred.Change:Value() == 2 then
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-					ControlCastSpell(HK_Q, pred.CastPos)
-				end	
-			end
+					Control.CastSpell(HK_Q, pred.CastPos)
+				end
+			else
+				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 250, Range = 925, Speed = 3200, Collision = false})
+				QPrediction:GetPrediction(target, myHero)
+				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+					Control.CastSpell(HK_Q, QPrediction.CastPosition)
+				end				
+			end	
 		end
 
 		if myHero.pos:DistanceTo(target.pos) <= 625 and Menu.Combo.UseW:Value() and Ready(_W) then
-			ControlCastSpell(HK_W, target.pos)
+			Control.CastSpell(HK_W, target.pos)
 		end	
 
 		if myHero.pos:DistanceTo(target.pos) <= 250 and Menu.Combo.UseE:Value() and Ready(_E) then
-			ControlCastSpell(HK_E)
+			Control.CastSpell(HK_E)
 		end			
 	end	
 end	
@@ -209,31 +211,37 @@ if target == nil then return end
 	if IsValid(target) and myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value() / 100 then
 			
 		if myHero.pos:DistanceTo(target.pos) <= 925 and Menu.Harass.UseQ:Value() and Ready(_Q) then
-			local Qcount = GetKillMinionCount(175, target)
+			local Qcount = GetKillMinionCount(250, target)
 			if Qcount >= 1 then
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, QData, myHero)
 					if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-						ControlCastSpell(HK_Q, pred.CastPosition)
+						Control.CastSpell(HK_Q, pred.CastPosition)
 					end
-				else
+				elseif Menu.Pred.Change:Value() == 2 then
 					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-						ControlCastSpell(HK_Q, pred.CastPos)
-					end	
-				end
+						Control.CastSpell(HK_Q, pred.CastPos)
+					end
+				else
+					local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 250, Range = 925, Speed = 3200, Collision = false})
+					QPrediction:GetPrediction(target, myHero)
+					if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+						Control.CastSpell(HK_Q, QPrediction.CastPosition)
+					end				
+				end	
 			end
 		end
 
 		if myHero.pos:DistanceTo(target.pos) <= 625 and Menu.Harass.UseW:Value() and Ready(_W) then
 			local Wcount = GetKillMinionCount(175, target)
 			if Wcount >= 1 then
-				ControlCastSpell(HK_W, target.pos)
+				Control.CastSpell(HK_W, target.pos)
 			end	
 		end	
 
 		if myHero.pos:DistanceTo(target.pos) <= 250 and Menu.Harass.UseE:Value() and Ready(_E) then
-			ControlCastSpell(HK_E)
+			Control.CastSpell(HK_E)
 		end			
 	end	
 end
@@ -246,31 +254,31 @@ function LastHit()
 			
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 925 and Menu.LastHit.UseQ:Value() and Ready(_Q) then
-				local Qcount = GetKillMinionCount(175, minion)
+				local Qcount = GetKillMinionCount(250, minion)
 				if Qcount >= Menu.LastHit.countQ:Value() then
-					ControlCastSpell(HK_Q, minion.pos)
+					Control.CastSpell(HK_Q, minion.pos)
 				end
 			end
 
 			if myHero.pos:DistanceTo(minion.pos) <= 625 and Menu.LastHit.UseW:Value() and Ready(_W) then
 				local Wcount = GetKillMinionCount(175, minion)
 				if Wcount >= Menu.LastHit.countW:Value() then
-					ControlCastSpell(HK_W, minion.pos)
+					Control.CastSpell(HK_W, minion.pos)
 				end
 			end 
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 250 and Menu.LastHit.UseE:Value() and Ready(_E) then
 				local Ecount = GetKillMinionCount(300, minion)
 				if Ecount >= Menu.LastHit.countE:Value() then
-					ControlCastSpell(HK_E)
+					Control.CastSpell(HK_E)
 				end
 			end	
 
-			if myHero.pos:DistanceTo(minion.pos) <= 175 and Menu.LastHit.UseR:Value() and Ready(_R) and minion.charName == "SRU_ChaosMinionSiege" then
+			if myHero.pos:DistanceTo(minion.pos) <= 300 and Menu.LastHit.UseR:Value() and Ready(_R) and minion.charName == "SRU_ChaosMinionSiege" then
 				local RDmg = getdmg("R", minion, myHero)
 				local buff = GetBuffData(myHero, "Feast")
-				if RDmg >= minion.health and buff.count < 6 then
-					ControlCastSpell(HK_R, minion)
+				if RDmg > minion.health and buff.count < 6 then
+					Control.CastSpell(HK_R, minion)
 				end
 			end			
 		end
@@ -278,31 +286,31 @@ function LastHit()
 end
 
 local function CheckJungle(unit)
-	if unit.charName ==
-		"SRU_Blue" or unit.charName ==
-		"SRU_Red" or unit.charName ==
-		"SRU_Gromp" or unit.charName ==
-		"SRU_Murkwolf" or unit.charName ==
-		"SRU_Razorbeak" or unit.charName ==
-		"SRU_Krug" or unit.charName ==
-		"Sru_Crab" then
+	if unit.charName == "SRU_Blue" 
+		or unit.charName == "SRU_Red" 
+		or unit.charName == "SRU_Gromp" 
+		or unit.charName == "SRU_Murkwolf" 
+		or unit.charName == "SRU_Razorbeak" 
+		or unit.charName == "SRU_Krug" 
+		or unit.charName == "Sru_Crab" then
 		return true
-	end
-	return false
+	else
+		return false
+	end	
 end	
 
 local function CheckJungleSteal(unit)
-	if unit.charName ==
-		"SRU_Baron" or unit.charName ==
-		"SRU_RiftHerald" or unit.charName ==
-		"SRU_Dragon_Water" or unit.charName ==
-		"SRU_Dragon_Fire" or unit.charName ==
-		"SRU_Dragon_Earth" or unit.charName ==
-		"SRU_Dragon_Air" or unit.charName ==
-		"SRU_Dragon_Elder" then
+	if unit.charName == "SRU_Baron" 
+		or unit.charName == "SRU_RiftHerald" 
+		or unit.charName == "SRU_Dragon_Water" 
+		or unit.charName == "SRU_Dragon_Fire" 
+		or unit.charName == "SRU_Dragon_Earth" 
+		or unit.charName == "SRU_Dragon_Air" 
+		or unit.charName ==	"SRU_Dragon_Elder" then
 		return true
+	else
+		return false
 	end
-	return false
 end
 
 function JungleSteal()
@@ -311,10 +319,10 @@ function JungleSteal()
 
 		if myHero.pos:DistanceTo(minion.pos) <= 300 and minion.team == TEAM_JUNGLE and IsValid(minion) then	
 		
-			if myHero.pos:DistanceTo(minion.pos) <= 175 and Menu.Steal.UseR:Value() and Ready(_R) and CheckJungleSteal(minion) then
+			if Menu.Steal.UseR:Value() and Ready(_R) and CheckJungleSteal(minion) then
 				local RDmg = getdmg("R", minion, myHero)
-				if RDmg >= minion.health then
-					ControlCastSpell(HK_R, minion)
+				if RDmg > minion.health then
+					Control.CastSpell(HK_R, minion)
 				end
 			end
 		end
@@ -328,29 +336,29 @@ function JungleClear()
 		if myHero.pos:DistanceTo(minion.pos) <= 1000 and minion.team == TEAM_JUNGLE and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100 then
 
 			if myHero.pos:DistanceTo(minion.pos) <= 925 and Menu.JClear.UseQ:Value() and Ready(_Q) then
-				ControlCastSpell(HK_Q, minion.pos)
+				Control.CastSpell(HK_Q, minion.pos)
 			end
 
 			if myHero.pos:DistanceTo(minion.pos) <= 625 and Menu.JClear.UseW:Value() and Ready(_W) then
-				ControlCastSpell(HK_W, minion.pos)
+				Control.CastSpell(HK_W, minion.pos)
 			end 
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 250 and Menu.JClear.UseE:Value() and Ready(_E) then
-				ControlCastSpell(HK_E)
+				Control.CastSpell(HK_E)
 			end	
 
-			if myHero.pos:DistanceTo(minion.pos) <= 175 and Menu.JClear.UseR:Value() and Ready(_R) and CheckJungleSteal(minion) then
+			if myHero.pos:DistanceTo(minion.pos) <= 300 and Menu.JClear.UseR:Value() and Ready(_R) and CheckJungleSteal(minion) then
 				local RDmg = getdmg("R", minion, myHero)
-				if RDmg >= minion.health then
-					ControlCastSpell(HK_R, minion)
+				if RDmg > minion.health then
+					Control.CastSpell(HK_R, minion)
 				end
 			end
 
-			if myHero.pos:DistanceTo(minion.pos) <= 175 and Menu.JClear.UseR:Value() and Ready(_R) and CheckJungle(minion) then
+			if myHero.pos:DistanceTo(minion.pos) <= 300 and Menu.JClear.UseR:Value() and Ready(_R) and CheckJungle(minion) then
 				local RDmg = getdmg("R", minion, myHero)
 				local buff = GetBuffData(myHero, "Feast")
-				if RDmg >= minion.health and buff.count < 6 then
-					ControlCastSpell(HK_R, minion)
+				if RDmg > minion.health and buff.count < 6 then
+					Control.CastSpell(HK_R, minion)
 				end
 			end 			
         end
@@ -365,31 +373,31 @@ function Clear()
 		
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 925 and Menu.Clear.UseQ:Value() and Ready(_Q) then
-				local Qcount = GetMinionCount(175, minion)
+				local Qcount = GetMinionCount(250, minion)
 				if Qcount >= Menu.Clear.countQ:Value() then
-					ControlCastSpell(HK_Q, minion.pos)
+					Control.CastSpell(HK_Q, minion.pos)
 				end
 			end
 
 			if myHero.pos:DistanceTo(minion.pos) <= 625 and Menu.Clear.UseW:Value() and Ready(_W) then
 				local Wcount = GetMinionCount(175, minion)
 				if Wcount >= Menu.Clear.countW:Value() then
-					ControlCastSpell(HK_W, minion.pos)
+					Control.CastSpell(HK_W, minion.pos)
 				end
 			end 
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 250 and Menu.Clear.UseE:Value() and Ready(_E) then
 				local Ecount = GetMinionCount(300, minion)
 				if Ecount >= Menu.Clear.countE:Value() then
-					ControlCastSpell(HK_E)
+					Control.CastSpell(HK_E)
 				end
 			end	
 
-			if myHero.pos:DistanceTo(minion.pos) <= 175 and Menu.Clear.UseR:Value() and Ready(_R) and minion.charName == "SRU_ChaosMinionSiege" then
+			if myHero.pos:DistanceTo(minion.pos) <= 300 and Menu.Clear.UseR:Value() and Ready(_R) and minion.charName == "SRU_ChaosMinionSiege" then
 				local RDmg = getdmg("R", minion, myHero)
 				local buff = GetBuffData(myHero, "Feast")
-				if RDmg >= minion.health and buff.count < 6 then
-					ControlCastSpell(HK_R, minion)
+				if RDmg > minion.health and buff.count < 6 then
+					Control.CastSpell(HK_R, minion)
 				end
 			end		
 		end
@@ -407,13 +415,19 @@ function KillSteal()
 					if Menu.Pred.Change:Value() == 1 then
 						local pred = GetGamsteronPrediction(target, QData, myHero)
 						if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-							ControlCastSpell(HK_Q, pred.CastPosition)
+							Control.CastSpell(HK_Q, pred.CastPosition)
 						end
-					else
+					elseif Menu.Pred.Change:Value() == 2 then
 						local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 						if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-							ControlCastSpell(HK_Q, pred.CastPos)
-						end	
+							Control.CastSpell(HK_Q, pred.CastPos)
+						end
+					else
+						local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 250, Range = 925, Speed = 3200, Collision = false})
+						QPrediction:GetPrediction(target, myHero)
+						if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+							Control.CastSpell(HK_Q, QPrediction.CastPosition)
+						end				
 					end
 				end
 			end
@@ -421,14 +435,14 @@ function KillSteal()
 			if myHero.pos:DistanceTo(target.pos) <= 625 and Menu.ks.UseW:Value() and Ready(_W) then
 				local WDmg = getdmg("W", target, myHero)
 				if WDmg >= target.health then
-					ControlCastSpell(HK_W, target.pos)
+					Control.CastSpell(HK_W, target.pos)
 				end
 			end	
 
-			if myHero.pos:DistanceTo(target.pos) <= 175 and Menu.ks.UseR:Value() and Ready(_R) then
+			if myHero.pos:DistanceTo(target.pos) <= 300 and Menu.ks.UseR:Value() and Ready(_R) then
 				local RDmg = getdmg("R", target, myHero)
-				if RDmg >= target.health then
-					ControlCastSpell(HK_R, target)
+				if RDmg > target.health then
+					Control.CastSpell(HK_R, target)
 				end
 			end			
 		end
