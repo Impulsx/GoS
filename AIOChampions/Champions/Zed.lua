@@ -1,9 +1,23 @@
 local function GetEnemyHeroes()
-	return Enemies
+	local _EnemyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.team ~= myHero.team then
+			TableInsert(_EnemyHeroes, unit)
+		end
+	end
+	return _EnemyHeroes
 end
 
 local function GetAllyHeroes() 
-	return Allies
+	local _AllyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.isAlly and not unit.isMe then
+			TableInsert(_AllyHeroes, unit)
+		end
+	end
+	return _AllyHeroes
 end
 
 local function GetMinionCount(range, pos)
@@ -166,7 +180,7 @@ local RTime = 0
 function LoadScript()
 	--OnProcessSpell()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})			
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -229,7 +243,7 @@ function LoadScript()
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
 	Menu.Pred:MenuElement({name = " ", drop = {"After change Prediction Typ press 2xF6"}})	
-	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 2, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
 	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 	Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 
@@ -492,7 +506,15 @@ local function CastQ(aim, unit)
 			local pred = _G.PremiumPrediction:GetPrediction(unit, aim, QspellData)
 			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then					
 				Control.CastSpell(HK_Q, pred.CastPos)
-			end		
+			end
+			
+		else
+		
+			local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 900, Speed = 900, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+			QPrediction:GetPrediction(aim, unit)
+			if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+				Control.CastSpell(HK_Q, QPrediction.CastPosition)
+			end				
 		end	
 	end
 end
@@ -501,19 +523,29 @@ local function CastW(aim, unit)
 	if Ready(_W) and castSpell.state == 0 then
 	
 		if Menu.Pred.Change:Value() == 1 then
-			local pred1 = GetGamsteronPrediction(aim, WData, unit)
-			if pred1.Hitchance >= Menu.Pred.PredW:Value()+1 then
-				Control.CastSpell(HK_W, pred1.CastPosition)
+			local pred = GetGamsteronPrediction(aim, WData, unit)
+			if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
+				Control.CastSpell(HK_W, pred.CastPosition)
 				WTime = GameTimer()
-				Wshadow = pred1.CastPosition
+				Wshadow = pred.CastPosition
 			end
+			
 		elseif Menu.Pred.Change:Value() == 2 then
-			local pred2 = _G.PremiumPrediction:GetPrediction(unit, aim, WspellData)
-			if pred2.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred2.HitChance) then					
-				Control.CastSpell(HK_W, pred2.CastPos)
+			local pred = _G.PremiumPrediction:GetPrediction(unit, aim, WspellData)
+			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then					
+				Control.CastSpell(HK_W, pred.CastPos)
 				WTime = GameTimer()
-				Wshadow = pred2.CastPos				
-			end						
+				Wshadow = pred.CastPos				
+			end	
+			
+		else
+			local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 290, Range = 900, Speed = 2500, Collision = false})
+			WPrediction:GetPrediction(aim, unit)
+			if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
+				Control.CastSpell(HK_W, WPrediction.CastPosition)
+				WTime = GameTimer()
+				Wshadow = pred.CastPos				
+			end				
 		end
 	end	
 end
