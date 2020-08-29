@@ -71,7 +71,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})	
 	
 	--AutoW 
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "Stack Dark Harvest"})
@@ -128,10 +128,10 @@ function LoadScript()
 	
 	WData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.75, Radius = 45, Range = 3000, Speed = MathHuge, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 2, Radius = 20, Range = 3000, Speed = 5000, Collision = false
 	}
 	
-	WspellData = {speed = MathHuge, range = 3000, delay = 0.75, radius = 45, collision = {nil}, type = "linear"}
+	WspellData = {speed = 5000, range = 3000, delay = 2, radius = 20, collision = {nil}, type = "linear"}
 
 	EData =
 	{
@@ -180,14 +180,6 @@ end
 
 function Tick()
 if MyHeroNotReady() then return end
-
-if myHero:GetSpellData(_R).name == "JhinRShot" then
-	SetMovement(false)
-else
-	if SetMovement(false) then
-		SetMovement(true)
-	end
-end	
 
 local Mode = GetMode()
 	if Mode == "Combo" then
@@ -384,7 +376,7 @@ function Clear()
             end
             local count = GetMinionCount(260, minion)          
 			if Ready(_E) and Game.CanUseSpell(_E) == 0 and Menu.Clear.UseE:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 750 and count >= Menu.Clear.UseEM:Value() then
-				CastSpellStart(HK_E, minion.pos)                   
+				Control.CastSpell(HK_E, minion.pos)                   
             end
         end
     end
@@ -397,7 +389,7 @@ function LastHitW()
 		if myHero.pos:DistanceTo(minion.pos) <= 3000 and minion.team == TEAM_ENEMY and minion.charName == "SRU_ChaosMinionSiege" and IsValid(minion) then
 			local WDmg = getdmg("W", minion, myHero, 2)
 			if myHero.pos:DistanceTo(minion.pos) > 550 and WDmg > minion.health then
-				CastSpellStart(HK_W, minion.pos)
+				Control.CastSpell(HK_W, minion.pos)
 			end
 		end
 	end
@@ -430,14 +422,14 @@ end
 
 function CastGGPred(spell, unit)
 	if spell == _W then
-		local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.75, Radius = 45, Range = 3000, Speed = MathHuge, Collision = false})
+		local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 2, Radius = 20, Range = 3000, Speed = 5000, Collision = false})
 		WPrediction:GetPrediction(unit, myHero)
 		if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 			Control.CastSpell(HK_W, WPrediction.CastPosition)
 		end	
 	
 	elseif spell == _E then
-		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 1.25, Radius = 120, Range = 750, Speed = 1600, Collision = false})
+		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 1.2, Radius = 60, Range = 750, Speed = 1000, Collision = false})
 		EPrediction:GetPrediction(unit, myHero)
 		if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
 			Control.CastSpell(HK_E, EPrediction.CastPosition)
