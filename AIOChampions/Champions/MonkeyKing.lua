@@ -149,7 +149,14 @@ local function HasBuff(unit, buffname)
 end
 
 local function GetEnemyHeroes()
-	return Enemies
+	local _EnemyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.team ~= myHero.team then
+			TableInsert(_EnemyHeroes, unit)
+		end
+	end
+	return _EnemyHeroes
 end
 
 local function GetEnemyCount(range, pos)
@@ -233,19 +240,16 @@ local SpellsReady = false
 require "MapPositionGOS"
 
 function LoadScript()
-	HPred()
-	OnProcessSpell() 
+	HPred() 
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
-	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
-	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
-	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})	
-	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})
+	Menu.Combo:MenuElement({name = " ", drop = {"3 different Combo modes (CheckSpells and Enemies)"}})
+	Menu.Combo:MenuElement({name = " ", drop = {"We need all Spells for this Combos"}})	
   
 	--LaneClear Menu
 	Menu:MenuElement({type = MENU, id = "Clear", name = "Clear"})
@@ -284,19 +288,7 @@ function LoadScript()
 	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})	
-
-  	
-	if _G.EOWLoaded then
-		Orb = 1
-	elseif _G.SDK and _G.SDK.Orbwalker then
-		Orb = 2
-	elseif _G.GOS then
-		Orb = 3
-	elseif _G.gsoSDK then
-		Orb = 4
-	elseif _G.PremiumOrbwalker then
-		Orb = 5		
-	end	
+	
 	Callback.Add("Tick", function() Tick() end)
 
 	Callback.Add("Draw", function()
@@ -360,7 +352,7 @@ function CheckProcessSpell()
 								CastSafePos(safeSpot)
 								TableRemove(DetectedSpells, i)
 							else
-								ControlCastSpell(HK_W, mousePos)
+								Control.CastSpell(HK_W, mousePos)
 								TableRemove(DetectedSpells, i)
 							end						
 						end	
@@ -378,7 +370,7 @@ function CheckProcessSpell()
 							CastSafePos(safeSpot)
 							TableRemove(DetectedSpells, i)
 						else
-							ControlCastSpell(HK_W, mousePos)
+							Control.CastSpell(HK_W, mousePos)
 							TableRemove(DetectedSpells, i)
 						end					
 					end					
@@ -421,7 +413,7 @@ function UseWevade(i, s)
 								CastSafePos(safeSpot)
 								TableRemove(DetectedSpells, i)
 							else
-								ControlCastSpell(HK_W, mousePos)
+								Control.CastSpell(HK_W, mousePos)
 								TableRemove(DetectedSpells, i)
 							end						
 						end	
@@ -439,7 +431,7 @@ function UseWevade(i, s)
 							CastSafePos(safeSpot)
 							TableRemove(DetectedSpells, i)
 						else
-							ControlCastSpell(HK_W, mousePos)
+							Control.CastSpell(HK_W, mousePos)
 							TableRemove(DetectedSpells, i)
 						end					
 					end					
@@ -496,19 +488,19 @@ if target == nil then return end
 		if myHero.pos:DistanceTo(target.pos) < 625 then
 			
 			if Ready(_E) then
-				ControlCastSpell(HK_E, target)
+				Control.CastSpell(HK_E, target)
 			end
 
 			if Ready(_W) and not Ready(_E) then				
 				if AA then
-					ControlCastSpell(HK_W, target.pos)
+					Control.CastSpell(HK_W, target.pos)
 					AA = false
 				end	
 			end
 		
 			if Ready(_Q) and not Ready(_W) then
 				if AA then
-					ControlCastSpell(HK_Q)
+					Control.CastSpell(HK_Q)
 					AA = false
 				end
 			end	
@@ -516,7 +508,7 @@ if target == nil then return end
 			if Ready(_R) and not Ready(_Q) then				
 				SetAttack(false)
 				casted = true
-				ControlCastSpell(HK_R)
+				Control.CastSpell(HK_R)
 				DelayAction(function()
 				SetAttack(true)
 				casted = false
@@ -540,17 +532,17 @@ if target == nil then return end
 		if myHero.pos:DistanceTo(target.pos) < 625 then
 			
 			if Ready(_E) then
-				ControlCastSpell(HK_E, target)
+				Control.CastSpell(HK_E, target)
 			end
 
 			if Ready(_W) and not Ready(_E) then				
-				ControlCastSpell(HK_W, target.pos)
+				Control.CastSpell(HK_W, target.pos)
 			end
 			
 			if Ready(_R) and not Ready(_W) and not casted then				
 				SetAttack(false)
 				casted = true
-				ControlCastSpell(HK_R)
+				Control.CastSpell(HK_R)
 				castR = true				
 				DelayAction(function()
 				SetAttack(true)
@@ -559,14 +551,14 @@ if target == nil then return end
 			end	
 
 			if Ready(_Q) and castR then				
-				ControlCastSpell(HK_Q)
+				Control.CastSpell(HK_Q)
 				castR = false
 			end			
 			
 			if buff and not Ready(_Q) and not casted then 
 				SetAttack(false)
 				casted = true
-				ControlCastSpell(HK_R)
+				Control.CastSpell(HK_R)
 				DelayAction(function()
 				SetAttack(true)
 				casted = false
@@ -587,19 +579,19 @@ if target == nil then return end
 		end
 			
 		if Ready(_E) and myHero.pos:DistanceTo(target.pos) < 625 then
-			ControlCastSpell(HK_E, target)
+			Control.CastSpell(HK_E, target)
 		end
 
 		if Ready(_W) and myHero.pos:DistanceTo(target.pos) < 300 then				
 			if AA then
-				ControlCastSpell(HK_W, target.pos)
+				Control.CastSpell(HK_W, target.pos)
 				AA = false
 			end	
 		end
 	
 		if Ready(_Q) and myHero.pos:DistanceTo(target.pos) < Qrange then
 			if AA then
-				ControlCastSpell(HK_Q)
+				Control.CastSpell(HK_Q)
 				AA = false
 			end
 		end	
@@ -614,15 +606,15 @@ function Clear()
             
             
 			if myHero.pos:DistanceTo(minion.pos) < Qrange and Menu.Clear.UseQ:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 and Ready(_Q) then
-				ControlCastSpell(HK_Q)	
+				Control.CastSpell(HK_Q)	
             end
                       
 			if myHero.pos:DistanceTo(minion.pos) < 625 and Ready(_E) and Menu.Clear.UseE:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
-				ControlCastSpell(HK_E, minion)   
+				Control.CastSpell(HK_E, minion)   
             end
 			
 			if myHero.pos:DistanceTo(minion.pos) < 300 and Ready(_W) and Menu.Clear.UseW:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
-				ControlCastSpell(HK_W, minion.pos)   
+				Control.CastSpell(HK_W, minion.pos)   
             end			
         end
     end
@@ -636,15 +628,15 @@ function JungleClear()
             
             
 			if myHero.pos:DistanceTo(minion.pos) < Qrange and Menu.Clear.UseQ:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 and Ready(_Q) then
-				ControlCastSpell(HK_Q)
+				Control.CastSpell(HK_Q)
             end
                       
 			if myHero.pos:DistanceTo(minion.pos) < 625 and Ready(_E) and Menu.Clear.UseE:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
-				ControlCastSpell(HK_E, minion)    
+				Control.CastSpell(HK_E, minion)    
             end
 			
 			if myHero.pos:DistanceTo(minion.pos) < 300 and Ready(_W) and Menu.Clear.UseW:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
-				ControlCastSpell(HK_W, minion.pos)    
+				Control.CastSpell(HK_W, minion.pos)    
             end			
         end
     end
