@@ -1,7 +1,3 @@
-local function GetEnemyHeroes()
-	return Enemies
-end 
-
 local function HasBuff(unit, buffname)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
@@ -41,7 +37,7 @@ end
 function LoadScript() 
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})			
 		
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -73,7 +69,8 @@ function LoadScript()
 
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
-	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
+	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
 	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 
 	--Drawing 
@@ -88,22 +85,11 @@ function LoadScript()
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 650, Speed = 3200, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 650, Speed = 3200, Collision = true, CollisionTypes = {_G.COLLISION_MINION}
 	}
 	
 	EspellData = {speed = 3200, range = 650, delay = 0.25, radius = 55, collision = {"minion"}, type = "linear"}	
   	                                           
-	if _G.EOWLoaded then
-		Orb = 1
-	elseif _G.SDK and _G.SDK.Orbwalker then
-		Orb = 2
-	elseif _G.GOS then
-		Orb = 3
-	elseif _G.gsoSDK then
-		Orb = 4
-	elseif _G.PremiumOrbwalker then
-		Orb = 5		
-	end	
 	Callback.Add("Tick", function() Tick() end)
 	
 	Callback.Add("Draw", function()
@@ -155,7 +141,7 @@ if target == nil then return end
 	if IsValid(target) then
 
 		if myHero.pos:DistanceTo(target.pos) < 825 and Menu.Combo.UseR:Value() and Ready(_R) and myHero:GetSpellData(_R).name == "AkaliR" then
-			ControlCastSpell(HK_R, target)	
+			Control.CastSpell(HK_R, target)	
 		end	
 				
 		if myHero.pos:DistanceTo(target.pos) < 500 and Menu.Combo.UseQ:Value() and Ready(_Q) then
@@ -166,18 +152,24 @@ if target == nil then return end
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, EData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
-					CastSpell(HK_E, pred.CastPosition)
+					Control.CastSpell(HK_E, pred.CastPosition)
 				end
-			else
+			elseif Menu.Pred.Change:Value() == 2 then
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
-					CastSpell(HK_E, pred.CastPos)
-				end	
+					Control.CastSpell(HK_E, pred.CastPos)
+				end
+			else
+				local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 650, Speed = 3200, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+				EPrediction:GetPrediction(target, myHero)
+				if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+					Control.CastSpell(HK_E, EPrediction.CastPosition)
+				end				
 			end	
 		end	
 
 		if myHero.pos:DistanceTo(target.pos) < 1500 and Ready(_E) and myHero:GetSpellData(_E).name == "AkaliEb" and HasBuff(target, "AkaliEMis") then
-			ControlCastSpell(HK_E)		
+			Control.CastSpell(HK_E)		
 		end	
 
 		if myHero.pos:DistanceTo(target.pos) < 500 and Menu.Combo.UseW:Value() and Ready(_W) then
@@ -203,13 +195,19 @@ if target == nil then return end
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, EData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
-					CastSpell(HK_E, pred.CastPosition)
+					Control.CastSpell(HK_E, pred.CastPosition)
 				end
-			else
+			elseif Menu.Pred.Change:Value() == 2 then
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
-					CastSpell(HK_E, pred.CastPos)
-				end	
+					Control.CastSpell(HK_E, pred.CastPos)
+				end
+			else
+				local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 650, Speed = 3200, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+				EPrediction:GetPrediction(target, myHero)
+				if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+					Control.CastSpell(HK_E, EPrediction.CastPosition)
+				end				
 			end
 		end				
 	end	
@@ -274,10 +272,10 @@ if target == nil then return end
 		
 		if myHero.pos:DistanceTo(target.pos) < 1500 and Ready(_E) and myHero:GetSpellData(_E).name == "AkaliEb" and HasBuff(target, "AkaliEMis") then
 			if EDmg >= target.health then
-				ControlCastSpell(HK_E)	
+				Control.CastSpell(HK_E)	
 			end
 			if Ready(_Q) and (EDmg + QDmg) >= target.health then
-				ControlCastSpell(HK_E)	
+				Control.CastSpell(HK_E)	
 			end	
 		end		
 		
@@ -296,27 +294,39 @@ if target == nil then return end
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, EData, myHero)
 					if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
-						CastSpell(HK_E, pred.CastPosition)
+						Control.CastSpell(HK_E, pred.CastPosition)
 					end
-				else
+				elseif Menu.Pred.Change:Value() == 2 then
 					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
 					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
-						CastSpell(HK_E, pred.CastPos)
-					end	
+						Control.CastSpell(HK_E, pred.CastPos)
+					end
+				else
+					local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 650, Speed = 3200, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+					EPrediction:GetPrediction(target, myHero)
+					if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+						Control.CastSpell(HK_E, EPrediction.CastPosition)
+					end				
 				end		
 			end
 			if Ready(_Q) and (E2Dmg + QDmg) >= target.health then
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, EData, myHero)
 					if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
-						CastSpell(HK_E, pred.CastPosition)
+						Control.CastSpell(HK_E, pred.CastPosition)
 					end
-				else
+				elseif Menu.Pred.Change:Value() == 2 then
 					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
 					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
-						CastSpell(HK_E, pred.CastPos)
-					end	
-				end		
+						Control.CastSpell(HK_E, pred.CastPos)
+					end
+				else
+					local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 650, Speed = 3200, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+					EPrediction:GetPrediction(target, myHero)
+					if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+						Control.CastSpell(HK_E, EPrediction.CastPosition)
+					end				
+				end	
 			end			
 		end
 	end
