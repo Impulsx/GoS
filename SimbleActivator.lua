@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.23
+    local Version = 0.24
     
     local Files =
     {
@@ -145,11 +145,25 @@ local function GetMode()
 end
 
 local function GetAllyHeroes() 
-	return Allies
+	local _AllyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.isAlly and not unit.isMe then
+			TableInsert(_AllyHeroes, unit)
+		end
+	end
+	return _AllyHeroes
 end
 
 local function GetEnemyHeroes()
-	return Enemies
+	local _EnemyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.team ~= myHero.team then
+			TableInsert(_EnemyHeroes, unit)
+		end
+	end
+	return _EnemyHeroes
 end
 
 local function GetDistanceSqr(p1, p2)
@@ -220,7 +234,7 @@ end
 function Activator:LoadMenu()
     
     self.Menu = MenuElement({type = MENU, id = "Activator", leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png"})
-	self.Menu:MenuElement({name = " ", drop = {"Version 0.23"}})    
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.24"}})    
 	
 	--Shield/Heal MyHero
     self.Menu:MenuElement({id = "ZS", name = "MyHero/Ally Shield + Heal Items", type = MENU})
@@ -333,7 +347,11 @@ function Activator:LoadMenu()
     self.Menu.summ.clean:MenuElement({id = "self", name = "Use Cleanse", value = true})
     
     self.Menu.summ:MenuElement({id = "ign", name = "SummonerIgnite", type = MENU, leftIcon = "https://ddragon.leagueoflegends.com/cdn/5.9.1/img/spell/SummonerDot.png"})
- 	self.Menu.summ.ign:MenuElement({id = "ST", name = "TargetHP or KillSteal", drop = {"TargetHP", "KillSteal"}, value = 1})   
+	self.Menu.summ.ign:MenuElement({id = "Enabled", name = "Use SemiKey", value = false}) 	
+	self.Menu.summ.ign:MenuElement({id = "Key", name = "Semi HotKey", key = string.byte("T")})
+	self.Menu.summ.ign:MenuElement({name = " ", drop = {"-----------------------------------"}})
+	self.Menu.summ.ign:MenuElement({name = " ", drop = {"Is SemiKey On then AutoIgnite = Off"}})	
+	self.Menu.summ.ign:MenuElement({id = "ST", name = "AutoIgnite Hp or Ks", drop = {"TargetHP", "KillSteal"}, value = 1})   
     self.Menu.summ.ign:MenuElement({id = "hp", name = "TargetHP:", value = 30, min = 5, max = 95, identifier = "%"})
 	
     self.Menu.summ:MenuElement({id = "SmiteMenu", name = "SummonerSmite", type = MENU, leftIcon = "https://puu.sh/rPsnZ/a05d0f19a8.png"})
@@ -384,7 +402,7 @@ function Activator:LoadAllyMenu()
 		end
 	end
 end	
-	
+
 function Activator:Tick()
 if not AllyMenuLoaded then 
 	self:LoadAllyMenu()
@@ -403,11 +421,16 @@ local Mode = GetMode()
 	self:MyHero()
     self:Ally()
     self:Summoner()
-	self:Ignite()
 	self:Pots()
 	if self.Menu.summ.SmiteMenu.Enabled:Value() then
 		self:Smite()
-	end	
+	end
+
+	if self.Menu.summ.ign.Enabled:Value() then
+		self:SemiIgnite()
+	else
+		self:Ignite()
+	end
 end
 
 local MarkTable = {
@@ -969,7 +992,7 @@ if target == nil then return end
 end	
 		
 function Activator:Ignite()		
-local target = GetTarget(1500)
+local target = GetTarget(700)
 if target == nil then return end
 	if IsValid(target) then	
 		local TargetHp = target.health/target.maxHealth
@@ -991,6 +1014,21 @@ if target == nil then return end
                 end
             end
         end		
+	end
+end	
+
+function Activator:SemiIgnite()		
+	if self.Menu.summ.ign.Key:Value() then
+		local target = GetTarget(700)
+		if target == nil then return end
+		
+		if IsValid(target) and myHero.pos:DistanceTo(target.pos) <= 600 then	
+			if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
+				Control.CastSpell(HK_SUMMONER_1, target)
+			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
+				Control.CastSpell(HK_SUMMONER_2, target)
+			end
+		end
 	end
 end	
 	
