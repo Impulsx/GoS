@@ -180,7 +180,7 @@ local RTime = 0
 function LoadScript()
 	--OnProcessSpell()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})			
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -544,7 +544,7 @@ local function CastW(aim, unit)
 			if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 				Control.CastSpell(HK_W, WPrediction.CastPosition)
 				WTime = GameTimer()
-				Wshadow = pred.CastPos				
+				Wshadow = WPrediction.CastPosition				
 			end				
 		end
 	end	
@@ -565,12 +565,12 @@ if target == nil then return end
 		
 		if myHero.pos:DistanceTo(target.pos) > 850 then	
 			
-			if Wshadow ~= nil and Wshadow:DistanceTo(target.pos) <= 850 then
+			if Wshadow ~= nil and GetDistance(Wshadow, target.pos) <= 850 then
 				Control.CastSpell(HK_Q, target.pos)
 				
 			end
 			
-			if Rshadow ~= nil and Rshadow:DistanceTo(target.pos) <= 850 then
+			if Rshadow ~= nil and GetDistance(Rshadow, target.pos) <= 850 then
 				Control.CastSpell(HK_Q, target.pos)
 				
 			end
@@ -616,18 +616,18 @@ function E()
 	for i, target in pairs(GetEnemyHeroes()) do 
 		if Ready(_E) and ((Menu.Combo.UseE:Value() and GetMode() == "Combo") or (Menu.Harass.UseE:Value() and GetMode() == "Harass")) and myHero.pos:DistanceTo(target.pos) <= 2000 and IsValid(target) then
 		
-			if myHero.pos:DistanceTo(target.pos) < 290 then
+			if GetDistance(target.pos, myHero.pos) < 290 then
 				Control.CastSpell(HK_E)
 			end	
 				
 			if Wshadow ~= nil then
-				if Wshadow:DistanceTo(target.pos) < 290 then
+				if GetDistance(Wshadow, target.pos) < 290 then
 					Control.CastSpell(HK_E)
 				end
 			end
 			
 			if Rshadow ~= nil then
-				if Rshadow:DistanceTo(target.pos) < 290 then
+				if GetDistance(Rshadow, target.pos) < 290 then
 					Control.CastSpell(HK_E)
 				end
 			end
@@ -639,18 +639,18 @@ function AutoE()
 	for i, target in pairs(GetEnemyHeroes()) do 
 		if Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 2000 and IsValid(target) then
 		
-			if myHero.pos:DistanceTo(target.pos) < 290 then
+			if GetDistance(target.pos, myHero.pos) < 290 then
 				Control.CastSpell(HK_E)
 			end	
 				
-			if Wshadow ~= nil then
-				if Wshadow:DistanceTo(target.pos) < 290 then
+			if Wshadow then
+				if GetDistance(Wshadow, target.pos) < 290 then
 					Control.CastSpell(HK_E)
 				end
 			end
 			
-			if Rshadow ~= nil then
-				if Rshadow:DistanceTo(target.pos) < 290 then
+			if Rshadow then
+				if GetDistance(Rshadow, target.pos) < 290 then
 					Control.CastSpell(HK_E)
 				end
 			end
@@ -721,7 +721,7 @@ if target == nil then return end
 				end				
 			else
 				if Wshadow ~= nil then
-					if Ready(_W) and myHero:GetSpellData(_W).toggleState == 2 and target.health < TotalDmg and myHero.mana > currentEnergyNeeded and Wshadow:DistanceTo(target.pos) <= 625 then
+					if Ready(_W) and myHero:GetSpellData(_W).toggleState == 2 and target.health < TotalDmg and myHero.mana > currentEnergyNeeded and GetDistance(Wshadow, target.pos) <= 625 then
 						if Menu.Combo.Ult.UseRTower:Value() then
 							UltKillable = true
 							Wshadow = myHero.pos
