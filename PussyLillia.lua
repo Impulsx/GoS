@@ -31,7 +31,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.03
+    local Version = 0.04
     
     local Files = {
         Lua = {
@@ -80,7 +80,6 @@ end
 --|                    Utils                     |--
 ----------------------------------------------------
 
-local checkCount = 0
 local heroes = false
 local wClock = 0
 local clock = os.clock
@@ -210,6 +209,16 @@ local function SetMovement(bool)
 	else
 		GOS.BlockMovement = not bool
 	end
+end
+
+local function CheckLoadedEnemyies()
+	local count = 0
+	for i, unit in ipairs(Enemies) do
+        if unit and unit.isEnemy then
+		count = count + 1
+		end
+	end
+	return count
 end
 
 local function GetEnemyHeroes()
@@ -368,7 +377,7 @@ end
 function Lillia:LoadMenu()                     	
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "PussyLillia", name = "PussyLillia"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
 
 	--AutoQ
 self.Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ Mode"})	
@@ -432,31 +441,31 @@ self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})		
 end	
 
-function Lillia:Tick()		
-if heroes == false then 
-	for i, unit in pairs(Enemies) do			
-		checkCount = checkCount + 1
-	end
-	if checkCount < 1 then
-		LoadUnits()
-	else
-		heroes = true
-	end
-end	
+function Lillia:Tick()	
+	if heroes == false then 
+		local EnemyCount = CheckLoadedEnemyies()			
+		if EnemyCount < 1 then
+			LoadUnits()
+		else
+			heroes = true
+		end
+		
+	else	
 
-if MyHeroNotReady() then return end
+	if MyHeroNotReady() then return end
 
-local Mode = GetMode()
-	if Mode == "Combo" then
-		self:Combo()
-		self:CountR()
-	elseif Mode == "LaneClear" then
-		self:JungleClear()
-		self:Clear()	
-	end
+	local Mode = GetMode()
+		if Mode == "Combo" then
+			self:Combo()
+			self:CountR()
+		elseif Mode == "LaneClear" then
+			self:JungleClear()
+			self:Clear()	
+		end
 
-	if Mode ~= "Combo" and self.Menu.AutoQ.UseQ:Value() then
-		self:AutoQ()
+		if Mode ~= "Combo" and self.Menu.AutoQ.UseQ:Value() then
+			self:AutoQ()
+		end	
 	end	
 end
 
