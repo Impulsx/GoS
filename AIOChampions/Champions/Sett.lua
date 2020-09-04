@@ -62,7 +62,7 @@ require "2DGeometry"
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -93,12 +93,14 @@ function LoadScript()
 	Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.JClear:MenuElement({id = "UseW", name = "[W]", value = true})	
 	Menu.JClear:MenuElement({id = "Grit", name = "Min Grit to Use [W]", value = 0, min = 0, max = 100, identifier = "%"})
+	Menu.JClear:MenuElement({id = "UseE", name = "[E]", value = true})	
 	
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
 	Menu.Pred:MenuElement({name = " ", drop = {"After change Prediction Typ press 2xF6"}})
-	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
 	Menu.Pred:MenuElement({id = "PredW", name = "Hitchance [W]", value = 1, drop = {"Normal", "High", "Immobile"}})	
+	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance [E]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 	
 	--Drawing
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
@@ -112,7 +114,14 @@ function LoadScript()
 	Type = _G.SPELLTYPE_LINE, Delay = 0.52, Radius = 90, Range = 750, Speed = MathHuge, Collision = false
 	}
 	
-	WspellData = {speed = MathHuge, range = 750, delay = 0.52, radius = 90, collision = {nil}, type = "linear"}		
+	WspellData = {speed = MathHuge, range = 750, delay = 0.52, radius = 90, collision = {nil}, type = "linear"}	
+
+	EData =
+	{
+	Type = _G.SPELLTYPE_LINE, Delay = 0.2, Radius = 175, Range = 490, Speed = MathHuge, Collision = false
+	}
+	
+	EspellData = {speed = MathHuge, range = 490, delay = 0.2, radius = 175, collision = {nil}, type = "linear"}		
 	
 	Callback.Add("Tick", function() Tick() end)
 
@@ -171,7 +180,19 @@ if target == nil then return end
 		end			
 					
 		if myHero.pos:DistanceTo(target.pos) < 440 and Menu.Combo.UseE:Value() and Ready(_E) then
-			Control.CastSpell(HK_E, target.pos)
+			if Menu.Pred.Change:Value() == 1 then
+				local pred = GetGamsteronPrediction(target, EData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
+					Control.CastSpell(HK_E, pred.CastPosition)
+				end
+			elseif Menu.Pred.Change:Value() == 2 then
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
+				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
+					Control.CastSpell(HK_E, pred.CastPos)
+				end
+			else
+				CastGGPredE(target)
+			end
 		end			
 		
 		if myHero.pos:DistanceTo(target.pos) < 800 and Menu.Combo.UseQ:Value() and Ready(_Q) then
@@ -190,7 +211,7 @@ if target == nil then return end
 					Control.CastSpell(HK_W, pred.CastPos)
 				end
 			else
-				CastGGPred(target)
+				CastGGPredW(target)
 			end
 		end	
 	end
@@ -231,7 +252,7 @@ function Clear()
 				end	
 			end	
 			
-			if myHero.pos:DistanceTo(minion.pos) <= 440 and Menu.Clear.UseE:Value () and Ready(_E) then
+			if myHero.pos:DistanceTo(minion.pos) <= 440 and Menu.Clear.UseE:Value() and Ready(_E) then
 				local count = GetMinionCount (160, minion)
 				if count >= Menu.Clear.Emin:Value() then
 					Control.CastSpell(HK_E, minion.pos)
@@ -252,15 +273,27 @@ function JungleClear()
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 750 and Menu.JClear.UseW:Value() and Ready(_W) and myHero.mana/myHero.maxMana >= Menu.JClear.Grit:Value() / 100 then
 				Control.CastSpell(HK_W, minion.pos)
+			end
+
+			if myHero.pos:DistanceTo(minion.pos) <= 440 and Menu.JClear.UseE:Value() and Ready(_E) then
+				Control.CastSpell(HK_E, minion.pos)
 			end			
 		end
 	end
 end
 
-function CastGGPred(unit)
+function CastGGPredW(unit)
 	local WPrediction = GGPrediction:SpellPrediction({Delay = 0.52, Radius = 90, Range = 750, Speed = MathHuge, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
 	WPrediction:GetPrediction(unit, myHero)
 	if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 		Control.CastSpell(HK_W, WPrediction.CastPosition)
+	end	
+end
+
+function CastGGPredE(unit)
+	local EPrediction = GGPrediction:SpellPrediction({Delay = 0.2, Radius = 175, Range = 490, Speed = MathHuge, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
+	EPrediction:GetPrediction(unit, myHero)
+	if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+		Control.CastSpell(HK_E, EPrediction.CastPosition)
 	end	
 end
