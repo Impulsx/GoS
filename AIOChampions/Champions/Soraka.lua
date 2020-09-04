@@ -14,7 +14,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})	
 
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ"})
@@ -69,7 +69,8 @@ function LoadScript()
 
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
-	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
+	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
 	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 
@@ -85,26 +86,15 @@ function LoadScript()
 	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 235, Range = 800, Speed = 1750, Collision = false
 	}
 	
-	QspellData = {speed = 1750, range = 800, delay = 0.5, radius = 235, collision = {}, type = "circular"}		
+	QspellData = {speed = 1750, range = 800, delay = 0.5, radius = 235, collision = {nil}, type = "circular"}		
 
 	EData =
 	{
 	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 250, Range = 925, Speed = 1750, Collision = false
 	}
 	
-	EspellData = {speed = 1750, range = 925, delay = 0.5, radius = 250, collision = {}, type = "circular"}		
-  	                                           
-	if _G.EOWLoaded then
-		Orb = 1
-	elseif _G.SDK and _G.SDK.Orbwalker then
-		Orb = 2
-	elseif _G.GOS then
-		Orb = 3
-	elseif _G.gsoSDK then
-		Orb = 4
-	elseif _G.PremiumOrbwalker then
-		Orb = 5		
-	end	
+	EspellData = {speed = 1750, range = 925, delay = 0.5, radius = 250, collision = {nil}, type = "circular"}		
+
 	Callback.Add("Tick", function() Tick() end)
 
 	Callback.Add("Draw", function()
@@ -163,13 +153,19 @@ if target == nil then return end
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, EData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
-					ControlCastSpell(HK_E, pred.CastPosition)
+					Control.CastSpell(HK_E, pred.CastPosition)
 				end
-			else
+			elseif Menu.Pred.Change:Value() == 2 then
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
-					ControlCastSpell(HK_E, pred.CastPos)
-				end	
+					Control.CastSpell(HK_E, pred.CastPos)
+				end
+			else
+				local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 250, Range = 925, Speed = 1750, Collision = false})
+				EPrediction:GetPrediction(target, myHero)
+				if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+					Control.CastSpell(HK_E, EPrediction.CastPosition)
+				end					
 			end 			
 		end	
 	end
@@ -180,7 +176,7 @@ function AutoR()
 	--if ally == nil then return end	
 	if Menu.AutoR.UseR:Value() and Ready(_R) then
 		if RCount() >= Menu.AutoR.UseRE:Value() then
-			ControlCastSpell(HK_R)
+			Control.CastSpell(HK_R)
 		end	
 	end
 	--end	
@@ -191,7 +187,7 @@ function AutoR2()
 	if ally == nil then return end	
 		if Ready(_R) then 
 			if Menu.AutoR.AutoR2[ally.charName] and Menu.AutoR.AutoR2[ally.charName]:Value() and IsValid(ally) and ally.health/ally.maxHealth <= Menu.AutoR.UseRE:Value()/100 then
-				ControlCastSpell(HK_R)
+				Control.CastSpell(HK_R)
 			end	
 		end	
 	end
@@ -206,7 +202,7 @@ if target == nil then return end
 		if myHero.pos:DistanceTo(ally.pos) <= 550 and IsValid(ally) and Ready(_W) then 
 			if Menu.AutoW.UseW:Value() then
 				if ally.health/ally.maxHealth <= Menu.AutoW.UseWE:Value()/100 and myHero.mana/myHero.maxMana >= Menu.AutoW.Mana:Value()/100 then
-					ControlCastSpell(HK_W, ally)
+					Control.CastSpell(HK_W, ally)
 				end	
 			end	
 		end
@@ -222,13 +218,19 @@ function AutoQ()
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-					ControlCastSpell(HK_Q, pred.CastPosition)
+					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
-			else
+			elseif Menu.Pred.Change:Value() == 2 then
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-					ControlCastSpell(HK_Q, pred.CastPos)
-				end	
+					Control.CastSpell(HK_Q, pred.CastPos)
+				end
+			else
+				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 235, Range = 800, Speed = 1750, Collision = false})
+				QPrediction:GetPrediction(target, myHero)
+				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+					Control.CastSpell(HK_Q, QPrediction.CastPosition)
+				end				
 			end
 		end
 	end
@@ -245,30 +247,43 @@ function KillSteal()
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, QData, myHero)
 					if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-						ControlCastSpell(HK_Q, pred.CastPosition)
+						Control.CastSpell(HK_Q, pred.CastPosition)
 					end
-				else
+				elseif Menu.Pred.Change:Value() == 2 then
 					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-						ControlCastSpell(HK_Q, pred.CastPos)
-					end	
+						Control.CastSpell(HK_Q, pred.CastPos)
+					end
+				else
+					local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 235, Range = 800, Speed = 1750, Collision = false})
+					QPrediction:GetPrediction(target, myHero)
+					if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+						Control.CastSpell(HK_Q, QPrediction.CastPosition)
+					end				
 				end
 			end
 		end
+		
 		if myHero.pos:DistanceTo(target.pos) <= 925 and Menu.ks.UseE:Value() and Ready(_E) then
 			local EDmg = getdmg("E", target, myHero)
 			if EDmg >= target.health then			
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, EData, myHero)
 					if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
-						ControlCastSpell(HK_E, pred.CastPosition)
+						Control.CastSpell(HK_E, pred.CastPosition)
 					end
-				else
+				elseif Menu.Pred.Change:Value() == 2 then
 					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
 					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
-						ControlCastSpell(HK_E, pred.CastPos)
-					end	
-				end	
+						Control.CastSpell(HK_E, pred.CastPos)
+					end
+				else
+					local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 250, Range = 925, Speed = 1750, Collision = false})
+					EPrediction:GetPrediction(target, myHero)
+					if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+						Control.CastSpell(HK_E, EPrediction.CastPosition)
+					end					
+				end
 			end
 		end
 	end
@@ -283,13 +298,19 @@ if target == nil then return end
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-					ControlCastSpell(HK_Q, pred.CastPosition)
+					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
-			else
+			elseif Menu.Pred.Change:Value() == 2 then
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-					ControlCastSpell(HK_Q, pred.CastPos)
-				end	
+					Control.CastSpell(HK_Q, pred.CastPos)
+				end
+			else
+				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 235, Range = 800, Speed = 1750, Collision = false})
+				QPrediction:GetPrediction(target, myHero)
+				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+					Control.CastSpell(HK_Q, QPrediction.CastPosition)
+				end				
 			end
 		end
 		
@@ -297,13 +318,19 @@ if target == nil then return end
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, EData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
-					ControlCastSpell(HK_E, pred.CastPosition)
+					Control.CastSpell(HK_E, pred.CastPosition)
 				end
-			else
+			elseif Menu.Pred.Change:Value() == 2 then
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
-					ControlCastSpell(HK_E, pred.CastPos)
-				end	
+					Control.CastSpell(HK_E, pred.CastPos)
+				end
+			else
+				local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 250, Range = 925, Speed = 1750, Collision = false})
+				EPrediction:GetPrediction(target, myHero)
+				if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+					Control.CastSpell(HK_E, EPrediction.CastPosition)
+				end					
 			end	
 		end
 	end
@@ -318,26 +345,39 @@ if target == nil then return end
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-					ControlCastSpell(HK_Q, pred.CastPosition)
+					Control.CastSpell(HK_Q, pred.CastPosition)
 				end
-			else
+			elseif Menu.Pred.Change:Value() == 2 then
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-					ControlCastSpell(HK_Q, pred.CastPos)
-				end	
+					Control.CastSpell(HK_Q, pred.CastPos)
+				end
+			else
+				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 235, Range = 800, Speed = 1750, Collision = false})
+				QPrediction:GetPrediction(target, myHero)
+				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+					Control.CastSpell(HK_Q, QPrediction.CastPosition)
+				end				
 			end
 		end
+		
 		if myHero.pos:DistanceTo(target.pos) <= 925 and Menu.Harass.UseE:Value() and Ready(_E) then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, EData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
-					ControlCastSpell(HK_E, pred.CastPosition)
+					Control.CastSpell(HK_E, pred.CastPosition)
 				end
-			else
+			elseif Menu.Pred.Change:Value() == 2 then
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
-					ControlCastSpell(HK_E, pred.CastPos)
-				end	
+					Control.CastSpell(HK_E, pred.CastPos)
+				end
+			else
+				local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.5, Radius = 250, Range = 925, Speed = 1750, Collision = false})
+				EPrediction:GetPrediction(target, myHero)
+				if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+					Control.CastSpell(HK_E, EPrediction.CastPosition)
+				end					
 			end
 		end
 	end
@@ -347,7 +387,7 @@ function Clear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 		if Ready(_Q) and Menu.Clear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 800 and minion.team == TEAM_ENEMY and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then					
-			ControlCastSpell(HK_Q, minion.pos)	  
+			Control.CastSpell(HK_Q, minion.pos)	  
 		end
 	end
 end
@@ -357,7 +397,7 @@ function JungleClear()
     local minion = GameMinion(i)	
 
 		if Ready(_Q) and Menu.JClear.UseQ:Value() and myHero.pos:DistanceTo(minion.pos) <= 800 and minion.team == TEAM_JUNGLE and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100 then	
-			ControlCastSpell(HK_Q, minion.pos) 
+			Control.CastSpell(HK_Q, minion.pos) 
 		end
 	end
 end
