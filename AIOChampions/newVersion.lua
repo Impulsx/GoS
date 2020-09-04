@@ -11,7 +11,7 @@ Data = {
     Champions = {
         Mordekaiser = {
             Changelog = "Mordekaiser Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
         Cassiopeia = {
             Changelog = "Cassiopeia Changelog Here",
@@ -23,7 +23,7 @@ Data = {
         },
         Soraka = {
             Changelog = "Soraka Changelog Here",
-            Version = 0.07,
+            Version = 0.08,
         },
         Zyra = {
             Changelog = "Zyra Changelog Here",
@@ -127,7 +127,7 @@ Data = {
         },
          Sett = {
             Changelog = "Sett Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         },
          Rengar = {
             Changelog = "Rengar Changelog Here",
@@ -143,7 +143,7 @@ Data = {
         },
           Nocturne = {
             Changelog = "Nocturne Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         }, 
           Garen = {
             Changelog = "Garen Changelog Here",
@@ -167,15 +167,15 @@ Data = {
         }, 
            FiddleSticks = {
             Changelog = "Fiddlesticks Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         }, 
            Zed = {
             Changelog = "Zed Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         },
            Volibear = {
             Changelog = "Volibear Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         }, 
            Karthus = {
             Changelog = "Karthus Changelog Here",
