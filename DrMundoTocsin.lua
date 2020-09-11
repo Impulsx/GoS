@@ -72,7 +72,7 @@
 
 local ScriptVersion = "PussyVers. 0.01"
 
-local Q = { Range = 975, Delay = 0.25, Speed = 2000, Width = 60}
+local Q = { Range = 920, Delay = 0.5, Speed = 2000, Width = 60}
 require "DamageLib"
 
 if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
@@ -262,7 +262,7 @@ end
 
 class "DrMundo"
 
-local QspellData = {speed = 2000, range = 920, delay = 1, radius = 30, collision = {"minion"}, type = "linear"}
+local QspellData = {speed = 2000, range = 920, delay = 0.5, radius = 30, collision = {"minion"}, type = "linear"}
 local PredLoaded = false
 
 function DrMundo:__init()
@@ -336,14 +336,7 @@ end
 
 function DrMundo:Tick()
 	if MyHeroNotReady() then return end
-local currSpell = myHero.activeSpell
-if currSpell and currSpell.valid and myHero.isChanneling then
-print ("Width:  "..myHero.activeSpell.width)
-print ("Speed:  "..myHero.activeSpell.speed)
-print ("Delay:  "..myHero.activeSpell.castFrame)
-print ("range:  "..myHero.activeSpell.range)
-print ("Name:  "..myHero.activeSpell.name)
-end	
+
 	local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
@@ -444,7 +437,7 @@ function DrMundo:CastQ(target)
 			Control.CastSpell(HK_Q, pred.CastPos)
 		end
 	else
-		local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 1, Radius = 30, Range = 920, Speed = 2000, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+		local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.5, Radius = 30, Range = 920, Speed = 2000, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
 		QPrediction:GetPrediction(target, myHero)
 		if QPrediction:CanHit(Tocsin.Pred.PredQ:Value() + 1) then
 			Control.CastSpell(HK_Q, QPrediction.CastPosition)
