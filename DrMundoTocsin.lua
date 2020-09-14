@@ -70,7 +70,7 @@
 
 
 
-local ScriptVersion = "PussyVers. 0.01"
+local ScriptVersion = "PussyVers. 0.02"
 
 local Q = { Range = 920, Delay = 0.5, Speed = 2000, Width = 60}
 require "DamageLib"
@@ -251,7 +251,7 @@ end
 local function IsRecalling(unit)
 	local buff = GetBuffData(unit, "recall")
 	if buff and buff.duration > 0 then
-		return true, GameTimer() - buff.startTime
+		return true, Game.Timer() - buff.startTime
 	end
     return false
 end
