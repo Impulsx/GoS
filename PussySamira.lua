@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.01
+    local Version = 0.02
     
     local Files = {
         Lua = {
@@ -466,6 +466,19 @@ local function ConvertToHitChance(menuValue, hitChance)
     or _G.PremiumPrediction.HitChance.Immobile(hitChance)
 end
 
+local LastCheck = 0
+local ReadyTimer = 0
+local function IsReadyUlt()
+	if Ready(_R) and Game.Timer() - LastCheck > 6 then
+		LastCheck = Game.Timer()
+		ReadyTimer = Game.Timer()
+	end
+	if Game.Timer() - ReadyTimer < 6 then
+		return true
+	end
+	return false
+end	
+
 local function MyHeroNotReady()
     return myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero)
 end
@@ -503,7 +516,7 @@ function Samira:LoadMenu()
 DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	
 	--MainMenu
 self.Menu = MenuElement({type = MENU, id = "PussySamira", name = "PussySamira"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.01"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
 
 	--AutoW
 self.Menu:MenuElement({type = MENU, id = "WSet", name = "AutoW Incomming CC Spells"})
@@ -586,13 +599,22 @@ self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 			end				
 		end, 0.02)
 	end	
-end	
+end
 
+local UltAlly = false		
 local CastedR = false
-function Samira:Tick()	
-	if myHero:GetSpellData(_R).currentCd > 0 then
+function Samira:Tick()		
+	local currSpell = myHero.activeSpell
+	if currSpell and currSpell.name == "SamiraW" and currSpell.isChanneling then
 		SetAttack(false)
 	else
+		SetAttack(true)
+	end	
+	
+	if myHero:GetSpellData(_R).currentCd > 0.9 then
+		SetAttack(false)
+	else
+		UltAlly = false
 		CastedR = false
 		SetAttack(true)
 	end	
@@ -672,15 +694,31 @@ function UseW(i, s)
 		end	
 	else TableRemove(DetectedSpells, i) end
 end
-
+ 
 function Samira:Combo()
+	if IsReadyUlt() and self.Menu.ComboSet.Combo.UseR:Value() and self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) then	
+		for i, Ally in ipairs(GetAllyHeroes()) do 
+			if Ally and myHero.pos:DistanceTo(Ally.pos) <= 600 and IsValid(Ally) then
+				if GetEnemyCount(600, myHero) == 0 and GetEnemyCount(600, Ally) >= 1 then
+					if Game.Timer() - ReadyTimer <= 5.2 then
+						if Control.CastSpell(HK_E, Ally) then
+							UltAlly = true
+							CastedR = true
+							Control.CastSpell(HK_R)
+						end	
+					end
+				end
+			end
+		end
+	end	
+					
 local target = GetTarget(1000)     	
-if target == nil then return end
+if target == nil or UltAlly then return end
 	if IsValid(target) then
 		
 		if Ready(_R) and self.Menu.ComboSet.Combo.UseR:Value() then					
 			
-			if GetEnemyCount(2000, myHero) == 1 then
+			if GetEnemyCount(1500, myHero) == 1 then
 				if myHero.pos:DistanceTo(target.pos) <= 500 then
 					CastedR = true
 					Control.CastSpell(HK_R)
@@ -695,7 +733,7 @@ if target == nil then return end
 					end	
 				end
 			else
-				if GetEnemyCount(2000, myHero) > 1 then
+				if GetEnemyCount(1500, myHero) > 1 then
 					if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) then
 						if myHero.pos:DistanceTo(target.pos) <= 600 and GetEnemyCount(600, target) >= 1 and not IsUnderTurret(target) then
 							if Control.CastSpell(HK_E, target) then
