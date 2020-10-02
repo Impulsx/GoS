@@ -180,7 +180,11 @@ Data = {
            Karthus = {
             Changelog = "Karthus Changelog Here",
             Version = 0.01,
-        },         
+        },
+           Leona = {
+            Changelog = "Leona Changelog Here",
+            Version = 0.01,
+        },        
     },
 }
 
