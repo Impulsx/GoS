@@ -183,7 +183,7 @@ Data = {
         }, 
            Leona = {
             Changelog = "Leona Changelog Here",
-            Version = 0.01,
+            Version = 0.02,
         },        
     },
 }
