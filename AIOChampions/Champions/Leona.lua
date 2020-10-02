@@ -9,6 +9,17 @@ local function GetEnemyHeroes()
 	return _EnemyHeroes
 end 
 
+local function GetAllyHeroes()
+	local _AllyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.isAlly and not unit.isMe then
+			TableInsert(_AllyHeroes, unit)
+		end
+	end
+	return _AllyHeroes
+end 
+
 local function GetEnemyCount(range, unit)
     local pos = unit.pos
 	local count = 0
@@ -25,7 +36,7 @@ local function Ignore(unit)
 	for i = 1, unit.buffCount do
 		local buff = unit:GetBuff(i)
 		if buff then
-			if (buff.name == "BlackShield") or (buff.name == "bansheesveil") or (buff.name == "SivirE") or (buff.name == "NocturneShroudofDarkness") or (buff.name == "OlafRagnarok") or (buff.name == "PoppyDiplomaticImmunity") then
+			if (buff.name == "MorganaE") or (buff.name == "bansheesveil") or (buff.name == "SivirE") or (buff.name == "NocturneShroudofDarkness") or (buff.name == "OlafRagnarok") or (buff.name == "PoppyDiplomaticImmunity") then
 				return true
 			end	
 		end
@@ -34,19 +45,23 @@ local function Ignore(unit)
 end
 
 local function IsStunned(unit)
-  for i = 0, unit.buffCount do
-    local buff = unit:GetBuff(i)
-    if buff.type == 5 and buff.count > 0 then 
-      return buff
-    end
-  end
-  return {expireTime = 0}
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff.type == 5 and buff.count > 0 then 
+			return buff
+		end
+	end
+	return {type = 0, name = "", startTime = 0, expireTime = 0, duration = 0, stacks = 0, count = 0}
 end
 
 function LoadScript() 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
 
+	Menu:MenuElement({type = MENU, id = "EDash", name = "AntiDash"})
+	Menu.EDash:MenuElement({id = "E", name = "Use [E] on Dashing Enemies", value = true})
+	Menu.EDash:MenuElement({id = "Change", name = "AntiDash Option", value = 1, drop = {"Auto Use", "Only in Combo"}})		
+	
 	--Combo
 
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -56,7 +71,7 @@ function LoadScript()
 	Menu.Combo:MenuElement({id = "R", name = "Use [R]", value = true})
 	Menu.Combo:MenuElement({id = "CountR", name = "Min enemies to use R", value = 2, min = 1, max = 5})
 	Menu.Combo:MenuElement({id = "R2", name = "Use [R] Single Target", value = true})
-	Menu.Combo:MenuElement({id = "RHP", name = "Use R if Single Target Hp lower than", value = 20, min = 0, max = 100, identifier = "%"})	
+	Menu.Combo:MenuElement({id = "RHP", name = "Use R if Single Target Hp lower than", value = 30, min = 0, max = 100, identifier = "%"})	
 
 	--Harass
 
@@ -64,7 +79,7 @@ function LoadScript()
 	Menu.Harass:MenuElement({id = "Q", name = "Use [Q]", value = true})
 	Menu.Harass:MenuElement({id = "W", name = "Use [W]", value = true})
 	Menu.Harass:MenuElement({id = "E", name = "Use [E]", value = true})
-	Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass [%]", value = 0.30, min = 0.05, max = 1, step = 0.01})
+	Menu.Harass:MenuElement({id = "Mana", name = "Min Mana", value = 30, min = 0, max = 100, identifier = "%"})
 
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
@@ -130,10 +145,40 @@ if MyHeroNotReady() then return end
 
 local Mode = GetMode()
 	if Mode == "Combo" then
+		if Menu.EDash.E:Value() and Menu.EDash.Change:Value() == 2 then
+			AntiDash()
+		end
 		Combo()
 	elseif Mode == "Harass" then
 		Harass()
 	end
+	
+	if Menu.EDash.E:Value() and Menu.EDash.Change:Value() == 1 then
+		AntiDash()
+	end	
+end
+
+function AntiDash()
+	if Ready(_E) then
+		for i, target in ipairs(GetEnemyHeroes()) do
+			if target and myHero.pos:DistanceTo(target.pos) < 900 and target.pathing.isDashing then
+				if GetDistanceSqr(target.pathing.endPos, myHero.pos) < GetDistanceSqr(target.pos, myHero.pos) then
+					CastE(target)
+					return
+				end
+			end	
+				
+			for k, Ally in ipairs(GetAllyHeroes()) do
+				if Ally and myHero.pos:DistanceTo(Ally.pos) < 800 then
+					if target and Ally.pos:DistanceTo(target.pos) < 900 and target.pathing.isDashing then						
+						if GetDistanceSqr(target.pathing.endPos, Ally.pos) < GetDistanceSqr(target.pos, Ally.pos) then
+							CastE(target)
+						end
+					end	
+				end
+			end	
+		end
+	end	
 end
 
 function Combo()
@@ -141,10 +186,11 @@ local target = GetTarget(1150)
 if target == nil then return end
 
 	if Menu.Combo.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 875  and StopOrb2 == false then
-		local Stunned, Time = IsStunned(target)
-		if Stunned and Time <= 0.5 then
-			print(Time)
-			CastE(target)
+		local Stunned = IsStunned(target)
+		if Stunned then			
+			if Stunned.duration <= 0.5 then			
+				CastE(target)
+			end	
 		else
 			CastE(target)
 		end	
@@ -154,11 +200,13 @@ if target == nil then return end
 		Control.CastSpell(HK_W)
 	end
 	
-	if Menu.Combo.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 275 then
-		local Stunned, Time = IsStunned(target)
-		if Stunned and Time <= 0.5 then		
-			Control.CastSpell(HK_Q)
-			Control.Attack(target)
+	if Menu.Combo.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 275 and not Ignore(target) and StopOrb1 == false and StopOrb2 == false then
+		local Stunned = IsStunned(target)
+		if Stunned then		
+			if Stunned.duration <= 0.5 then			
+				Control.CastSpell(HK_Q)
+				Control.Attack(target)
+			end	
 		else
 			Control.CastSpell(HK_Q)
 			Control.Attack(target)
@@ -166,9 +214,11 @@ if target == nil then return end
 	end
 
 	if Menu.Combo.R2:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 1150 and target.health/target.maxHealth <= Menu.Combo.RHP:Value()/100 and StopOrb1 == false then
-		local Stunned, Time = IsStunned(target)
-		if Stunned and Time <= 0.9 then
-			CastR(target)
+		local Stunned = IsStunned(target)
+		if Stunned then
+			if Stunned.duration <= 0.9 then			
+				CastR(target)
+			end	
 		else
 			CastR(target)
 		end	
@@ -184,9 +234,11 @@ local target = GetTarget(880)
 if target == nil or myHero.mana/myHero.maxMana < Menu.Harass.Mana:Value()/100 then return end
 
 	if Menu.Harass.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 875 then
-		local Stunned, Time = IsStunned(target)
-		if Stunned and Time <= 0.5 then
-			CastE(target)
+		local Stunned = IsStunned(target)
+		if Stunned then
+			if Stunned.duration <= 0.5 then
+				CastE(target)
+			end	
 		else
 			CastE(target)
 		end	
@@ -196,11 +248,13 @@ if target == nil or myHero.mana/myHero.maxMana < Menu.Harass.Mana:Value()/100 th
 		Control.CastSpell(HK_W)
 	end
 	
-	if Menu.Harass.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 275 then
-		local Stunned, Time = IsStunned(target)
-		if Stunned and Time <= 0.5 then		
-			Control.CastSpell(HK_Q)
-			Control.Attack(target)
+	if Menu.Harass.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 275 and not Ignore(target) and StopOrb1 == false then
+		local Stunned = IsStunned(target)
+		if Stunned then		
+			if Stunned.duration <= 0.5 then
+				Control.CastSpell(HK_Q)
+				Control.Attack(target)
+			end	
 		else
 			Control.CastSpell(HK_Q)
 			Control.Attack(target)
@@ -209,7 +263,7 @@ if target == nil or myHero.mana/myHero.maxMana < Menu.Harass.Mana:Value()/100 th
 end
 
 function CastE(unit)
-	if myHero.attackData.state == STATE_WINDDOWN and not Ignore(unit) then
+	if not Ignore(unit) then
 		if Menu.Pred.Change:Value() == 1 then
 			local pred = GetGamsteronPrediction(unit, EData, myHero)			
 			if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
@@ -240,7 +294,7 @@ function CastE(unit)
 end	
 
 function CastR(unit)
-	if myHero.attackData.state == STATE_WINDDOWN then
+	if not Ignore(unit) then
 		if Menu.Pred.Change:Value() == 1 then
 			local pred = GetGamsteronPrediction(unit, RData, myHero)			
 			if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
@@ -267,60 +321,58 @@ function CastR(unit)
 				Control.CastSpell(HK_R, RPrediction.CastPosition)
 			end				
 		end
-	end
+	end	
 end
 
 function CastR2(unit)
-	if myHero.attackData.state == STATE_WINDDOWN then
-		if Menu.Pred.Change:Value() == 1 then
-			local pred = GetGamsteronPrediction(unit, RData, myHero)			
-			if pred.Hitchance >= Menu.Pred.PredR:Value()+1 and GetEnemyCount(500, unit) >= Menu.Combo.CountR:Value() then
-				SetMovement(false)
-				SetAttack(false)				
-				StopOrb2 = true
-				Control.CastSpell(HK_R, pred.CastPosition)
-			end
-			
-		else
-			
-			for i, target in ipairs(GetEnemyHeroes()) do
-				if Menu.Pred.Change:Value() == 2 then		
-					local pred = _G.PremiumPrediction:GetAOEPrediction(myHero, target, R2spellData)
-					if pred.CastPos and ConvertToHitChance(self.Menu.MiscSet.Pred.PredR:Value(), pred.HitChance) then
-						if pred.HitCount >= Menu.Combo.CountR:Value() then
-							SetMovement(false)
-							SetAttack(false)							
-							StopOrb2 = true
-							Control.CastSpell(HK_R, pred.CastPos)
-						end	
-					end
-				else
-					local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.65, Radius = 250, Range = 1200, Speed = math.huge, Collision = false})
-					local minhitchance = Menu.Pred.PredR:Value() + 1
-					local aoeresult = RPrediction:GetAOEPrediction(myHero)
-					local bestaoe = nil
-					local bestcount = 0
-					local bestdistance = 1200
-				   
-					for i = 1, #aoeresult do
-						local aoe = aoeresult[i]
-						if aoe.HitChance >= minhitchance and aoe.TimeToHit <= 0.4 and aoe.Count >= Menu.Combo.CountR:Value() then
-							if aoe.Count > bestcount or (aoe.Count == bestcount and aoe.Distance < bestdistance) then
-								bestdistance = aoe.Distance
-								bestcount = aoe.Count
-								bestaoe = aoe
-							end
+	if Menu.Pred.Change:Value() == 1 then
+		local pred = GetGamsteronPrediction(unit, RData, myHero)			
+		if pred.Hitchance >= Menu.Pred.PredR:Value()+1 and GetEnemyCount(500, unit) >= Menu.Combo.CountR:Value() then
+			SetMovement(false)
+			SetAttack(false)				
+			StopOrb2 = true
+			Control.CastSpell(HK_R, pred.CastPosition)
+		end
+		
+	else
+		
+		for i, target in ipairs(GetEnemyHeroes()) do
+			if Menu.Pred.Change:Value() == 2 then		
+				local pred = _G.PremiumPrediction:GetAOEPrediction(myHero, target, R2spellData)
+				if pred.CastPos and ConvertToHitChance(self.Menu.MiscSet.Pred.PredR:Value(), pred.HitChance) then
+					if pred.HitCount >= Menu.Combo.CountR:Value() then
+						SetMovement(false)
+						SetAttack(false)							
+						StopOrb2 = true
+						Control.CastSpell(HK_R, pred.CastPos)
+					end	
+				end
+			else
+				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.65, Radius = 250, Range = 1200, Speed = math.huge, Collision = false})
+				local minhitchance = Menu.Pred.PredR:Value() + 1
+				local aoeresult = RPrediction:GetAOEPrediction(myHero)
+				local bestaoe = nil
+				local bestcount = 0
+				local bestdistance = 1200
+			   
+				for i = 1, #aoeresult do
+					local aoe = aoeresult[i]
+					if aoe.HitChance >= minhitchance and aoe.TimeToHit <= 0.4 and aoe.Count >= Menu.Combo.CountR:Value() then
+						if aoe.Count > bestcount or (aoe.Count == bestcount and aoe.Distance < bestdistance) then
+							bestdistance = aoe.Distance
+							bestcount = aoe.Count
+							bestaoe = aoe
 						end
 					end
-					
-					if bestaoe then
-						SetMovement(false)
-						SetAttack(false)						
-						StopOrb2 = true
-						Control.CastSpell(HK_R, bestaoe.CastPosition)			 
-					end			
 				end
-			end	
+				
+				if bestaoe then
+					SetMovement(false)
+					SetAttack(false)						
+					StopOrb2 = true
+					Control.CastSpell(HK_R, bestaoe.CastPosition)			 
+				end			
+			end
 		end	
-	end
+	end	
 end
