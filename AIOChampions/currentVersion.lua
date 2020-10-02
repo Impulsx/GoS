@@ -184,6 +184,10 @@ Data = {
            Leona = {
             Changelog = "Leona Changelog Here",
             Version = 0.01,
+        }, 
+           Jinx = {
+            Changelog = "Jinx Changelog Here",
+            Version = 0.01,
         },        
     },
 }
