@@ -21,17 +21,59 @@ local function GetEnemyCount(range, unit)
 	local count = 0
 	for i, hero in ipairs(GetEnemyHeroes()) do
 	local Range = range * range
-		if unit ~= hero and GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
+		if GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
 		count = count + 1
 		end
 	end
 	return count
 end
 
+function CalcRDmg(unit)
+	local Damage = 0
+	local level = myHero:GetSpellData(_R).level
+	local BaseQ = ({25, 35, 45})[level] + 0.15 * myHero.bonusDamage
+	local QMissHeal = ({25, 30, 35})[level] / 100 * (unit.maxHealth - unit.health)
+	local dist = myHero.pos:DistanceTo(unit.pos)
+	if dist < 100 then
+		Damage = BaseQ * 0.1 + BaseQ
+	elseif dist >= 100 and dist < 200 then
+		Damage = BaseQ * 0.16 + BaseQ
+	elseif dist >= 200 and dist < 300 then
+		Damage = BaseQ * 0.22 + BaseQ	
+	elseif dist >= 300 and dist < 400 then
+		Damage = BaseQ * 0.28 + BaseQ	
+	elseif dist >= 400 and dist < 500 then
+		Damage = BaseQ * 0.34 + BaseQ	
+	elseif dist >= 500 and dist < 600 then
+		Damage = BaseQ * 0.4 + BaseQ	
+	elseif dist >= 600 and dist < 700 then
+		Damage = BaseQ * 0.46 + BaseQ	
+	elseif dist >= 700 and dist < 800 then
+		Damage = BaseQ * 0.52 + BaseQ	
+	elseif dist >= 800 and dist < 900 then
+		Damage = BaseQ * 0.58 + BaseQ
+	elseif dist >= 900 and dist < 1000 then
+		Damage = BaseQ * 0.64 + BaseQ	
+	elseif dist >= 1000 and dist < 1100 then
+		Damage = BaseQ * 0.7 + BaseQ	
+	elseif dist >= 1100 and dist < 1200 then
+		Damage = BaseQ * 0.76 + BaseQ	
+	elseif dist >= 1200 and dist < 1300 then
+		Damage = BaseQ * 0.82 + BaseQ	
+	elseif dist >= 1300 and dist < 1400 then
+		Damage = BaseQ * 0.88 + BaseQ
+	elseif dist >= 1400 and dist < 1500 then
+		Damage = BaseQ * 0.94 + BaseQ	
+	elseif dist >= 1500 then
+		Damage = BaseQ * 10		
+	end
+	return CalcPhysicalDamage(myHero, unit, (Damage+QMissHeal))
+end
+
 
 function LoadScript() 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
 	
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
@@ -62,33 +104,32 @@ function LoadScript()
 	--Prediction
 	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})
 	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
-	Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
+	Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})
 	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})	
-	Menu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+	Menu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 	
 	--KS
 	Menu.ks:MenuElement({id = "UseW", name = "Use [W]", value = true})	
 	Menu.ks:MenuElement({id = "UseR", name = "Use [R]", value = true})
 	
 	--Extras
-	Menu.Extras:MenuElement({id = "RRange", name = "Max R Range", value = 1700, min = 350, max = 4000, identifier = "range"})	
+	Menu.Extras:MenuElement({id = "RRange", name = "Max R Range", value = 2000, min = 350, max = 4000, identifier = "range"})	
 	Menu.Extras:MenuElement({id = "MinRRange", name = "Min R Range", value = 300, min = 0, max = 1800, identifier = "range"})
 	Menu.Extras:MenuElement({id = "WRange", name = "Min W Range", value = 300, min = 0, max = 1450, identifier = "range"})	
-	Menu.Extras:MenuElement({id = "REnemies", name = "Min Enemies for Auto R", value = 4, min = 1, max = 5})
+	Menu.Extras:MenuElement({id = "REnemies", name = "Min Enemies for Auto R", value = 3, min = 1, max = 5})
 	Menu.Extras:MenuElement({id = "ROverkill", name = "Check R Overkill", value = true})
-	Menu.Extras:MenuElement({id = "EStun", name = "Auto E Stunned Target", value = true})
 	Menu.Extras:MenuElement({id = "EGapcloser", name = "Auto E Gapclosers", value = true})
-	Menu.Extras:MenuElement({id = "EAutoCast", name = "Auto E Slow/Immobile/Dash", value = true})
+	Menu.Extras:MenuElement({id = "EAutoCast", name = "Auto E Immobile Target", value = true})
 	Menu.Extras:MenuElement({id = "SwapThree", name = "Swap Q at three fishbone stacks", value = true})
 	Menu.Extras:MenuElement({id = "SwapDistance", name = "Swap Q for Distance", value = true})
 	Menu.Extras:MenuElement({id = "SwapAOE", name = "Swap Q for AoE", value = true})
 	
 	WData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.6, Radius = 60, Range = 1500, Speed = 3300, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.6, Radius = 60, Range = 1500, Speed = 3300, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}
 	}
 	
-	WspellData = {speed = 3300, range = 1500, delay = 0.6, radius = 60, collision = {nil}, type = "linear"}	
+	WspellData = {speed = 3300, range = 1500, delay = 0.6, radius = 60, collision = {"minion"}, type = "linear"}	
 	
 	EData =
 	{
@@ -149,13 +190,13 @@ function Tick()
 		end
 	end
 
-	if Menu.Extras.EStun:Value() then
-		CheckImmobile()
-	end
-
 	if Menu.Extras.EGapcloser:Value() then
 		CheckDashes()
 	end
+	
+	if Menu.Extras.EAutoCast:Value() then
+		CheckImmobile()
+	end	
 	KS()
 
 	if target == nil and Wtarget == nil and not isFishBones and Ready(_Q) and Mode == "Clear" then
@@ -165,16 +206,12 @@ end
 
 function Combo(Target)	
 if Target == nil then return end	
-	if GetDistance(Target.pos) < 1450 and Menu.Combo.W:Value() then
+	if Ready(_W) and GetDistance(myHero.pos, Target.pos) < 1450 and Menu.Combo.W:Value() then
 		CastW(Target)
 	end
 
 	if Ready(_E) and Menu.Combo.E:Value() then
 		CastComboE(Target)
-	end
-
-	if Ready(_E) and Menu.Extras.EAutoCast:Value() then
-		AutoCastE(Target)
 	end
 
 	if Ready(_Q) and Menu.Combo.Q:Value() then	
@@ -183,7 +220,7 @@ if Target == nil then return end
 end
 
 function ComboR()
-	local Target = GetTarget(Menu.Extras.RRange:Value())
+	local Target = GetTarget(25750)
 	if Target == nil then return end
 	if Ready(_R) and Menu.Combo.R:Value() then
 		CastR(Target)
@@ -194,10 +231,10 @@ function Swap(Target)
 	if IsValid(Target) and Ready(_Q)then
 	
 		if isFishBones then
-			if Menu.Extras.SwapThree:Value() and FishStacks == 3 and GetDistance(Target.pos) < QRange then
+			if Menu.Extras.SwapThree:Value() and FishStacks == 3 and GetDistance(myHero.pos, Target.pos) < QRange then
 				Control.CastSpell(HK_Q)
 			end
-			if Menu.Extras.SwapDistance:Value() and GetDistance(Target.pos) > 600 + Target.boundingRadius and GetDistance(Target.pos) < QRange + Target.boundingRadius then
+			if Menu.Extras.SwapDistance:Value() and GetDistance(myHero.pos, Target.pos) > 600 + Target.boundingRadius and GetDistance(myHero.pos, Target.pos) < QRange + Target.boundingRadius then
 				Control.CastSpell(HK_Q)
 			end
 			if Menu.Extras.SwapAOE:Value() and GetEnemyCount(300, Target) > 1 and FishStacks > 2 then 
@@ -207,13 +244,13 @@ function Swap(Target)
 			if Menu.Extras.SwapAOE:Value() and GetEnemyCount(300, Target) > 1 then 
 				return
 			end
-			if Menu.Extras.SwapThree:Value() and FishStacks < 3 and GetDistance(Target.pos) < 600 + Target.boundingRadius then
+			if Menu.Extras.SwapThree:Value() and FishStacks < 3 and GetDistance(myHero.pos, Target.pos) < 600 + Target.boundingRadius then
 				Control.CastSpell(HK_Q)
 			end
-			if Menu.Extras.SwapDistance:Value() and GetDistance(Target.pos) < 600 + Target.boundingRadius then
+			if Menu.Extras.SwapDistance:Value() and GetDistance(myHero.pos, Target.pos) < 600 + Target.boundingRadius then
 				Control.CastSpell(HK_Q)
 			end
-			if GetMode() == "Harass" and GetDistance(Target.pos) > 600 + Target.boundingRadius + 50 then
+			if GetMode() == "Harass" and GetDistance(myHero.pos, Target.pos) > 600 + Target.boundingRadius + 50 then
 				Control.CastSpell(HK_Q)
 			end
 		end
@@ -237,13 +274,13 @@ end
 
 
 function CastComboE(Target)
-	if Ready(_E) and GetDistance(Target.pos) < 900 then
+	if Ready(_E) and GetDistance(myHero.pos, Target.pos) < 900 then
 		CastE(Target)
 	end
 end
 
 function CastW(Target)
-	if GetDistance(Target.pos) > Menu.Extras.WRange:Value() then
+	if GetDistance(myHero.pos, Target.pos) > Menu.Extras.WRange:Value() then
 		if Menu.Pred.Change:Value() == 1 then
 			local pred = GetGamsteronPrediction(Target, WData, myHero)			
 			if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
@@ -255,7 +292,7 @@ function CastW(Target)
 				Control.CastSpell(HK_W, pred.CastPos)
 			end
 		else
-			local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.6, Radius = 60, Range = 1500, Speed = 3300, Collision = false})
+			local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.6, Radius = 60, Range = 1500, Speed = 3300, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
 			WPrediction:GetPrediction(Target, myHero)
 			if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 				Control.CastSpell(HK_W, WPrediction.CastPosition)
@@ -285,33 +322,33 @@ function CastE(Target)
 end
 
 function CastR(Target)
-	if Target ~= nil and GetDistance(Target.pos) < Menu.Extras.RRange:Value() and Ready(_R) then
+	if Target ~= nil and Ready(_R) then
 		
-		if GetEnemyCount(250, Target) >= Menu.Extras.REnemies:Value() then
+		if GetEnemyCount(450, Target) >= Menu.Extras.REnemies:Value() then
 			local CurrentRSpeed = JinxUltSpeed(Target)
 			if Menu.Pred.Change:Value() == 1 then
 				local RData = {Type = _G.SPELLTYPE_LINE, Delay = 0.6, Radius = 140, Range = 25750, Speed = CurrentRSpeed, Collision = false}				
-				local pred = GetGamsteronPrediction(unit, RData, myHero)			
+				local pred = GetGamsteronPrediction(Target, RData, myHero)			
 				if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
 					Control.CastSpell(HK_R, pred.CastPosition)
 				end
 			elseif Menu.Pred.Change:Value() == 2 then
 				local RspellData = {speed = CurrentRSpeed, range = 25750, delay = 0.6, radius = 140, collision = {nil}, type = "linear"}
-				local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, RspellData)
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, Target, RspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
 					Control.CastSpell(HK_R, pred.CastPos)
 				end
 			else
 				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.6, Radius = 140, Range = 25750, Speed = CurrentRSpeed, Collision = false})
-				RPrediction:GetPrediction(unit, myHero)
+				RPrediction:GetPrediction(Target, myHero)
 				if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
 					Control.CastSpell(HK_R, RPrediction.CastPosition)
 				end				
 			end
 		end
 		
-		if GetDistance(Target.pos) > Menu.Extras.MinRRange:Value() and Menu.Extras.ROverkill:Value() and GetDistance(Target.pos) < Menu.Extras.RRange:Value() then 
-			local RDamage = getdmg("R", Target, myHero)
+		if GetDistance(myHero.pos, Target.pos) > Menu.Extras.MinRRange:Value() and Menu.Extras.ROverkill:Value() and GetDistance(myHero.pos, Target.pos) < Menu.Extras.RRange:Value() then 
+			local RDamage = CalcRDmg(Target)
 			local ADamage = getdmg("AA", Target, myHero)
 			if Target.health < ADamage * 3.5 then 
 				return
@@ -319,8 +356,8 @@ function CastR(Target)
 				CastPredUlt(Target)
 			end
 		
-		elseif GetDistance(Target.pos) < Menu.Extras.RRange:Value() then
-			local RDamage = getdmg("R", Target, myHero)
+		elseif GetDistance(myHero.pos, Target.pos) < Menu.Extras.RRange:Value() then
+			local RDamage = CalcRDmg(Target)
 			if Target.health < RDamage then
 				CastPredUlt(Target)
 			end
@@ -353,13 +390,14 @@ end
 
 function KS()
 	if Ready(_R) then
-		local Enemies = GetEnemyHeroes()
-		for i, enemy in ipairs(Enemies) do
-			if IsValid(enemy) and GetDistance(enemy.pos) < Menu.Extras.RRange:Value() and Menu.ks.UseR:Value() then
-				if getdmg("R", enemy, myHero) > enemy.health then
+		for i, enemy in ipairs(GetEnemyHeroes()) do
+			if IsValid(enemy) and GetDistance(myHero.pos, enemy.pos) < Menu.Extras.RRange:Value() and Menu.ks.UseR:Value() then
+				local Rdmg = CalcRDmg(enemy)
+				print(Rdmg)
+				if Rdmg > enemy.health then
 					CastR(enemy)
 				end
-			elseif IsValid(enemy) and GetDistance(enemy.pos) < 1500 and Menu.ks.UseW:Value() then
+			elseif IsValid(enemy) and GetDistance(myHero.pos, enemy.pos) < 1500 and Menu.ks.UseW:Value() then
 				if getdmg("W", enemy, myHero) > enemy.health then
 					CastW(enemy)
 				end
@@ -368,43 +406,35 @@ function KS()
 	end	
 end
 
-local function IsStunned(unit)
+local function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
-		if buff.type == 5 and buff.count > 0 then 
-			return buff
+		if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.name == 10 ) and buff.count > 0 then
+			return true
 		end
 	end
-	return {type = 0, name = "", startTime = 0, expireTime = 0, duration = 0, stacks = 0, count = 0}
+	return false	
 end
 
 function CheckImmobile()
-	local Enemies = GetEnemyHeroes()
-	for i, enemy in ipairs(Enemies) do
-		if Ready(_E) and IsValid(enemy) and GetDistance(enemy.pos) < 900 then
-			local IsImmobile = IsStunned(enemy)
+	for i, enemy in ipairs(GetEnemyHeroes()) do
+		if Ready(_E) and IsValid(enemy) and GetDistance(myHero.pos, enemy.pos) < 900 then
+			local IsImmobile = IsImmobileTarget(enemy)
 			if IsImmobile then
-				Control.CastSpell(HK_E, enemy.pos)
-			end
-		end
-	end
-end
-
-function CheckDashes()
-	local Enemies = GetEnemyHeroes()
-	for i, enemy in ipairs(Enemies) do
-		if Ready(_E) and IsValid(enemy) and GetDistance(enemy.pos) < 900 and enemy.pathing.isDashing then
-
-			if GetDistanceSqr(enemy.pathing.endPos, myHero.pos) < GetDistanceSqr(enemy.pos, myHero.pos) then
 				CastE(enemy)
 			end
 		end
 	end
 end
 
-function AutoCastE(Target) 
-	if Target ~= nil and IsValid(Target) then
-		CastE(Target)
+function CheckDashes()
+	for i, enemy in ipairs(GetEnemyHeroes()) do
+		if Ready(_E) and IsValid(enemy) and GetDistance(myHero.pos, enemy.pos) < 900 and enemy.pathing.isDashing then
+
+			if GetDistanceSqr(enemy.pathing.endPos, myHero.pos) < GetDistanceSqr(enemy.pos, myHero.pos) then
+				CastE(enemy)
+			end
+		end
 	end
 end
 
@@ -436,7 +466,7 @@ end
 
 function JinxUltSpeed(Target)
 	if Target ~= nil and IsValid(Target) then
-		local Distance = GetDistance(Target.pos)
+		local Distance = GetDistance(myHero.pos, Target.pos)
 		local Speed = (Distance > 1350 and (1350*1700+((Distance-1350)*2200))/Distance or 1700)
 		return Speed
 	end
