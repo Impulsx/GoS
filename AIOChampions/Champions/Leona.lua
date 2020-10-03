@@ -56,7 +56,7 @@ end
 
 function LoadScript() 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 
 	Menu:MenuElement({type = MENU, id = "EDash", name = "AntiDash"})
 	Menu.EDash:MenuElement({id = "E", name = "Use [E] on Dashing Enemies", value = true})
@@ -95,19 +95,19 @@ function LoadScript()
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 900, Speed = 2000, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 1, Radius = 40, Range = 875, Speed = 1200, Collision = false
 	}
 	
-	EspellData = {speed = 2000, range = 900, delay = 0.25, radius = 70, collision = {nil}, type = "linear"}	
+	EspellData = {speed = 1200, range = 875, delay = 1, radius = 40, collision = {nil}, type = "linear"}	
 	
 	RData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.65, Radius = 250, Range = 1200, Speed = math.huge, Collision = false
+	Type = _G.SPELLTYPE_CIRCLE, Delay = 1, Radius = 250, Range = 1200, Speed = math.huge, Collision = false
 	}	
 	
-	R1spellData = {speed = math.huge, range = 1200, delay = 0.65, radius = 100, collision = {nil}, type = "circular"}	
+	R1spellData = {speed = math.huge, range = 1200, delay = 1, radius = 100, collision = {nil}, type = "circular"}	
 
-	R2spellData = {speed = math.huge, range = 1200, delay = 0.65, radius = 250, collision = {nil}, type = "circular"}		
+	R2spellData = {speed = math.huge, range = 1200, delay = 1, radius = 250, collision = {nil}, type = "circular"}		
 	
 	Callback.Add("Tick", function() Tick() end)
 	
@@ -281,7 +281,7 @@ function CastE(unit)
 				Control.CastSpell(HK_E, pred.CastPos)
 			end
 		else
-			local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 900, Speed = 2000, Collision = false})
+			local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 1, Radius = 40, Range = 875, Speed = 1200, Collision = false})
 			EPrediction:GetPrediction(unit, myHero)
 			if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
 				SetMovement(false)
@@ -312,7 +312,7 @@ function CastR(unit)
 				Control.CastSpell(HK_R, pred.CastPos)
 			end
 		else
-			local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.65, Radius = 100, Range = 1200, Speed = math.huge, Collision = false})
+			local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 1, Radius = 100, Range = 1200, Speed = math.huge, Collision = false})
 			RPrediction:GetPrediction(unit, myHero)
 			if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
 				SetMovement(false)
@@ -348,7 +348,7 @@ function CastR2(unit)
 					end	
 				end
 			else
-				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.65, Radius = 250, Range = 1200, Speed = math.huge, Collision = false})
+				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 1, Radius = 250, Range = 1200, Speed = math.huge, Collision = false})
 				local minhitchance = Menu.Pred.PredR:Value() + 1
 				local aoeresult = RPrediction:GetAOEPrediction(myHero)
 				local bestaoe = nil
@@ -357,7 +357,7 @@ function CastR2(unit)
 			   
 				for i = 1, #aoeresult do
 					local aoe = aoeresult[i]
-					if aoe.HitChance >= minhitchance and aoe.TimeToHit <= 0.4 and aoe.Count >= Menu.Combo.CountR:Value() then
+					if aoe.HitChance >= minhitchance and aoe.Count >= Menu.Combo.CountR:Value() then
 						if aoe.Count > bestcount or (aoe.Count == bestcount and aoe.Distance < bestdistance) then
 							bestdistance = aoe.Distance
 							bestcount = aoe.Count
