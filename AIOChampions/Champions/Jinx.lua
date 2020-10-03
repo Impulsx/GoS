@@ -73,7 +73,7 @@ end
 
 function LoadScript() 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 	
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
@@ -117,6 +117,7 @@ function LoadScript()
 	Menu.Extras:MenuElement({id = "MinRRange", name = "Min R Range", value = 300, min = 0, max = 1800, identifier = "range"})
 	Menu.Extras:MenuElement({id = "WRange", name = "Min W Range", value = 300, min = 0, max = 1450, identifier = "range"})	
 	Menu.Extras:MenuElement({id = "REnemies", name = "Min Enemies for Auto R", value = 3, min = 1, max = 5})
+	Menu.Extras:MenuElement({id = "RRange2", name = "Max R Range Check multible Targets", value = 4000, min = 350, max = 12500, identifier = "range"})	
 	Menu.Extras:MenuElement({id = "ROverkill", name = "Check R Overkill", value = true})
 	Menu.Extras:MenuElement({id = "EGapcloser", name = "Auto E Gapclosers", value = true})
 	Menu.Extras:MenuElement({id = "EAutoCast", name = "Auto E Immobile Target", value = true})
@@ -126,17 +127,17 @@ function LoadScript()
 	
 	WData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.6, Radius = 60, Range = 1500, Speed = 3300, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.6, Radius = 30, Range = 1400, Speed = 3300, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}
 	}
 	
-	WspellData = {speed = 3300, range = 1500, delay = 0.6, radius = 60, collision = {"minion"}, type = "linear"}	
+	WspellData = {speed = 3300, range = 1400, delay = 0.6, radius = 30, collision = {"minion"}, type = "linear"}	
 	
 	EData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 50, Range = 900, Speed = 1750, Collision = false
+	Type = _G.SPELLTYPE_CIRCLE, Delay = 1.5, Radius = 120, Range = 900, Speed = 1100, Collision = false
 	}
 	
-	EspellData = {speed = 1750, range = 900, delay = 0.25, radius = 50, collision = {nil}, type = "circular"}	
+	EspellData = {speed = 1100, range = 900, delay = 1.5, radius = 120, collision = {nil}, type = "circular"}	
 
 	Callback.Add("Tick", function() Tick() end)
 	
@@ -220,7 +221,7 @@ if Target == nil then return end
 end
 
 function ComboR()
-	local Target = GetTarget(25750)
+	local Target = GetTarget(12500)
 	if Target == nil then return end
 	if Ready(_R) and Menu.Combo.R:Value() then
 		CastR(Target)
@@ -292,7 +293,7 @@ function CastW(Target)
 				Control.CastSpell(HK_W, pred.CastPos)
 			end
 		else
-			local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.6, Radius = 60, Range = 1500, Speed = 3300, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+			local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.6, Radius = 30, Range = 1400, Speed = 3300, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
 			WPrediction:GetPrediction(Target, myHero)
 			if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 				Control.CastSpell(HK_W, WPrediction.CastPosition)
@@ -313,7 +314,7 @@ function CastE(Target)
 			Control.CastSpell(HK_E, pred.CastPos)
 		end
 	else
-		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 50, Range = 900, Speed = 1750, Collision = false})
+		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 1.5, Radius = 120, Range = 900, Speed = 1100, Collision = false})
 		EPrediction:GetPrediction(Target, myHero)
 		if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
 			Control.CastSpell(HK_E, EPrediction.CastPosition)
@@ -324,22 +325,22 @@ end
 function CastR(Target)
 	if Target ~= nil and Ready(_R) then
 		
-		if GetEnemyCount(450, Target) >= Menu.Extras.REnemies:Value() then
+		if GetDistance(myHero.pos, Target.pos) <= Menu.Extras.RRange2:Value() and GetEnemyCount(450, Target) >= Menu.Extras.REnemies:Value() then
 			local CurrentRSpeed = JinxUltSpeed(Target)
 			if Menu.Pred.Change:Value() == 1 then
-				local RData = {Type = _G.SPELLTYPE_LINE, Delay = 0.6, Radius = 140, Range = 25750, Speed = CurrentRSpeed, Collision = false}				
+				local RData = {Type = _G.SPELLTYPE_LINE, Delay = 1, Radius = 70, Range = 12500, Speed = CurrentRSpeed, Collision = false}				
 				local pred = GetGamsteronPrediction(Target, RData, myHero)			
 				if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
 					Control.CastSpell(HK_R, pred.CastPosition)
 				end
 			elseif Menu.Pred.Change:Value() == 2 then
-				local RspellData = {speed = CurrentRSpeed, range = 25750, delay = 0.6, radius = 140, collision = {nil}, type = "linear"}
+				local RspellData = {speed = CurrentRSpeed, range = 12500, delay = 1, radius = 70, collision = {nil}, type = "linear"}
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, Target, RspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
 					Control.CastSpell(HK_R, pred.CastPos)
 				end
 			else
-				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.6, Radius = 140, Range = 25750, Speed = CurrentRSpeed, Collision = false})
+				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 1, Radius = 70, Range = 12500, Speed = CurrentRSpeed, Collision = false})
 				RPrediction:GetPrediction(Target, myHero)
 				if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
 					Control.CastSpell(HK_R, RPrediction.CastPosition)
@@ -368,19 +369,19 @@ end
 function CastPredUlt(unit)
 	local CurrentRSpeed = JinxUltSpeed(Target)
 	if Menu.Pred.Change:Value() == 1 then
-		local RData = {Type = _G.SPELLTYPE_LINE, Delay = 0.6, Radius = 140, Range = Menu.Extras.RRange:Value(), Speed = CurrentRSpeed, Collision = false}
+		local RData = {Type = _G.SPELLTYPE_LINE, Delay = 1, Radius = 70, Range = Menu.Extras.RRange:Value(), Speed = CurrentRSpeed, Collision = false}
 		local pred = GetGamsteronPrediction(unit, RData, myHero)			
 		if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
 			Control.CastSpell(HK_R, pred.CastPosition)
 		end
 	elseif Menu.Pred.Change:Value() == 2 then
-		local RspellData = {speed = CurrentRSpeed, range = Menu.Extras.RRange:Value(), delay = 0.6, radius = 140, collision = {nil}, type = "linear"}
+		local RspellData = {speed = CurrentRSpeed, range = Menu.Extras.RRange:Value(), delay = 1, radius = 70, collision = {nil}, type = "linear"}
 		local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, RspellData)
 		if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
 			Control.CastSpell(HK_R, pred.CastPos)
 		end
 	else
-		local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.6, Radius = 140, Range = Menu.Extras.RRange:Value(), Speed = CurrentRSpeed, Collision = false})
+		local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 1, Radius = 70, Range = Menu.Extras.RRange:Value(), Speed = CurrentRSpeed, Collision = false})
 		RPrediction:GetPrediction(unit, myHero)
 		if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
 			Control.CastSpell(HK_R, RPrediction.CastPosition)
@@ -393,7 +394,6 @@ function KS()
 		for i, enemy in ipairs(GetEnemyHeroes()) do
 			if IsValid(enemy) and GetDistance(myHero.pos, enemy.pos) < Menu.Extras.RRange:Value() and Menu.ks.UseR:Value() then
 				local Rdmg = CalcRDmg(enemy)
-				print(Rdmg)
 				if Rdmg > enemy.health then
 					CastR(enemy)
 				end
