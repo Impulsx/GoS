@@ -30,50 +30,25 @@ end
 
 function CalcRDmg(unit)
 	local Damage = 0
+	local Distance = GetDistance(myHero.pos, unit.pos)
+	local MathDist = math.floor(math.floor(Distance)/100)	
 	local level = myHero:GetSpellData(_R).level
 	local BaseQ = ({25, 35, 45})[level] + 0.15 * myHero.bonusDamage
 	local QMissHeal = ({25, 30, 35})[level] / 100 * (unit.maxHealth - unit.health)
 	local dist = myHero.pos:DistanceTo(unit.pos)
-	if dist < 100 then
-		Damage = BaseQ * 0.1 + BaseQ
-	elseif dist >= 100 and dist < 200 then
-		Damage = BaseQ * 0.16 + BaseQ
-	elseif dist >= 200 and dist < 300 then
-		Damage = BaseQ * 0.22 + BaseQ	
-	elseif dist >= 300 and dist < 400 then
-		Damage = BaseQ * 0.28 + BaseQ	
-	elseif dist >= 400 and dist < 500 then
-		Damage = BaseQ * 0.34 + BaseQ	
-	elseif dist >= 500 and dist < 600 then
-		Damage = BaseQ * 0.4 + BaseQ	
-	elseif dist >= 600 and dist < 700 then
-		Damage = BaseQ * 0.46 + BaseQ	
-	elseif dist >= 700 and dist < 800 then
-		Damage = BaseQ * 0.52 + BaseQ	
-	elseif dist >= 800 and dist < 900 then
-		Damage = BaseQ * 0.58 + BaseQ
-	elseif dist >= 900 and dist < 1000 then
-		Damage = BaseQ * 0.64 + BaseQ	
-	elseif dist >= 1000 and dist < 1100 then
-		Damage = BaseQ * 0.7 + BaseQ	
-	elseif dist >= 1100 and dist < 1200 then
-		Damage = BaseQ * 0.76 + BaseQ	
-	elseif dist >= 1200 and dist < 1300 then
-		Damage = BaseQ * 0.82 + BaseQ	
-	elseif dist >= 1300 and dist < 1400 then
-		Damage = BaseQ * 0.88 + BaseQ
-	elseif dist >= 1400 and dist < 1500 then
-		Damage = BaseQ * 0.94 + BaseQ	
-	elseif dist >= 1500 then
-		Damage = BaseQ * 10		
+	if Distance < 100 then
+		Damage = BaseQ + QMissHeal
+	elseif Distance >= 1500 then
+		Damage = BaseQ * 10	+ QMissHeal		
+	else
+		Damage = ((((MathDist * 6) + 10) / 100) * BaseQ) + BaseQ + QMissHeal
 	end
-	return CalcPhysicalDamage(myHero, unit, (Damage+QMissHeal))
+	return CalcPhysicalDamage(myHero, unit, Damage)
 end
-
 
 function LoadScript() 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
 	
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
@@ -86,6 +61,7 @@ function LoadScript()
 	--Combo
 	Menu.Combo:MenuElement({id = "Q", name = "Use [Q]", value = true})
 	Menu.Combo:MenuElement({id = "W", name = "Use [W]", value = true})
+	Menu.Combo:MenuElement({id = "W2", name = "Only [W] if out of AA range", value = true})	
 	Menu.Combo:MenuElement({id = "E", name = "Use [E]", value = true})
 	Menu.Combo:MenuElement({id = "R", name = "Use [R]", value = true})
 
@@ -109,16 +85,19 @@ function LoadScript()
 	Menu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 	
 	--KS
+	Menu.ks:MenuElement({name = " ", drop = {"Only if Combo not active"}})	
 	Menu.ks:MenuElement({id = "UseW", name = "Use [W]", value = true})	
 	Menu.ks:MenuElement({id = "UseR", name = "Use [R]", value = true})
 	
 	--Extras
-	Menu.Extras:MenuElement({id = "RRange", name = "Max R Range", value = 2000, min = 350, max = 4000, identifier = "range"})	
-	Menu.Extras:MenuElement({id = "MinRRange", name = "Min R Range", value = 300, min = 0, max = 1800, identifier = "range"})
-	Menu.Extras:MenuElement({id = "WRange", name = "Min W Range", value = 300, min = 0, max = 1450, identifier = "range"})	
-	Menu.Extras:MenuElement({id = "REnemies", name = "Min Enemies for Auto R", value = 3, min = 1, max = 5})
-	Menu.Extras:MenuElement({id = "RRange2", name = "Max R Range Check multible Targets", value = 4000, min = 350, max = 12500, identifier = "range"})	
+	Menu.Extras:MenuElement({id = "Key", name = "SemiKey [R]", key = string.byte("T")})	
+	Menu.Extras:MenuElement({id = "RRange3", name = "Max R Range (Semi Key)", value = 4000, min = 350, max = 12500, identifier = "range"})	
+	Menu.Extras:MenuElement({id = "RRange", name = "Max R Range (Combo / Ks)", value = 2000, min = 350, max = 4000, identifier = "range"})	
+	Menu.Extras:MenuElement({id = "MinRRange", name = "Min R Range (Combo / Ks)", value = 300, min = 0, max = 1800, identifier = "range"})	
+	Menu.Extras:MenuElement({id = "REnemies", name = "R multible Enemies (Combo)", value = 3, min = 1, max = 5})
+	Menu.Extras:MenuElement({id = "RRange2", name = "Max R Range Check multible Enemies", value = 4000, min = 350, max = 12500, identifier = "range"})	
 	Menu.Extras:MenuElement({id = "ROverkill", name = "Check R Overkill", value = true})
+	Menu.Extras:MenuElement({id = "WRange", name = "Min W Range", value = 300, min = 0, max = 1450, identifier = "range"})	
 	Menu.Extras:MenuElement({id = "EGapcloser", name = "Auto E Gapclosers", value = true})
 	Menu.Extras:MenuElement({id = "EAutoCast", name = "Auto E Immobile Target", value = true})
 	Menu.Extras:MenuElement({id = "SwapThree", name = "Swap Q at three fishbone stacks", value = true})
@@ -164,8 +143,7 @@ end
 
 function Tick()
 	Check()
-	if MyHeroNotReady() then return end
-	
+	if MyHeroNotReady() then return end	
 	local target = GetTarget(900)
 	local Wtarget = GetTarget(1450)	
 	local Mode = GetMode()
@@ -190,6 +168,14 @@ function Tick()
 			Control.CastSpell(HK_Q)
 		end
 	end
+	
+	if Ready(_R) and Menu.Extras.Key:Value() then
+		SemiCastUlt()
+	end
+	
+	if Mode ~= "Combo" then	
+		KS()	
+	end
 
 	if Menu.Extras.EGapcloser:Value() then
 		CheckDashes()
@@ -198,7 +184,6 @@ function Tick()
 	if Menu.Extras.EAutoCast:Value() then
 		CheckImmobile()
 	end	
-	KS()
 
 	if target == nil and Wtarget == nil and not isFishBones and Ready(_Q) and Mode == "Clear" then
 		Control.CastSpell(HK_Q)
@@ -207,9 +192,18 @@ end
 
 function Combo(Target)	
 if Target == nil then return end	
-	if Ready(_W) and GetDistance(myHero.pos, Target.pos) < 1450 and Menu.Combo.W:Value() then
-		CastW(Target)
-	end
+	
+	if Menu.Combo.W2:Value() then
+		if Ready(_W) and GetDistance(myHero.pos, Target.pos) < 1450 and Menu.Combo.W:Value() then
+			if GetDistance(myHero.pos, Target.pos) > QRange+50 then
+				CastW(Target)
+			end	
+		end
+	else
+		if Ready(_W) and GetDistance(myHero.pos, Target.pos) < 1450 and Menu.Combo.W:Value() then
+			CastW(Target)
+		end
+	end	
 
 	if Ready(_E) and Menu.Combo.E:Value() then
 		CastComboE(Target)
@@ -348,16 +342,18 @@ function CastR(Target)
 			end
 		end
 		
-		if GetDistance(myHero.pos, Target.pos) > Menu.Extras.MinRRange:Value() and Menu.Extras.ROverkill:Value() and GetDistance(myHero.pos, Target.pos) < Menu.Extras.RRange:Value() then 
-			local RDamage = CalcRDmg(Target)
-			local ADamage = getdmg("AA", Target, myHero)
-			if Target.health < ADamage * 3.5 then 
-				return
-			elseif Target.health < RDamage then
-				CastPredUlt(Target)
-			end
+		if Menu.Extras.ROverkill:Value() then
+			if GetDistance(myHero.pos, Target.pos) > Menu.Extras.MinRRange:Value() and GetDistance(myHero.pos, Target.pos) < Menu.Extras.RRange:Value() then 
+				local RDamage = CalcRDmg(Target)
+				local ADamage = getdmg("AA", Target, myHero)
+				if ((isFishBones and GetDistance(myHero.pos, Target.pos) < QRange+100) or (not isFishBones and GetDistance(myHero.pos, Target.pos) < myHero.range+100)) and Target.health < ADamage * 4 then 
+					return
+				elseif Target.health < RDamage then
+					CastPredUlt(Target)
+				end
+			end	
 		
-		elseif GetDistance(myHero.pos, Target.pos) < Menu.Extras.RRange:Value() then
+		elseif GetDistance(myHero.pos, Target.pos) > Menu.Extras.MinRRange:Value() and GetDistance(myHero.pos, Target.pos) < Menu.Extras.RRange:Value() then
 			local RDamage = CalcRDmg(Target)
 			if Target.health < RDamage then
 				CastPredUlt(Target)
@@ -366,8 +362,34 @@ function CastR(Target)
 	end
 end
 
-function CastPredUlt(unit)
+function SemiCastUlt()
+	local Target = GetTarget(Menu.Extras.RRange3:Value())
+	if Target == nil then return end	
+	
 	local CurrentRSpeed = JinxUltSpeed(Target)
+	if Menu.Pred.Change:Value() == 1 then
+		local RData = {Type = _G.SPELLTYPE_LINE, Delay = 1, Radius = 70, Range = Menu.Extras.RRange3:Value(), Speed = CurrentRSpeed, Collision = false}
+		local pred = GetGamsteronPrediction(Target, RData, myHero)			
+		if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
+			Control.CastSpell(HK_R, pred.CastPosition)
+		end
+	elseif Menu.Pred.Change:Value() == 2 then
+		local RspellData = {speed = CurrentRSpeed, range = Menu.Extras.RRange3:Value(), delay = 1, radius = 70, collision = {nil}, type = "linear"}
+		local pred = _G.PremiumPrediction:GetPrediction(myHero, Target, RspellData)
+		if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
+			Control.CastSpell(HK_R, pred.CastPos)
+		end
+	else
+		local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 1, Radius = 70, Range = Menu.Extras.RRange3:Value(), Speed = CurrentRSpeed, Collision = false})
+		RPrediction:GetPrediction(Target, myHero)
+		if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
+			Control.CastSpell(HK_R, RPrediction.CastPosition)
+		end				
+	end
+end
+
+function CastPredUlt(unit)
+	local CurrentRSpeed = JinxUltSpeed(unit)
 	if Menu.Pred.Change:Value() == 1 then
 		local RData = {Type = _G.SPELLTYPE_LINE, Delay = 1, Radius = 70, Range = Menu.Extras.RRange:Value(), Speed = CurrentRSpeed, Collision = false}
 		local pred = GetGamsteronPrediction(unit, RData, myHero)			
@@ -392,7 +414,7 @@ end
 function KS()
 	if Ready(_R) then
 		for i, enemy in ipairs(GetEnemyHeroes()) do
-			if IsValid(enemy) and GetDistance(myHero.pos, enemy.pos) < Menu.Extras.RRange:Value() and Menu.ks.UseR:Value() then
+			if IsValid(enemy) and GetDistance(myHero.pos, enemy.pos) > Menu.Extras.MinRRange:Value() and GetDistance(myHero.pos, enemy.pos) < Menu.Extras.RRange:Value() and Menu.ks.UseR:Value() then
 				local Rdmg = CalcRDmg(enemy)
 				if Rdmg > enemy.health then
 					CastR(enemy)
