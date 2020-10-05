@@ -2,7 +2,6 @@ local Heroes = {"Yasuo"}
 
 if not table.contains(Heroes, myHero.charName) then return end
 
---print("Yasuo Load after 30sec Ingame")
 require "DamageLib"
 
 if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
@@ -1558,10 +1557,7 @@ end
 
 DelayAction(function()
 	if table.contains(Heroes, myHero.charName) then		
-		_G[myHero.charName]()			
-	end	
-
-	Callback.Add("Load", function()	
+		_G[myHero.charName]()
 		LoadUnits()
-	end)	
+	end		
 end, math.max(0.07, 30 - Game.Timer()))
