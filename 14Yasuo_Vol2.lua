@@ -16,7 +16,7 @@ if not FileExist(COMMON_PATH .. "GGPrediction.lua") then
 	print("GGPrediction installed Press 2x F6")
 	return
 end
---[[
+
 -- [ AutoUpdate ]
 do
     
@@ -63,7 +63,7 @@ do
     
     AutoUpdate()
 
-end ]]
+end 
 
 local GameHeroCount     = Game.HeroCount
 local GameHero          = Game.Hero
