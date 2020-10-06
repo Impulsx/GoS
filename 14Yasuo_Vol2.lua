@@ -16,10 +16,12 @@ if not FileExist(COMMON_PATH .. "GGPrediction.lua") then
 	return
 end
 
+
+local DrawInfo = false
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.01
+    local Version = 0.02
     
     local Files = {
         Lua = {
@@ -55,7 +57,7 @@ do
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
             print("New 14Yasuo_Vol2 Version Press 2x F6")
         else
-            print("14Yasuo_Vol2 Load after 30sec Ingame")
+			DrawInfo = true
         end
     
     end
@@ -63,6 +65,12 @@ do
     AutoUpdate()
 
 end 
+
+Callback.Add("Draw", function() 
+	if DrawInfo then	
+		Draw.Text("14Yasuo_Vol2 Load after 30sec Ingame", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 255, 0, 0))
+	end	
+end)		
 
 local GameHeroCount     = Game.HeroCount
 local GameHero          = Game.Hero
@@ -403,6 +411,18 @@ local function GetMinionCount(range, pos)
 	return count
 end
 
+local function GetEnemyCount(range, pos)
+    local pos = pos.pos
+	local count = 0
+	for i, hero in ipairs(GetEnemyHeroes()) do
+	local Range = range * range
+		if GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
+		count = count + 1
+		end
+	end
+	return count
+end
+
 local function ConvertToHitChance(menuValue, hitChance)
     return menuValue == 1 and _G.PremiumPrediction.HitChance.High(hitChance)
     or menuValue == 2 and _G.PremiumPrediction.HitChance.VeryHigh(hitChance)
@@ -487,7 +507,7 @@ class "Yasuo"
 
 local PredLoaded = false
 function Yasuo:__init()
-
+	if DrawInfo then DrawInfo = false end
     self.Q = {speed = math.huge, range = 475, delay = 0.35, radius = 40, collision = {nil}, type = "linear"}
     self.Q3 = {speed = 1500, range = 1060, delay = 0.35, radius = 90, collision = {nil}, type = "linear"}
 
@@ -545,15 +565,24 @@ function Yasuo:LoadMenu()
     --combo
     
     self.tyMenu:MenuElement({type = MENU, id = "combo", name = "Combo"})
-        self.tyMenu.combo:MenuElement({id = "useQL", name = "[Q1]/[Q2]", value = true})
+		self.tyMenu.combo:MenuElement({id = "ign", name = "Ignite", value = true})
+        self.tyMenu.combo:MenuElement({id = "ignmode", name = "Ignite Mode", value = 1, drop = {"Use in fight if Kill possible", "Use only for Ks"}})       
+		self.tyMenu.combo:MenuElement({id = "useQL", name = "[Q1]/[Q2]", value = true})
         self.tyMenu.combo:MenuElement({id = "useQ3", name = "[Q3]", value = true})
         self.tyMenu.combo:MenuElement({id = "Qmode", name = "Q3 Mode", value = 1, drop = {"Priority Circle Q3", "Priority Line Q3"}})
         self.tyMenu.combo:MenuElement({id = "useE", name = "[E]", value = true})
-        self.tyMenu.combo:MenuElement({id = "Emode", name = "Q3 Mode", value = 1, drop = {"E to target", "E to cursor"}})
+        self.tyMenu.combo:MenuElement({id = "Emode", name = "E Mode", value = 1, drop = {"E to target", "E to cursor"}})
         self.tyMenu.combo:MenuElement({name = "E Gap Closer Range", id = "Erange", value = 800, min = 400, max = 1800, step = 100})
         self.tyMenu.combo:MenuElement({id = "ETower", name = "Stop E Into Tower Range", value = true})
-    self.tyMenu.combo:MenuElement({type = MENU, id = "Ult", name = "Ultimate"})		
-		self.tyMenu.combo.Ult:MenuElement({name = " ", drop = {"AirBlade need more than 1.33 AttackSpeed"}})
+    self.tyMenu.combo:MenuElement({type = MENU, id = "Ult", name = "Ultimate"})				
+		self.tyMenu.combo.Ult:MenuElement({name = " ", drop = {"---- 1 vs 1 Ultimate Settings ----"}})       
+		self.tyMenu.combo.Ult:MenuElement({id = "useR4", name = "[R]", value = true})		
+        self.tyMenu.combo.Ult:MenuElement({id = "R4Hp", name = "if Target Hp lower than -->", value = 50, min = 0, max = 100})
+        self.tyMenu.combo.Ult:MenuElement({id = "R4Range", name = "Range Check for no Enemies around Target", value = 1000, min = 0, max = 2000})
+		self.tyMenu.combo.Ult:MenuElement({name = " ", drop = {"\\\\\\\\\\\\\\\\\\////////////////////"}})		
+		self.tyMenu.combo.Ult:MenuElement({name = " ", drop = {"//////////////////\\\\\\\\\\\\\\\\\\\\"}})
+		self.tyMenu.combo.Ult:MenuElement({name = " ", drop = {"---- TeamFight Ultimate Settings ----"}})
+		self.tyMenu.combo.Ult:MenuElement({name = " ", drop = {"AirBlade need more than 1.33 AttackSpeed"}})		
         self.tyMenu.combo.Ult:MenuElement({id = "useR1", name = "[R] [AirBlade] Full DPS (WIP)", value = true})       
 		self.tyMenu.combo.Ult:MenuElement({id = "useR2", name = "[R] if killable full Combo", value = true}) 
         self.tyMenu.combo.Ult:MenuElement({id = "useR3", name = "[R] multible Enemies", value = true})
@@ -713,7 +742,37 @@ function Yasuo:CastR()
         local enemy = enemys[i]
         local isKnock = self:IsKnock(enemy)
 		if isKnock and Ready(_R) then	
-			
+
+			if self.tyMenu.combo.Ult.useR4:Value() then
+				if enemy.health/enemy.maxHealth <= self.tyMenu.combo.Ult.R4Hp:Value()/100 and GetEnemyCount(self.tyMenu.combo.Ult.R4Range:Value(), enemy) == 1 then
+					if self.tyMenu.combo.Ult.useR1:Value() and myHero.attackSpeed > 1.33 then
+						local Etarget =  Ready(_E) and self:GetEtargetForUlt()
+						CanUlt = true
+						if Etarget and Etarget.pos:DistanceTo(enemy.pos) < 1400 and self.lastETick+100 < GetTickCount() then
+							self:CheckEQ(Etarget)
+							if myHero:GetSpellData(_Q).currentCd <= (Game.Latency()*0.001+1.1) then
+								Control.CastSpell(HK_E, Etarget)
+								self.lastETick = GetTickCount()							
+							end	
+							DelayAction(function()
+								if not myHero.pathing.isDashing and myHero.pos:DistanceTo(enemy.pos) <= 1400 then
+									Control.CastSpell(HK_R, enemy)
+								end
+							end,0.1)					
+						else
+							DelayAction(function()
+								if not myHero.pathing.isDashing and myHero.pos:DistanceTo(enemy.pos) <= 1400 then
+									Control.CastSpell(HK_R, enemy)
+								end
+							end,0.1)												
+						end
+					else
+						if not myHero.pathing.isDashing and myHero.pos:DistanceTo(enemy.pos) <= 1400 then
+							Control.CastSpell(HK_R, enemy)
+						end	
+					end
+				end
+			end	
 			
 			if self.tyMenu.combo.Ult.useR1:Value() and myHero.attackSpeed > 1.33 then
 				local Etarget =  Ready(_E) and self:GetEtargetForUlt()
@@ -744,8 +803,8 @@ function Yasuo:CastR()
 				end	
 				
 				if self.tyMenu.combo.Ult.useR2:Value() then
-					local Dmg = getdmg("Q", enemy, myHero)*2 + getdmg("E", enemy, myHero)*2 + getdmg("R", enemy, myHero) + getdmg("AA", enemy, myHero)*2			
-					if Dmg > enemy.health then
+					local EnoughDmg = self:FullDmg(enemy)			
+					if EnoughDmg and GetEnemyCount(self.tyMenu.combo.Ult.R4Range:Value(), enemy) > 1 then
 						CanUlt = true
 						if Etarget and Etarget.pos:DistanceTo(enemy.pos) < 1400 and self.lastETick+100 < GetTickCount() then
 							self:CheckEQ(Etarget)
@@ -781,8 +840,8 @@ function Yasuo:CastR()
 				end	
 				
 				if self.tyMenu.combo.Ult.useR2:Value() then
-					local Dmg = getdmg("Q", enemy, myHero)*2 + getdmg("E", enemy, myHero)*2 + getdmg("R", enemy, myHero) + getdmg("AA", enemy, myHero)*2			
-					if Dmg > enemy.health then						
+					local EnoughDmg = self:FullDmg(enemy)			
+					if EnoughDmg and GetEnemyCount(self.tyMenu.combo.Ult.R4Range:Value(), enemy) > 1 then						
 						CanUlt = true
 						if not myHero.pathing.isDashing and myHero.pos:DistanceTo(enemy.pos) <= 1400 then
 							Control.CastSpell(HK_R, enemy)
@@ -813,6 +872,7 @@ end
 
 function Yasuo:Combo()
     local target = nil
+	local Igntarget = nil
     self.blockQ = false
 	if WActive then return end
 
@@ -878,7 +938,6 @@ function Yasuo:Combo()
                 end
             end
         end
-
     end
 
     target = self:GetHeroTarget(self.Q3.range)
@@ -891,7 +950,33 @@ function Yasuo:Combo()
         self:CastQ(target)
     end
 
-
+	if self.tyMenu.combo.ign:Value() and (myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" or myHero:GetSpellData(SUMMONER_2).name == "SummonerDot") then
+		if self.tyMenu.combo.ignmode:Value() == 1 then
+			Igntarget = self:GetHeroTarget(400)
+			if Igntarget then
+				local EnoughDmg = self:FullDmg(Igntarget)
+				if EnoughDmg then
+					if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Game.CanUseSpell(SUMMONER_1) == 0 then
+						Control.CastSpell(HK_SUMMONER_1, Igntarget)
+					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Game.CanUseSpell(SUMMONER_2) == 0 then
+						Control.CastSpell(HK_SUMMONER_2, Igntarget)
+					end	
+				end	
+			end
+		else	
+			Igntarget = self:GetHeroTarget(600)
+			if Igntarget then
+				local IgnDmg = getdmg("IGNITE", target, myHero)
+				if IgnDmg > Igntarget.health then
+					if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Game.CanUseSpell(SUMMONER_1) == 0 then
+						Control.CastSpell(HK_SUMMONER_1, Igntarget)
+					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Game.CanUseSpell(SUMMONER_2) == 0 then
+						Control.CastSpell(HK_SUMMONER_2, Igntarget)
+					end	
+				end	
+			end			
+		end
+	end	
 end
 
 function Yasuo:Harass()
@@ -1472,6 +1557,28 @@ function Yasuo:GetQDamge(obj)
     local dmg = dmglib:CalculateDamage(myHero, obj, _G.SDK.DAMAGE_TYPE_PHYSICAL ,  baseDMG + AD )
 
     return dmg
+end
+
+function Yasuo:FullDmg(user)
+	local QDmg = getdmg("Q", user, myHero)*2 
+	local EDmg = self:GetEDamge(user)
+	local RDmg = (myHero:GetSpellData(_R).currentCd == 0 and getdmg("R", user, myHero)) or 0	
+	local ADmg = getdmg("AA", user, myHero)*4
+	local IDmg = 0
+	
+	if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Game.CanUseSpell(SUMMONER_1) == 0 then
+		IDmg = 50 + 20 * myHero.levelData.lvl
+	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Game.CanUseSpell(SUMMONER_2) == 0 then
+		IDmg = 50 + 20 * myHero.levelData.lvl
+	else
+		IDmg = 0
+	end	
+
+	local Damage = QDmg+EDmg+RDmg+ADmg+IDmg
+	if Damage > user.health then
+		return true
+	end
+	return false	
 end
 
 function Yasuo:GetEDamge(obj)
