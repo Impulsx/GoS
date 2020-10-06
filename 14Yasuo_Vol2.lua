@@ -21,7 +21,7 @@ local DrawInfo = false
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.02
+    local Version = 0.03
     
     local Files = {
         Lua = {
@@ -966,7 +966,7 @@ function Yasuo:Combo()
 		else	
 			Igntarget = self:GetHeroTarget(600)
 			if Igntarget then
-				local IgnDmg = getdmg("IGNITE", target, myHero)
+				local IgnDmg = getdmg("IGNITE", Igntarget, myHero)
 				if IgnDmg > Igntarget.health then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Game.CanUseSpell(SUMMONER_1) == 0 then
 						Control.CastSpell(HK_SUMMONER_1, Igntarget)
