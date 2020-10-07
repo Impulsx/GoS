@@ -2,7 +2,6 @@ local Heroes = {"Yasuo"}
 
 if not table.contains(Heroes, myHero.charName) then return end
 
-require "DamageLib"
 
 if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
 	DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
@@ -21,7 +20,7 @@ local DrawInfo = false
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.03
+    local Version = 0.04
     
     local Files = {
         Lua = {
@@ -566,7 +565,8 @@ function Yasuo:LoadMenu()
     
     self.tyMenu:MenuElement({type = MENU, id = "combo", name = "Combo"})
 		self.tyMenu.combo:MenuElement({id = "ign", name = "Ignite", value = true})
-        self.tyMenu.combo:MenuElement({id = "ignmode", name = "Ignite Mode", value = 1, drop = {"Use in fight if Kill possible", "Use only for Ks"}})       
+		self.tyMenu.combo:MenuElement({id = "ign2", name = "Ignite if Target out of E-range ( KS )", value = true})		
+        self.tyMenu.combo:MenuElement({id = "ignmode", name = "Ignite Mode", value = 1, drop = {"Use in fight if Kill possible", "Use only for KS"}})       
 		self.tyMenu.combo:MenuElement({id = "useQL", name = "[Q1]/[Q2]", value = true})
         self.tyMenu.combo:MenuElement({id = "useQ3", name = "[Q3]", value = true})
         self.tyMenu.combo:MenuElement({id = "Qmode", name = "Q3 Mode", value = 1, drop = {"Priority Circle Q3", "Priority Line Q3"}})
@@ -966,14 +966,24 @@ function Yasuo:Combo()
 		else	
 			Igntarget = self:GetHeroTarget(600)
 			if Igntarget then
-				local IgnDmg = getdmg("IGNITE", Igntarget, myHero)
-				if IgnDmg > Igntarget.health then
-					if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Game.CanUseSpell(SUMMONER_1) == 0 then
-						Control.CastSpell(HK_SUMMONER_1, Igntarget)
-					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Game.CanUseSpell(SUMMONER_2) == 0 then
-						Control.CastSpell(HK_SUMMONER_2, Igntarget)
+				local IgnDmg = (50+20*myHero.levelData.lvl) - (Igntarget.hpRegen*3)
+				if self.tyMenu.combo.ign2:Value() then
+					if IgnDmg > Igntarget.health and myHero.pos:DistanceTo(Igntarget.pos) > 475 then
+						if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Game.CanUseSpell(SUMMONER_1) == 0 then
+							Control.CastSpell(HK_SUMMONER_1, Igntarget)
+						elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Game.CanUseSpell(SUMMONER_2) == 0 then
+							Control.CastSpell(HK_SUMMONER_2, Igntarget)
+						end	
 					end	
-				end	
+				else
+					if IgnDmg > Igntarget.health then
+						if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Game.CanUseSpell(SUMMONER_1) == 0 then
+							Control.CastSpell(HK_SUMMONER_1, Igntarget)
+						elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Game.CanUseSpell(SUMMONER_2) == 0 then
+							Control.CastSpell(HK_SUMMONER_2, Igntarget)
+						end	
+					end	
+				end
 			end			
 		end
 	end	
@@ -1592,10 +1602,10 @@ function Yasuo:GetEDamge(obj)
         end
     end
 
-    local baseDMG = ({60,70,80,90,100})[myHero:GetSpellData(2).level]
+    local baseDMG = ({60,70,80,90,100})[myHero:GetSpellData(_E).level]
     local AD = 0.2 * myHero.bonusDamage
     local AP = 0.6 * myHero.ap
-    local dmg = dmglib:CalculateDamage(myHero, obj, _G.SDK.DAMAGE_TYPE_MAGICAL ,  baseDMG * Ebonus + AD + AP )
+    local dmg = CalcMagicalDamage(myHero, obj, (baseDMG * Ebonus) + AD + AP)
 
     return dmg
 end
@@ -1664,6 +1674,7 @@ end
 
 DelayAction(function()
 	if table.contains(Heroes, myHero.charName) then		
+		require "DamageLib"
 		_G[myHero.charName]()
 		LoadUnits()
 	end		
