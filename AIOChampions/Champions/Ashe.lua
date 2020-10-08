@@ -53,7 +53,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
 
 	--AutoE  
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "E Settings"})
@@ -66,20 +66,26 @@ function LoadScript()
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
-	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
-	Menu.Combo:MenuElement({id = "UseW2", name = "Try [W] before [Q]", value = true})	
-	Menu.Combo:MenuElement({id = "UseR", name = "Semi-Manual [R] key", key = string.byte("T")})
-	Menu.Combo:MenuElement({id = "Rrange", name = "[R] range", value = 4000, min = 0, max = 25000, identifier = "range"})
-	Menu.Combo:MenuElement({type = MENU, id = "BlockListR", name = "Block List [R]"})
+	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})	
+
+	--UltMenu 	
+	Menu:MenuElement({type = MENU, id = "Ult", name = "Ult Options"})	
+	Menu.Ult:MenuElement({id = "UseR", name = "Semi-Manual [R] key", key = string.byte("T")})
+	Menu.Ult:MenuElement({id = "Rrange", name = "[R] range", value = 4000, min = 0, max = 25000, identifier = "range"})
+	Menu.Ult:MenuElement({type = MENU, id = "BlockListR", name = "Block List [R]"})
 	DelayAction(function()		
 		for i, unit in ipairs(GetEnemyHeroes()) do
-			Menu.Combo.BlockListR:MenuElement({id = unit.networkID, name = "Block [R] on " ..unit.charName, value = false})
+			Menu.Ult.BlockListR:MenuElement({id = unit.networkID, name = "Block [R] on " ..unit.charName, value = false})
 		end
 	end,0.1)
+	
+	--AutoUltAntiGapClose
+	Menu:MenuElement({type = MENU, id = "AutoR2", name = "AntiGapCloser"})
+	Menu.AutoR2:MenuElement({id = "UseR", name = "Auto [R] Gapclosers", value = true})
 
-	--AutoUlt
-	Menu:MenuElement({type = MENU, id = "AutoR", name = "Auto Ult interrupting Spells"})
-	Menu.AutoR:MenuElement({id = "UseR", name = "Auto [R]", value = true})
+	--AutoUltInterrupt
+	Menu:MenuElement({type = MENU, id = "AutoR", name = "Interrupting Spells"})
+	Menu.AutoR:MenuElement({id = "UseR", name = "Auto [R] Interrupting Spells", value = true})
 	Menu.AutoR:MenuElement({id = "range", name = "Check Range for Interrupting Spells", value = 2000, min = 0, max = 12000, identifier = "range"})	
 	Menu.AutoR:MenuElement({type = MENU, id = "list", name = "Possible Interrupting Spells"})	
 	Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
@@ -154,7 +160,7 @@ function LoadScript()
 		end	
 		
 		if Menu.Drawing.DrawR:Value() and Ready(_R) then
-			DrawCircle(myHero, Menu.Combo.Rrange:Value(), 1, DrawColor(255, 225, 255, 10))
+			DrawCircle(myHero, Menu.Ult.Rrange:Value(), 1, DrawColor(255, 225, 255, 10))
 		end 
 	end)	
 end
@@ -174,6 +180,11 @@ if MyHeroNotReady() then return end
 		JungleClear()		
 	end
 	ComboR()
+	
+	if Menu.AutoR2.UseR:Value() and Ready(_R) then
+		CheckDashes()
+	end
+	
 	if Menu.AutoR.UseR:Value() and Ready(_R) then 
 		AutoR()
 	end	
@@ -188,6 +199,17 @@ function PreAttack(args)
 	if IsValid(target) and Mode == "Combo" then
 		if Ready(_Q) and GotBuff(myHero, "asheqcastready") == 4 then
 			CanCastQ = true
+		end
+	end
+end
+
+function CheckDashes()
+	for i, enemy in ipairs(GetEnemyHeroes()) do
+		if GetDistance(myHero.pos, enemy.pos) < 2000 and IsValid(enemy) and enemy.pathing.isDashing then
+
+			if GetDistanceSqr(enemy.pathing.endPos, myHero.pos) < GetDistanceSqr(enemy.pos, myHero.pos) then
+				CastR(enemy)
+			end
 		end
 	end
 end
@@ -208,11 +230,11 @@ function Combo()
 end
 
 function ComboR()
-local target = GetTarget(Menu.Combo.Rrange:Value())
+local target = GetTarget(Menu.Ult.Rrange:Value())
 if target == nil then return end
 	
-	if Ready(_R) and Menu.Combo.UseR:Value() and IsValid(target) then		
-		if Menu.Combo.BlockListR[target.networkID] and not Menu.Combo.BlockListR[target.networkID]:Value() then
+	if Ready(_R) and Menu.Ult.UseR:Value() and IsValid(target) then		
+		if Menu.Ult.BlockListR[target.networkID] and not Menu.Ult.BlockListR[target.networkID]:Value() then
 			CastR(target)
 		end
 	end
