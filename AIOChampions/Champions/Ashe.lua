@@ -38,9 +38,22 @@ local function GotBuff(unit, buffname)
 	return 0
 end
 
+local function GetMinionCount(range, pos)
+    local pos = pos.pos
+	local count = 0
+	for i = 1,GameMinionCount() do
+	local hero = GameMinion(i)
+	local Range = range * range
+		if hero.team ~= TEAM_ALLY and hero.dead == false and GetDistanceSqr(pos, hero.pos) < Range then
+		count = count + 1
+		end
+	end
+	return count
+end
+
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
 
 	--AutoE  
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "E Settings"})
