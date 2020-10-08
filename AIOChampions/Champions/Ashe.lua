@@ -39,16 +39,16 @@ local function GotBuff(unit, buffname)
 end
 
 function LoadScript()
-	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
 
 	--AutoE  
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "E Settings"})
-	Menu.AutoE:MenuElement({name = " ", drop = {"Only if Target killable ( Combo Mode )"}})	
-	Menu.AutoE:MenuElement({id = "UseE", name = "AutoE on not visible Target last pos seen", value = true})	
-	Menu.AutoE:MenuElement({id = "HP", name = "[E] if Target Hp lower than -->", value = 40, min = 0, max = 100, identifier = "%"})	
-	Menu.AutoE:MenuElement({id = "range", name = "Check Range for killable Target", value = 1100, min = 500, max = 2000, identifier = "range"})	
+	Menu.AutoE:MenuElement({name = " ", drop = {"( Combo Mode )"}})	
+	Menu.AutoE:MenuElement({id = "UseE", name = "AutoE on invisible Target last pos seen", value = true})	
+	Menu.AutoE:MenuElement({id = "Delay", name = "How long Invisible (delay cast)", value = 0.9, min = 0, max = 2.5, step = 0.1, identifier = "msec"})	
+	Menu.AutoE:MenuElement({id = "HP", name = "[E] if Target Hp lower than -->", value = 30, min = 0, max = 100, identifier = "%"})	
+	Menu.AutoE:MenuElement({id = "range", name = "Check Range for killable Target", value = 1400, min = 500, max = 2000, step = 10, identifier = "range"})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -69,7 +69,7 @@ function LoadScript()
 	Menu.AutoR:MenuElement({id = "UseR", name = "Auto [R]", value = true})
 	Menu.AutoR:MenuElement({id = "range", name = "Check Range for Interrupting Spells", value = 2000, min = 0, max = 12000, identifier = "range"})	
 	Menu.AutoR:MenuElement({type = MENU, id = "list", name = "Possible Interrupting Spells"})	
-	self.Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
+	Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
 	DelayAction(function()
 		for i, spell in pairs(InterruptingSpells) do
 			for j, hero in ipairs(GetEnemyHeroes()) do
@@ -127,13 +127,13 @@ function LoadScript()
 	
 	RspellData = {speed = 1600, range = 25000, delay = 0.25, radius = 130, collision = {nil}, type = "linear"}	
 
+	Callback.Add("Tick", function() Tick() end)
+	
 	if _G.SDK then
 		_G.SDK.Orbwalker:OnPreAttack(function(...) PreAttack(...) end)
 	elseif _G.PremiumOrbwalker then
 		_G.PremiumOrbwalker:OnPreAttack(function(...) PreAttack(...) end)
-	end
-
-	Callback.Add("Tick", function() Tick() end)
+	end	
 	
 	Callback.Add("Draw", function()
 		if Menu.Drawing.DrawW:Value() and Ready(_W) then
@@ -150,18 +150,17 @@ local CanCastQ = false
 function Tick()	
 if MyHeroNotReady() then return end
 
-local Mode = GetMode()
+	local Mode = GetMode()
 	if Mode == "Combo" then
 		Combo()
 		ComboE()
-		ComboR()
 	elseif Mode == "Harass" then
 		Harass()	
 	elseif Mode == "Clear" then
 		Clear()
 		JungleClear()		
 	end
-
+	ComboR()
 	if Menu.AutoR.UseR:Value() and Ready(_R) then 
 		AutoR()
 	end	
@@ -169,6 +168,7 @@ end
 
 function PreAttack(args)
 	if CanCastQ and GotBuff(myHero, "asheqcastready") == 0 then CanCastQ = false end
+	
 	local target = GetTarget(myHero.range-50)
 	if target == nil then return end
 	local Mode = GetMode()
@@ -177,7 +177,6 @@ function PreAttack(args)
 			CanCastQ = true
 		end
 	end
-	CanCastQ = false
 end
 
 function Combo()
@@ -185,19 +184,13 @@ function Combo()
 	if target == nil then return end
 	
 	if IsValid(target) then
-		if Menu.Combo.UseW2:Value() and Menu.Combo.UseQ:Value() and Ready(_W) then
-			if CanCastQ then
-				CastWQ(target)
-			end
-		else
-			if Menu.Combo.UseW:Value() and Ready(_W) then
-				CastW(target)
-			end
-			
-			if Menu.Combo.UseQ:Value() and Ready(_Q) and CanCastQ and myHero.pos:DistanceTo(target.pos) <= myHero.range-50 then
-				Control.CastSpell(HK_Q)
-			end			
+		if Menu.Combo.UseW:Value() and Ready(_W) then
+			CastW(target)
 		end
+		
+		if Menu.Combo.UseQ:Value() and Ready(_Q) and CanCastQ and myHero.pos:DistanceTo(target.pos) <= myHero.range-50 then
+			Control.CastSpell(HK_Q)
+		end			
 	end	
 end
 
@@ -213,44 +206,48 @@ if target == nil then return end
 end
 
 function AutoR()
-	if not Menu.AutoR.list then return end
+	--if not Menu.AutoR.list then return end
 	for i, target in ipairs(GetEnemyHeroes()) do
-		if myHero.pos:DistanceTo(target.pos) > Menu.AutoR.range:Value() then return end
-		local spell = target.activeSpell	
-		
-		if spell and spell.isChanneling then
-			if InterruptingSpells[spell.name] and Menu.AutoR.list["Use"..spell.name]:Value() then
-				CastR(target)
+		if myHero.pos:DistanceTo(target.pos) <= Menu.AutoR.range:Value() then 
+			local spell = target.activeSpell	
+			
+			if spell and spell.isChanneling then
+				if InterruptingSpells[spell.name] and Menu.AutoR.list["Use"..spell.name]:Value() then
+					CastR(target)
+				end
 			end
-		end
+		end	
 	end	
 end
 
+local LastE = 0
+local VISIONTABLE = {}
 function ComboE()
-	local ETarget = nil
-	--print(ETarget)
 	if Ready(_E) and Menu.AutoE.UseE:Value() then
-		for i, target in ipairs(GetEnemyHeroes()) do
-		if myHero.pos:DistanceTo(target.pos) > Menu.AutoE.range:Value() then return end
-			
-			if ETarget == nil and IsValid(target) and target.health/target.maxHealth <= Menu.AutoE.HP:Value()/100 then
-				ETarget = target
-			end
-			
-			if ETarget then
-				print(ETarget.pos)
-				if not ETarget.visible and myHero.pos:DistanceTo(ETarget.pos) <= Menu.AutoE.range:Value()+500 then
-					Control.CastSpell(HK_E, ETarget.pos)
-				else
-					ETarget = nil
-				end
+		for i, target in ipairs(GetEnemyHeroes()) do				
+			if IsValid(target) then
+				if target.health/target.maxHealth <= Menu.AutoE.HP:Value()/100 and myHero.pos:DistanceTo(target.pos) <= Menu.AutoE.range:Value() then
+					table.insert(VISIONTABLE, target)
+				end	
+			end	
+		end
+		for i, unit in ipairs(VISIONTABLE) do
+			if i and not unit.visible and unit.health/unit.maxHealth <= Menu.AutoE.HP:Value()/100 and myHero.pos:DistanceTo(unit.pos) <= Menu.AutoE.range:Value() and Game.Timer() - LastE > 5 then
+				local time = Game.Timer() - myHero:GetSpellData(_E).castTime
+				local posi = unit.pos:Extended(myHero.pos, -(time/unit.ms*unit.ms))
+				local castPosMM = posi:ToMM()
+				LastE = Game.Timer()
+				VISIONTABLE = {}
+				DelayAction(function()
+					Control.SetCursorPos(castPosMM.x,castPosMM.y)
+					Control.KeyDown(HK_E)
+					Control.KeyUp(HK_E)
+				end,Menu.AutoE.Delay:Value())	
 			end
 		end
-	else
-		ETarget = nil
 	end
 end	
-	
+							
 function Harass()
 local target = GetTarget(1200)
 if target == nil then return end
@@ -314,37 +311,6 @@ function CastW(unit)
 		WPrediction:GetPrediction(unit, myHero)
 		if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 			Control.CastSpell(HK_W, WPrediction.CastPosition)
-		end	
-	end
-end
-
-function CastWQ(unit)
-	if Menu.Pred.Change:Value() == 1 then
-		local pred = GetGamsteronPrediction(unit, WData, myHero)
-		if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
-			Control.CastSpell(HK_W, pred.CastPosition)
-			DelayAction(function()
-				Control.CastSpell(HK_Q)
-			end,0.3)
-		end
-		
-	elseif Menu.Pred.Change:Value() == 2 then
-		local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, WspellData)
-		if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
-			Control.CastSpell(HK_W, pred.CastPos)
-			DelayAction(function()
-				Control.CastSpell(HK_Q)
-			end,0.3)			
-		end
-		
-	else
-		local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 20, Range = 1200, Speed = 2000, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
-		WPrediction:GetPrediction(unit, myHero)
-		if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
-			Control.CastSpell(HK_W, WPrediction.CastPosition)
-			DelayAction(function()
-				Control.CastSpell(HK_Q)
-			end,0.3)			
 		end	
 	end
 end
