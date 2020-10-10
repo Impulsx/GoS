@@ -15,7 +15,7 @@ Data = {
         },
         Cassiopeia = {
             Changelog = "Cassiopeia Changelog Here",
-            Version = 0.09,
+            Version = 0.10,
         },
         Lux = {
             Changelog = "Lux Changelog Here",
@@ -79,7 +79,7 @@ Data = {
         }, 
         Camille = {
             Changelog = "Camille Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         },
          Jhin = {
             Changelog = "Jhin Changelog Here",
@@ -111,7 +111,7 @@ Data = {
         },
           Kaisa = {
             Changelog = "Kaisa Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         },
          Chogath = {
             Changelog = "Chogath Changelog Here",
@@ -139,7 +139,7 @@ Data = {
         },
           Fiora = {
             Changelog = "Fiora Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         },
           Nocturne = {
             Changelog = "Nocturne Changelog Here",
@@ -147,7 +147,7 @@ Data = {
         }, 
           Garen = {
             Changelog = "Garen Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         }, 
           Pyke = {
             Changelog = "Pyke Changelog Here",
@@ -183,7 +183,7 @@ Data = {
         }, 
            Leona = {
             Changelog = "Leona Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         },
            Jinx = {
             Changelog = "Jinx Changelog Here",
