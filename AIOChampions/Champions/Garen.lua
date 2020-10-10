@@ -37,7 +37,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -93,6 +93,7 @@ end
 
 function Tick()
 if MyHeroNotReady() then return end
+
 local Mode = GetMode()
 	if Mode == "Combo" then
 		Combo()
@@ -146,11 +147,11 @@ if target == nil then return end
 				Control.CastSpell(HK_Q)
 			end
 			
-			if myHero.pos:DistanceTo(target.pos) <= 325 and Ready(_E) and not Ready(_Q) and Menu.Combo.UseE:Value() then
+			if myHero:GetSpellData(_E).name == "GarenE" and myHero.pos:DistanceTo(target.pos) <= 325 and Ready(_E) and not Ready(_Q) and Menu.Combo.UseE:Value() then
 				Control.CastSpell(HK_E, target.pos)
 			end
 
-			if myHero:GetSpellData(HK_E).name == "GarenECancel" and (Enemys3 == 0 or (Ready(_R) and RDmg > target.health)) then
+			if myHero:GetSpellData(_E).name == "GarenECancel" and (Enemys3 == 0 or (Ready(_R) and RDmg > target.health)) then
 				Control.CastSpell(HK_E)
 			end				
 			
@@ -167,11 +168,11 @@ if target == nil then return end
 		end	
 		
 		if Enemys2 >= 2 then
-			if Ready(_E) and Menu.Combo.UseE:Value() then
+			if myHero:GetSpellData(_E).name == "GarenE" and Ready(_E) and Menu.Combo.UseE:Value() then
 				Control.CastSpell(HK_E, target.pos)
 			end
 
-			if myHero:GetSpellData(HK_E).name == "GarenECancel" and (Enemys3 == 0 or (Ready(_R) and RDmg > target.health)) then
+			if myHero:GetSpellData(_E).name == "GarenECancel" and (Enemys3 == 0 or (Ready(_R) and RDmg > target.health)) then
 				Control.CastSpell(HK_E)
 			end				
 			
@@ -220,7 +221,7 @@ function Clear()
 				end	
             end
                       
-			if myHero.pos:DistanceTo(minion.pos) < 325 and Ready(_E) and Menu.Clear.UseE:Value() then
+			if myHero:GetSpellData(_E).name == "GarenE" and myHero.pos:DistanceTo(minion.pos) < 325 and Ready(_E) and Menu.Clear.UseE:Value() then
 				local count = GetMinionCount(400, minion)
 				if count >= Menu.Clear.UseEM:Value() then
 					Control.CastSpell(HK_E)
@@ -241,7 +242,7 @@ function JungleClear()
 				Control.CastSpell(HK_Q)
             end
                       
-			if myHero.pos:DistanceTo(minion.pos) < 325 and Ready(_E) and Menu.Clear.UseE:Value() then
+			if myHero:GetSpellData(_E).name == "GarenE" and myHero.pos:DistanceTo(minion.pos) < 325 and Ready(_E) and Menu.Clear.UseE:Value() then
 				Control.CastSpell(HK_E)    
             end
         end
