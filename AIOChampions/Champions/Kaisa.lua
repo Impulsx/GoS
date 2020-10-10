@@ -1,9 +1,23 @@
 local function GetEnemyHeroes()
-	return Enemies
+	local _EnemyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.team ~= myHero.team then
+			TableInsert(_EnemyHeroes, unit)
+		end
+	end
+	return _EnemyHeroes
 end
 
 local function GetAllyHeroes() 
-	return Allies
+	local _AllyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.isAlly and not unit.isMe then
+			TableInsert(_AllyHeroes, unit)
+		end
+	end
+	return _AllyHeroes
 end
 
 local function GetBuffData(unit, buffname)
@@ -42,10 +56,9 @@ end
 local function GetEnemyCount(range, pos)
     local pos = pos.pos
 	local count = 0
-	for i = 1, GameHeroCount() do 
-	local hero = GameHero(i)
+	for i, hero in ipairs(GetEnemyHeroes()) do
 	local Range = range * range
-		if hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
+		if GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
 		count = count + 1
 		end
 	end
@@ -55,10 +68,9 @@ end
 local function GetAllyCount(range, pos)
     local pos = pos.pos
 	local count = 0
-	for i = 1, GameHeroCount() do 
-	local hero = GameHero(i)
+	for i, hero in ipairs(GetAllyHeroes()) do
 	local Range = range * range
-		if hero.team == TEAM_ALLY and hero ~= myHero and GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
+		if GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
 		count = count + 1
 		end
 	end
@@ -111,19 +123,19 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})
 
 	--AutoUlt
 	Menu:MenuElement({type = MENU, id = "Ult", name = "Auto Ultimate"})	
 	Menu.Ult:MenuElement({id = "UseR", name = "[R] if Allys >= near Immobile Enemy", value = true})
-	Menu.Ult:MenuElement({id = "HP", name = "Min HP to use [R]", value = 50, min = 0, max = 100, identifier = "%"})	
+	Menu.Ult:MenuElement({id = "HP", name = "Min HP Kaisa to use [R]", value = 50, min = 0, max = 100, identifier = "%"})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Combo:MenuElement({id = "Range", name = "Max Range for use [W]", value = 1400, min = 0, max = 3000, identifier = "Range"})	
-	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})				
+	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
 
 	--HarassMenu
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
@@ -154,12 +166,14 @@ function LoadScript()
 	Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.ks:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.ks:MenuElement({id = "Range", name = "Max Range for use [W]", value = 3000, min = 0, max = 3000, identifier = "Range"})	
-	Menu.ks:MenuElement({id = "UseR", name = "[R] if out of range", value = true})	
-
+	Menu.ks:MenuElement({id = "UseR", name = "[R] if out of range only 1vs1", value = true})	
+	Menu.ks:MenuElement({id = "Rrange", name = "[R] Check Range for no Enemies around Target", value = 1500, min = 0, max = 3000, identifier = "Range"})
+	
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
-	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
-	Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})	
+	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
+	Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})		
 
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
@@ -169,22 +183,11 @@ function LoadScript()
 
 	WData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 3000, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL} 
+	Type = _G.SPELLTYPE_LINE, Delay = 0.4, Radius = 100, Range = 3000, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION} 
 	}
   	  
-	WspellData = {speed = 1750, range = 3000, delay = 0.25, radius = 100, collision = {"minion"}, type = "linear"}
+	WspellData = {speed = 1750, range = 3000, delay = 0.4, radius = 100, collision = {"minion"}, type = "linear"}
 	  
-	if _G.EOWLoaded then
-		Orb = 1
-	elseif _G.SDK and _G.SDK.Orbwalker then
-		Orb = 2
-	elseif _G.GOS then
-		Orb = 3
-	elseif _G.gsoSDK then
-		Orb = 4
-	elseif _G.PremiumOrbwalker then
-		Orb = 5		
-	end	
 	Callback.Add("Tick", function() Tick() end)
 	
 	Callback.Add("Draw", function()
@@ -216,14 +219,6 @@ local Mode = GetMode()
 	end	
 	KillSteal()
 	AutoR()
-	
-	local currSpell = myHero.activeSpell
-	if currSpell and currSpell.valid then
-		SetAttack(false)
-	else
-		SetAttack(true)	
-
-	end	
 end
 
 local function CheckQ()
@@ -238,7 +233,7 @@ local function GetWDmg(unit)
 	local Wdmg = getdmg("W", unit, myHero, 1)
 	local W2dmg = getdmg("W", unit, myHero, 2)	
 	local buff = GetBuffData(unit, "kaisapassivemarker")
-	if HasBuff(unit, "kaisapassivemarker") and buff.count == 4 then
+	if buff and buff.count == 4 then
 		return (Wdmg+W2dmg)		
 	else		
 		return Wdmg 
@@ -256,18 +251,17 @@ local function GetQDmg(unit)
 	end
 end	
 
-
 function AutoR()
 	for i, target in ipairs(GetEnemyHeroes()) do
-		if myHero.pos:DistanceTo(target.pos) > 800 and myHero.pos:DistanceTo(target.pos) < 1000 + 500 * myHero:GetSpellData(_R).level and IsValid(target) and Ready(_R) and Menu.Ult.UseR:Value() then
+		if myHero.pos:DistanceTo(target.pos) > 500 and myHero.pos:DistanceTo(target.pos) < 1000 + 500 * myHero:GetSpellData(_R).level and IsValid(target) and Ready(_R) and Menu.Ult.UseR:Value() then
 			if not IsUnderTurret(target) and HasBuff(target, "kaisapassivemarkerr") then
-				for i, ally in ipairs(GetAllyHeroes()) do
+				for k, ally in ipairs(GetAllyHeroes()) do
 				local CountEnemy = GetEnemyCount(1000, ally)
 				local CountAlly = GetAllyCount(1000, target)	
 					if CountEnemy <= CountAlly + 1 and myHero.health/myHero.maxHealth >= Menu.Ult.HP:Value() / 100 then
-					local castPos = myHero.pos:Extended(target.pos, 500)
-						if target.pos:To2D().onScreen == true then
-							ControlCastSpell(HK_R, castPos)
+					local castPos = target.pos:Extended(myHero.pos, 300)
+						if target.pos:To2D().onScreen then
+							Control.CastSpell(HK_R, castPos)
 						else 
 							CastSpellMM(HK_R, target.pos, 1000 + 500 * myHero:GetSpellData(_R).level)
 						end	
@@ -280,18 +274,20 @@ end
          
 function KillSteal()	
 	for i, target in ipairs(GetEnemyHeroes()) do	
-	
 		if Ready(_R) and Menu.ks.UseR:Value() then		
-			local CanUseQ = myHero:GetSpellData(HK_Q).currentCd == 0 and myHero:GetSpellData(HK_Q).level > 0 and myHero:GetSpellData(HK_Q).mana <= myHero.mana
-			if myHero.pos:DistanceTo(target.pos) > 800 and myHero.pos:DistanceTo(target.pos) < 1000 + 500 * myHero:GetSpellData(_R).level and HasBuff(target, "kaisapassivemarkerr") and Menu.ks.UseQ:Value() and CanUseQ and IsValid(target) then
+			
+			if myHero.pos:DistanceTo(target.pos) > 500 and myHero.pos:DistanceTo(target.pos) < 1000 + 500 * myHero:GetSpellData(_R).level and HasBuff(target, "kaisapassivemarkerr") and Menu.ks.UseQ:Value() and Ready(_Q) and IsValid(target) then
 				local QDmg = GetQDmg(target)
-				if QDmg >= target.health then
-				local castPos = myHero.pos:Extended(target.pos, 500)
-					if target.pos:To2D().onScreen == true then
-						ControlCastSpell(HK_R, castPos)
+				local WDmg = GetWDmg(target)
+				if QDmg+WDmg >= target.health then
+				local castPos = target.pos:Extended(myHero.pos, 300)
+					if GetEnemyCount(Menu.ks.Rrange:Value(), target) == 1 and not IsUnderTurret(target) then
+						if target.pos:To2D().onScreen then
+							Control.CastSpell(HK_R, castPos)
 
-					else 
-						CastSpellMM(HK_R, target.pos, 1000 + 500 * myHero:GetSpellData(_R).level)
+						else 
+							CastSpellMM(HK_R, target.pos, 1000 + 500 * myHero:GetSpellData(_R).level)
+						end
 					end	
 				end
 			end			
@@ -300,7 +296,7 @@ function KillSteal()
 		if myHero.pos:DistanceTo(target.pos) < 600 and IsValid(target) and Menu.ks.UseQ:Value() and Ready(_Q) then
 			local QDmg = GetQDmg(target) 
 			if QDmg >= target.health then
-				ControlCastSpell(HK_Q)	
+				Control.CastSpell(HK_Q)	
 			end
 		end
 		
@@ -310,14 +306,20 @@ function KillSteal()
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, WData, myHero)
 					if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
-						ControlCastSpell(HK_W, pred.CastPosition)
+						Control.CastSpell(HK_W, pred.CastPosition)
 					end
-				else
+				elseif Menu.Pred.Change:Value() == 2 then
 					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, WspellData)
 					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
-						ControlCastSpell(HK_W, pred.CastPos)
-					end	
-				end	
+						Control.CastSpell(HK_W, pred.CastPos)
+					end
+				else
+					local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.4, Radius = 100, Range = 3000, Speed = 1750, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+					WPrediction:GetPrediction(target, myHero)
+					if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
+						Control.CastSpell(HK_W, WPrediction.CastPosition)
+					end					
+				end
 			end
 		end					
 	end	
@@ -328,26 +330,32 @@ local target = GetTarget(3000)
 if target == nil then return end
 	if IsValid(target) then
 			
-		if myHero.pos:DistanceTo(target.pos) > 525 and myHero.pos:DistanceTo(target.pos) < 800 and Menu.Combo.UseE:Value() and Ready(_E) then			
-			ControlCastSpell(HK_E)
+		if myHero.pos:DistanceTo(target.pos) > 525 and myHero.pos:DistanceTo(target.pos) < 1500 and Menu.Combo.UseE:Value() and Ready(_E) then			
+			Control.CastSpell(HK_E)
 		end			
 
 		if myHero.pos:DistanceTo(target.pos) < 600 and Menu.Combo.UseQ:Value() and Ready(_Q) then			
-			ControlCastSpell(HK_Q)
+			Control.CastSpell(HK_Q)
 		end
 		
 		if myHero.pos:DistanceTo(target.pos) <= Menu.Combo.Range:Value() and Menu.Combo.UseW:Value() and Ready(_W) then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, WData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
-					ControlCastSpell(HK_W, pred.CastPosition)
+					Control.CastSpell(HK_W, pred.CastPosition)
 				end
-			else
+			elseif Menu.Pred.Change:Value() == 2 then
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, WspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
-					ControlCastSpell(HK_W, pred.CastPos)
-				end	
-			end		
+					Control.CastSpell(HK_W, pred.CastPos)
+				end
+			else
+				local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.4, Radius = 100, Range = 3000, Speed = 1750, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+				WPrediction:GetPrediction(target, myHero)
+				if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
+					Control.CastSpell(HK_W, WPrediction.CastPosition)
+				end					
+			end	
 		end				
 	end
 end	
@@ -358,7 +366,7 @@ if target == nil then return end
 	if IsValid(target) and myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value() / 100 then
 		
 		if myHero.pos:DistanceTo(target.pos) <= 600 and Menu.Harass.UseQ:Value() and Ready(_Q) then			
-			ControlCastSpell(HK_Q)
+			Control.CastSpell(HK_Q)
 		end
 	end
 end	
@@ -369,14 +377,14 @@ function Clear()
 	
 		if myHero.pos:DistanceTo(minion.pos) <= 600 and minion.team == TEAM_ENEMY and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then					
 			if Ready(_Q) and Menu.Clear.UseQ:Value() and GetMinionCount(400, minion) >= Menu.Clear.Count:Value() then
-				ControlCastSpell(HK_Q)
+				Control.CastSpell(HK_Q)
 			end	 
 		end
 		
 		if myHero.pos:DistanceTo(minion.pos) > 550 and myHero.pos:DistanceTo(minion.pos) <= 3000 and minion.team == TEAM_ENEMY and minion.charName == "SRU_ChaosMinionSiege" and IsValid(minion) and Ready(_W) and Menu.Clear.UseW:Value() then
 			local WDmg = getdmg("W", minion, myHero)
-			if WDmg >= minion.health and minion.pos:To2D().onScreen == true then
-				ControlCastSpell(HK_W, minion.pos)
+			if WDmg >= minion.health and minion.pos:To2D().onScreen then
+				Control.CastSpell(HK_W, minion.pos)
 			end
 		end		
 	end
@@ -389,11 +397,11 @@ function JungleClear()
 		if myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100 then
 			
 			if myHero.pos:DistanceTo(minion.pos) <= 600 and minion.team == TEAM_JUNGLE and IsValid(minion) and Ready(_Q) and Menu.JClear.UseQ:Value() then	
-				ControlCastSpell(HK_Q)  
+				Control.CastSpell(HK_Q)  
 			end
 			
-			if myHero.pos:DistanceTo(minion.pos) <= 3000 and minion.team == TEAM_JUNGLE and IsValid(minion) and Ready(_W) and Menu.JClear.UseW:Value() and minion.pos:To2D().onScreen == true then
-				ControlCastSpell(HK_W, minion.pos)
+			if myHero.pos:DistanceTo(minion.pos) <= 3000 and minion.team == TEAM_JUNGLE and IsValid(minion) and Ready(_W) and Menu.JClear.UseW:Value() and minion.pos:To2D().onScreen then
+				Control.CastSpell(HK_W, minion.pos)
 			end		
 		end
 	end	
@@ -408,14 +416,14 @@ function Lasthit()
 			if myHero.pos:DistanceTo(minion.pos) <= 600 and minion.team == TEAM_ENEMY and IsValid(minion) then					
 				local QDmg = (getdmg("Q", minion, myHero)*2)
 				if Ready(_Q) and Menu.last.UseQ:Value() and minion.health/minion.maxHealth < 0.35 and QDmg > minion.health then
-					ControlCastSpell(HK_Q)
+					Control.CastSpell(HK_Q)
 				end	 
 			end
 			
 			if myHero.pos:DistanceTo(minion.pos) > 550 and myHero.pos:DistanceTo(minion.pos) <= 3000 and minion.team == TEAM_ENEMY and minion.charName == "SRU_ChaosMinionSiege" and IsValid(minion) and Ready(_W) and Menu.last.UseW:Value() then
 				local WDmg = getdmg("W", minion, myHero)
-				if WDmg > minion.health and minion.pos:To2D().onScreen == true then
-					ControlCastSpell(HK_W, minion.pos)
+				if WDmg > minion.health and minion.pos:To2D().onScreen then
+					Control.CastSpell(HK_W, minion.pos)
 				end
 			end
 		end
