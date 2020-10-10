@@ -56,7 +56,7 @@ end
 
 function LoadScript() 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
 
 	Menu:MenuElement({type = MENU, id = "EDash", name = "AntiDash"})
 	Menu.EDash:MenuElement({id = "E", name = "Use [E] on Dashing Enemies", value = true})
@@ -95,19 +95,19 @@ function LoadScript()
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 1, Radius = 40, Range = 875, Speed = 1200, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 875, Speed = 2000, Collision = false
 	}
 	
-	EspellData = {speed = 1200, range = 875, delay = 1, radius = 40, collision = {nil}, type = "linear"}	
+	EspellData = {speed = 2000, range = 875, delay = 0.25, radius = 70, collision = {nil}, type = "linear"}	
 	
 	RData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = 1, Radius = 250, Range = 1200, Speed = math.huge, Collision = false
+	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.85, Radius = 250, Range = 1200, Speed = math.huge, Collision = false
 	}	
 	
-	R1spellData = {speed = math.huge, range = 1200, delay = 1, radius = 100, collision = {nil}, type = "circular"}	
+	R1spellData = {speed = math.huge, range = 1200, delay = 0.85, radius = 100, collision = {nil}, type = "circular"}	
 
-	R2spellData = {speed = math.huge, range = 1200, delay = 1, radius = 250, collision = {nil}, type = "circular"}		
+	R2spellData = {speed = math.huge, range = 1200, delay = 0.85, radius = 250, collision = {nil}, type = "circular"}		
 	
 	Callback.Add("Tick", function() Tick() end)
 	
@@ -124,7 +124,16 @@ end
 
 local StopOrb1 = false
 local StopOrb2 = false
+local IsCastingE = false
 function Tick()
+
+local currSpell = myHero.activeSpell
+if currSpell and currSpell.valid and myHero.isChanneling and currSpell.name == "LeonaZenithBlade" then
+	IsCastingE = true
+else
+	IsCastingE = false
+end
+
 if StopOrb1 then
 	DelayAction(function()
 		SetMovement(true)
@@ -188,7 +197,7 @@ if target == nil then return end
 	if Menu.Combo.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 875  and StopOrb2 == false then
 		local Stunned = IsStunned(target)
 		if Stunned then			
-			if Stunned.duration <= 0.5 then			
+			if Stunned.duration <= 0.3 then			
 				CastE(target)
 			end	
 		else
@@ -213,7 +222,7 @@ if target == nil then return end
 		end	
 	end
 
-	if Menu.Combo.R2:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 1150 and target.health/target.maxHealth <= Menu.Combo.RHP:Value()/100 and StopOrb1 == false then
+	if Menu.Combo.R2:Value() and Ready(_R) and not IsCastingE and myHero.pos:DistanceTo(target.pos) < 1150 and target.health/target.maxHealth <= Menu.Combo.RHP:Value()/100 and StopOrb1 == false then
 		local Stunned = IsStunned(target)
 		if Stunned then
 			if Stunned.duration <= 0.9 then			
@@ -224,7 +233,7 @@ if target == nil then return end
 		end	
 	end
 	
-	if Menu.Combo.R:Value() and Ready(_R) and GetEnemyCount(1200, myHero) >= Menu.Combo.CountR:Value() and StopOrb1 == false then
+	if Menu.Combo.R:Value() and Ready(_R) and not IsCastingE and GetEnemyCount(1200, myHero) >= Menu.Combo.CountR:Value() and StopOrb1 == false then
 		CastR2(target)
 	end
 end
@@ -236,7 +245,7 @@ if target == nil or myHero.mana/myHero.maxMana < Menu.Harass.Mana:Value()/100 th
 	if Menu.Harass.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 875 then
 		local Stunned = IsStunned(target)
 		if Stunned then
-			if Stunned.duration <= 0.5 then
+			if Stunned.duration <= 0.3 then
 				CastE(target)
 			end	
 		else
@@ -281,7 +290,7 @@ function CastE(unit)
 				Control.CastSpell(HK_E, pred.CastPos)
 			end
 		else
-			local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 1, Radius = 40, Range = 875, Speed = 1200, Collision = false})
+			local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 875, Speed = 2000, Collision = false})
 			EPrediction:GetPrediction(unit, myHero)
 			if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
 				SetMovement(false)
@@ -312,7 +321,7 @@ function CastR(unit)
 				Control.CastSpell(HK_R, pred.CastPos)
 			end
 		else
-			local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 1, Radius = 100, Range = 1200, Speed = math.huge, Collision = false})
+			local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.85, Radius = 100, Range = 1200, Speed = math.huge, Collision = false})
 			RPrediction:GetPrediction(unit, myHero)
 			if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
 				SetMovement(false)
@@ -348,7 +357,7 @@ function CastR2(unit)
 					end	
 				end
 			else
-				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 1, Radius = 250, Range = 1200, Speed = math.huge, Collision = false})
+				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.85, Radius = 250, Range = 1200, Speed = math.huge, Collision = false})
 				local minhitchance = Menu.Pred.PredR:Value() + 1
 				local aoeresult = RPrediction:GetAOEPrediction(myHero)
 				local bestaoe = nil
