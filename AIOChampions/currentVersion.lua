@@ -192,6 +192,10 @@ Data = {
            Ashe = {
             Changelog = "Ashe Changelog Here",
             Version = 0.01,
+        }, 
+           Katarina = {
+            Changelog = "Katarina Changelog Here",
+            Version = 0.01,
         },         
     },
 }
