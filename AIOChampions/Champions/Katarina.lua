@@ -71,11 +71,11 @@ local spellE = {range = 725}
 local spellR = {range = 550}
 
 
---/// Ported from Hanbot by Kornis ///--
+--/// Ported and reworked from Hanbot by Kornis ///--
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})		
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})		
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -137,7 +137,7 @@ function LoadScript()
 	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
-	Menu.Drawing:MenuElement({id = "DrawDamage", name = "Draw Damage", value = false})
+	Menu.Drawing:MenuElement({id = "DrawDamage", name = "Draw Damage", value = true})
 
 	Callback.Add("Tick", function() KataTick() end)
 	
@@ -207,11 +207,15 @@ local function GetClosestJungleEnemy(unit)
 end
 
 local function EDamage(target)
-	return getdmg("E", target, myHero)
+	return Ready(_E) and getdmg("E", target, myHero) or 0
 end
 
 local function RDamage(target)
-	return getdmg("R", target, myHero, 2)
+	return Ready(_R) and getdmg("R", target, myHero, 2) or 0
+end
+
+local function QDamage(target)
+	return Ready(_Q) and getdmg("Q", target, myHero) or 0
 end
 
 local PDamages = ({68, 72, 77, 82, 89, 96, 103, 112, 121, 131, 142, 154, 166, 180, 194, 208, 224, 240})
@@ -244,49 +248,49 @@ local function PDamage(target)
 end
 
 function DrawDamages(target)
-	local pos = target.pos:To2D().onScreen
-	if (math.floor((RDamage(target) + EDamage(target) + PDamage(target) + getdmg("Q", target, myHero)) / target.health * 100) < 100) then
-		Draw.Line(pos.x, pos.y - 30, pos.x + 30, pos.y - 80, 1, DrawColor(255, 255, 153, 51))
-		Draw.Line(pos.x + 30, pos.y - 80, pos.x + 50, pos.y - 80, 1, DrawColor(255, 255, 153, 51))
-		Draw.Line(pos.x + 50, pos.y - 85, pos.x + 50, pos.y - 75, 1, DrawColor(255, 255, 153, 51))
+	local pos = target.pos:To2D()
+	if (math.floor((RDamage(target) + EDamage(target) + PDamage(target) + QDamage(target)) / target.health * 100) < 100) then
+		Draw.Line(pos.x, pos.y - 30, pos.x + 30, pos.y - 80, 1, DrawColor(255, 220, 20, 60))
+		Draw.Line(pos.x + 30, pos.y - 80, pos.x + 50, pos.y - 80, 1, DrawColor(255, 220, 20, 60))
+		Draw.Line(pos.x + 50, pos.y - 85, pos.x + 50, pos.y - 75, 1, DrawColor(255, 220, 20, 60))
 
 		DrawText(
 			tostring(
-				"R: " .. math.floor(RDamage(target) + PDamage(target) + EDamage(target) + getdmg("Q", target, myHero))
+				"Dmg: " .. math.floor(RDamage(target) + PDamage(target) + EDamage(target) + QDamage(target))
 			) ..
 				" (" ..
 					tostring(
 						math.floor(
-							(RDamage(target) + PDamage(target) + EDamage(target) + getdmg("Q", target, myHero)) / target.health * 100
+							(RDamage(target) + PDamage(target) + EDamage(target) + QDamage(target)) / target.health * 100
 						)
 					) ..
 						"%)" .. "Not Killable",
 			20,
 			pos.x + 55,
-			pos.y - 80,
-			DrawColor(255, 255, 153, 51)
+			pos.y - 90,
+			DrawColor(255, 220, 20, 60)
 		)
 	end
 	
-	if(math.floor((RDamage(target) + EDamage(target) + PDamage(target) + getdmg("Q", target, myHero)) / target.health * 100) >= 100) then
-		Draw.Line(pos.x, pos.y - 30, pos.x + 30, pos.y - 80, 1, DrawColor(255, 150, 255, 200))
-		Draw.Line(pos.x + 30, pos.y - 80, pos.x + 50, pos.y - 80, 1, DrawColor(255, 150, 255, 200))
-		Draw.Line(pos.x + 50, pos.y - 85, pos.x + 50, pos.y - 75, 1, DrawColor(255, 150, 255, 200))
+	if(math.floor((RDamage(target) + EDamage(target) + PDamage(target) + QDamage(target)) / target.health * 100) >= 100) then
+		Draw.Line(pos.x, pos.y - 30, pos.x + 30, pos.y - 80, 1, DrawColor(255, 50, 205, 50))
+		Draw.Line(pos.x + 30, pos.y - 80, pos.x + 50, pos.y - 80, 1, DrawColor(255, 50, 205, 50))
+		Draw.Line(pos.x + 50, pos.y - 85, pos.x + 50, pos.y - 75, 1, DrawColor(255, 50, 205, 50))
 		DrawText(
 			tostring(
-				"R: " .. math.floor(RDamage(target) + PDamage(target) + EDamage(target) + getdmg("Q", target, myHero))
+				"Dmg: " .. math.floor(RDamage(target) + PDamage(target) + EDamage(target) + QDamage(target))
 			) ..
 				" (" ..
 					tostring(
 						math.floor(
-							(RDamage(target) + PDamage(target) + EDamage(target) + getdmg("Q", target, myHero)) / target.health * 100
+							(RDamage(target) + PDamage(target) + EDamage(target) + QDamage(target)) / target.health * 100
 						)
 					) ..
 						"%)" .. "Killable",
 			20,
 			pos.x + 55,
-			pos.y - 80,
-			DrawColor(255, 150, 255, 200)
+			pos.y - 90,
+			DrawColor(255, 50, 205, 50)
 		)
 	end
 end
