@@ -101,7 +101,7 @@ local TrapCount = 0
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.16"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.17"}})	
 
 	--AutoW  
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW"})		
@@ -147,7 +147,7 @@ function LoadScript()
 	Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	Menu.ks:MenuElement({id = "UseR", name = "[R]", value = true})
 	Menu.ks:MenuElement({id = "Turret", name = "Dont Use Ult under Enemy Tower", value = true})	
-	Menu.ks:MenuElement({id = "Rrange", name = "Cast R if range greater than -->", value = 1000, min = 0, max = 3500})
+	Menu.ks:MenuElement({id = "Rrange", name = "Cast R if range greater than -->", value = 1200, min = 0, max = 3500})
 	Menu.ks:MenuElement({id = "enemy", name = "Cast R if no Enemy in range -->", value = 1200, min = 0, max = 3500})	
 
 	--Prediction
@@ -179,10 +179,10 @@ function LoadScript()
 
 	WData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = 1.25, Radius = 65, Range = 800, Speed = MathHuge, Collision = false
+	Type = _G.SPELLTYPE_CIRCLE, Delay = 1.25, Radius = 65, Range = 800, Speed = 1450, Collision = false
 	}
 	
-	WspellData = {speed = MathHuge, range = 800, delay = 1.25, radius = 65, collision = {nil}, type = "circular"}	
+	WspellData = {speed = 1450, range = 800, delay = 1.25, radius = 65, collision = {nil}, type = "circular"}	
 
 	EData =
 	{
@@ -258,26 +258,42 @@ local currSpell = myHero.activeSpell
 	if currSpell and currSpell.valid and currSpell.name == "CaitlynYordleTrap" then
 		DelayAction(function()
 			for i = 0, GameObjectCount() do
-				local object = GameObject(i)
-				if object and myHero.pos:DistanceTo(object.pos) < 1000 and object.name == "Caitlyn_Base_W_Indicator_SizeRing" then
-					--print("FoundNewTrap")
-					TableInsert(SafedTraps, object)
-					TrapCount = TrapCount + 1
+				local Trap = GameObject(i)
+				local NewTrap = true
+				if Trap and myHero.pos:DistanceTo(Trap.pos) < 1000 and Trap.name == "Caitlyn_Base_W_Indicator_SizeRing" then
+					for i = 1, #SafedTraps do
+						if SafedTraps[i].networkID == Trap.networkID then
+							NewTrap = false
+						end
+					end				
+					
+					if NewTrap then 
+						if Trap.name == "Caitlyn_Base_W_Indicator_SizeRing" then
+							--print("FoundNewTrap")
+							TableInsert(SafedTraps, 1, {obj = Trap, networkID = Trap.networkID})
+							TrapCount = TrapCount + 1
+						end	
+					end	
 				end
 			end
 		end,0.3)	
 	end	
 end
 
-local LastScan = 0
 function RemoveTrap()
+	local LastScan = 0
 	if TrapCount > 0 and GameTimer() - LastScan > 1 then
-		for i, Trap in ipairs(SafedTraps) do 
-			if Trap and (Trap.networkID == 0 or Trap.name ~= "Caitlyn_Base_W_Indicator_SizeRing") then
-				LastScan = GameTimer()
-				TrapCount = TrapCount - 1				
-				TableRemove(SafedTraps, i)
-				--print("Removed")
+		for i = 1, #SafedTraps do
+			if SafedTraps[i] then
+				local Trap = SafedTraps[i] 
+				local object = Trap.obj
+				if object and (object.health <= 0 or object.name ~= "Caitlyn_Base_W_Indicator_SizeRing") then
+					LastScan = GameTimer()
+					TrapCount = TrapCount - 1				
+					TableRemove(SafedTraps, i)
+					--print("Removed")
+					--print(TrapCount)
+				end
 			end	
 		end
 	end
@@ -286,7 +302,27 @@ end
 function AutoW()
 	for i, target in ipairs(GetEnemyHeroes()) do
 		if myHero.pos:DistanceTo(target.pos) <= 800 and IsValid(target) and IsImmobileTarget(target) and not HasBuff(target, "caitlynyordletrapsight") and Menu.AutoW.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
-			if TrapCount == 0 then
+			if TrapCount > 0 then
+				for i = 1, #SafedTraps do
+					local Object = SafedTraps[i]
+					local Trap = Object.obj
+					if Trap and Trap.pos:DistanceTo(target.pos) > 200 then 			
+						if Menu.Pred.Change:Value() == 1 then
+							local pred = GetGamsteronPrediction(target, WData, myHero)
+							if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
+								Control.CastSpell(HK_W, pred.CastPosition)
+							end
+						elseif Menu.Pred.Change:Value() == 2 then
+							local pred = _G.PremiumPrediction:GetPrediction(myHero, target, WspellData)
+							if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
+								Control.CastSpell(HK_W, pred.CastPos)
+							end
+						else
+							CastGGPred(_W, target)
+						end
+					end
+				end
+			else
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, WData, myHero)
 					if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
@@ -299,30 +335,8 @@ function AutoW()
 					end
 				else
 					CastGGPred(_W, target)
-				end
-				
-			else				
-			
-				for i, Trap in ipairs(SafedTraps) do
-					if Trap then 
-						if Trap.pos:DistanceTo(target.pos) > 200 then
-							if Menu.Pred.Change:Value() == 1 then
-								local pred = GetGamsteronPrediction(target, WData, myHero)
-								if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
-									Control.CastSpell(HK_W, pred.CastPosition)
-								end
-							elseif Menu.Pred.Change:Value() == 2 then
-								local pred = _G.PremiumPrediction:GetPrediction(myHero, target, WspellData)
-								if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
-									Control.CastSpell(HK_W, pred.CastPos)
-								end
-							else
-								CastGGPred(_W, target)
-							end
-						end
-					end	
-				end
-			end
+				end		
+			end	
 		end
 	end
 end	
@@ -399,10 +413,10 @@ function KillSteal()
 					else	   
 						CastSpellMM(HK_R, target.pos, 3500)
 					end					
-				end	
+				end
+				SetMovement(true)	
 			end
 		end
-		SetMovement(true)
 	end	
 end	
 
@@ -414,7 +428,27 @@ if target == nil then return end
 		if myHero:GetSpellData(_Q).level > 0 and myHero:GetSpellData(_W).level > 0 and myHero:GetSpellData(_E).level > 0 then
 			
 			if myHero.pos:DistanceTo(target.pos) <= 800 and not HasBuff(target, "caitlynyordletrapsight") and Menu.Combo.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
-				if TrapCount == 0 then
+				if TrapCount > 0 then
+					for i = 1, #SafedTraps do
+						local Object = SafedTraps[i]
+						local Trap = Object.obj
+						if Trap and Trap.pos:DistanceTo(target.pos) > 200 then 
+							if Menu.Pred.Change:Value() == 1 then
+								local pred = GetGamsteronPrediction(target, WData, myHero)
+								if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
+									Control.CastSpell(HK_W, pred.CastPosition)
+								end
+							elseif Menu.Pred.Change:Value() == 2 then
+								local pred = _G.PremiumPrediction:GetPrediction(myHero, target, WspellData)
+								if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
+									Control.CastSpell(HK_W, pred.CastPos)
+								end
+							else
+								CastGGPred(_W, target)
+							end
+						end
+					end	
+				else
 					if Menu.Pred.Change:Value() == 1 then
 						local pred = GetGamsteronPrediction(target, WData, myHero)
 						if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
@@ -427,30 +461,8 @@ if target == nil then return end
 						end
 					else
 						CastGGPred(_W, target)
-					end
-					
-				else				
-				
-					for i, Trap in ipairs(SafedTraps) do
-						if Trap then 
-							if Trap.pos:DistanceTo(target.pos) > 200 then
-								if Menu.Pred.Change:Value() == 1 then
-									local pred = GetGamsteronPrediction(target, WData, myHero)
-									if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
-										Control.CastSpell(HK_W, pred.CastPosition)
-									end
-								elseif Menu.Pred.Change:Value() == 2 then
-									local pred = _G.PremiumPrediction:GetPrediction(myHero, target, WspellData)
-									if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
-										Control.CastSpell(HK_W, pred.CastPos)
-									end
-								else
-									CastGGPred(_W, target)
-								end
-							end
-						end	
-					end
-				end	
+					end					
+				end
 			end			
 			
 			if myHero.pos:DistanceTo(target.pos) <= 750 and Menu.Combo.UseE:Value() and Ready(_E) then
@@ -493,7 +505,27 @@ if target == nil then return end
 		else
 			
 			if myHero.pos:DistanceTo(target.pos) <= 800 and not HasBuff(target, "caitlynyordletrapsight") and Menu.Combo.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
-				if TrapCount == 0 then
+				if TrapCount > 0 then
+					for i = 1, #SafedTraps do
+						local Object = SafedTraps[i]
+						local Trap = Object.obj
+						if Trap and Trap.pos:DistanceTo(target.pos) > 200 then 
+							if Menu.Pred.Change:Value() == 1 then
+								local pred = GetGamsteronPrediction(target, WData, myHero)
+								if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
+									Control.CastSpell(HK_W, pred.CastPosition)
+								end
+							elseif Menu.Pred.Change:Value() == 2 then
+								local pred = _G.PremiumPrediction:GetPrediction(myHero, target, WspellData)
+								if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
+									Control.CastSpell(HK_W, pred.CastPos)
+								end
+							else
+								CastGGPred(_W, target)
+							end
+						end
+					end	
+				else
 					if Menu.Pred.Change:Value() == 1 then
 						local pred = GetGamsteronPrediction(target, WData, myHero)
 						if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
@@ -506,29 +538,7 @@ if target == nil then return end
 						end
 					else
 						CastGGPred(_W, target)
-					end
-					
-				else				
-				
-					for i, Trap in ipairs(SafedTraps) do
-						if Trap then 
-							if Trap.pos:DistanceTo(target.pos) > 200 then
-								if Menu.Pred.Change:Value() == 1 then
-									local pred = GetGamsteronPrediction(target, WData, myHero)
-									if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
-										Control.CastSpell(HK_W, pred.CastPosition)
-									end
-								elseif Menu.Pred.Change:Value() == 2 then
-									local pred = _G.PremiumPrediction:GetPrediction(myHero, target, WspellData)
-									if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
-										Control.CastSpell(HK_W, pred.CastPos)
-									end
-								else
-									CastGGPred(_W, target)
-								end
-							end
-						end	
-					end
+					end				
 				end
 			end			
 			
@@ -621,7 +631,7 @@ function CastGGPred(spell, unit)
 		end	
 	
 	elseif spell == _W then
-		local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 1.25, Radius = 65, Range = 800, Speed = MathHuge, Collision = false})
+		local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 1.25, Radius = 65, Range = 800, Speed = 1450, Collision = false})
 		WPrediction:GetPrediction(unit, myHero)
 		if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 			Control.CastSpell(HK_W, WPrediction.CastPosition)
