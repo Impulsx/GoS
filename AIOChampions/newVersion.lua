@@ -107,7 +107,7 @@ Data = {
         },
          Caitlyn = {
             Changelog = "Caitlyn Changelog Here",
-            Version = 0.16,
+            Version = 0.17,
         },
           Kaisa = {
             Changelog = "Kaisa Changelog Here",
