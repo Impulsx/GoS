@@ -199,7 +199,7 @@ Data = {
         },
            Leblanc = {
             Changelog = "Leblanc Changelog Here",
-            Version = 0.01,
+            Version = 0.02,
         },        
     },
 }
