@@ -209,7 +209,7 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})	
 	
 	Menu:MenuElement({type = MENU, id = "WSet", name = "AutoW Incomming CC Spells"})	
 	Menu.WSet:MenuElement({id = "UseW", name = "AutoW CC Spells", value = true})	
@@ -218,12 +218,13 @@ function LoadScript()
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "Active", name = "Semi manual key [Q]", key = string.byte("T")})
-	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
+	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	Menu.Combo:MenuElement({id = "UseQ2", name = "[Q] priority Passive Vital", value = true})	
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})		
 	
 	--UltSettings
 	Menu.Combo:MenuElement({type = MENU, id = "Ult", name = "Ultimate Settings"})
-	Menu.Combo.Ult:MenuElement({id = "RDance", name = "Move around Target if Ult active", value = true})	
+	Menu.Combo.Ult:MenuElement({id = "QUlt", name = "priority Q on Ult Vitals", value = true})	
 	Menu.Combo.Ult:MenuElement({id = "Rself", name = "[R] Check Fiora Hp", value = true})
 	Menu.Combo.Ult:MenuElement({id = "myHP", name = "[R] if Fiora Hp lower than", value = 40, min = 0, max = 100, identifier = "%"})
 	Menu.Combo.Ult:MenuElement({name = " ", drop = {"--------------------------------------"}})	
@@ -311,13 +312,18 @@ function LoadScript()
 end
 
 local WActiv = false
+local UltSE,UltSW,UltNE,UltNW,Passive = false,false,false,false,false
+local UltVitalsSE = {}
+local UltVitalsSW = {}
+local UltVitalsNE = {}
+local UltVitalsNW = {}
+local PassiveVital = {}
+local LastScan = GameTimer()
 
 function Tick()
-	
 	local Ulttarget = GetTarget(1000)
-	if Ulttarget and not HasBuff(Ulttarget, "fiorarmark") then
-		SetMovement(true)
-	end
+	
+	RemoveWrongObjects()
 	
 	if HasBuff(myHero, "FioraW") then
 		WActiv = true
@@ -335,9 +341,9 @@ function Tick()
 	if Mode == "Combo" and not WActiv then
 		Combo()
 		Ult()
-		if myHero:GetSpellData(_R).level > 0 and Menu.Combo.Ult.RDance:Value() then
-			DanceTarget(Ulttarget)	
-		end		
+		if Menu.Combo.Ult.QUlt:Value() then
+			Ult2(Ulttarget)	
+		end	
 	elseif Mode == "Harass" and not WActiv then
 		Harass()
 	elseif Mode == "Clear" and not WActiv then
@@ -346,7 +352,7 @@ function Tick()
 	end	
 
 	KillSteal()	
-	
+
 	if Menu.Combo.Active:Value() then
 		SemiQ()
 	end	
@@ -357,6 +363,154 @@ function Tick()
 			UseW(i, spell)
 		end
 	end	
+end	
+
+function RemoveWrongObjects()
+	for i, Vital in ipairs(PassiveVital) do
+		if Vital then
+			if Vital.name ~= "Fiora_Base_Passive_SE" 
+			or Vital.name ~= "Fiora_Base_Passive_SE_Timeout"
+			or Vital.name ~= "Fiora_Base_Passive_SW" 
+			or Vital.name ~= "Fiora_Base_Passive_SW_Timeout"
+			or Vital.name ~= "Fiora_Base_Passive_NE" 
+			or Vital.name ~= "Fiora_Base_Passive_NE_Timeout"
+			or Vital.name ~= "Fiora_Base_Passive_NW" 
+			or Vital.name ~= "Fiora_Base_Passive_NW_Timeout" then
+				TableRemove(PassiveVital, i) 
+				Passive = false
+			end
+		end	
+	end
+	
+	for i, Vital1 in ipairs(UltVitalsSE) do	
+		if Vital1 then
+			if Vital1.name ~= "Fiora_Base_R_Mark_SE_FioraOnly" 
+			or Vital1.name ~= "Fiora_Base_R_SE_Timeout_FioraOnly" then
+				TableRemove(UltVitalsSE, i)
+				UltSE = false
+			end
+		end
+	end	
+	
+	for i, Vital2 in ipairs(UltVitalsSW) do	
+		if Vital2 then
+			if Vital2.name ~= "Fiora_Base_R_Mark_SW_FioraOnly" 
+			or Vital2.name ~= "Fiora_Base_R_SW_Timeout_FioraOnly" then
+				TableRemove(UltVitalsSW, i)
+				UltSW = false
+			end
+		end
+	end
+
+	for i, Vital3 in ipairs(UltVitalsNE) do	
+		if Vital3 then
+			if Vital3.name ~= "Fiora_Base_R_Mark_NE_FioraOnly" 
+			or Vital3.name ~= "Fiora_Base_R_NE_Timeout_FioraOnly" then
+				TableRemove(UltVitalsNE, i)
+				UltNE = false
+			end
+		end
+	end
+
+	for i, Vital4 in ipairs(UltVitalsNW) do	
+		if Vital4 then
+			if Vital4.name ~= "Fiora_Base_R_Mark_NW_FioraOnly" 
+			or Vital4.name ~= "Fiora_Base_R_NW_Timeout_FioraOnly" then
+				TableRemove(UltVitalsNW, i)
+				UltNW = false
+			end
+		end
+	end		
+end
+
+function Ult2(unit)
+	if unit and HasBuff(unit, "fiorarmark") then--and (not UltSE or not UltSW or not UltNE or not UltNW) then
+		
+		--DelayAction(function()
+			if GameTimer() - LastScan <= 0.6 then
+				for i = 1, Game.ObjectCount() do				
+					local object = Game.Object(i)
+					if unit.pos:DistanceTo(object.pos) <= 50 then				
+														
+						if not UltSE and object.name == "Fiora_Base_R_Mark_SE_FioraOnly" or object.name == "Fiora_Base_R_SE_Timeout_FioraOnly" then
+							UltSE = true
+							TableInsert(UltVitalsSE, object)
+						end	
+						if not UltSW and object.name == "Fiora_Base_R_Mark_SW_FioraOnly" or object.name == "Fiora_Base_R_SW_Timeout_FioraOnly" then
+							UltSW = true
+							TableInsert(UltVitalsSW, object)
+						end	
+						if not UltNE and object.name == "Fiora_Base_R_Mark_NE_FioraOnly" or object.name == "Fiora_Base_R_NE_Timeout_FioraOnly" then
+							UltNE = true
+							TableInsert(UltVitalsNE, object)
+						end	
+						if not UltNW and object.name == "Fiora_Base_R_Mark_NW_FioraOnly" or object.name == "Fiora_Base_R_NW_Timeout_FioraOnly" then
+							UltNW = true
+							TableInsert(UltVitalsNW, object)
+						end	
+					end
+				end
+			end
+		--end,0.1)
+		LastScan = GameTimer()
+	end
+
+	for i, Vital1 in ipairs(UltVitalsSE) do
+		if Vital1 and not Vital1.visible then TableRemove(UltVitalsSE, i) UltSE = false end
+		
+		if Vital1 and UltSE then
+			local Pos = Vital1.pos
+			local SEPos = Vector(Pos.x - 250 ,Pos.y, Pos.z)	
+			if Ready(_Q) and not myHero.pathing.isDashing and SEPos:DistanceTo(myHero.pos) <= 500 then		
+				--DrawCircle(SEPos, 50, 1, DrawColor(225, 220, 20, 60))
+				Control.CastSpell(HK_Q, SEPos)
+				TableRemove(UltVitalsSE, i)
+				UltSE = false
+			end
+		end
+	end
+	
+	for i, Vital2 in ipairs(UltVitalsSW) do
+		if Vital2 and not Vital2.visible then TableRemove(UltVitalsSW, i) UltSW = false end				
+		if Vital2 and UltSW then
+			local Pos = Vital2.pos
+			local SWPos = Vector(Pos.x ,Pos.y - 250, Pos.z)	
+			if Ready(_Q) and not myHero.pathing.isDashing and SWPos:DistanceTo(myHero.pos) <= 500 then		
+				--DrawCircle(SWPos, 50, 1, DrawColor(225, 0, 191, 255))
+				Control.CastSpell(HK_Q, SWPos)
+				TableRemove(UltVitalsSW, i)
+				UltSW = false
+			end	
+		end
+	end	
+	
+	for i, Vital3 in ipairs(UltVitalsNE) do
+		if Vital3 and not Vital3.visible then TableRemove(UltVitalsNE, i) UltNE = false end						
+		if Vital3 and UltNE then
+			local Pos = Vital3.pos
+			local NEPos = Vector(Pos.x ,Pos.y + 250, Pos.z)	
+			if Ready(_Q) and not myHero.pathing.isDashing and NEPos:DistanceTo(myHero.pos) <= 500 then		
+				--DrawCircle(NEPos, 50, 1, DrawColor(225, 50, 205, 50))
+				Control.CastSpell(HK_Q, NEPos)
+				TableRemove(UltVitalsNE, i)
+				UltNE = false
+			end
+		end
+	end
+	
+	for i, Vital4 in ipairs(UltVitalsNW) do
+		if Vital4 and not Vital4.visible then TableRemove(UltVitalsNW, i) UltNW = false end							
+		if Vital4 and UltNW then
+			local Pos = Vital4.pos
+			local NWPos = Vector(Pos.x + 250,Pos.y, Pos.z)	
+			if Ready(_Q) and not myHero.pathing.isDashing and NWPos:DistanceTo(myHero.pos) <= 500 then		
+				--DrawCircle(NWPos, 50, 1, DrawColor(225, 255, 255, 255))
+				Control.CastSpell(HK_Q, NWPos)
+				TableRemove(UltVitalsNW, i)
+				UltNW = false
+			end	
+		end
+	end
 end
 
 function ProcessSpell()
@@ -474,21 +628,6 @@ if target == nil then return end
         end
 	end	
 end
-
-function DanceTarget(unit)
-if unit == nil then return end
-	if IsValid(unit) and HasBuff(unit, "fiorarmark") then
-		local castPos = Vector(unit.pos) - (Vector(myHero.pos) - Vector(unit.pos)):Perpendicular():Normalized() * 225	
-		if myHero.attackData.state == 3 then 
-			SetMovement(false)
-			Control.SetCursorPos(castPos)
-			Control.mouse_event(MOUSEEVENTF_RIGHTDOWN)
-			Control.mouse_event(MOUSEEVENTF_RIGHTUP)
-			SetMovement(true)
-		end		
-	end
-	SetMovement(true)
-end
 	
 function Ult()
 local target = GetTarget(600)
@@ -533,32 +672,106 @@ if target == nil then return end
 			end
         end
 	end
-end
+end	
 
 function Combo()
-local target = GetTarget(500)
+local target = GetTarget(700)
 if target == nil then return end
 	if IsValid(target) then
         
-		if Menu.Combo.UseQ:Value() or Menu.Combo.Active:Value() and myHero.pos:DistanceTo(target.pos) < 400 and Ready(_Q) then
-			if Menu.Pred.Change:Value() == 1 then
-				local pred = GetGamsteronPrediction(target, QData, myHero)
-				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-					Control.CastSpell(HK_Q, pred.CastPosition)
+		if (Menu.Combo.Ult.QUlt:Value() and not HasBuff(target, "fiorarmark")) or (not Menu.Combo.Ult.QUlt:Value()) then	
+			if Menu.Combo.UseQ2:Value() then
+				if Ready(_Q) then
+					PassiveCheck(target)
+					for i, Vital in ipairs(PassiveVital) do
+						if Vital and not Vital.visible then TableRemove(PassiveVital, i) Passive = false end
+					
+						if Vital and Passive then
+							local Pos = Vital.pos
+							if Vital.name == "Fiora_Base_Passive_SE" or Vital.name == "Fiora_Base_Passive_SE_Timeout" then
+								local SEPos = Vector(Pos.x - 250 ,Pos.y, Pos.z)	
+								if not myHero.pathing.isDashing and SEPos:DistanceTo(myHero.pos) <= 500 then		
+									--DrawCircle(SEPos, 50, 1, DrawColor(225, 220, 20, 60))
+									Control.CastSpell(HK_Q, SEPos)
+									TableRemove(PassiveVital, i)
+									Passive = false
+								end
+							end	
+							if Vital.name == "Fiora_Base_Passive_SW" or Vital.name == "Fiora_Base_Passive_SW_Timeout" then
+								local SWPos = Vector(Pos.x ,Pos.y - 250, Pos.z)	
+								if not myHero.pathing.isDashing and SWPos:DistanceTo(myHero.pos) <= 500 then		
+									--DrawCircle(SWPos, 50, 1, DrawColor(225, 0, 191, 255))
+									Control.CastSpell(HK_Q, SWPos)
+									TableRemove(PassiveVital, i)
+									Passive = false
+								end
+							end
+							if Vital.name == "Fiora_Base_Passive_NE" or Vital.name == "Fiora_Base_Passive_NE_Timeout" then
+								local NEPos = Vector(Pos.x ,Pos.y + 250, Pos.z)	
+								if not myHero.pathing.isDashing and NEPos:DistanceTo(myHero.pos) <= 500 then		
+									--DrawCircle(NEPos, 50, 1, DrawColor(225, 50, 205, 50))
+									Control.CastSpell(HK_Q, NEPos)
+									TableRemove(PassiveVital, i)
+									Passive = false
+								end
+							end
+							if Vital.name == "Fiora_Base_Passive_NW" or Vital.name == "Fiora_Base_Passive_NW_Timeout" then
+								local NWPos = Vector(Pos.x + 250,Pos.y, Pos.z)	
+								if not myHero.pathing.isDashing and NWPos:DistanceTo(myHero.pos) <= 500 then		
+									--DrawCircle(NWPos, 50, 1, DrawColor(225, 255, 255, 255))
+									Control.CastSpell(HK_Q, NWPos)
+									TableRemove(PassiveVital, i)
+									Passive = false
+								end							
+							end
+							
+						else
+							if Menu.Combo.UseQ:Value() or Menu.Combo.Active:Value() and myHero.pos:DistanceTo(target.pos) < 400 and Ready(_Q) then
+								if Menu.Pred.Change:Value() == 1 then
+									local pred = GetGamsteronPrediction(target, QData, myHero)
+									if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
+										Control.CastSpell(HK_Q, pred.CastPosition)
+									end
+								elseif Menu.Pred.Change:Value() == 2 then
+									local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+									if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
+										Control.CastSpell(HK_Q, pred.CastPos)
+									end	
+								else
+									local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 400, Speed = 2000, Collision = false})
+									QPrediction:GetPrediction(target, myHero)
+									if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+										Control.CastSpell(HK_Q, QPrediction.CastPosition)
+									end					
+								end	
+							end	
+						end
+					end					
 				end
-			elseif Menu.Pred.Change:Value() == 2 then
-				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
-				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-					Control.CastSpell(HK_Q, pred.CastPos)
-				end	
+			
 			else
-				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 400, Speed = 2000, Collision = false})
-				QPrediction:GetPrediction(target, myHero)
-				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
-					Control.CastSpell(HK_Q, QPrediction.CastPosition)
-				end					
+			
+				if Menu.Combo.UseQ:Value() or Menu.Combo.Active:Value() and myHero.pos:DistanceTo(target.pos) < 400 and Ready(_Q) then
+					if Menu.Pred.Change:Value() == 1 then
+						local pred = GetGamsteronPrediction(target, QData, myHero)
+						if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
+							Control.CastSpell(HK_Q, pred.CastPosition)
+						end
+					elseif Menu.Pred.Change:Value() == 2 then
+						local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+						if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
+							Control.CastSpell(HK_Q, pred.CastPos)
+						end	
+					else
+						local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 400, Speed = 2000, Collision = false})
+						QPrediction:GetPrediction(target, myHero)
+						if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+							Control.CastSpell(HK_Q, QPrediction.CastPosition)
+						end					
+					end
+				end	
 			end
-        end
+		end	
        
 		if Menu.Combo.UseE:Value() and myHero.pos:DistanceTo(target.pos) <= 250 and Ready(_E) then
 			Control.CastSpell(HK_E)
@@ -570,6 +783,37 @@ if target == nil then return end
 				end				
 			end, 0.05)			
         end
+	end
+end
+
+function PassiveCheck(unit)
+	if unit and HasBuff(unit, "fiorapassivemanager") and not Passive then 
+		for i = 1, Game.ObjectCount() do				
+			local object = Game.Object(i)
+			if unit.pos:DistanceTo(object.pos) <= 50 then				
+												
+				if object.name == "Fiora_Base_Passive_SE" or object.name == "Fiora_Base_Passive_SE_Timeout" then
+					Passive = true
+					TableInsert(PassiveVital, object)
+					return
+				end	
+				if object.name == "Fiora_Base_Passive_SW" or object.name == "Fiora_Base_Passive_SW_Timeout" then
+					Passive = true
+					TableInsert(PassiveVital, object)
+					return
+				end	
+				if object.name == "Fiora_Base_Passive_NE" or object.name == "Fiora_Base_Passive_NE_Timeout" then
+					Passive = true
+					TableInsert(PassiveVital, object)
+					return
+				end	
+				if object.name == "Fiora_Base_Passive_NW" or object.name == "Fiora_Base_Passive_NW_Timeout" then
+					Passive = true
+					TableInsert(PassiveVital, object)
+					return
+				end		
+			end
+		end
 	end
 end
 
