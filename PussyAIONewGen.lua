@@ -22,9 +22,9 @@ end
 
 local function AutoUpdate()
 	local CHAMP_PATH			= AUTO_PATH..'Champions/'
-	local SCRIPT_URL			= "https://raw.githubusercontent.com/Pussykate/GoS/master/"
-	local AUTO_URL				= "https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/"
-	local CHAMP_URL				= "https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/Champions/"
+	local SCRIPT_URL			= "http://raw.githubusercontent.com/Pussykate/GoS/master/"
+	local AUTO_URL				= "http://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/"
+	local CHAMP_URL				= "http://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/Champions/"
 	local oldVersion			= "currentVersion.lua"
 	local newVersion			= "newVersion.lua"
 	--
@@ -78,19 +78,19 @@ local function AutoUpdate()
 		
 
 		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
-			DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-EXT/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
+			DownloadFileAsync("http://raw.githubusercontent.com/gamsteron/GOS-EXT/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
 			print("gamsteronPred. installed Press 2x F6")
 			return
 		end
 
 		if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
-			DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
+			DownloadFileAsync("http://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
 			print("PremiumPred. installed Press 2x F6")
 			return
 		end
 
 		if not FileExist(COMMON_PATH .. "GGPrediction.lua") then
-			DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GG/master/GGPrediction.lua", COMMON_PATH .. "GGPrediction.lua", function() end)
+			DownloadFileAsync("http://raw.githubusercontent.com/gamsteron/GG/master/GGPrediction.lua", COMMON_PATH .. "GGPrediction.lua", function() end)
 			print("GGPrediction installed Press 2x F6")
 			return
 		end
@@ -177,14 +177,16 @@ local function AutoUpdate()
 			Draw.Text("Ahri", 20, textPos.x - 123, textPos.y - 200, Draw.Color(140, 225, 255, 0))
 			Draw.Text("Cassiopeia", 20, textPos.x - 123, textPos.y - 180, Draw.Color(140, 225, 255, 0))
 			Draw.Text("Ekko", 20, textPos.x - 123, textPos.y - 160, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Kassadin", 20, textPos.x - 123, textPos.y - 140, Draw.Color(140, 225, 255, 0))	
-			Draw.Text("Lux", 20, textPos.x - 123, textPos.y - 120, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Malzahar", 20, textPos.x - 123, textPos.y - 100, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Neeko", 20, textPos.x - 123, textPos.y - 80, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Ryze", 20, textPos.x - 123, textPos.y - 60, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Veigar", 20, textPos.x - 123, textPos.y - 40, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Zed", 20, textPos.x - 123, textPos.y - 20, Draw.Color(140, 225, 255, 0))			
-			Draw.Text("Zoe", 20, textPos.x - 123, textPos.y, Draw.Color(140, 225, 255, 0))			
+			Draw.Text("Kassadin", 20, textPos.x - 123, textPos.y - 140, Draw.Color(140, 225, 255, 0))
+			Draw.Text("Katarina", 20, textPos.x - 123, textPos.y - 120, Draw.Color(140, 225, 255, 0))
+			Draw.Text("LeBlanc", 20, textPos.x - 123, textPos.y - 100, Draw.Color(140, 225, 255, 0))			
+			Draw.Text("Lux", 20, textPos.x - 123, textPos.y - 80, Draw.Color(140, 225, 255, 0))
+			Draw.Text("Malzahar", 20, textPos.x - 123, textPos.y - 60, Draw.Color(140, 225, 255, 0))
+			Draw.Text("Neeko", 20, textPos.x - 123, textPos.y - 40, Draw.Color(140, 225, 255, 0))
+			Draw.Text("Ryze", 20, textPos.x - 123, textPos.y - 20, Draw.Color(140, 225, 255, 0))
+			Draw.Text("Veigar", 20, textPos.x - 123, textPos.y, Draw.Color(140, 225, 255, 0))
+			Draw.Text("Zed", 20, textPos.x - 123, textPos.y + 20, Draw.Color(140, 225, 255, 0))			
+			Draw.Text("Zoe", 20, textPos.x - 123, textPos.y + 40, Draw.Color(140, 225, 255, 0))			
 
 			--TOP--
 			Draw.Text("---TOP---", 30, textPos.x +50, textPos.y - 250, Draw.Color(140, 0, 255, 0))
