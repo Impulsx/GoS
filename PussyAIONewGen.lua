@@ -22,9 +22,9 @@ end
 
 local function AutoUpdate()
 	local CHAMP_PATH			= AUTO_PATH..'Champions/'
-	local SCRIPT_URL			= "http://raw.githubusercontent.com/Pussykate/GoS/master/"
-	local AUTO_URL				= "http://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/"
-	local CHAMP_URL				= "http://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/Champions/"
+	local SCRIPT_URL			= "https://raw.githubusercontent.com/Pussykate/GoS/master/"
+	local AUTO_URL				= "https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/"
+	local CHAMP_URL				= "https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/Champions/"
 	local oldVersion			= "currentVersion.lua"
 	local newVersion			= "newVersion.lua"
 	--
@@ -78,19 +78,19 @@ local function AutoUpdate()
 		
 
 		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
-			DownloadFileAsync("http://raw.githubusercontent.com/gamsteron/GOS-EXT/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
+			DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-EXT/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
 			print("gamsteronPred. installed Press 2x F6")
 			return
 		end
 
 		if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
-			DownloadFileAsync("http://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
+			DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
 			print("PremiumPred. installed Press 2x F6")
 			return
 		end
 
 		if not FileExist(COMMON_PATH .. "GGPrediction.lua") then
-			DownloadFileAsync("http://raw.githubusercontent.com/gamsteron/GG/master/GGPrediction.lua", COMMON_PATH .. "GGPrediction.lua", function() end)
+			DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GG/master/GGPrediction.lua", COMMON_PATH .. "GGPrediction.lua", function() end)
 			print("GGPrediction installed Press 2x F6")
 			return
 		end
@@ -148,91 +148,10 @@ local function AutoUpdate()
 		
 	end	
 	
-	local function Info()
-		Menu = MenuElement({type = MENU, id = "PussyAIOInfo", name = "PussyAio Champion Info"})
-		Menu:MenuElement({id = "info", name = "Draw Supported Champions", value = true})		
-	end
-	
-	local function DrawInfo() 
-		if Menu.info and Menu.info:Value() then
-			local textPos = myHero.pos:To2D()
-			Draw.Rect(textPos.x -500, textPos.y - 300, 1200, 500, Draw.Color(30, 255, 0, 0)) 	
-			Draw.Rect(textPos.x -500, textPos.y - 300, 1220, 50, Draw.Color(30, 0, 255, 0)) 	--upper
-			Draw.Rect(textPos.x -500, textPos.y + 200, 1200, 20, Draw.Color(30, 0, 255, 0))		--under
-			Draw.Rect(textPos.x -500, textPos.y - 250, 20, 450, Draw.Color(30, 0, 255, 0)) 		-- left
-			Draw.Rect(textPos.x +700, textPos.y - 250, 20, 470, Draw.Color(30, 0, 255, 0))		-- right			
-			Draw.Text("PUSSY AIO", 64, textPos.x - 30, textPos.y - 309, Draw.Color(40, 225, 255, 255))			
-			--ADC--
-			Draw.Text("---ADC---", 30, textPos.x -350, textPos.y - 250, Draw.Color(140, 0, 255, 0))
-			Draw.Rect(textPos.x -359, textPos.y - 220, 120, 2, Draw.Color(140, 0, 255, 0))
-			Draw.Text("Caitlyn", 20, textPos.x - 323, textPos.y - 200, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Jhin", 20, textPos.x - 323, textPos.y - 180, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Kalista", 20, textPos.x - 323, textPos.y - 160, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Kaisa", 20, textPos.x - 323, textPos.y - 140, Draw.Color(140, 225, 255, 0))	
-			Draw.Text("Tristana", 20, textPos.x - 323, textPos.y - 120, Draw.Color(140, 225, 255, 0))			
-			
-			--Mid--
-			Draw.Text("---MID---", 30, textPos.x -150, textPos.y - 250, Draw.Color(140, 0, 255, 0))
-			Draw.Rect(textPos.x -158, textPos.y - 220, 120, 2, Draw.Color(140, 0, 255, 0))
-			Draw.Text("Ahri", 20, textPos.x - 123, textPos.y - 200, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Cassiopeia", 20, textPos.x - 123, textPos.y - 180, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Ekko", 20, textPos.x - 123, textPos.y - 160, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Kassadin", 20, textPos.x - 123, textPos.y - 140, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Katarina", 20, textPos.x - 123, textPos.y - 120, Draw.Color(140, 225, 255, 0))
-			Draw.Text("LeBlanc", 20, textPos.x - 123, textPos.y - 100, Draw.Color(140, 225, 255, 0))			
-			Draw.Text("Lux", 20, textPos.x - 123, textPos.y - 80, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Malzahar", 20, textPos.x - 123, textPos.y - 60, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Neeko", 20, textPos.x - 123, textPos.y - 40, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Ryze", 20, textPos.x - 123, textPos.y - 20, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Veigar", 20, textPos.x - 123, textPos.y, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Zed", 20, textPos.x - 123, textPos.y + 20, Draw.Color(140, 225, 255, 0))			
-			Draw.Text("Zoe", 20, textPos.x - 123, textPos.y + 40, Draw.Color(140, 225, 255, 0))			
-
-			--TOP--
-			Draw.Text("---TOP---", 30, textPos.x +50, textPos.y - 250, Draw.Color(140, 0, 255, 0))
-			Draw.Rect(textPos.x +41, textPos.y - 220, 120, 2, Draw.Color(140, 0, 255, 0))
-			Draw.Text("Akali", 20, textPos.x +80, textPos.y - 200, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Camille", 20, textPos.x +80, textPos.y - 180, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Chogath", 20, textPos.x +80, textPos.y - 160, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Diana", 20, textPos.x +80, textPos.y - 140, Draw.Color(140, 225, 255, 0))	
-			Draw.Text("Fiora", 20, textPos.x +80, textPos.y - 120, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Garen", 20, textPos.x +80, textPos.y - 100, Draw.Color(140, 225, 255, 0))	
-			Draw.Text("Mordekaiser", 20, textPos.x +80, textPos.y - 80, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Qiyana", 20, textPos.x +80, textPos.y - 60, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Renekton", 20, textPos.x +80, textPos.y - 40, Draw.Color(140, 225, 255, 0))	
-			Draw.Text("Sylas", 20, textPos.x +80, textPos.y - 20, Draw.Color(140, 225, 255, 0))	
-			Draw.Text("Volibear", 20, textPos.x +80, textPos.y, Draw.Color(140, 225, 255, 0))			
-			Draw.Text("Wukong", 20, textPos.x +80, textPos.y + 20, Draw.Color(140, 225, 255, 0))				
-
-			--Supp--
-			Draw.Text("---SUP---", 30, textPos.x +250, textPos.y - 250, Draw.Color(140, 0, 255, 0))
-			Draw.Rect(textPos.x +240, textPos.y - 220, 120, 2, Draw.Color(140, 0, 255, 0))
-			Draw.Text("Blitzcrank", 20, textPos.x +280, textPos.y - 200, Draw.Color(140, 225, 255, 0))			
-			Draw.Text("Morgana", 20, textPos.x +280, textPos.y - 180, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Pyke", 20, textPos.x +280, textPos.y - 160, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Soraka", 20, textPos.x +280, textPos.y - 140, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Sona", 20, textPos.x +280, textPos.y - 120, Draw.Color(140, 225, 255, 0))	
-			Draw.Text("Zyra", 20, textPos.x +280, textPos.y - 100, Draw.Color(140, 225, 255, 0))			
-
-			--Jungle--
-			Draw.Text("---JGL---", 30, textPos.x +450, textPos.y - 250, Draw.Color(140, 0, 255, 0))
-			Draw.Rect(textPos.x +440, textPos.y - 220, 120, 2, Draw.Color(140, 0, 255, 0))
-			Draw.Text("FiddleSticks", 20, textPos.x +480, textPos.y - 200, Draw.Color(140, 225, 255, 0))			
-			Draw.Text("Nocturne", 20, textPos.x +480, textPos.y - 180, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Rengar", 20, textPos.x +480, textPos.y - 160, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Sett", 20, textPos.x +480, textPos.y - 140, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Warwick", 20, textPos.x +480, textPos.y - 120, Draw.Color(140, 225, 255, 0))	
-			Draw.Text("XinZhao", 20, textPos.x +480, textPos.y - 100, Draw.Color(140, 225, 255, 0))
-			Draw.Text("Nidalee", 20, textPos.x +480, textPos.y - 80, Draw.Color(140, 225, 255, 0))			
-		end	
-	end	
-	
 	local function LoadScript()
 		if CheckSupported() then
 			InitializeScript()
 			LoadLibs()
-			Info()
-			Callback.Add("Draw", function() DrawInfo() end)
 		else
 			print("PussyAIO: Champion not supported: ".. myHero.charName)
 		end
@@ -243,7 +162,7 @@ local function AutoUpdate()
 	LoadScript()	
 end		
 
-function OnLoad()
-	_G.PussyMain = true
-	AutoUpdate()	
-end
+Callback.Add("Load", function()
+	AutoUpdate()
+	_G.PussyMain = true	
+end)
