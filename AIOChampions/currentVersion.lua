@@ -196,6 +196,10 @@ Data = {
             Changelog = "Nidalee Changelog Here",
             Version = 0.09,
         },
+        Seraphine = {
+            Changelog = "Seraphine Changelog Here",
+            Version = 0.01,
+        },        
     },
     Loader = {
         Version = 0.2,
