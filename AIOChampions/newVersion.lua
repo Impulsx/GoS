@@ -200,6 +200,10 @@ Data = {
            Leblanc = {
             Changelog = "Leblanc Changelog Here",
             Version = 0.03,
+        },
+        Seraphine = {
+            Changelog = "Seraphine Changelog Here",
+            Version = 0.01,
         },        
     },
 }
