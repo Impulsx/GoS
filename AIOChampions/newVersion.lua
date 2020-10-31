@@ -79,7 +79,7 @@ Data = {
         }, 
         Camille = {
             Changelog = "Camille Changelog Here",
-            Version = 0.09,
+            Version = 0.10,
         },
          Jhin = {
             Changelog = "Jhin Changelog Here",
