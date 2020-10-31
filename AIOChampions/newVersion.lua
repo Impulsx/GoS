@@ -139,7 +139,7 @@ Data = {
         },
           Fiora = {
             Changelog = "Fiora Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         },
           Nocturne = {
             Changelog = "Nocturne Changelog Here",
