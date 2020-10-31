@@ -20,7 +20,7 @@ local DrawInfo = false
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.04
+    local Version = 0.05
     
     local Files = {
         Lua = {
@@ -74,12 +74,7 @@ end)
 local GameHeroCount     = Game.HeroCount
 local GameHero          = Game.Hero
 
-local orbwalker         = _G.SDK.Orbwalker
-local targetSelector    = _G.SDK.TargetSelector
-local dmglib            = _G.SDK.Damage
-local healthPred        = _G.SDK.HealthPrediction
-local OB                = _G.SDK.ObjectManager
-local TableInsert       = _G.table.insert
+local TableInsert       = table.insert
 
 local lastIG = 0
 local lastMove = 0
@@ -527,7 +522,7 @@ function Yasuo:__init()
     OnAllyHeroLoad(function(hero) TableInsert(Allys, hero); end)
     OnEnemyHeroLoad(function(hero) TableInsert(Enemys, hero); end)
 
-    orbwalker:OnPreMovement(
+    _G.SDK.Orbwalker:OnPreMovement(
         function(args)
             if lastMove + 180 > GetTickCount() then
                 args.Process = false
@@ -687,11 +682,12 @@ end
 local WActive = false
 local CanUlt = false
 function Yasuo:Tick()
+	
 	if Control.IsKeyDown(HK_Q) then
 		Control.KeyUp(HK_Q)
 	end
 
-    local enemys = OB:GetEnemyHeroes(1500)
+    local enemys = _G.SDK.ObjectManager:GetEnemyHeroes(1500)
 
     for i = 1, #enemys do
         local enemy = enemys[i]
@@ -712,19 +708,19 @@ function Yasuo:Tick()
     self:UpdateQDelay()
     self:CastW()
 
-    if orbwalker.Modes[0] then --combo
+    if _G.SDK.Orbwalker.Modes[0] then --combo
         if CanUlt == false then
 			self:Combo()
 		end	
 		self:CastR()
-    elseif orbwalker.Modes[1] then --harass
+    elseif _G.SDK.Orbwalker.Modes[1] then --harass
         self:Harass()
-    elseif orbwalker.Modes[3] then --jungle + lane
+    elseif _G.SDK.Orbwalker.Modes[3] then --jungle + lane
         self:Jungle()
 		self:Clear()
-    elseif orbwalker.Modes[4] then --lasthit
+    elseif _G.SDK.Orbwalker.Modes[4] then --lasthit
         self:LastHit()
-    elseif orbwalker.Modes[5] then
+    elseif _G.SDK.Orbwalker.Modes[5] then
         self:Flee()
     end
     -- print(self.Q3.delay)
@@ -733,9 +729,9 @@ end
 function Yasuo:CastR()                                                                                  
 	local enemys
     if self.tyMenu.combo.Ult.useR1:Value() and myHero.attackSpeed >= 1.33 then
-		enemys = OB:GetEnemyHeroes(1850)
+		enemys = _G.SDK.ObjectManager:GetEnemyHeroes(1850)
 	else
-		enemys = OB:GetEnemyHeroes(1400)
+		enemys = _G.SDK.ObjectManager:GetEnemyHeroes(1400)
 	end
 
     for i = 1, #enemys do
@@ -871,7 +867,7 @@ function Yasuo:UpdateQDelay()
 end
 
 function Yasuo:Combo()
-    local target = nil
+	local target = nil
 	local Igntarget = nil
     self.blockQ = false
 	if WActive then return end
@@ -888,7 +884,7 @@ function Yasuo:Combo()
             Eobj, distance, inQrange = self:GetBestEObjToTarget(target, self.tyMenu.combo.ETower:Value())
             if Eobj and distance < myHero.pos:DistanceTo(target.pos) then
                 --print("distance: "..distance.." myHero--Target : "..myHero.pos:DistanceTo(target.pos))
-                if orbwalker:CanMove() and myHero.pos:DistanceTo(target.pos) > AArange then
+                if _G.SDK.Orbwalker:CanMove() and myHero.pos:DistanceTo(target.pos) > AArange then
                     --print("castE")
                     Control.CastSpell(HK_E, Eobj)
                     self.lastETick = GetTickCount()
@@ -903,7 +899,7 @@ function Yasuo:Combo()
                         self.blockQ = true
                     end
                 end
-            elseif Eobj and inQrange and Ready(_Q) and orbwalker:CanMove() then
+            elseif Eobj and inQrange and Ready(_Q) and _G.SDK.Orbwalker:CanMove() then
                 Control.CastSpell(HK_E, Eobj)
                 --print("castE")
 
@@ -1004,13 +1000,13 @@ function Yasuo:Harass()
 end
 				
 function Yasuo:Clear()
-    local minionInRange = OB:GetEnemyMinions(self.Q3.range)
+    local minionInRange = _G.SDK.ObjectManager:GetEnemyMinions(self.Q3.range)
     if next(minionInRange) == nil or WActive then return  end
 
     for i = 1, #minionInRange do
         local minion = minionInRange[i]
 		
-        if self.tyMenu.clear.useQ3:Value() and Ready(_Q) and not myHero.pathing.isDashing and myHero:GetSpellData(0).name == "YasuoQ3Wrapper" and orbwalker:CanMove(myHero) and self.lastQTick + 300 < GetTickCount() then
+        if self.tyMenu.clear.useQ3:Value() and Ready(_Q) and not myHero.pathing.isDashing and myHero:GetSpellData(0).name == "YasuoQ3Wrapper" and _G.SDK.Orbwalker:CanMove(myHero) and self.lastQTick + 300 < GetTickCount() then
 			local Q3Count = GetLineTargetCount(myHero.pos, minion.pos, self.Q3.delay, self.Q3.speed, self.Q3.radius, self.Q3.range)
 			if Q3Count >= self.tyMenu.clear.count:Value() then
 				Control.CastSpell(HK_Q, minion.pos)
@@ -1018,12 +1014,12 @@ function Yasuo:Clear()
 			end	
         end		
 
-        if self.tyMenu.clear.useQL:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 475 and not myHero.pathing.isDashing and myHero:GetSpellData(0).name ~= "YasuoQ3Wrapper" and orbwalker:CanMove(myHero) and self.lastQTick + 300 < GetTickCount() then
+        if self.tyMenu.clear.useQL:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 475 and not myHero.pathing.isDashing and myHero:GetSpellData(0).name ~= "YasuoQ3Wrapper" and _G.SDK.Orbwalker:CanMove(myHero) and self.lastQTick + 300 < GetTickCount() then
 			Control.CastSpell(HK_Q, minion.pos)
 			self.lastQTick = GetTickCount()
         end
 
-        if self.tyMenu.clear.useE:Value() and Ready(_E) and not myHero.pathing.isDashing  and self.lastETick + 100 < GetTickCount() and myHero.pos:DistanceTo(minion.pos) < 475 and orbwalker:CanMove(myHero) and not self:HasBuff(minion, "YasuoE") then
+        if self.tyMenu.clear.useE:Value() and Ready(_E) and not myHero.pathing.isDashing  and self.lastETick + 100 < GetTickCount() and myHero.pos:DistanceTo(minion.pos) < 475 and _G.SDK.Orbwalker:CanMove(myHero) and not self:HasBuff(minion, "YasuoE") then
 			local EQCount = GetMinionCount(230, minion)
 			if self.tyMenu.clear.EQ:Value() and EQCount >= self.tyMenu.clear.count2:Value() and Ready(_Q) then
 				if self.tyMenu.clear.ETower:Value() then
@@ -1077,23 +1073,23 @@ function Yasuo:Clear()
 end		
 		
 function Yasuo:Jungle()
-    local jungleInrange = OB:GetMonsters(self.Q3.range)
+    local jungleInrange = _G.SDK.ObjectManager:GetMonsters(self.Q3.range)
     if next(jungleInrange) == nil or WActive then return  end
 
     for i = 1, #jungleInrange do
         local minion = jungleInrange[i]
 
-        if self.tyMenu.jungle.useQ3:Value() and Ready(_Q) and not myHero.pathing.isDashing and myHero:GetSpellData(0).name == "YasuoQ3Wrapper" and orbwalker:CanMove(myHero) and self.lastQTick + 300 < GetTickCount() then
+        if self.tyMenu.jungle.useQ3:Value() and Ready(_Q) and not myHero.pathing.isDashing and myHero:GetSpellData(0).name == "YasuoQ3Wrapper" and _G.SDK.Orbwalker:CanMove(myHero) and self.lastQTick + 300 < GetTickCount() then
 			Control.CastSpell(HK_Q, minion.pos)
 			self.lastQTick = GetTickCount()	
         end		
 
-        if self.tyMenu.jungle.useQL:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 475 and not myHero.pathing.isDashing and myHero:GetSpellData(0).name ~= "YasuoQ3Wrapper" and orbwalker:CanMove(myHero) and self.lastQTick + 300 < GetTickCount() then
+        if self.tyMenu.jungle.useQL:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 475 and not myHero.pathing.isDashing and myHero:GetSpellData(0).name ~= "YasuoQ3Wrapper" and _G.SDK.Orbwalker:CanMove(myHero) and self.lastQTick + 300 < GetTickCount() then
 			Control.CastSpell(HK_Q, minion.pos)
 			self.lastQTick = GetTickCount()
         end
 		
-        if self.tyMenu.jungle.EQ:Value() and Ready(_E) and not myHero.pathing.isDashing  and self.lastETick + 100 < GetTickCount() and myHero.pos:DistanceTo(minion.pos) < 475 and orbwalker:CanMove(myHero) and not self:HasBuff(minion, "YasuoE") then
+        if self.tyMenu.jungle.EQ:Value() and Ready(_E) and not myHero.pathing.isDashing  and self.lastETick + 100 < GetTickCount() and myHero.pos:DistanceTo(minion.pos) < 475 and _G.SDK.Orbwalker:CanMove(myHero) and not self:HasBuff(minion, "YasuoE") then
 			Control.CastSpell(HK_E,minion)
 			self.lastETick = GetTickCount()
 			DelayAction(function()
@@ -1104,13 +1100,13 @@ function Yasuo:Jungle()
 end
 
 function Yasuo:LastHit()
-    local minionInRange = OB:GetEnemyMinions(self.Q3.range)
+    local minionInRange = _G.SDK.ObjectManager:GetEnemyMinions(self.Q3.range)
     if next(minionInRange) == nil or WActive then return  end
 
     for i = 1, #minionInRange do
         local minion = minionInRange[i]
 		
-        if self.tyMenu.last.useQ3:Value() and Ready(_Q) and not myHero.pathing.isDashing and myHero:GetSpellData(0).name == "YasuoQ3Wrapper" and orbwalker:CanMove(myHero) and self.lastQTick + 300 < GetTickCount() then
+        if self.tyMenu.last.useQ3:Value() and Ready(_Q) and not myHero.pathing.isDashing and myHero:GetSpellData(0).name == "YasuoQ3Wrapper" and _G.SDK.Orbwalker:CanMove(myHero) and self.lastQTick + 300 < GetTickCount() then
 			local delay = myHero.pos:DistanceTo(minion.pos)/1500 + self.tyMenu.ping:Value()/1000
 			local hpPred = CheckHPPred(minion, delay)			
 			local Q3Dmg = self:GetQDamge(minion)
@@ -1120,7 +1116,7 @@ function Yasuo:LastHit()
 			end	
         end		
 
-        if self.tyMenu.last.useQL:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 475 and not myHero.pathing.isDashing and myHero:GetSpellData(0).name ~= "YasuoQ3Wrapper" and orbwalker:CanMove(myHero) and self.lastQTick + 300 < GetTickCount() then
+        if self.tyMenu.last.useQL:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 475 and not myHero.pathing.isDashing and myHero:GetSpellData(0).name ~= "YasuoQ3Wrapper" and _G.SDK.Orbwalker:CanMove(myHero) and self.lastQTick + 300 < GetTickCount() then
 			local QDmg = self:GetQDamge(minion)
 			if QDmg > minion.health then
 				Control.CastSpell(HK_Q, minion.pos)
@@ -1128,7 +1124,7 @@ function Yasuo:LastHit()
 			end	
         end
 
-        if self.tyMenu.last.useE:Value() and Ready(_E) and not myHero.pathing.isDashing  and self.lastETick + 100 < GetTickCount() and myHero.pos:DistanceTo(minion.pos) < 475 and orbwalker:CanMove(myHero) and not self:HasBuff(minion, "YasuoE") then
+        if self.tyMenu.last.useE:Value() and Ready(_E) and not myHero.pathing.isDashing  and self.lastETick + 100 < GetTickCount() and myHero.pos:DistanceTo(minion.pos) < 475 and _G.SDK.Orbwalker:CanMove(myHero) and not self:HasBuff(minion, "YasuoE") then
 			local delay = self:GetEDmgDelay(minion)
 			local hpPred = CheckHPPred(minion, delay-0.3)				
 			local EDmg = self:GetEDamge(minion)
@@ -1169,7 +1165,7 @@ function Yasuo:GetDashPos(obj)
 end
 
 function Yasuo:OutOfTurrents(endPos)
-    local turrets = OB:GetEnemyTurrets()
+    local turrets = _G.SDK.ObjectManager:GetEnemyTurrets()
     local range = 88.5 + 750 + myHero.boundingRadius / 2
     for i = 1, #turrets do
         local turret = turrets[i]
@@ -1184,14 +1180,14 @@ function Yasuo:CheckEQ(target)
     --print("check EQ")
     if myHero.pathing.isDashing and myHero.pos:DistanceTo(target.pos) <= self.QCirWidth and Ready(_Q) then
         Control.KeyDown(HK_Q)
-        orbwalker:SetAttack(false)
+        _G.SDK.Orbwalker:SetAttack(false)
         --print("E delay "..self.Epre.Delay)
         --print("EQ1 "..os.clock())
         DelayAction(function()
             Control.KeyUp(HK_Q)
            -- print("EQ2 "..os.clock())
             DelayAction(function()   
-                orbwalker:SetAttack(true)
+                _G.SDK.Orbwalker:SetAttack(true)
             end, 0.4)
 
         end, 0.05)
@@ -1199,9 +1195,9 @@ function Yasuo:CheckEQ(target)
 end
 
 function Yasuo:GetEtargetForUlt()
-    local minionInERange = OB:GetEnemyMinions(475)
-    local jungleInErange = OB:GetMonsters(475)
-    local heroInErange   = OB:GetEnemyHeroes(475)
+    local minionInERange = _G.SDK.ObjectManager:GetEnemyMinions(475)
+    local jungleInErange = _G.SDK.ObjectManager:GetMonsters(475)
+    local heroInErange   = _G.SDK.ObjectManager:GetEnemyHeroes(475)
 
     for i,minion in pairs (minionInERange) do 
         if not self:HasBuff(minion, "YasuoE") then
@@ -1223,9 +1219,9 @@ function Yasuo:GetEtargetForUlt()
 end
 
 function Yasuo:GetEtargetInRange()
-    local minionInERange = OB:GetEnemyMinions(475)
-    local jungleInErange = OB:GetMonsters(475)
-    local heroInErange   = OB:GetEnemyHeroes(475)
+    local minionInERange = _G.SDK.ObjectManager:GetEnemyMinions(475)
+    local jungleInErange = _G.SDK.ObjectManager:GetMonsters(475)
+    local heroInErange   = _G.SDK.ObjectManager:GetEnemyHeroes(475)
 
     for i,minion in pairs (minionInERange) do 
         if not self:HasBuff(minion, "YasuoE")  then
@@ -1247,9 +1243,9 @@ function Yasuo:GetEtargetInRange()
 end
 
 function Yasuo:GetBestEObjToCursor(underTower)
-    local minionInERange = OB:GetEnemyMinions(475)
-    local jungleInErange = OB:GetMonsters(475)
-    local heroInErange   = OB:GetEnemyHeroes(475)
+    local minionInERange = _G.SDK.ObjectManager:GetEnemyMinions(475)
+    local jungleInErange = _G.SDK.ObjectManager:GetMonsters(475)
+    local heroInErange   = _G.SDK.ObjectManager:GetEnemyHeroes(475)
 
     local minDistance = math.huge
     local bestMinion = nil
@@ -1323,9 +1319,9 @@ function Yasuo:GetBestEObjToCursor(underTower)
 end
 
 function Yasuo:GetBestEObjToTarget(target, underTower)
-    local minionInERange = OB:GetEnemyMinions(475)
-    local jungleInErange = OB:GetMonsters(475)
-    local heroInErange   = OB:GetEnemyHeroes(475)
+    local minionInERange = _G.SDK.ObjectManager:GetEnemyMinions(475)
+    local jungleInErange = _G.SDK.ObjectManager:GetMonsters(475)
+    local heroInErange   = _G.SDK.ObjectManager:GetEnemyHeroes(475)
 
     --if next(minionInERange) == nil then return nil end
 
@@ -1468,8 +1464,8 @@ end
 
 
 function Yasuo:GetHeroTarget(range)
-    local EnemyHeroes = OB:GetEnemyHeroes(range, false)
-    local target = targetSelector:GetTarget(EnemyHeroes)
+    local EnemyHeroes = _G.SDK.ObjectManager:GetEnemyHeroes(range, false)
+    local target = _G.SDK.TargetSelector:GetTarget(EnemyHeroes)
 
     return target
 end
@@ -1479,7 +1475,7 @@ function Yasuo:CastQ(target)
 	and myHero:GetSpellData(0).name ~= "YasuoQ3Wrapper" 
 	and self.lastETick + 100 < GetTickCount() 
 	and myHero.pos:DistanceTo(target.pos) <= self.Q.range 
-	and orbwalker:CanMove(myHero) 
+	and _G.SDK.Orbwalker:CanMove(myHero) 
 	and self.lastQTick + 300 < GetTickCount() then
 		
 		if self.tyMenu.Pred.Change:Value() == 1 then
@@ -1504,7 +1500,7 @@ function Yasuo:CastQ3(target)
     and myHero:GetSpellData(0).name == "YasuoQ3Wrapper" 
     and self.lastETick + 100 < GetTickCount() 
     and myHero.pos:DistanceTo(target.pos) <= self.Q3.range 
-    and orbwalker:CanMove(myHero) 
+    and _G.SDK.Orbwalker:CanMove(myHero) 
     and self.lastQTick + 300 < GetTickCount() then
 		
 		if self.tyMenu.Pred.Change:Value() == 1 then
@@ -1537,7 +1533,7 @@ end
 local lastWTick = 0
 function Yasuo:CastW()
     if lastWTick + 1000 > GetTickCount() or not Ready(_W) or CanUlt then return end
-    if self.tyMenu.windwall.Wcombo:Value() and not orbwalker.Modes[0] then return end
+    if self.tyMenu.windwall.Wcombo:Value() and not _G.SDK.Orbwalker.Modes[0] then return end
 	
 	local unit, spell = OnProcessSpell()
 	if unit and unit.isEnemy and myHero.pos:DistanceTo(unit.pos) <= 2800 and spell and TargetedSpell[spell.name] ~= nil then
@@ -1564,7 +1560,7 @@ end
 function Yasuo:GetQDamge(obj)
     local baseDMG = ({20,45,70,95,120})[myHero:GetSpellData(0).level]
     local AD = myHero.totalDamage
-    local dmg = dmglib:CalculateDamage(myHero, obj, _G.SDK.DAMAGE_TYPE_PHYSICAL ,  baseDMG + AD )
+    local dmg = _G.SDK.Damage:CalculateDamage(myHero, obj, _G.SDK.DAMAGE_TYPE_PHYSICAL ,  baseDMG + AD )
 
     return dmg
 end
