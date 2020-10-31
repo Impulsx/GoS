@@ -48,15 +48,16 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({name = " ", drop = {"AutoSwitch Combo: BurstCombo / StandardCombo"}})
-	Menu.Combo:MenuElement({name = " ", drop = {"Set AutoAttacks ( +Calc. AADmg for BustCombo )"}})	
+	Menu.Combo:MenuElement({name = " ", drop = {"Set AutoAttacks = ( +Calc. AADmg for BustCombo )"}})	
 	Menu.Combo:MenuElement({id = "UseAA", name = "Set AutoAttacks", value = 3, min = 0, max = 10, identifier = "AutoAttack/s"})	
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
-	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})	
+	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
+	Menu.Combo:MenuElement({id = "UseW2", name = "[E] > [W] > [E] if possible", value = true})	
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})		
 	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})	
 	
@@ -123,13 +124,19 @@ end
 
 local IsCastingE = false
 function Tick()
-
 if myHero:GetSpellData(_E).name == "CamilleEDash2" or myHero.pathing.isDashing then 
 	SetMovement(false) 
 	IsCastingE = true
 else
 	SetMovement(true) 
 	IsCastingE = false	
+end
+
+if Menu.Combo.UseW2:Value() and Ready(_W) and myHero.pathing.isDashing then
+	local target = GetTarget(2000)
+	if target and IsValid(target) then
+		Control.CastSpell(HK_W, target.pos)
+	end	
 end
 
 if MyHeroNotReady() then return end
