@@ -203,7 +203,7 @@ Data = {
         },
         Seraphine = {
             Changelog = "Seraphine Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         },        
     },
 }
