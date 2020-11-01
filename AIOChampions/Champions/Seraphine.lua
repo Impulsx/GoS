@@ -248,7 +248,7 @@ local function CheckMissHealth(unit)
 		return 0.5
 	end	
 end
-
+--[[
 local function CalcQDmg(unit)
 	local Dmg = 0
 	local qLvl = myHero:GetSpellData(_Q).level
@@ -278,11 +278,11 @@ local function CalcEDmg(unit)
 	end
 	return Dmg
 end
-
+]]
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
 
 	--AutoE  
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "E Settings"})
@@ -443,28 +443,30 @@ function KillSteal()
 	for i, target in ipairs(GetEnemyHeroes()) do
 
 		if Menu.ks.UseQ:Value() and Ready(_Q) and Menu.ks.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 900 and IsValid(target) then
-			local QDmg = CalcQDmg(target)
-			local EDmg = CalcEDmg(target)		
-			--local QDmg = getdmg("Q", target, myHero) + (CheckMissHealth(target)*getdmg("Q", target, myHero))
-			--local EDmg = HasBuff(myHero, "SeraphinePassiveEchoStage2") and getdmg("E", target, myHero)*2 or getdmg("E", target, myHero)	
+			--local QDmg = CalcQDmg(target)
+			--local EDmg = CalcEDmg(target)
+			local MissHealth = CheckMissHealth(target)
+			local QDmg = getdmg("Q", target, myHero) + (MissHealth*getdmg("Q", target, myHero))
+			local EDmg = HasBuff(myHero, "SeraphinePassiveEchoStage2") and getdmg("E", target, myHero)*2 or getdmg("E", target, myHero)	
 			if (QDmg+EDmg) > (target.health - target.hpRegen*2) then 
 				CastE(target)
 			end
 		end	
 		
-		if Menu.ks.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 900 and IsValid(target) then
-			local QDmg = CalcQDmg(target)			
-			--local QDmg = HasBuff(myHero, "SeraphinePassiveEchoStage2") and getdmg("Q", target, myHero)*2 + (CheckMissHealth(target)*getdmg("Q", target, myHero))*2 or getdmg("Q", target, myHero) + (CheckMissHealth(target)*getdmg("Q", target, myHero))
-			if QDmg > target.health then 
-				CastQ(target)
-			end
-		end
-		
 		if Menu.ks.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 1200 and IsValid(target) then
-			local EDmg = CalcEDmg(target)			
-			--local EDmg = HasBuff(myHero, "SeraphinePassiveEchoStage2") and getdmg("E", target, myHero)*2 or getdmg("E", target, myHero) 
+			--local EDmg = CalcEDmg(target)			
+			local EDmg = HasBuff(myHero, "SeraphinePassiveEchoStage2") and getdmg("E", target, myHero)*2 or getdmg("E", target, myHero) 
 			if EDmg > target.health then			
 				CastE(target)
+			end
+		end		
+		
+		if Menu.ks.UseQ:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 900 and IsValid(target) then
+			--local QDmg = CalcQDmg(target)			
+			local MissHealth = CheckMissHealth(target)
+			local QDmg = HasBuff(myHero, "SeraphinePassiveEchoStage2") and (getdmg("Q", target, myHero)*2) + ((MissHealth*getdmg("Q", target, myHero))*2) or getdmg("Q", target, myHero) + (MissHealth*getdmg("Q", target, myHero))
+			if QDmg > target.health then 
+				CastQ(target)
 			end
 		end
 	end	
