@@ -1,3 +1,4 @@
+
 local loaded = false
 local forcedTarget
 local qMissile
@@ -9,8 +10,8 @@ enemyPaths = {}
 
 local function GetEnemyHeroes()
     local _EnemyHeroes = {}
-    for i = 1, Game.HeroCount() do
-        local unit = Game.Hero(i)
+    for i = 1, GameHeroCount() do
+        local unit = GameHero(i)
         if unit.isEnemy then
             table.insert(_EnemyHeroes, unit)
         end
@@ -18,7 +19,77 @@ local function GetEnemyHeroes()
     return _EnemyHeroes
 end
 
-function CalculateNode(missile, nodePos)
+local function GetTargetMS(target)
+	local ms = target.pathing.isDashing and target.pathing.dashSpeed or target.ms
+	return ms
+end
+
+local function GetPathNodes(unit)
+	local nodes = {}
+	table.insert(nodes, unit.pos)
+	if unit.pathing.hasMovePath then
+		for i = unit.pathing.pathIndex, unit.pathing.pathCount do
+			path = unit:GetPath(i)
+			table.insert(nodes, path)
+		end
+	end		
+	return nodes
+end
+
+local function PredictUnitPosition(unit, delay)
+	local predictedPosition = unit.pos
+	local timeRemaining = delay
+	local pathNodes = GetPathNodes(unit)
+	for i = 1, #pathNodes -1 do
+		local nodeDistance = GetDistance(pathNodes[i], pathNodes[i +1])
+		local nodeTraversalTime = nodeDistance / GetTargetMS(unit)
+			
+		if timeRemaining > nodeTraversalTime then
+			timeRemaining =  timeRemaining - nodeTraversalTime
+			predictedPosition = pathNodes[i + 1]
+		else
+			local directionVector = (pathNodes[i+1] - pathNodes[i]):Normalized()
+			predictedPosition = pathNodes[i] + directionVector *  GetTargetMS(unit) * timeRemaining
+			break;
+		end
+	end
+	return predictedPosition
+end
+
+local function CheckEnemyCollision(location, radius, delay, maxDistance)
+	if not maxDistance then
+		maxDistance = 1200
+	end
+	for i, hero in ipairs(GetEnemyHeroes()) do
+		if IsValid(hero) and GetDistance(hero.pos, location) < maxDistance then
+			local predictedPosition = PredictUnitPosition(hero, delay)
+			if GetDistance(location, predictedPosition) < radius + hero.boundingRadius then
+				return true, hero
+			end
+		end
+	end
+	
+	return false
+end
+
+local function CheckMinionIntercection(location, radius, delay, maxDistance)
+	if not maxDistance then
+		maxDistance = 1200
+	end
+	for i = 1, GameMinionCount() do
+		local minion = GameMinion(i)
+		if minion.isEnemy and minion.isTargetable and minion.alive and GetDistance(minion.pos, location) < maxDistance then
+			local predictedPosition = PredictUnitPosition(minion, delay)
+			if GetDistance(location, predictedPosition) <= radius + minion.boundingRadius then
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+
+local function CalculateNode(missile, nodePos)
 	local result = {}
 	result["pos"] = nodePos
 	result["delay"] = 0.251 + GetDistance(missile.pos, nodePos) / Q.Speed
@@ -34,11 +105,11 @@ function CalculateNode(missile, nodePos)
 	return result
 end
 
-function IsQActive()
+local function IsQActive()
 	return qMissile and qMissile.name and qMissile.name == "VelkozQMissile"
 end
 
-function IsRActive()
+local function IsRActive()
 	if myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "VelkozR" then
 		return true
 	else
@@ -46,24 +117,7 @@ function IsRActive()
 	end
 end
 
-function CheckMinionIntercection(location, radius, delay, maxDistance)
-	if not maxDistance then
-		maxDistance = 1200
-	end
-	for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
-		if minion.isEnemy and minion.isTargetable and minion.alive and GetDistance(minion.pos, location) < maxDistance then
-			local predictedPosition = PredictUnitPosition(minion, delay)
-			if GetDistance(location, predictedPosition) <= radius + minion.boundingRadius then
-				return true
-			end
-		end
-	end
-	
-	return false
-end
-
-function VectorPointProjectionOnLineSegment(v1, v2, v)
+local function VectorPointProjectionOnLineSegment(v1, v2, v)
 	assert(v1 and v2 and v, "VectorPointProjectionOnLineSegment: wrong argument types (3 <Vector> expected)")
 	local cx, cy, ax, ay, bx, by = v.x, (v.z or v.y), v1.x, (v1.z or v1.y), v2.x, (v2.z or v2.y)
 	local rL = ((cx - ax) * (bx - ax) + (cy - ay) * (by - ay)) / ((bx - ax) ^ 2 + (by - ay) ^ 2)
@@ -74,7 +128,7 @@ function VectorPointProjectionOnLineSegment(v1, v2, v)
 	return pointSegment, pointLine, isOnSegment
 end
 
-function CheckCol(source, startPos, minion, endPos, delay, speed, range, radius)
+local function CheckCol(source, startPos, minion, endPos, delay, speed, range, radius)
 	if source.networkID == minion.networkID then 
 		return false
 	end
@@ -109,22 +163,22 @@ function CheckCol(source, startPos, minion, endPos, delay, speed, range, radius)
 	end
 end
 
-function CheckMinionCollision(source, endPos, delay, radius, speed, range, start)
+local function CheckMinionCollision(source, endPos, delay, radius, speed, range, start)
 	if _G.SDK and _G.SDK.Orbwalker then
-		return self:CheckMinionCollisionGG(source, endPos, delay, radius, speed, range, start)
+		return CheckMinionCollisionGG(source, endPos, delay, radius, speed, range, start)
 	else
-		return self:CheckMinionCollision(source, endPos, delay, radius, speed, range, start)
+		return CheckMinionCollision(source, endPos, delay, radius, speed, range, start)
 	end
 end
 
-function CheckMinionCollision(source, endPos, delay, radius, speed, range, start)
+local function CheckMinionCollision(source, endPos, delay, radius, speed, range, start)
 	local startPos = myHero.pos
 	if start then
 		startPos = start
 	end
 	
-	for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
+	for i = 1, GameMinionCount() do
+		local minion = GameMinion(i)
 		if minion.alive and minion.isEnemy and GetDistance(startPos, minion.pos) < range then
 			if CheckCol(source, startPos, minion, endPos, delay, speed, range, radius) then
 				return true
@@ -134,7 +188,7 @@ function CheckMinionCollision(source, endPos, delay, radius, speed, range, start
 end
 
 
-function CheckMinionCollisionGG(source, endPos, delay, radius, speed, range, start)
+local function CheckMinionCollisionGG(source, endPos, delay, radius, speed, range, start)
 	local startPos = myHero.pos
 	if start then
 		startPos = start
@@ -159,60 +213,7 @@ function CheckMinionCollisionGG(source, endPos, delay, radius, speed, range, sta
 	return false
 end
 
-function CheckEnemyCollision(location, radius, delay, maxDistance)
-	if not maxDistance then
-		maxDistance = 1200
-	end
-	for i = 1, Game.HeroCount() do
-		local hero = Game.Hero(i)
-		if IsValid(hero) and GetDistance(hero.pos, location) < maxDistance then
-			local predictedPosition = PredictUnitPosition(hero, delay)
-			if GetDistance(location, predictedPosition) < radius + hero.boundingRadius then
-				return true, hero
-			end
-		end
-	end
-	
-	return false
-end
-
-function GetTargetMS(target)
-	local ms = target.pathing.isDashing and target.pathing.dashSpeed or target.ms
-	return ms
-end
-
-function PredictUnitPosition(unit, delay)
-	local predictedPosition = unit.pos
-	local timeRemaining = delay
-	local pathNodes = GetPathNodes(unit)
-	for i = 1, #pathNodes -1 do
-		local nodeDistance = GetDistance(pathNodes[i], pathNodes[i +1])
-		local nodeTraversalTime = nodeDistance / GetTargetMS(unit)
-			
-		if timeRemaining > nodeTraversalTime then
-			timeRemaining =  timeRemaining - nodeTraversalTime
-			predictedPosition = pathNodes[i + 1]
-		else
-			local directionVector = (pathNodes[i+1] - pathNodes[i]):Normalized()
-			predictedPosition = pathNodes[i] + directionVector *  GetTargetMS(unit) * timeRemaining
-			break;
-		end
-	end
-	return predictedPosition
-end
-
-function UnitMovementBounds(unit, delay, reactionTime)
-	local startPosition = PredictUnitPosition(unit, delay)
-	
-	local radius = 0
-	local deltaDelay = delay -reactionTime- GetImmobileTime(unit)	
-	if (deltaDelay >0) then
-		radius = GetTargetMS(unit) * deltaDelay	
-	end
-	return startPosition, radius	
-end
-
-function GetImmobileTime(unit)
+local function GetImmobileTime(unit)
 	local duration = 0
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i);
@@ -223,7 +224,18 @@ function GetImmobileTime(unit)
 	return duration		
 end
 
-function GetSlowedTime(unit)
+local function UnitMovementBounds(unit, delay, reactionTime)
+	local startPosition = PredictUnitPosition(unit, delay)
+	
+	local radius = 0
+	local deltaDelay = delay -reactionTime- GetImmobileTime(unit)	
+	if (deltaDelay >0) then
+		radius = GetTargetMS(unit) * deltaDelay	
+	end
+	return startPosition, radius	
+end
+
+local function GetSlowedTime(unit)
 	local duration = 0
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i);
@@ -235,19 +247,7 @@ function GetSlowedTime(unit)
 	return duration		
 end
 
-function GetPathNodes(unit)
-	local nodes = {}
-	table.insert(nodes, unit.pos)
-	if unit.pathing.hasMovePath then
-		for i = unit.pathing.pathIndex, unit.pathing.pathCount do
-			path = unit:GetPath(i)
-			table.insert(nodes, path)
-		end
-	end		
-	return nodes
-end
-
-function GetPathLength(nodes)
+local function GetPathLength(nodes)
 	local result = 0
 	for i = 1, #nodes -1 do
 		result = result + GetDistance(nodes[i], nodes[i + 1])
@@ -255,12 +255,12 @@ function GetPathLength(nodes)
 	return result
 end
 
-function GetSpellInterceptTime(startPos, endPos, delay, speed)	
+local function GetSpellInterceptTime(startPos, endPos, delay, speed)	
 	local interceptTime = delay + GetDistance(startPos, endPos) / speed
 	return interceptTime
 end
 
-function TryGetBuff(unit, buffname)	
+local function TryGetBuff(unit, buffname)	
 	for i = 1, unit.buffCount do 
 		local Buff = unit:GetBuff(i)
 		if Buff.name == buffname and Buff.duration > 0 then
@@ -270,10 +270,9 @@ function TryGetBuff(unit, buffname)
 	return nil, false
 end
 
-function GetStasisTarget(source, range, delay, speed, timingAccuracy)
+local function GetStasisTarget(source, range, delay, speed, timingAccuracy)
 	local target	
-	for i = 1, Game.HeroCount() do
-		local t = Game.Hero(i)
+	for i, t in ipairs(GetEnemyHeroes()) do
 		local buff, success = TryGetBuff(t, "zhonyasringshield")
 		if success and t.isEnemy and buff ~= nil then
 			local deltaInterceptTime = GetSpellInterceptTime(myHero.pos, t.pos, delay, speed) - buff.duration
@@ -315,14 +314,13 @@ function GetStasisTarget(source, range, delay, speed, timingAccuracy)
 	end
 end
 
-function GetImmobileTarget(source, range, minimumCCTime)
+local function GetImmobileTarget(source, range, minimumCCTime)
 	local bestTarget
 	local bestCCTime = 0
-	for heroIndex = 1, Game.HeroCount()  do
-		local enemy = Game.Hero(heroIndex)
+	for i, enemy in ipairs(GetEnemyHeroes()) do
 		if enemy and IsValid(enemy) and GetDistance(source, enemy.pos) <= range then
-			for buffIndex = 0, enemy.buffCount do
-				local buff = enemy:GetBuff(buffIndex)
+			for i = 0, enemy.buffCount do
+				local buff = enemy:GetBuff(i)
 				
 				if (buff.type == 5 or buff.type == 8 or buff.type == 21 or buff.type == 22 or buff.type == 24 or buff.type == 11) then					
 					if (buff.duration > minimumCCTime and buff.duration > bestCCTime) then
@@ -336,11 +334,10 @@ function GetImmobileTarget(source, range, minimumCCTime)
 	return bestTarget, bestCCTime
 end
 
-function GetInteruptTarget(source, range, delay, speed, timingAccuracy)
+local function GetInteruptTarget(source, range, delay, speed, timingAccuracy)
 	local target
 	local aimPosition
-	for i = 1, Game.HeroCount() do
-		local t = Game.Hero(i)
+	for i, t in ipairs(GetEnemyHeroes()) do
 		if t.isEnemy and t.pathing.hasMovePath and t.pathing.isDashing and t.pathing.dashSpeed > 500 then
 			local dashEndPosition = t:GetPath(1)
 			if GetDistance(source, dashEndPosition) <= range then				
@@ -357,9 +354,8 @@ function GetInteruptTarget(source, range, delay, speed, timingAccuracy)
 	end	
 end
 
-function UpdateTargetPaths()
-	for i = 1, Game:HeroCount() do
-		local enemy = Game.Hero(i)
+local function UpdateTargetPaths()
+	for i, enemy in ipairs(GetEnemyHeroes()) do
 		if enemy.isEnemy then
 			if not enemyPaths[enemy.charName] then
 				enemyPaths[enemy.charName] = {}
@@ -373,7 +369,7 @@ function UpdateTargetPaths()
 	end
 end
 
-function PreviousPathDetails(charName)
+local function PreviousPathDetails(charName)
 	local deltaTime = 0
 	local pathEnd
 	
@@ -384,19 +380,31 @@ function PreviousPathDetails(charName)
 	return deltaTime, pathEnd
 end
  		
-function CurrentPctLife(entity)
+local function CurrentPctLife(entity)
 	local pctLife =  entity.health/entity.maxHealth  * 100
 	return pctLife
 end
 
-function CurrentPctMana(entity)
+local function CurrentPctMana(entity)
 	local pctMana =  entity.mana/entity.maxMana * 100
 	return pctMana
 end
 
+local function GetEnemyCount(range, pos)
+    local pos = pos.pos
+	local count = 0
+	for i, hero in ipairs(GetEnemyHeroes()) do
+	local Range = range * range
+		if GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
+		count = count + 1
+		end
+	end
+	return count
+end
+
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
 	
 	Menu:MenuElement({id = "General", name = "General Settings", type = MENU})
 		Menu.General:MenuElement({id = "Drawing", name = "Drawing", type = MENU})
@@ -422,8 +430,7 @@ function LoadScript()
 			Menu.Skills.Q:MenuElement({name = " ", drop = {"///////////////////////////"}})
 			Menu.Skills.Q:MenuElement({name = " ", drop = {"///////////////////////////"}})
 			Menu.Skills.Q:MenuElement({id = "Targets", name = "Targets", type = MENU})
-			for i = 1, Game.HeroCount() do
-				local hero = Game.Hero(i)
+			for i, hero in ipairs(GetEnemyHeroes()) do
 				if hero.isEnemy then
 					Menu.Skills.Q.Targets:MenuElement({id = hero.charName, name = hero.charName, value = true })
 				end
@@ -452,8 +459,7 @@ function LoadScript()
 			Menu.Skills.E:MenuElement({name = " ", drop = {"///////////////////////////"}})
 			Menu.Skills.E:MenuElement({name = " ", drop = {"///////////////////////////"}})			
 			Menu.Skills.E:MenuElement({id = "Targets", name = "Slowed/Dash Targets", type = MENU})
-			for i = 1, Game.HeroCount() do
-				local hero = Game.Hero(i)
+			for i, hero in ipairs(GetEnemyHeroes()) do
 				if hero.isEnemy then
 					Menu.Skills.E.Targets:MenuElement({id = hero.charName, name = hero.charName, value = true })
 				end
@@ -475,7 +481,7 @@ function LoadScript()
 	LoadSpells()
 	Callback.Add("Tick", function() Tick() end)
 	Callback.Add("WndMsg",function(Msg, Key) WndMsge(Msg, Key) end)
-	Callback.Add("Draw", function() Draw() end)	
+	Callback.Add("Draw", function() DrawSpells() end)	
 end
 
 function LoadSpells()
@@ -487,7 +493,7 @@ function LoadSpells()
 	R = {Range = 1550,Width = 75, Delay = 0.25, Speed = math.huge}
 end
 
-function Draw()			
+function DrawSpells()			
 	if Menu.General.Drawing.DrawAA:Value() then
 		Draw.Circle(myHero.pos, 525, Draw.Color(100, 255, 255,255))
 	end
@@ -520,10 +526,13 @@ function Draw()
 	end	
 end
 
-function Velkoz:Tick()
+function Tick()
 	if IsRActive() then
 		SetMovement(false)
 		ControlUlt()
+		if GetEnemyCount(1650, myHero) == 0 then
+			Control.CastSpell(HK_R)
+		end
 	else
 		SetMovement(true)
 	end
@@ -539,6 +548,7 @@ function Velkoz:Tick()
 	if Game.Timer() -lastSpellCast < Menu.General.CastFrequency:Value() or IsRActive() then return end
 		UpdateTargetPaths()
 	
+	local Mode = GetMode()
 	if Mode == "Combo" then	
 		if Ready(_R) and not IsRActive() and Menu.Skills.R.R2:Value() == 2 then
 			StartUlt()
@@ -550,16 +560,16 @@ function Velkoz:Tick()
 				DetonateQ()
 			elseif CurrentPctMana(myHero) >= Menu.Skills.Q.Mana:Value() and not IsQActive() then
 				AutoQ()
-			end
-		end		
+			end		
 		
-		if Ready(_W) and CurrentPctMana(myHero) >= Menu.Skills.W.Mana:Value() and Menu.Skills.W.Combo:Value() then
+		elseif Ready(_W) and CurrentPctMana(myHero) >= Menu.Skills.W.Mana:Value() and Menu.Skills.W.Combo:Value() then
 			AutoW()
+			
 		end
 		
 		if Ready(_E) and CurrentPctMana(myHero) >= Menu.Skills.E.Mana:Value() and Menu.Skills.E.Combo:Value() then
 			AutoE()
-		end
+		end	
 	
 	elseif Mode == "Harass" then
 		if Ready(_Q) and Menu.Skills.Q.Harass:Value() then
@@ -569,9 +579,9 @@ function Velkoz:Tick()
 			elseif CurrentPctMana(myHero) >= Menu.Skills.Q.Mana:Value() and not IsQActive() then
 				AutoQ()
 			end
-		end		
+				
 		
-		if Ready(_W) and CurrentPctMana(myHero) >= Menu.Skills.W.Mana:Value() and Menu.Skills.W.Harass:Value() then
+		elseif Ready(_W) and CurrentPctMana(myHero) >= Menu.Skills.W.Mana:Value() and Menu.Skills.W.Harass:Value() then
 			AutoW()
 		end
 		
@@ -639,7 +649,7 @@ function AutoQ()
 		qLastChecked = Game.Timer()
 		local enemy = GetTarget(2500)
 		if enemy ~= nil and IsValid(enemy) then		
-			local predictedPosition = self:PredictUnitPosition(enemy,Q.Delay)
+			local predictedPosition = PredictUnitPosition(enemy,Q.Delay)
 				
 			if GetDistance(myHero.pos, predictedPosition) <= Menu.Skills.Q.Range:Value() then			
 				if not CheckMinionCollision(myHero, predictedPosition, Q.Delay, Q.Width, Q.Speed, Q.Range, myHero.pos) then				
