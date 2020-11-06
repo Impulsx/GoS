@@ -86,37 +86,7 @@ local function Ready(spell)
     return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and GameCanUseSpell(spell) == 0
 end
 
-function GetMode()   
-    if Orb == 1 then
-        if combo == 1 then
-            return 'Combo'
-        elseif harass == 2 then
-            return 'Harass'
-        elseif lastHit == 3 then
-            return 'Lasthit'
-        elseif laneClear == 4 then
-            return 'Clear'
-        end
-    elseif Orb == 2 then
-		if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
-			return "Combo"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
-			return "Harass"	
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] or _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
-			return "Clear"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] then
-			return "LastHit"
-		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
-			return "Flee"
-		end
-    elseif Orb == 3 then
-        return GOS:GetMode()
-    elseif Orb == 4 then
-        return _G.gsoSDK.Orbwalker:GetMode()
-	elseif Orb == 5 then
-	  return _G.PremiumOrbwalker:GetMode()
-	end
-	
+function GetMode()   	
     if _G.SDK then
         return 
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] and "Combo"
@@ -139,31 +109,6 @@ function GetMode()
 end
 
 function GetTarget(range) 
-	if Orb == 1 then
-		if myHero.ap > myHero.totalDamage then
-			return EOW:GetTarget(range, EOW.ap_dec, myHero.pos)
-		else
-			return EOW:GetTarget(range, EOW.ad_dec, myHero.pos)
-		end
-	elseif Orb == 2 and TargetSelector then
-		if myHero.ap > myHero.totalDamage then
-			return TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL)
-		else
-			return TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL)
-		end
-	elseif _G.GOS then
-		if myHero.ap > myHero.totalDamage then
-			return GOS:GetTarget(range, "AP")
-		else
-			return GOS:GetTarget(range, "AD")
-        end
-    elseif _G.gsoSDK then
-		return _G.gsoSDK.TS:GetTarget()
-	
-	elseif _G.PremiumOrbwalker then
-		return _G.PremiumOrbwalker:GetTarget(range)
-	end	
-	
 	if _G.SDK then
 		if myHero.ap > myHero.totalDamage then
 			return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
@@ -236,12 +181,28 @@ local currSpell = myHero.activeSpell
 if currSpell and currSpell.valid and myHero.isChanneling then
 print ("Width:  "..myHero.activeSpell.width)
 print ("Speed:  "..myHero.activeSpell.speed)
-print ("Delay:  "..myHero.activeSpell.castFrame)
+print ("Delay:  "..myHero.activeSpell.animation)
 print ("range:  "..myHero.activeSpell.range)
 print ("Name:  "..myHero.activeSpell.name)
 end
 ]]
-
+--[[
+for i = 0, myHero.buffCount do
+	local buff = myHero:GetBuff(i)
+	if buff.name == "" then
+	--print(buff.name)
+		print("Typ:  "..buff.type)
+		print("Name:  "..buff.name)
+		print("Start:  "..buff.startTime)
+		print("Expire:  "..buff.expireTime)
+		print("Dura:  "..buff.duration)
+		print("Stacks:  "..buff.stacks)
+		print("Count:  "..buff.count)
+		print("Id:  "..buff.sourcenID)
+		print("SouceName:  "..buff.sourceName)	
+	end
+end
+]]
 local IsLoaded = false
 Callback.Add("Tick", function()  
 	if heroes == false then 
@@ -272,7 +233,7 @@ end)
 local DrawTime = false
 Callback.Add("Draw", function() 
 	if heroes == false then
-		Draw.Text(myHero.charName.." is Loading !!", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 255, 0, 0))
+		Draw.Text(myHero.charName.." is Loading (Search Enemies) !!", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 255, 0, 0))
 	else
 		if not DrawTime then
 			Draw.Text(myHero.charName.." is Ready !!", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 0, 255, 0))
