@@ -199,7 +199,11 @@ Data = {
         Seraphine = {
             Changelog = "Seraphine Changelog Here",
             Version = 0.01,
-        },        
+        },
+        Velkoz = {
+            Changelog = "Velkoz Changelog Here",
+            Version = 0.01,
+        },         
     },
     Loader = {
         Version = 0.2,
