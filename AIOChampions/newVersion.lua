@@ -5,7 +5,7 @@ Data = {
     },
     Core = {
         Changelog = "Auto Version ChangeLog Here",
-        Version = 0.20,
+        Version = 0.21,
     },
 
     Champions = {
@@ -31,7 +31,7 @@ Data = {
         },
         XinZhao = {
             Changelog = "XinZhao Changelog Here",
-            Version = 0.05,
+            Version = 0.06,
         }, 
         Nidalee = {
             Changelog = "Nidalee Changelog Here",
@@ -59,7 +59,7 @@ Data = {
         }, 
         Sona = {
             Changelog = "Sona Changelog Here",
-            Version = 0.05,
+            Version = 0.06,
         }, 
         Morgana = {
             Changelog = "Morgana Changelog Here",
@@ -131,7 +131,7 @@ Data = {
         },
          Rengar = {
             Changelog = "Rengar Changelog Here",
-            Version = 0.05,
+            Version = 0.06,
         },
          Diana = {
             Changelog = "Diana Changelog Here",
@@ -155,7 +155,7 @@ Data = {
         }, 
           Renekton = {
             Changelog = "Renekton Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         },
           MonkeyKing = {
             Changelog = "MonkeyKing Changelog Here",
