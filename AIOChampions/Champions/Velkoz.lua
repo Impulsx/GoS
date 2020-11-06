@@ -405,6 +405,7 @@ end
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
 	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+	Menu:MenuElement({name = " ", drop = {"Full reworked Version from Sikaka"}})
 	
 	Menu:MenuElement({id = "General", name = "General Settings", type = MENU})
 		Menu.General:MenuElement({id = "Drawing", name = "Drawing", type = MENU})
