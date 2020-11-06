@@ -207,7 +207,7 @@ Data = {
         },
         Velkoz = {
             Changelog = "Velkoz Changelog Here",
-            Version = 0.01,
+            Version = 0.02,
         },         
     },
 }
