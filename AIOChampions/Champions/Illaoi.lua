@@ -1,46 +1,4 @@
 
-local function OnProcessSpell()
-	for i = 1, #Units do
-		local unit = Units[i].unit; local last = Units[i].spell; local spell = unit.activeSpell
-		if spell and last ~= (spell.name .. spell.endTime) and unit.activeSpell.isChanneling then
-			Units[i].spell = spell.name .. spell.endTime; return unit, spell
-		end
-	end
-	return nil, nil
-end
-
-local function GetEnemyHeroes()
-	local _EnemyHeroes = {}
-	for i = 1, GameHeroCount() do
-		local unit = GameHero(i)
-		if unit.team ~= myHero.team then
-			TableInsert(_EnemyHeroes, unit)
-		end
-	end
-	return _EnemyHeroes
-end 
-
-local function GetAllyHeroes() 
-	local _AllyHeroes = {}
-	for i = 1, GameHeroCount() do
-		local unit = GameHero(i)
-		if unit.isAlly and not unit.isMe then
-			TableInsert(_AllyHeroes, unit)
-		end
-	end
-	return _AllyHeroes
-end
-
-local function IsImmobileTarget(unit)
-	for i = 0, unit.buffCount do
-		local buff = unit:GetBuff(i)
-		if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.name == 10 ) and buff.count > 0 then
-			return true
-		end
-	end
-	return false	
-end
-
 local function GetEnemyCount(range, pos)
     local pos = pos.pos
 	local count = 0
@@ -54,23 +12,9 @@ local function GetEnemyCount(range, pos)
 	return count
 end
 
-local function GetMinionCount(range, pos)
-    local pos = pos.pos
-	local count = 0
-	for i = 1,GameMinionCount() do
-	local hero = GameMinion(i)
-	local Range = range * range
-		if hero.team ~= TEAM_ALLY and hero.dead == false and GetDistanceSqr(pos, hero.pos) < Range then
-		count = count + 1
-		end
-	end
-	return count
-end
-
-
 function LoadScript()	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -79,7 +23,7 @@ function LoadScript()
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Combo:MenuElement({id = "UseW2", name = "[W] only if Tentacles in range", value = true})	
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
-	Menu.Combo:MenuElement({id = "ERange", name = "Max [E] range", value = 400, min = 0, max = 900})	
+	Menu.Combo:MenuElement({id = "ERange", name = "Max [E] range", value = 700, min = 0, max = 900})	
 	
 	--UltSettings
 	Menu.Combo:MenuElement({type = MENU, id = "Ult", name = "Ultimate Settings"})
@@ -112,10 +56,10 @@ function LoadScript()
 
 	QData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = (0.75+ping), Radius = 100, Range = 825, Speed = MathHuge, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}
+	Type = _G.SPELLTYPE_LINE, Delay = (0.75+ping), Radius = 100, Range = 825, Speed = MathHuge, Collision = false
 	}
 	
-	QspellData = {speed = MathHuge, range = 825, delay = (0.75+ping), radius = 100, collision = {"minion"}, type = "linear"}	
+	QspellData = {speed = MathHuge, range = 825, delay = (0.75+ping), radius = 100, collision = {nil}, type = "linear"}	
 	
 	EData =
 	{
@@ -145,11 +89,24 @@ end
 local FoundSpirit = false
 local CastedE = false
 local Spirit = {}
+local Tentacles = {}
+local TentNear = false
 
 function Tick()
+RemoveTent()
+
+if FoundSpirit then
+	RemoveSpirit()
+end	
 if CastedE then
 	ScanSpirit()
-	RemoveSpirit()
+end
+
+for i = 0, myHero.buffCount do
+	local buff = myHero:GetBuff(i)
+	if buff and buff.name == "illaoitentaclespawncooldown" and buff.duration > 6 and buff.duration < 9 then
+		CheckTent()
+	end
 end
 
 if MyHeroNotReady() then return end
@@ -162,40 +119,60 @@ local Mode = GetMode()
 	end	
 end
 
+function CheckTent()	
+	for i = 0, GameObjectCount() do
+		local tent = GameObject(i)
+		local NewTent = true
+		if tent and myHero.pos:DistanceTo(tent.pos) < 1500 and tent.charName == "IllaoiMinion" then
+			for i = 1, #Tentacles do
+				if Tentacles[i].networkID == tent.networkID then
+					NewTent = false
+				end
+			end				
+			
+			if NewTent then 
+				if tent.charName == "IllaoiMinion" and myHero.pos:DistanceTo(tent.pos) < 1500 then
+					--print("FoundTent")
+					TableInsert(Tentacles, tent)
+				end	
+			end	
+		end
+	end	
+end
+
+function RemoveTent()
+	for i = 1, #Tentacles do
+		local Tent = Tentacles[i] 
+		if Tent and myHero.pos:DistanceTo(Tent.pos) <= 1500 and (Tent.health < 1 or Tent.charName ~= "IllaoiMinion") then				
+			TableRemove(Tentacles, i)
+			--print("Removed")
+		end	
+	end
+end
+
 function ScanSpirit()
 	if FoundSpirit then return end
 	DelayAction(function()
 		for i = 0, GameObjectCount() do
 			local obj = GameObject(i)
-			local NewSpirit = true
-			if obj and myHero.pos:DistanceTo(obj.pos) < 600 and obj.name == "Illaoi_Base_E_Spirit" then
-				for i = 1, #Spirit do
-					if Spirit[i].networkID == obj.networkID then
-						NewSpirit = false
-					end
-				end				
-				
-				if NewSpirit then 
-					if myHero.pos:DistanceTo(obj.pos) < 600 and obj.name == "Illaoi_Base_E_Spirit" then
-						--print("FoundSpirit")
-						TableInsert(Spirit, obj)
-						FoundSpirit = true
-					end	
-				end	
+			if obj and myHero.pos:DistanceTo(obj.pos) < 600 and obj.name == "Illaoi_Base_E_Spirit" then				
+				--print("FoundSpirit")
+				FoundSpirit = true
+				CastedE = false
+				TableInsert(Spirit, obj)
+				return
 			end
 		end
-	end,0.75)	
+	end,0.25)	
 end
 
 function RemoveSpirit()
-	if FoundSpirit then
-		for i = 1, #Spirit do
-			local Obj = Spirit[i] 
-			if Obj and (Obj.health <= 0 or Obj.name ~= "Illaoi_Base_E_Spirit") then				
-				TableRemove(Spirit, i)
-				FoundSpirit = false
-				--print("Removed")
-			end
+	for i = 1, #Spirit do
+		local Obj = Spirit[i] 
+		if Obj and not Obj.visible then				
+			TableRemove(Spirit, i)
+			FoundSpirit = false
+			--print("Removed")
 		end
 	end
 end
@@ -209,7 +186,7 @@ function Combo()
 				SpiritNear = true
 				
 				if myHero.pos:DistanceTo(Obj.pos) <= 350 then
-					Control.Attack(Obj)
+					--Control.Attack(Obj)
 				end
 				
 				if Menu.Combo.UseQ:Value() and myHero.pos:DistanceTo(Obj.pos) < 825 and Ready(_Q) then
@@ -228,7 +205,7 @@ function Combo()
 					end
 				end
 			   
-				if Menu.Combo.UseW:Value() and myHero.pos:DistanceTo(Obj.pos) <= 350 and Ready(_W) then
+				if Menu.Combo.UseW:Value() and myHero.pos:DistanceTo(Obj.pos) <= 450 and Ready(_W) then
 					Control.CastSpell(HK_W)
 					Control.Attack(Obj)
 				end
@@ -296,9 +273,19 @@ function Combo()
 				end
 			end
 		   
-			if Menu.Combo.UseW:Value() and myHero.pos:DistanceTo(target.pos) <= 350 and Ready(_W) then
-				Control.CastSpell(HK_W)
-				Control.Attack(target)
+			if Menu.Combo.UseW:Value() and myHero.pos:DistanceTo(target.pos) <= 450 and Ready(_W) then
+				if Menu.Combo.UseW2:Value() then
+					for i = 1, #Tentacles do
+						local Tent = Tentacles[i] 
+						if Tent and target.pos:DistanceTo(Tent.pos) < 850 then					
+							Control.CastSpell(HK_W)
+							Control.Attack(target)
+						end
+					end	
+				else
+					Control.CastSpell(HK_W)
+					Control.Attack(target)
+				end	
 			end
 
 			if Menu.Combo.Ult.UseR:Value() and Ready(_R) then
@@ -319,7 +306,7 @@ function Harass()
 				SpiritNear = true
 				
 				if myHero.pos:DistanceTo(Obj.pos) <= 350 then
-					Control.Attack(Obj)
+					--Control.Attack(Obj)
 				end
 				
 				if Menu.Harass.UseQ:Value() and myHero.pos:DistanceTo(Obj.pos) < 825 and Ready(_Q) then
@@ -338,7 +325,7 @@ function Harass()
 					end
 				end
 			   
-				if Menu.Harass.UseW:Value() and myHero.pos:DistanceTo(Obj.pos) <= 350 and Ready(_W) then
+				if Menu.Harass.UseW:Value() and myHero.pos:DistanceTo(Obj.pos) <= 450 and Ready(_W) then
 					Control.CastSpell(HK_W)
 					Control.Attack(Obj)
 				end
@@ -387,9 +374,19 @@ function Harass()
 				end
 			end
 		   
-			if Menu.Harass.UseW:Value() and myHero.pos:DistanceTo(target.pos) <= 350 and Ready(_W) then
-				Control.CastSpell(HK_W)
-				Control.Attack(target)
+			if Menu.Harass.UseW:Value() and myHero.pos:DistanceTo(target.pos) <= 450 and Ready(_W) then
+				if Menu.Harass.UseW2:Value() then
+					for i = 1, #Tentacles do
+						local Tent = Tentacles[i] 
+						if Tent and target.pos:DistanceTo(Tent.pos) < 850 then					
+							Control.CastSpell(HK_W)
+							Control.Attack(target)
+						end
+					end	
+				else
+					Control.CastSpell(HK_W)
+					Control.Attack(target)
+				end	
 			end
 		end
 	end	
@@ -397,7 +394,7 @@ end
 
 function CastGGPred(spell, unit)
 	if spell == _Q then
-		local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = (0.75+ping), Radius = 100, Range = 825, Speed = MathHuge, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+		local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = (0.75+ping), Radius = 100, Range = 825, Speed = MathHuge, Collision = false})
 		QPrediction:GetPrediction(unit, myHero)
 		if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 			Control.CastSpell(HK_Q, QPrediction.CastPosition)
