@@ -203,6 +203,10 @@ Data = {
         Velkoz = {
             Changelog = "Velkoz Changelog Here",
             Version = 0.01,
+        },
+        Illaoi = {
+            Changelog = "Illaoi Changelog Here",
+            Version = 0.01,
         },         
     },
     Loader = {
