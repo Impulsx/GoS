@@ -20,7 +20,7 @@ local DrawInfo = false
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.05
+    local Version = 0.06
     
     local Files = {
         Lua = {
@@ -1566,8 +1566,8 @@ function Yasuo:GetQDamge(obj)
 end
 
 function Yasuo:FullDmg(user)
-	local QDmg = getdmg("Q", user, myHero)*2 
-	local EDmg = self:GetEDamge(user)
+	local QDmg = Ready(_Q) and getdmg("Q", user, myHero)*2 or 0
+	local EDmg = Ready(_E) and self:GetEDamge(user) or 0
 	local RDmg = (myHero:GetSpellData(_R).currentCd == 0 and getdmg("R", user, myHero)) or 0	
 	local ADmg = getdmg("AA", user, myHero)*4
 	local IDmg = 0
