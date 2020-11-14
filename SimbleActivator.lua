@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.25
+    local Version = 0.26
     
     local Files =
     {
@@ -306,7 +306,7 @@ end
 function Activator:LoadMenu()
     
     self.Menu = MenuElement({type = MENU, id = "PussyActivator", leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png"})
-	self.Menu:MenuElement({name = " ", drop = {"Version 0.25"}})    
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.26"}})    
 	
 	--Shield/Heal MyHero
     self.Menu:MenuElement({id = "ZS", name = "MyHero/Ally [Shield/Heal Items]", type = MENU})
@@ -338,25 +338,25 @@ function Activator:LoadMenu()
 	
     self.Menu.ZS:MenuElement({id = "self", name = "MyHero Shield + Heal Items", type = MENU})	
 
-    self.Menu.ZS.self:MenuElement({id = "UseZ", name = "Zhonya's", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3157.png"})
+    self.Menu.ZS.self:MenuElement({id = "UseZ", name = "Zhonya's", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3157.png"})
 	self.Menu.ZS.self:MenuElement({id = "myHPZ", name = "If my Hero HP lower than", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 
-    self.Menu.ZS.self:MenuElement({id = "UseS", name = "Stopwatch", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/2420.png"})
+    self.Menu.ZS.self:MenuElement({id = "UseS", name = "Stopwatch", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/2420.png"})
  	self.Menu.ZS.self:MenuElement({id = "myHPS", name = "If my Hero HP lower than", value = 30, min = 0, max = 100, step = 1, identifier = "%"})   
 
-    self.Menu.ZS.self:MenuElement({id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3190.png"})	
+    self.Menu.ZS.self:MenuElement({id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3190.png"})	
 	self.Menu.ZS.self:MenuElement({id = "IronHP", name = "If my Hero HP lower than", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 	
-    self.Menu.ZS.self:MenuElement({id = "Red", name = "Redemption", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3107.png"})
+    self.Menu.ZS.self:MenuElement({id = "Red", name = "Redemption", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3107.png"})
 	self.Menu.ZS.self:MenuElement({id = "RedHP", name = "If my Hero HP lower than", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
 
-    self.Menu.ZS.self:MenuElement({id = "UseG", name = "Gargoyle Stoneplate", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3193.png"})
+    self.Menu.ZS.self:MenuElement({id = "UseG", name = "Gargoyle Stoneplate", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3193.png"})
 	self.Menu.ZS.self:MenuElement({id = "myHPG", name = "If my Hero HP lower than", value = 30, min = 0, max = 100, step = 1, identifier = "%"})	
 
-	self.Menu.ZS.self:MenuElement({id = "Mira", name = "Mercurial Scimittar[AntiCC]", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3139.png"})    
-    self.Menu.ZS.self:MenuElement({id = "Quick", name = "Quicksilver Sash[AntiCC]", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3140.png"})    
-    self.Menu.ZS.self:MenuElement({id = "Mika", name = "Mikael's Blessing[AntiCC]", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3222.png"})
-    self.Menu.ZS.self:MenuElement({id = "Dawn", name = "Silvermere Dawn[AntiCC]", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6035.png"})    
+	self.Menu.ZS.self:MenuElement({id = "Mira", name = "Mercurial Scimittar[AntiCC]", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3139.png"})    
+    self.Menu.ZS.self:MenuElement({id = "Quick", name = "Quicksilver Sash[AntiCC]", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3140.png"})    
+    self.Menu.ZS.self:MenuElement({id = "Mika", name = "Mikael's Blessing[AntiCC]", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3222.png"})
+    self.Menu.ZS.self:MenuElement({id = "Dawn", name = "Silvermere Dawn[AntiCC]", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6035.png"})    
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------	
 	--Shield/Heal Ally    
@@ -377,21 +377,21 @@ function Activator:LoadMenu()
 
     self.Menu:MenuElement({id = "Dmg", name = "TargetItems [ComboMode]", type = MENU})
 		
-	self.Menu.Dmg:MenuElement({id = "Stride", name = "Stridebreaker", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6631.png"})		
-	self.Menu.Dmg:MenuElement({id = "Claw", name = "Prowler's Claw", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6693.png"})	
- 	self.Menu.Dmg:MenuElement({id = "Hex", name = "Hextech Rocketbelt", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3152.png"})		
- 	self.Menu.Dmg:MenuElement({id = "Gale", name = "Galeforce", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6671.png"}) 	
- 	self.Menu.Dmg:MenuElement({id = "EFrost", name = "EverFrost", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6656.png"}) 	      
- 	self.Menu.Dmg:MenuElement({id = "Omen", name = "Randuin's Omen", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3143.png"})	
+	self.Menu.Dmg:MenuElement({id = "Stride", name = "Stridebreaker", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6631.png"})		
+	self.Menu.Dmg:MenuElement({id = "Claw", name = "Prowler's Claw", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6693.png"})	
+ 	self.Menu.Dmg:MenuElement({id = "Hex", name = "Hextech Rocketbelt", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3152.png"})		
+ 	self.Menu.Dmg:MenuElement({id = "Gale", name = "Galeforce", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6671.png"}) 	
+ 	self.Menu.Dmg:MenuElement({id = "EFrost", name = "EverFrost", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6656.png"}) 	      
+ 	self.Menu.Dmg:MenuElement({id = "Omen", name = "Randuin's Omen", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3143.png"})	
  	self.Menu.Dmg:MenuElement({id = "Ocount", name = "Randuin's Omen min Targets", value = 2, min = 1, max = 5, step = 1})	
- 	self.Menu.Dmg:MenuElement({id = "Gore", name = "Goredrinker", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6630.png"})
+ 	self.Menu.Dmg:MenuElement({id = "Gore", name = "Goredrinker", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6630.png"})
  	self.Menu.Dmg:MenuElement({id = "Gorecount", name = "Goredrinker min Targets", value = 2, min = 1, max = 5, step = 1})	
-	self.Menu.Dmg:MenuElement({id = "Whip", name = "Ironspike Whip", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6029.png"})
+	self.Menu.Dmg:MenuElement({id = "Whip", name = "Ironspike Whip", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6029.png"})
  	self.Menu.Dmg:MenuElement({id = "Whipcount", name = "Ironspike Whip min Targets", value = 2, min = 1, max = 5, step = 1})	
-	self.Menu.Dmg:MenuElement({id = "Shur", name = "Shurelya's Battlesong", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/2065.png"})
+	self.Menu.Dmg:MenuElement({id = "Shur", name = "Shurelya's Battlesong", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/2065.png"})
 	self.Menu.Dmg:MenuElement({id = "ShurRange", name = "Shurelya's if Enemy in range", value = 1000, min = 100, max = 2000, step = 50})
  	self.Menu.Dmg:MenuElement({id = "Shurcount", name = "Shurelya's min Allies near", value = 1, min = 0, max = 4, step = 1}) 
-	self.Menu.Dmg:MenuElement({id = "Turbo", name = "Turbo Chemtank", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6664.png"})
+	self.Menu.Dmg:MenuElement({id = "Turbo", name = "Turbo Chemtank", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6664.png"})
 	self.Menu.Dmg:MenuElement({id = "TurboRange", name = "Turbo Chemtank if Enemy in range", value = 700, min = 100, max = 2000, step = 50})	
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -399,10 +399,10 @@ function Activator:LoadMenu()
     self.Menu:MenuElement({id = "Healing", name = "Potions", type = MENU})
     
 	self.Menu.Healing:MenuElement({id = "Enabled", name = "Potions Enabled", value = true})
-    self.Menu.Healing:MenuElement({id = "UsePots", name = "Health Potions", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/2003.png"})
-    self.Menu.Healing:MenuElement({id = "UseCookies", name = "Biscuit", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/2010.png"})
-    self.Menu.Healing:MenuElement({id = "UseRefill", name = "Refillable Potion", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/2031.png"})
-    self.Menu.Healing:MenuElement({id = "UseCorrupt", name = "Corrupting Potion", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/2033.png"})
+    self.Menu.Healing:MenuElement({id = "UsePots", name = "Health Potions", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/2003.png"})
+    self.Menu.Healing:MenuElement({id = "UseCookies", name = "Biscuit", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/2010.png"})
+    self.Menu.Healing:MenuElement({id = "UseRefill", name = "Refillable Potion", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/2031.png"})
+    self.Menu.Healing:MenuElement({id = "UseCorrupt", name = "Corrupting Potion", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/2033.png"})
     self.Menu.Healing:MenuElement({id = "UsePotsPercent", name = "Use if health is below:", value = 50, min = 5, max = 95, identifier = "%"})
     
     --Summoners
@@ -469,11 +469,11 @@ end
 function Activator:LoadAllyMenu()
 	for i, unit in ipairs(GetAllyHeroes()) do
 		if self.Menu.ZS.ally[unit.charName] then
-			self.Menu.ZS.ally[unit.charName]:MenuElement({ id = "Red", name = "Redemption", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3107.png"})
+			self.Menu.ZS.ally[unit.charName]:MenuElement({ id = "Red", name = "Redemption", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3107.png"})
 			self.Menu.ZS.ally[unit.charName]:MenuElement({id = "allyHP", name = "Redemption / if AllyHP lower than", value = 30, min = 0, max = 100, step = 1, identifier = "%"}) 
-			self.Menu.ZS.ally[unit.charName]:MenuElement({ id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3190.png"})
+			self.Menu.ZS.ally[unit.charName]:MenuElement({ id = "Iron", name = "Locket of the Iron Solari", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3190.png"})
 			self.Menu.ZS.ally[unit.charName]:MenuElement({id = "IronHP", name = "Iron Solari / if AllyHP lower than", value = 30, min = 0, max = 100, step = 1, identifier = "%"})
-			self.Menu.ZS.ally[unit.charName]:MenuElement({ id = "Mika", name = "Mikael's Blessing[AntiCC]", value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3222.png"})			
+			self.Menu.ZS.ally[unit.charName]:MenuElement({ id = "Mika", name = "Mikael's Blessing[AntiCC]", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3222.png"})			
 		end
 	end
 end	
