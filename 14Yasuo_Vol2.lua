@@ -20,7 +20,7 @@ local DrawInfo = false
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.06
+    local Version = 0.07
     
     local Files = {
         Lua = {
@@ -556,7 +556,10 @@ function Yasuo:LoadMenu()
 	self.tyMenu:MenuElement({name = " ", drop = {"Reworked by Pussykate and ty1314"}})
     self.tyMenu:MenuElement({name = "Ping", id = "ping", value = 20, min = 0, max = 300, step = 1})
 
-    --combo
+    self.tyMenu:MenuElement({type = MENU, id = "StackQ", name = "StackQ Logic"})
+		self.tyMenu.StackQ:MenuElement({name = " ", drop = {"[Combo/Harass]"}})
+		self.tyMenu.StackQ:MenuElement({id = "enable", name = "StackQ if no Enemy in Qrange", key = string.byte("T"), value = true, toggle = true})
+		self.tyMenu.StackQ:MenuElement({id = "draw", name = "Draw Info Text", value = true})
     
     self.tyMenu:MenuElement({type = MENU, id = "combo", name = "Combo"})
 		self.tyMenu.combo:MenuElement({id = "ign", name = "Ignite", value = true})
@@ -650,13 +653,14 @@ end
 
 function Yasuo:Draw()
     if myHero.dead then return end
-    --[[
-    if prePos ~= nil then
-        Draw.Circle(prePos, 100,Draw.Color(80 ,0xFF,0xFF,0xFF))
-
-    end
-    ]]
-    
+ 
+    if self.tyMenu.StackQ.draw:Value() then
+        if self.tyMenu.StackQ.enable:Value() then
+			Draw.Text("StackQ ON", 18, myHero.pos2D.x,myHero.pos2D.y+10, Draw.Color(255, 30, 230, 30))
+		else
+			Draw.Text("StackQ OFF", 18, myHero.pos2D.x,myHero.pos2D.y+10, Draw.Color(255, 230, 30, 30))
+		end	
+    end 
 
     if self.tyMenu.drawing.Q:Value() and Ready(_Q) then
         Draw.Circle(myHero.pos, self.Q.range,Draw.Color(80 ,0xFF,0xFF,0xFF))
@@ -942,8 +946,12 @@ function Yasuo:Combo()
     end
 
     target = self:GetHeroTarget(self.Q.range)
-    if target and self.tyMenu.combo.useQL:Value() then
-        self:CastQ(target)
+    if self.tyMenu.combo.useQL:Value() then
+        if target then
+			self:CastQ(target)
+		elseif self.tyMenu.StackQ.enable:Value() then
+			self:StackQ()
+		end	
     end
 
 	if self.tyMenu.combo.ign:Value() and (myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" or myHero:GetSpellData(SUMMONER_2).name == "SummonerDot") then
@@ -994,14 +1002,31 @@ function Yasuo:Harass()
     end
 
     target = self:GetHeroTarget(self.Q.range)
-    if target and self.tyMenu.harass.useQL:Value() then
-        self:CastQ(target)
+    if self.tyMenu.harass.useQL:Value() then
+		if target then
+			self:CastQ(target)
+		elseif self.tyMenu.StackQ.enable:Value() then
+			self:StackQ()			
+		end	
     end
+end
+
+function Yasuo:StackQ()
+	local minionInRange = _G.SDK.ObjectManager:GetEnemyMinions(self.Q.range-50)
+	if next(minionInRange) == nil or WActive then return end
+
+	for i = 1, #minionInRange do
+		local minion = minionInRange[i]	
+		if Ready(_Q) and not myHero.pathing.isDashing and myHero:GetSpellData(0).name ~= "YasuoQ3Wrapper" and _G.SDK.Orbwalker:CanMove(myHero) and self.lastQTick + 300 < GetTickCount() then
+			Control.CastSpell(HK_Q, minion.pos)
+			self.lastQTick = GetTickCount()
+		end
+	end	
 end
 				
 function Yasuo:Clear()
     local minionInRange = _G.SDK.ObjectManager:GetEnemyMinions(self.Q3.range)
-    if next(minionInRange) == nil or WActive then return  end
+    if next(minionInRange) == nil or WActive then return end
 
     for i = 1, #minionInRange do
         local minion = minionInRange[i]
