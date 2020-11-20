@@ -207,6 +207,10 @@ Data = {
         Illaoi = {
             Changelog = "Illaoi Changelog Here",
             Version = 0.01,
+        },
+        Kayn = {
+            Changelog = "Kayn Changelog Here",
+            Version = 0.01,
         },         
     },
     Loader = {
