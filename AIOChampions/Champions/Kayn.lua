@@ -11,6 +11,17 @@ local function GetMinionCount(range, pos)
 	return count
 end
 
+local function GetEnemyHeroes()
+	local _EnemyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.team ~= myHero.team then
+			TableInsert(_EnemyHeroes, unit)
+		end
+	end
+	return _EnemyHeroes
+end
+
 local function GetAllyHeroes()
     local _AllyHeroes = {}
     for i = 1, GameHeroCount() do
@@ -59,10 +70,20 @@ local function isBlueKayne()
 	return false
 end
 
+local function HasBuff(unit, buffname)
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff.name == buffname and buff.count > 0 then 
+			return true
+		end
+	end
+	return false
+end
+
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
 	
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -115,24 +136,24 @@ function LoadScript()
 	
 	QData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 90, Range = 350, Speed = 1100, Collision = false
+	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.55, Radius = 50, Range = 350, Speed = MathHuge, Collision = false
 	}
 	
-	QspellData = {speed = 1100, range = 350, delay = 0.25, radius = 90, collision = {nil}, type = "circular"}	
+	QspellData = {speed = MathHuge, range = 350, delay = 0.55, radius = 50, collision = {nil}, type = "circular"}	
 
 	WDataDarkin =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 700, Speed = 1100, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.55, Radius = 45, Range = 700, Speed = MathHuge, Collision = false
 	}
 	
-	WspellDataDarkin = {speed = 1100, range = 700, delay = 0.25, radius = 90, collision = {nil}, type = "linear"}	
+	WspellDataDarkin = {speed = MathHuge, range = 700, delay = 0.55, radius = 45, collision = {nil}, type = "linear"}	
 
 	WDataSlayer =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 900, Speed = 1100, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0, Radius = 45, Range = 900, Speed = MathHuge, Collision = false
 	}
 	
-	WspellDataSlayer = {speed = 1100, range = 900, delay = 0.25, radius = 90, collision = {nil}, type = "linear"}			
+	WspellDataSlayer = {speed = MathHuge, range = 900, delay = 0, radius = 45, collision = {nil}, type = "linear"}			
   	                                          
 	Callback.Add("Tick", function() Tick() end)
 	
@@ -177,27 +198,27 @@ local Mode = GetMode()
 end
 
 function Evade()
-local target = GetTarget(1000)
-if target == nil or not Ready(_R) then return end
+	for i, target in ipairs(GetEnemyHeroes()) do
+	if not Ready(_R) then return end
+		local hp = myHero.health
 
-	local hp = myHero.health
+		if myHero.pos:DistanceTo(target.pos) < 800 and IsValid(target) and HasBuff(target, "kaynrenemymark") and (myHero.health * 100 ) / myHero.maxHealth <= Menu.Misc.Evade:Value() then
 
-	if IsValid(target) and (myHero.health * 100 ) / myHero.maxHealth <= Menu.Misc.Evade:Value() then
+			if isRedKayne() then
+				
+				if myHero.pos:DistanceTo(target.pos) < 525 then
+					Control.CastSpell(HK_R, target)
+				end
 
-		if isRedKayne() then
-			
-			if myHero.pos:DistanceTo(target.pos) < 525 then
-				Control.CastSpell(HK_R, target)
-			end
-
-		elseif isBlueKayne() then
-			
-			if myHero.pos:DistanceTo(target.pos) < 725 then
-				Control.CastSpell(HK_R, target)
+			elseif isBlueKayne() then
+				
+				if myHero.pos:DistanceTo(target.pos) < 725 then
+					Control.CastSpell(HK_R, target)
+				end
 			end
 		end
 	end
-end
+end	
 
 function Combo()
 	local target = GetTarget(900)
@@ -219,7 +240,7 @@ function Combo()
 							Control.CastSpell(HK_W, pred.CastPos)
 						end
 					else
-						local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 700, Speed = 1100, Collision = false})
+						local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.55, Radius = 45, Range = 700, Speed = MathHuge, Collision = false})
 						WPrediction:GetPrediction(target, myHero)
 						if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 							Control.CastSpell(HK_W, WPrediction.CastPosition)
@@ -243,7 +264,7 @@ function Combo()
 							Control.CastSpell(HK_W, pred.CastPos)
 						end
 					else
-						local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 900, Speed = 1100, Collision = false})
+						local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0, Radius = 45, Range = 900, Speed = MathHuge, Collision = false})
 						WPrediction:GetPrediction(target, myHero)
 						if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 							Control.CastSpell(HK_W, WPrediction.CastPosition)
@@ -265,7 +286,7 @@ function Combo()
 					Control.CastSpell(HK_Q, pred.CastPos)
 				end
 			else
-				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 90, Range = 600, Speed = 1600, Collision = false})
+				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.15, Radius = 50, Range = 600, Speed = MathHuge, Collision = false})
 				QPrediction:GetPrediction(target, myHero)
 				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 					Control.CastSpell(HK_Q, QPrediction.CastPosition)
@@ -277,155 +298,167 @@ function Combo()
 		local Acount = GetAllyCount(1500, myHero)
 
 		if isRedKayne() then
-			if Menu.Combo.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 525 and Ready(_R) and Acount <= 1 then
+			if Menu.Combo.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 525 and Ready(_R) then
 				local RDmg = getdmg("R", target, myHero)
 				local RedUltDmg = RDmg + RedRDmg(target)
-				local AADmg = getdmg("AA", target, myHero)				
-				if (RedUltDmg + (AADmg*2)) > hp then
+				--local AADmg = getdmg("AA", target, myHero)				
+				if RedUltDmg >= hp and Acount <= 1 and HasBuff(target, "kaynrenemymark") then
 					Control.CastSpell(HK_R, target)
 				end
+				if RedUltDmg >= hp and myHero:GetSpellData(_R).name ~= "KaynR" then
+					Control.CastSpell(HK_R, target)
+				end					
 			end
 
 		elseif isBlueKayne() then
 			
-			if Menu.Combo.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 725 and Ready(_R) and Acount <= 1 then
+			if Menu.Combo.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 725 and Ready(_R) then
 				local RDmg = getdmg("R", target, myHero)
-				local AADmg = getdmg("AA", target, myHero)				
-				if (RDmg + (AADmg*2)) > hp then
+				--local AADmg = getdmg("AA", target, myHero)				
+				if RDmg >= hp and Acount <= 1 and HasBuff(target, "kaynrenemymark") then
 					Control.CastSpell(HK_R, target)
-				end
+				end 
+				if RDmg >= hp and myHero:GetSpellData(_R).name ~= "KaynR" then
+					Control.CastSpell(HK_R, target)
+				end					
 			end
 		end
 	end
 end
 
 function KillSteal()
-	local target = GetTarget(900)
-	if target == nil then return end
+	for i, target in ipairs(GetEnemyHeroes()) do
 
-	if IsValid(target) then
-		local hp = target.health
-		local Acount = GetAllyCount(1500, myHero)
+		if myHero.pos:DistanceTo(target.pos) < 900 and IsValid(target) then
+			local hp = target.health
+			local Acount = GetAllyCount(1500, myHero)
 
-		if isRedKayne() then
-		
-			if Menu.Killsteal.UseW:Value() and myHero.pos:DistanceTo(target.pos) < 675 and Ready(_W) then
-				local WDmg = getdmg("W", target, myHero)
-				if WDmg > hp then
-					if Menu.Pred.Change:Value() == 1 then
-						local pred = GetGamsteronPrediction(target, WDataDarkin, myHero)
-						if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
-							Control.CastSpell(HK_W, pred.CastPosition)
-						end
-					elseif Menu.Pred.Change:Value() == 2 then
-						local pred = _G.PremiumPrediction:GetPrediction(myHero, target, WspellDataDarkin)
-						if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
-							Control.CastSpell(HK_W, pred.CastPos)
-						end
-					else
-						local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 700, Speed = 1100, Collision = false})
-						WPrediction:GetPrediction(target, myHero)
-						if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
-							Control.CastSpell(HK_W, WPrediction.CastPosition)
-						end	
-					end
-				end
-			end
+			if isRedKayne() then
 			
-			if Menu.Killsteal.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 350 and Ready(_Q) then
-				local QDmg = getdmg("Q", target, myHero)
-				local RedQDmg = QDmg*2 + RedQDmg(target)
-				if RedQDmg > hp then
-					if Menu.Pred.Change:Value() == 1 then
-						local pred = GetGamsteronPrediction(target, QData, myHero)
-						if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-							Control.CastSpell(HK_Q, pred.CastPosition)
+				if Menu.Killsteal.UseW:Value() and myHero.pos:DistanceTo(target.pos) < 675 and Ready(_W) then
+					local WDmg = getdmg("W", target, myHero)
+					if WDmg > hp then
+						if Menu.Pred.Change:Value() == 1 then
+							local pred = GetGamsteronPrediction(target, WDataDarkin, myHero)
+							if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
+								Control.CastSpell(HK_W, pred.CastPosition)
+							end
+						elseif Menu.Pred.Change:Value() == 2 then
+							local pred = _G.PremiumPrediction:GetPrediction(myHero, target, WspellDataDarkin)
+							if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
+								Control.CastSpell(HK_W, pred.CastPos)
+							end
+						else
+							local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.55, Radius = 45, Range = 700, Speed = MathHuge, Collision = false})
+							WPrediction:GetPrediction(target, myHero)
+							if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
+								Control.CastSpell(HK_W, WPrediction.CastPosition)
+							end	
 						end
-					elseif Menu.Pred.Change:Value() == 2 then
-						local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
-						if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-							Control.CastSpell(HK_Q, pred.CastPos)
-						end
-					else
-						local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 90, Range = 350, Speed = 1600, Collision = false})
-						QPrediction:GetPrediction(target, myHero)
-						if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
-							Control.CastSpell(HK_Q, QPrediction.CastPosition)
-						end				
 					end
 				end
-			end	
-			
-			if GetMode() ~= "Combo" then
-				if Menu.Killsteal.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 525 and Ready(_R) and Acount <= 1 then
-					local RDmg = getdmg("R", target, myHero)
-					local RedUltDmg = RDmg + RedRDmg(target)				
-					local AADmg = getdmg("AA", target, myHero)				
-					if (RedUltDmg + (AADmg*2)) > hp then
-						Control.CastSpell(HK_R, target)
-					end
-				end
-			end	
-
-		elseif isBlueKayne() then
-			
-			if Menu.Killsteal.UseW:Value() and myHero.pos:DistanceTo(target.pos) < 875 and Ready(_W) then
-				local WDmg = getdmg("W", target, myHero)
-				if WDmg > hp then
-					if Menu.Pred.Change:Value() == 1 then
-						local pred = GetGamsteronPrediction(target, WDataSlayer, myHero)
-						if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
-							Control.CastSpell(HK_W, pred.CastPosition)
+				
+				if Menu.Killsteal.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 350 and Ready(_Q) then
+					local QDmg = getdmg("Q", target, myHero)
+					local RedQDmg = QDmg*2 + RedQDmg(target)
+					if RedQDmg > hp then
+						if Menu.Pred.Change:Value() == 1 then
+							local pred = GetGamsteronPrediction(target, QData, myHero)
+							if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
+								Control.CastSpell(HK_Q, pred.CastPosition)
+							end
+						elseif Menu.Pred.Change:Value() == 2 then
+							local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+							if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
+								Control.CastSpell(HK_Q, pred.CastPos)
+							end
+						else
+							local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.15, Radius = 50, Range = 350, Speed = MathHuge, Collision = false})
+							QPrediction:GetPrediction(target, myHero)
+							if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+								Control.CastSpell(HK_Q, QPrediction.CastPosition)
+							end				
 						end
-					elseif Menu.Pred.Change:Value() == 2 then
-						local pred = _G.PremiumPrediction:GetPrediction(myHero, target, WspellDataSlayer)
-						if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
-							Control.CastSpell(HK_W, pred.CastPos)
-						end
-					else
-						local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 900, Speed = 1100, Collision = false})
-						WPrediction:GetPrediction(target, myHero)
-						if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
-							Control.CastSpell(HK_W, WPrediction.CastPosition)
-						end	
-					end
-				end
-			end
-			
-			if Menu.Killsteal.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 350 and Ready(_Q) then
-				local QDmg = getdmg("Q", target, myHero)
-				if QDmg*2 > hp then
-					if Menu.Pred.Change:Value() == 1 then
-						local pred = GetGamsteronPrediction(target, QData, myHero)
-						if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
-							Control.CastSpell(HK_Q, pred.CastPosition)
-						end
-					elseif Menu.Pred.Change:Value() == 2 then
-						local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
-						if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
-							Control.CastSpell(HK_Q, pred.CastPos)
-						end
-					else
-						local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 90, Range = 350, Speed = 1600, Collision = false})
-						QPrediction:GetPrediction(target, myHero)
-						if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
-							Control.CastSpell(HK_Q, QPrediction.CastPosition)
-						end				
-					end
-				end
-			end	
-
-			if GetMode() ~= "Combo" then
-				if Menu.Killsteal.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 725 and Ready(_R) and Acount <= 1 then
-					local RDmg = getdmg("R", target, myHero)
-					local AADmg = getdmg("AA", target, myHero)								
-					if (RDmg + (AADmg*2)) > hp then
-						Control.CastSpell(HK_R, target)
 					end
 				end	
-			end	
+				
+				if GetMode() ~= "Combo" then
+					if Menu.Killsteal.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 525 and Ready(_R) then
+						local RDmg = getdmg("R", target, myHero)
+						local RedUltDmg = RDmg + RedRDmg(target)				
+						--local AADmg = getdmg("AA", target, myHero)				
+						if RedUltDmg >= hp and Acount <= 1 and HasBuff(target, "kaynrenemymark") then
+							Control.CastSpell(HK_R, target)
+						end
+						if RedUltDmg >= hp and myHero:GetSpellData(_R).name ~= "KaynR" then
+							Control.CastSpell(HK_R, target)
+						end						
+					end
+				end	
+
+			elseif isBlueKayne() then
+				
+				if Menu.Killsteal.UseW:Value() and myHero.pos:DistanceTo(target.pos) < 875 and Ready(_W) then
+					local WDmg = getdmg("W", target, myHero)
+					if WDmg > hp then
+						if Menu.Pred.Change:Value() == 1 then
+							local pred = GetGamsteronPrediction(target, WDataSlayer, myHero)
+							if pred.Hitchance >= Menu.Pred.PredW:Value()+1 then
+								Control.CastSpell(HK_W, pred.CastPosition)
+							end
+						elseif Menu.Pred.Change:Value() == 2 then
+							local pred = _G.PremiumPrediction:GetPrediction(myHero, target, WspellDataSlayer)
+							if pred.CastPos and ConvertToHitChance(Menu.Pred.PredW:Value(), pred.HitChance) then
+								Control.CastSpell(HK_W, pred.CastPos)
+							end
+						else
+							local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0, Radius = 45, Range = 900, Speed = MathHuge, Collision = false})
+							WPrediction:GetPrediction(target, myHero)
+							if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
+								Control.CastSpell(HK_W, WPrediction.CastPosition)
+							end	
+						end
+					end
+				end
+				
+				if Menu.Killsteal.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 350 and Ready(_Q) then
+					local QDmg = getdmg("Q", target, myHero)
+					if QDmg*2 > hp then
+						if Menu.Pred.Change:Value() == 1 then
+							local pred = GetGamsteronPrediction(target, QData, myHero)
+							if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
+								Control.CastSpell(HK_Q, pred.CastPosition)
+							end
+						elseif Menu.Pred.Change:Value() == 2 then
+							local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+							if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), pred.HitChance) then
+								Control.CastSpell(HK_Q, pred.CastPos)
+							end
+						else
+							local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.15, Radius = 50, Range = 350, Speed = MathHuge, Collision = false})
+							QPrediction:GetPrediction(target, myHero)
+							if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
+								Control.CastSpell(HK_Q, QPrediction.CastPosition)
+							end				
+						end
+					end
+				end	
+
+				if GetMode() ~= "Combo" then
+					if Menu.Killsteal.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 725 and Ready(_R) then
+						local RDmg = getdmg("R", target, myHero)
+						--local AADmg = getdmg("AA", target, myHero)								
+						if RDmg >= hp and Acount <= 1 and HasBuff(target, "kaynrenemymark") then
+							Control.CastSpell(HK_R, target)
+						end
+						if RDmg >= hp and myHero:GetSpellData(_R).name ~= "KaynR" then
+							Control.CastSpell(HK_R, target)
+						end						
+					end	
+				end	
+			end
 		end
-	end
+	end	
 end
 
 function Harass()
@@ -449,7 +482,7 @@ function Harass()
 							Control.CastSpell(HK_W, pred.CastPos)
 						end
 					else
-						local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 700, Speed = 1100, Collision = false})
+						local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.55, Radius = 45, Range = 700, Speed = MathHuge, Collision = false})
 						WPrediction:GetPrediction(target, myHero)
 						if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 							Control.CastSpell(HK_W, WPrediction.CastPosition)
@@ -473,7 +506,7 @@ function Harass()
 							Control.CastSpell(HK_W, pred.CastPos)
 						end
 					else
-						local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 900, Speed = 1100, Collision = false})
+						local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0, Radius = 45, Range = 900, Speed = MathHuge, Collision = false})
 						WPrediction:GetPrediction(target, myHero)
 						if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 							Control.CastSpell(HK_W, WPrediction.CastPosition)
@@ -495,7 +528,7 @@ function Harass()
 					Control.CastSpell(HK_Q, pred.CastPos)
 				end
 			else
-				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 90, Range = 350, Speed = 1600, Collision = false})
+				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.15, Radius = 50, Range = 600, Speed = MathHuge, Collision = false})
 				QPrediction:GetPrediction(target, myHero)
 				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 					Control.CastSpell(HK_Q, QPrediction.CastPosition)
