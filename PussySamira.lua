@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.02
+    local Version = 0.03
     
     local Files = {
         Lua = {
@@ -116,6 +116,7 @@ local CCSpells = {
 	["AatroxW"] = {charName = "Aatrox", displayName = "Infernal Chains", slot = _W, type = "linear", speed = 1800, range = 825, delay = 0.25, radius = 80, collision = true},
 	["AhriSeduce"] = {charName = "Ahri", displayName = "Seduce", slot = _E, type = "linear", speed = 1500, range = 975, delay = 0.25, radius = 60, collision = true},
 	["AkaliR"] = {charName = "Akali", displayName = "Perfect Execution [First]", slot = _R, type = "linear", speed = 1800, range = 525, delay = 0, radius = 65, collision = false},
+	["AkaliE"] = {charName = "Akali", displayName = "Shuriken Flip", slot = _E, type = "linear", speed = 1800, range = 825, delay = 0.25, radius = 70, collision = true},	
 	["Pulverize"] = {charName = "Alistar", displayName = "Pulverize", slot = _Q, type = "circular", speed = MathHuge, range = 0, delay = 0.25, radius = 365, collision = false},
 	["BandageToss"] = {charName = "Amumu", displayName = "Bandage Toss", slot = _Q, type = "linear", speed = 2000, range = 1100, delay = 0.25, radius = 80, collision = true},
 	["CurseoftheSadMummy"] = {charName = "Amumu", displayName = "Curse of the Sad Mummy", slot = _R, type = "circular", speed = MathHuge, range = 0, delay = 0.25, radius = 550, collision = false},
@@ -123,8 +124,10 @@ local CCSpells = {
 	["EnchantedCrystalArrow"] = {charName = "Ashe", displayName = "Enchanted Crystal Arrow", slot = _R, type = "linear", speed = 1600, range = 25000, delay = 0.25, radius = 130, collision = false},
 	["AurelionSolQ"] = {charName = "AurelionSol", displayName = "Starsurge", slot = _Q, type = "linear", speed = 850, range = 25000, delay = 0, radius = 110, collision = false},
 	["AzirR"] = {charName = "Azir", displayName = "Emperor's Divide", slot = _R, type = "linear", speed = 1400, range = 500, delay = 0.3, radius = 250, collision = false},
-	["BardQ"] = {charName = "Bard", displayName = "Cosmic Binding", slot = _Q, type = "linear", speed = 1500, range = 950, delay = 0.25, radius = 60, collision = true},
+	["ApheliosR"] = {charName = "Aphelios", displayName = "Moonlight Vigil", slot = _R, type = "linear", speed = 2050, range = 1600, delay = 0.5, radius = 125, collision = false},	
+	["BardQ"] = {charName = "Bard", displayName = "Cosmic Binding", slot = _Q, type = "linear", speed = 1500, range = 950, delay = 0.25, radius = 60, collision = true},	
 	["BardR"] = {charName = "Bard", displayName = "Tempered Fate", slot = _R, type = "circular", speed = 2100, range = 3400, delay = 0.5, radius = 350, collision = false},
+	["BrandQ"] = {charName = "Brand", displayName = "Sear", slot = _Q, type = "linear", speed = 1600, range = 1050, delay = 0.25, radius = 60, collision = true},	
 	["RocketGrab"] = {charName = "Blitzcrank", displayName = "Rocket Grab", slot = _Q, type = "linear", speed = 1800, range = 1150, delay = 0.25, radius = 140, collision = true},
 	["BraumQ"] = {charName = "Braum", displayName = "Winter's Bite", slot = _Q, type = "linear", speed = 1700, range = 1000, delay = 0.25, radius = 70, collision = true},
 	["BraumR"] = {charName = "Braum", displayName = "Glacial Fissure", slot = _R, type = "linear", speed = 1400, range = 1250, delay = 0.5, radius = 115, collision = false},
@@ -134,9 +137,12 @@ local CCSpells = {
 	["Rupture"] = {charName = "Chogath", displayName = "Rupture", slot = _Q, type = "circular", speed = MathHuge, range = 950, delay = 1.2, radius = 250, collision = false},
 	["InfectedCleaverMissile"] = {charName = "DrMundo", displayName = "Infected Cleaver", slot = _Q, type = "linear", speed = 2000, range = 975, delay = 0.25, radius = 60, collision = true},
 	["DravenDoubleShot"] = {charName = "Draven", displayName = "Double Shot", slot = _E, type = "linear", speed = 1600, range = 1050, delay = 0.25, radius = 130, collision = false},
+	["DravenRCast"] = {charName = "Draven", displayName = "Whirling Death", slot = _R, type = "linear", speed = 2000, range = 12500, delay = 0.25, radius = 160, collision = false},	
+	["DianaQ"] = {charName = "Diana", displayName = "Crescent Strike", slot = _Q, type = "circular", speed = 1900, range = 900, delay = 0.25, radius = 185, collision = true},	
 	["EkkoQ"] = {charName = "Ekko", displayName = "Timewinder", slot = _Q, type = "linear", speed = 1650, range = 1175, delay = 0.25, radius = 60, collision = false},
 	["EkkoW"] = {charName = "Ekko", displayName = "Parallel Convergence", slot = _W, type = "circular", speed = MathHuge, range = 1600, delay = 3.35, radius = 400, collision = false},
 	["EliseHumanE"] = {charName = "Elise", displayName = "Cocoon", slot = _E, type = "linear", speed = 1600, range = 1075, delay = 0.25, radius = 55, collision = true},
+	["EzrealR"] = {charName = "Ezreal", displayName = "Trueshot Barrage", slot = _R, type = "linear", speed = 2000, range = 12500, delay = 1, radius = 160, collision = true},	
 	["FizzR"] = {charName = "Fizz", displayName = "Chum the Waters", slot = _R, type = "linear", speed = 1300, range = 1300, delay = 0.25, radius = 150, collision = false},
 	["GalioE"] = {charName = "Galio", displayName = "Justice Punch", slot = _E, type = "linear", speed = 2300, range = 650, delay = 0.4, radius = 160, collision = false},
 	["GnarQMissile"] = {charName = "Gnar", displayName = "Boomerang Throw", slot = _Q, type = "linear", speed = 2500, range = 1125, delay = 0.25, radius = 55, collision = false},
@@ -151,8 +157,12 @@ local CCSpells = {
 	["IreliaW2"] = {charName = "Irelia", displayName = "Defiant Dance", slot = _W, type = "linear", speed = MathHuge, range = 775, delay = 0.25, radius = 120, collision = false},
 	["IreliaR"] = {charName = "Irelia", displayName = "Vanguard's Edge", slot = _R, type = "linear", speed = 2000, range = 950, delay = 0.4, radius = 160, collision = false},
 	["IvernQ"] = {charName = "Ivern", displayName = "Rootcaller", slot = _Q, type = "linear", speed = 1300, range = 1075, delay = 0.25, radius = 80, collision = true},
+	["IllaoiE"] = {charName = "Illaoi", displayName = "Test of Spirit", slot = _E, type = "linear", speed = 1900, range = 900, delay = 0.25, radius = 50, collision = true},	
+	["IvernQ"] = {charName = "Ivern", displayName = "Rootcaller", slot = _Q, type = "linear", speed = 1300, range = 1075, delay = 0.25, radius = 80, collision = true},		
+	["HowlingGaleSpell"] = {charName = "Janna", displayName = "Howling Gale", slot = _Q, type = "linear", speed = 667, range = 1750, delay = 0, radius = 100, collision = false},			
 	["JarvanIVDragonStrike"] = {charName = "JarvanIV", displayName = "Dragon Strike", slot = _Q, type = "linear", speed = MathHuge, range = 770, delay = 0.4, radius = 70, collision = false},
 	["JhinW"] = {charName = "Jhin", displayName = "Deadly Flourish", slot = _W, type = "linear", speed = 5000, range = 2550, delay = 0.75, radius = 40, collision = false},
+	["JhinRShot"] = {charName = "Jhin", displayName = "Curtain Call", slot = _R, type = "linear", speed = 5000, range = 3500, delay = 0.25, radius = 80, collision = false},
 	["JhinE"] = {charName = "Jhin", displayName = "Captive Audience", slot = _E, type = "circular", speed = 1600, range = 750, delay = 0.25, radius = 130, collision = false},
 	["JinxWMissile"] = {charName = "Jinx", displayName = "Zap!", slot = _W, type = "linear", speed = 3300, range = 1450, delay = 0.6, radius = 60, collision = true},
 	["KarmaQ"] = {charName = "Karma", displayName = "Inner Flame", slot = _Q, type = "linear", speed = 1700, range = 950, delay = 0.25, radius = 60, collision = true},
@@ -162,6 +172,7 @@ local CCSpells = {
 	["KhazixWLong"] = {charName = "Khazix", displayName = "Void Spike [Threeway]", slot = _W, type = "threeway", speed = 1700, range = 1000, delay = 0.25, radius = 70,angle = 23, collision = true},
 	["KledQ"] = {charName = "Kled", displayName = "Beartrap on a Rope", slot = _Q, type = "linear", speed = 1600, range = 800, delay = 0.25, radius = 45, collision = true},
 	["KogMawVoidOozeMissile"] = {charName = "KogMaw", displayName = "Void Ooze", slot = _E, type = "linear", speed = 1400, range = 1360, delay = 0.25, radius = 120, collision = false},
+	["BlindMonkQOne"] = {charName = "Leesin", displayName = "Sonic Wave", slot = _Q, type = "linear", speed = 1800, range = 1100, delay = 0.25, radius = 60, collision = true},	
 	["LeblancE"] = {charName = "Leblanc", displayName = "Ethereal Chains [Standard]", slot = _E, type = "linear", speed = 1750, range = 925, delay = 0.25, radius = 55, collision = true},
 	["LeblancRE"] = {charName = "Leblanc", displayName = "Ethereal Chains [Ultimate]", slot = _E, type = "linear", speed = 1750, range = 925, delay = 0.25, radius = 55, collision = true},
 	["LeonaZenithBlade"] = {charName = "Leona", displayName = "Zenith Blade", slot = _E, type = "linear", speed = 2000, range = 875, delay = 0.25, radius = 70, collision = false},
@@ -189,6 +200,7 @@ local CCSpells = {
 	["PykeQMelee"] = {charName = "Pyke", displayName = "Bone Skewer [Melee]", slot = _Q, type = "linear", speed = MathHuge, range = 400, delay = 0.25, radius = 70, collision = false},
 	["PykeQRange"] = {charName = "Pyke", displayName = "Bone Skewer [Range]", slot = _Q, type = "linear", speed = 2000, range = 1100, delay = 0.2, radius = 70, collision = true},
 	["PykeE"] = {charName = "Pyke", displayName = "Phantom Undertow", slot = _E, type = "linear", speed = 3000, range = 25000, delay = 0, radius = 110, collision = false},
+	["QiyanaR"] = {charName = "Qiyana", displayName = "Supreme Display of Talent", slot = _R, type = "linear", speed = 2000, range = 950, delay = 0.25, radius = 190, collision = false},	
 	["RakanW"] = {charName = "Rakan", displayName = "Grand Entrance", slot = _W, type = "circular", speed = MathHuge, range = 650, delay = 0.7, radius = 265, collision = false},
 	["RengarE"] = {charName = "Rengar", displayName = "Bola Strike", slot = _E, type = "linear", speed = 1500, range = 1000, delay = 0.25, radius = 70, collision = true},
 	["RumbleGrenade"] = {charName = "Rumble", displayName = "Electro Harpoon", slot = _E, type = "linear", speed = 2000, range = 850, delay = 0.25, radius = 60, collision = true},
@@ -201,6 +213,7 @@ local CCSpells = {
 	["SorakaQ"] = {charName = "Soraka", displayName = "Starcall", slot = _Q, type = "circular", speed = 1150, range = 810, delay = 0.25, radius = 235, collision = false},
 	["SwainW"] = {charName = "Swain", displayName = "Vision of Empire", slot = _W, type = "circular", speed = MathHuge, range = 3500, delay = 1.5, radius = 300, collision = false},
 	["SwainE"] = {charName = "Swain", displayName = "Nevermove", slot = _E, type = "linear", speed = 1800, range = 850, delay = 0.25, radius = 85, collision = false},
+	["SylasE2"] = {charName = "Sylas", displayName = "Abduct", slot = _E, type = "linear", speed = 1600, range = 850, delay = 0.25, radius = 60, collision = true},	
 	["TahmKenchQ"] = {charName = "TahmKench", displayName = "Tongue Lash", slot = _Q, type = "linear", speed = 2800, range = 800, delay = 0.25, radius = 70, collision = true},
 	["TaliyahWVC"] = {charName = "Taliyah", displayName = "Seismic Shove", slot = _W, type = "circular", speed = MathHuge, range = 900, delay = 0.85, radius = 150, collision = false},
 	["TaliyahR"] = {charName = "Taliyah", displayName = "Weaver's Wall", slot = _R, type = "linear", speed = 1700, range = 3000, delay = 1, radius = 120, collision = false},
@@ -382,11 +395,10 @@ local function GetEnemyTurrets()
 end
 
 local function GetEnemyCount(range, unit)
-    local pos = unit.pos
 	local count = 0
 	for i, hero in ipairs(GetEnemyHeroes()) do
 	local Range = range * range
-		if unit ~= hero and GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
+		if unit ~= hero and GetDistanceSqr(unit, hero.pos) < Range and IsValid(hero) then
 		count = count + 1
 		end
 	end
@@ -404,18 +416,6 @@ local function GetMinionCount(range, pos)
 		end
 	end
 	return count
-end
-
-local function IsUnderTurret(unit)
-	for i, turret in ipairs(GetEnemyTurrets()) do
-        local range = (turret.boundingRadius + 750 + unit.boundingRadius / 2)
-        if not turret.dead then 
-            if turret.pos:DistanceTo(unit.pos) < range then
-                return true
-            end
-        end
-    end
-    return false
 end
 
 local function IsRecalling(unit)
@@ -516,7 +516,7 @@ function Samira:LoadMenu()
 DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	
 	--MainMenu
 self.Menu = MenuElement({type = MENU, id = "PussySamira", name = "PussySamira"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 
 	--AutoW
 self.Menu:MenuElement({type = MENU, id = "WSet", name = "AutoW Incomming CC Spells"})
@@ -529,7 +529,7 @@ self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
 	self.Menu.ComboSet:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
 	self.Menu.ComboSet.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	self.Menu.ComboSet.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
-	self.Menu.ComboSet.Combo:MenuElement({id = "UseE", name = "[E]", value = true})	
+	self.Menu.ComboSet.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
 	self.Menu.ComboSet.Combo:MenuElement({id = "UseR", name = "[R]", value = true})	
 
 
@@ -653,6 +653,22 @@ local Mode = GetMode()
 	end	
 end
 
+function Samira:IsDashPosTurret(unit)
+    local myPos = Vector(myHero.pos.x, myHero.pos.y, myHero.pos.z)
+    local endPos = Vector(unit.pos.x, myHero.pos.y, unit.pos.z)
+    local pos = myPos:Extended(endPos, 600)
+	
+	for i, turret in ipairs(GetEnemyTurrets()) do
+        local range = (turret.boundingRadius + 750 + myHero.boundingRadius / 2)
+        if not turret.dead then 
+            if turret.pos:DistanceTo(pos) < range then
+				return true
+			end
+		end
+	end	
+    return false
+end
+
 function Samira:ProcessSpell()
 	local unit, spell = OnProcessSpell()
 	if unit and unit.isEnemy and spell and CCSpells[spell.name] then
@@ -699,7 +715,7 @@ function Samira:Combo()
 	if IsReadyUlt() and self.Menu.ComboSet.Combo.UseR:Value() and self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) then	
 		for i, Ally in ipairs(GetAllyHeroes()) do 
 			if Ally and myHero.pos:DistanceTo(Ally.pos) <= 600 and IsValid(Ally) then
-				if GetEnemyCount(600, myHero) == 0 and GetEnemyCount(600, Ally) >= 1 then
+				if GetEnemyCount(600, myHero.pos) == 0 and GetEnemyCount(600, Ally.pos) >= 1 then
 					if Game.Timer() - ReadyTimer <= 5.2 then
 						if Control.CastSpell(HK_E, Ally) then
 							UltAlly = true
@@ -718,13 +734,13 @@ if target == nil or UltAlly then return end
 		
 		if Ready(_R) and self.Menu.ComboSet.Combo.UseR:Value() then					
 			
-			if GetEnemyCount(1500, myHero) == 1 then
+			if GetEnemyCount(1500, myHero.pos) == 1 then
 				if myHero.pos:DistanceTo(target.pos) <= 500 then
 					CastedR = true
 					Control.CastSpell(HK_R)
 				else
 					if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) then
-						if myHero.pos:DistanceTo(target.pos) <= 600 and not IsUnderTurret(target) then
+						if myHero.pos:DistanceTo(target.pos) <= 600 and not self:IsDashPosTurret(target) then
 							if Control.CastSpell(HK_E, target) then
 								CastedR = true
 								Control.CastSpell(HK_R)	
@@ -733,16 +749,16 @@ if target == nil or UltAlly then return end
 					end	
 				end
 			else
-				if GetEnemyCount(1500, myHero) > 1 then
+				if GetEnemyCount(1500, myHero.pos) > 1 then
 					if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) then
-						if myHero.pos:DistanceTo(target.pos) <= 600 and GetEnemyCount(600, target) >= 1 and not IsUnderTurret(target) then
+						if myHero.pos:DistanceTo(target.pos) <= 600 and GetEnemyCount(600, target.pos) >= 1 and not not self:IsDashPosTurret(target) then
 							if Control.CastSpell(HK_E, target) then
 								CastedR = true
 								Control.CastSpell(HK_R)
 							end	
 						end
 					else
-						if myHero.pos:DistanceTo(target.pos) <= 500 and GetEnemyCount(600, myHero) >= 2 then
+						if myHero.pos:DistanceTo(target.pos) <= 500 and GetEnemyCount(600, myHero.pos) >= 2 then
 							CastedR = true
 							Control.CastSpell(HK_R)	
 						end	
@@ -752,8 +768,9 @@ if target == nil or UltAlly then return end
 		end			
 		
 		if CastedR then return end
+		
 		if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) then
-			if myHero.pos:DistanceTo(target.pos) <= 600 then					
+			if myHero.pos:DistanceTo(target.pos) <= 600 and not self:IsDashPosTurret(target) then					
 				if self.Menu.ComboSet.Combo.UseQ:Value() and Ready(_Q) then
 					if Control.CastSpell(HK_E, target) then
 						Control.CastSpell(HK_Q)
@@ -771,7 +788,7 @@ if target == nil or UltAlly then return end
 		end			
 		
 		if self.Menu.ComboSet.Combo.UseQ:Value() and Ready(_Q) then 				 
-			if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 600 then return end
+			if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 600 and not self:IsDashPosTurret(target) then return end
 			if myHero.pos:DistanceTo(target.pos) <= 950 and myHero.pos:DistanceTo(target.pos) > 325 then
 				self:CastQ(target)		
 			end
