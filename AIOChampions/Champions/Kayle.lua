@@ -43,27 +43,29 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.01"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
 	
 	Menu:MenuElement({type = MENU, id = "Flee", name = "Flee Mode"})
 	Menu.Flee:MenuElement({id = "Use", name = "Use [W] for Flee", value = true})	
-	Menu.Flee:MenuElement({id = "enable", name = "Flee Key", key = string.byte("G")})
+	Menu.Flee:MenuElement({name = " ", drop = {"Orbwalker default Key = [A]"}})
 
 	--AutoW
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "AutoW Mode"})
 	Menu.AutoW:MenuElement({id = "self", name = "Heal self", value = true})
 	Menu.AutoW:MenuElement({id = "ally", name = "Heal Ally", value = true})
 	Menu.AutoW:MenuElement({id = "HP", name = "HP Self/Ally", value = 50, min = 0, max = 100, step = 1, identifier = "%"})
-	Menu.AutoW:MenuElement({id = "Mana", name = "min. Mana", value = 50, min = 0, max = 100, step = 1, identifier = "%"})	
+	Menu.AutoW:MenuElement({id = "Mana", name = "min. Mana", value = 50, min = 0, max = 100, step = 1, identifier = "%"})
+
+	--AutoR
+	Menu:MenuElement({type = MENU, id = "AutoR", name = "AutoR Mode"})
+	Menu.AutoR:MenuElement({id = "self", name = "Ult self", value = true})
+	Menu.AutoR:MenuElement({id = "ally", name = "Ult Ally", value = true})
+	Menu.AutoR:MenuElement({id = "HP", name = "HP Self/Ally", value = 40, min = 0, max = 100, step = 1, identifier = "%"})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})			
-	Menu.Combo:MenuElement({type = MENU, id = "UseR", name = "Ult Settings"})
-	Menu.Combo.UseR:MenuElement({id = "self", name = "Ult self", value = true})
-	Menu.Combo.UseR:MenuElement({id = "ally", name = "Ult Ally", value = true})
-	Menu.Combo.UseR:MenuElement({id = "HP", name = "HP Self/Ally", value = 40, min = 0, max = 100, step = 1, identifier = "%"})	
 	
 	--HarassMenu
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass Mode"})	
@@ -92,16 +94,16 @@ function LoadScript()
 
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
-	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
-	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
-	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
+	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
 	
 	QData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 900, Speed = 1600, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 30, Range = 900, Speed = 1600, Collision = false
 	}
 	
-	QspellData = {speed = 1600, range = 900, delay = 0.25, radius = 60, collision = {nil}, type = "linear"}	
+	QspellData = {speed = 1600, range = 900, delay = 0.25, radius = 30, collision = {nil}, type = "linear"}	
 			
   	                                          
 	Callback.Add("Tick", function() Tick() end)
@@ -134,16 +136,20 @@ if MyHeroNotReady() then return end
 		Clear()
 		JungleClear()
 	elseif Mode == "Flee" then
-		if Menu.Flee.Use:Value() and Menu.Flee.enable:Value() then
+		if Menu.Flee.Use:Value() then
 			Flee()
 		end	
 	end
-
+	AutoR()
 	AutoW()
 end
 
 function AAReset()
-
+	if myHero.activeSpell.name == "KayleBasicAttack3" or myHero.activeSpell.name == "KayleBasicAttack4" then
+		DelayAction(function()
+			Control.CastSpell(HK_E)
+		end,0.1)	
+	end
 end
 
 function Flee()
@@ -156,20 +162,41 @@ function AutoW()
 	local target = GetTarget(1200)     	
 	if target == nil then return end		
 	
-	if IsValid(target) and myHero.mana/myHero.maxMana >= self.Menu.AutoW.Mana:Value() / 100 then
+	if IsValid(target) and myHero.mana/myHero.maxMana >= Menu.AutoW.Mana:Value() / 100 then
 		
-		if self.Menu.AutoW.self:Value() and Ready(_W) and myHero.health/myHero.maxHealth <= self.Menu.AutoW.HP:Value()/100 then
+		if Menu.AutoW.self:Value() and Ready(_W) and myHero.health/myHero.maxHealth <= Menu.AutoW.HP:Value()/100 then
 			Control.CastSpell(HK_W, myHero)			
 		end
 		
-		if self.Menu.AutoW.ally:Value() and Ready(_W) then		
+		if Menu.AutoW.ally:Value() and Ready(_W) then		
 			for i, Ally in ipairs(GetAllyHeroes()) do
 				if Ally and myHero.pos:DistanceTo(Ally.pos) < 900 and IsValid(Ally) then
-					if Ally.health/Ally.maxHealth <= self.Menu.AutoW.HP:Value()/100 then
+					if Ally.health/Ally.maxHealth <= Menu.AutoW.HP:Value()/100 then
 						Control.CastSpell(HK_W, Ally)	
 					end	
 				end
 			end
+		end
+	end	
+end
+
+function AutoR()
+	if EnemyInRange(myHero, 1500) >= 1 then
+		if Ready(_R) and Menu.AutoR.self:Value() then
+			if myHero.health/myHero.maxHealth <= Menu.AutoR.HP:Value()/100 then	
+				Control.CastSpell(HK_R, myHero)
+			end
+		end
+		
+		if Ready(_R) and Menu.AutoR.ally:Value() then
+			for i, Ally in ipairs(GetAllyHeroes()) do
+				if Ally and myHero.pos:DistanceTo(Ally.pos) < 900 and IsValid(Ally) then
+				local enemy = EnemyInRange(Ally, 650)			
+					if enemy >= 1 and Ally.health/Ally.maxHealth <= Menu.AutoR.HP:Value()/100 then
+						Control.CastSpell(HK_R, Ally)
+					end
+				end
+			end	
 		end
 	end	
 end		
@@ -180,7 +207,18 @@ function Combo()
 	
 	if IsValid(target) then
 					
-		if myHero.pos:DistanceTo(target.pos) <= 850 and self.Menu.Combo.UseQ:Value() and Ready(_Q) then
+		if myHero.range >= 520 then
+			if myHero.pos:DistanceTo(target.pos) <= 530 and Menu.Combo.UseE:Value() and Ready(_E) then					
+				AAReset()
+				return
+			end
+		else	
+			if myHero.pos:DistanceTo(target.pos) <= 525 and Menu.Combo.UseE:Value() and Ready(_E) then					
+				Control.CastSpell(HK_E)	
+			end
+		end			
+		
+		if myHero.pos:DistanceTo(target.pos) <= 850 and Menu.Combo.UseQ:Value() and Ready(_Q) then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
@@ -192,33 +230,12 @@ function Combo()
 					Control.CastSpell(HK_Q, pred.CastPos)
 				end
 			else
-				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 900, Speed = 1600, Collision = false})
+				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 30, Range = 900, Speed = 1600, Collision = false})
 				QPrediction:GetPrediction(target, myHero)
 				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 					Control.CastSpell(HK_Q, QPrediction.CastPosition)
 				end
 			end
-		end
-		
-		if myHero.pos:DistanceTo(target.pos) <= myHero.range and self.Menu.Combo.UseE:Value() and Ready(_E) then					
-			Control.CastSpell(HK_E)	
-		end
-		
-		if Ready(_R) and self.Menu.Combo.UseR.self:Value() then
-			if myHero.health/myHero.maxHealth <= self.Menu.Combo.UseR.HP:Value()/100 then	
-				Control.CastSpell(HK_R, myHero)
-			end
-		end
-		
-		if Ready(_R) and self.Menu.Combo.UseR.ally:Value() then
-			for i, Ally in ipairs(GetAllyHeroes()) do
-				if Ally and myHero.pos:DistanceTo(Ally.pos) < 900 and IsValid(Ally) then
-				local enemy = EnemyInRange(Ally, 650)			
-					if enemy >= 1 and Ally.health/Ally.maxHealth <= self.Menu.Combo.UseR.HP:Value()/100 then
-						Control.CastSpell(HK_R, Ally)
-					end
-				end
-			end	
 		end
 	end	
 end	
@@ -229,7 +246,18 @@ function Harass()
 	
 	if IsValid(target) then
 		
-		if myHero.pos:DistanceTo(target.pos) <= 850 and self.Menu.Harass.UseQ:Value() and Ready(_Q) and myHero.mana/myHero.maxMana >= self.Menu.Harass.Mana:Value() / 100 then
+		if myHero.range >= 520 then
+			if myHero.pos:DistanceTo(target.pos) <= 530 and Menu.Harass.UseE:Value() and Ready(_E) then					
+				AAReset()
+				return
+			end
+		else	
+			if myHero.pos:DistanceTo(target.pos) <= 525 and Menu.Harass.UseE:Value() and Ready(_E) then					
+				Control.CastSpell(HK_E)	
+			end
+		end			
+		
+		if myHero.pos:DistanceTo(target.pos) <= 850 and Menu.Harass.UseQ:Value() and Ready(_Q) and myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value() / 100 then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, QData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
@@ -241,16 +269,12 @@ function Harass()
 					Control.CastSpell(HK_Q, pred.CastPos)
 				end
 			else
-				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 900, Speed = 1600, Collision = false})
+				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 30, Range = 900, Speed = 1600, Collision = false})
 				QPrediction:GetPrediction(target, myHero)
 				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 					Control.CastSpell(HK_Q, QPrediction.CastPosition)
 				end
 			end
-		end
-		
-		if myHero.pos:DistanceTo(target.pos) <= myHero.range and self.Menu.Harass.UseE:Value() and Ready(_E) then
-			Control.CastSpell(HK_E)			
 		end
 	end
 end	
@@ -272,9 +296,15 @@ function Clear()
 				end	
 			end	
 
-			if myHero.pos:DistanceTo(minion.pos) <= myHero.range and self.Menu.Clear.UseE:Value() and Ready(_E) then
-				Control.CastSpell(HK_E)			
-			end			
+			if myHero.range >= 520 then
+				if myHero.pos:DistanceTo(minion.pos) <= 530 and Menu.Clear.UseE:Value() and Ready(_E) then					
+					AAReset()	
+				end
+			else	
+				if myHero.pos:DistanceTo(minion.pos) <= 525 and Menu.Clear.UseE:Value() and Ready(_E) then					
+					Control.CastSpell(HK_E)	
+				end
+			end				
 		end
 	end
 end
@@ -289,9 +319,15 @@ function JungleClear()
 				Control.CastSpell(HK_Q, minion.pos)	
 			end	
 
-			if myHero.pos:DistanceTo(minion.pos) <= myHero.range and self.Menu.JClear.UseE:Value() and Ready(_E) then
-				Control.CastSpell(HK_E)			
-			end			
+			if myHero.range >= 520 then
+				if myHero.pos:DistanceTo(minion.pos) <= 530 and Menu.JClear.UseE:Value() and Ready(_E) then					
+					AAReset()	
+				end
+			else	
+				if myHero.pos:DistanceTo(minion.pos) <= 525 and Menu.JClear.UseE:Value() and Ready(_E) then					
+					Control.CastSpell(HK_E)	
+				end
+			end				
 		end
 	end    
 end
