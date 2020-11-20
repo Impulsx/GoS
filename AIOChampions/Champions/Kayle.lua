@@ -43,7 +43,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 	
 	Menu:MenuElement({type = MENU, id = "Flee", name = "Flee Mode"})
 	Menu.Flee:MenuElement({id = "Use", name = "Use [W] for Flee", value = true})	
@@ -55,12 +55,24 @@ function LoadScript()
 	Menu.AutoW:MenuElement({id = "ally", name = "Heal Ally", value = true})
 	Menu.AutoW:MenuElement({id = "HP", name = "HP Self/Ally", value = 50, min = 0, max = 100, step = 1, identifier = "%"})
 	Menu.AutoW:MenuElement({id = "Mana", name = "min. Mana", value = 50, min = 0, max = 100, step = 1, identifier = "%"})
+	Menu.AutoW:MenuElement({id = "Targets", name = "Ally white list", type = MENU})
+	DelayAction(function()
+		for i, Hero in ipairs(GetAllyHeroes()) do
+			Menu.AutoW.Targets:MenuElement({id = Hero.charName, name = "Use on "..Hero.charName, value = true})		
+		end	
+	end,0.2)	
 
 	--AutoR
 	Menu:MenuElement({type = MENU, id = "AutoR", name = "AutoR Mode"})
 	Menu.AutoR:MenuElement({id = "self", name = "Ult self", value = true})
 	Menu.AutoR:MenuElement({id = "ally", name = "Ult Ally", value = true})
-	Menu.AutoR:MenuElement({id = "HP", name = "HP Self/Ally", value = 40, min = 0, max = 100, step = 1, identifier = "%"})	
+	Menu.AutoR:MenuElement({id = "HP", name = "HP Self/Ally", value = 40, min = 0, max = 100, step = 1, identifier = "%"})
+	Menu.AutoR:MenuElement({id = "Targets", name = "Ally white list", type = MENU})
+	DelayAction(function()
+		for i, Hero in ipairs(GetAllyHeroes()) do
+			Menu.AutoR.Targets:MenuElement({id = Hero.charName, name = "Use on "..Hero.charName, value = true})		
+		end	
+	end,0.2)	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
@@ -171,7 +183,7 @@ function AutoW()
 		if Menu.AutoW.ally:Value() and Ready(_W) then		
 			for i, Ally in ipairs(GetAllyHeroes()) do
 				if Ally and myHero.pos:DistanceTo(Ally.pos) < 900 and IsValid(Ally) then
-					if Ally.health/Ally.maxHealth <= Menu.AutoW.HP:Value()/100 then
+					if Ally.health/Ally.maxHealth <= Menu.AutoW.HP:Value()/100 and Menu.AutoW.Targets[Ally.charName] and Menu.AutoW.Targets[Ally.charName]:Value() then
 						Control.CastSpell(HK_W, Ally)	
 					end	
 				end
@@ -192,7 +204,7 @@ function AutoR()
 			for i, Ally in ipairs(GetAllyHeroes()) do
 				if Ally and myHero.pos:DistanceTo(Ally.pos) < 900 and IsValid(Ally) then
 				local enemy = EnemyInRange(Ally, 650)			
-					if enemy >= 1 and Ally.health/Ally.maxHealth <= Menu.AutoR.HP:Value()/100 then
+					if enemy >= 1 and Ally.health/Ally.maxHealth <= Menu.AutoR.HP:Value()/100 and Menu.AutoR.Targets[Ally.charName] and Menu.AutoR.Targets[Ally.charName]:Value() then
 						Control.CastSpell(HK_R, Ally)
 					end
 				end
