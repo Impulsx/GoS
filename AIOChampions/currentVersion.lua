@@ -211,7 +211,11 @@ Data = {
         Kayn = {
             Changelog = "Kayn Changelog Here",
             Version = 0.01,
-        },         
+        },
+         Kayle = {
+            Changelog = "Kayle Changelog Here",
+            Version = 0.01,
+        },       
     },
     Loader = {
         Version = 0.2,
