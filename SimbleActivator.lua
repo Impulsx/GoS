@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.26
+    local Version = 0.27
     
     local Files =
     {
@@ -306,7 +306,7 @@ end
 function Activator:LoadMenu()
     
     self.Menu = MenuElement({type = MENU, id = "PussyActivator", leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png"})
-	self.Menu:MenuElement({name = " ", drop = {"Version 0.26"}})    
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.27"}})    
 	
 	--Shield/Heal MyHero
     self.Menu:MenuElement({id = "ZS", name = "MyHero/Ally [Shield/Heal Items]", type = MENU})
@@ -915,7 +915,8 @@ if myHero.alive == false then return end
 			local buffData = myHero:GetBuff(i);
 			if buffData.count > 0 then
 				if (buffData.type == 13) or (buffData.type == 26) then 
-					if (buffData.name == "ItemDarkCrystalFlask") or (buffData.name == "ItemCrystalFlaskJungle") or (buffData.name == "ItemCrystalFlask") or (buffData.name == "ItemMiniRegenPotion") or (buffData.name == "RegenerationPotion") then
+				--print(buffData.name)
+					if (buffData.name == "ItemDarkCrystalFlask") or (buffData.name == "ItemCrystalFlaskJungle") or (buffData.name == "ItemCrystalFlask") or (buffData.name == "Item2010") or (buffData.name == "Item2003") then
 						currentlyDrinkingPotion = true;
 						break;
 					end
