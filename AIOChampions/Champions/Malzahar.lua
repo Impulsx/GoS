@@ -41,9 +41,20 @@ local function GetBuffData(unit, buffname)
   return {type = 0, name = "", startTime = 0, expireTime = 0, duration = 0, stacks = 0, count = 0}
 end
 
+local function GetEnemyHeroes()
+	local _EnemyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.team ~= myHero.team then
+			TableInsert(_EnemyHeroes, unit)
+		end
+	end
+	return _EnemyHeroes
+end
+
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})	
 
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "Auto[Q]Immobile"})
@@ -56,6 +67,13 @@ function LoadScript()
 	Menu.UseQE:MenuElement({id = "UseQJ", name = "Use in JungleClear", value = true})
 	Menu.UseQE:MenuElement({id = "Buff", name = "[E]Debuff ExpireTime [0 Sec = Debuff End]", value = 1, min = 0.0, max = 4, step = 0.1, identifier = "sec"})	
 	
+	DelayAction(function()
+		Menu:MenuElement({id = "Targets", name = "Ultimate Settings", type = MENU})
+		for i, Hero in pairs(GetEnemyHeroes()) do
+			Menu.Targets:MenuElement({id = Hero.charName, name = "Use Ult on "..Hero.charName, value = true})		
+		end	
+	end,0.2)	
+	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q] Call of the Void", value = true})	
@@ -63,7 +81,6 @@ function LoadScript()
 	Menu.Combo:MenuElement({id = "UseE", name = "[E] Malefic Visions", value = true})			
 	Menu.Combo:MenuElement({id = "UseR", name = "[R] Nether Grasp", value = false})	
 	
-
 	--HarassMenu
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
 	Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Call of the Void", value = true})	
@@ -91,8 +108,8 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
 	Menu.ks:MenuElement({id = "UseQ", name = "[Q] Call of the Void", value = true})	
 	Menu.ks:MenuElement({id = "UseE", name = "[E] Malefic Visions", value = true})	
-	Menu.ks:MenuElement({id = "UseW", name = "[W] Malefic Visions", value = true})			
-	Menu.ks:MenuElement({id = "UseR", name = "[R] Void Swarm", value = true})
+	Menu.ks:MenuElement({id = "UseW", name = "[W] Void Swarm", value = true})			
+	Menu.ks:MenuElement({id = "UseR", name = "[R] Nether Grasp", value = true})
 	Menu.ks:MenuElement({id = "full", name = "Full Combo", value = true})
 
 	--Prediction
@@ -239,7 +256,7 @@ if target == nil then return end
 	
 			end
 		end
-		if myHero.pos:DistanceTo(target.pos) <= 700 and RDmg >= hp then	
+		if myHero.pos:DistanceTo(target.pos) <= 700 and RDmg >= hp and Menu.Targets[target.charName] and Menu.Targets[target.charName]:Value() then	
 			if Menu.ks.UseR:Value() and Ready(_R) then
 				Control.CastSpell(HK_R, target)	
 	
@@ -250,7 +267,7 @@ if target == nil then return end
 				KsFull(target)
 			end
 		end
-		if myHero.pos:DistanceTo(target.pos) <= 700 and RDmg >= hp and Menu.ks.full:Value() and Ready(_R) then
+		if myHero.pos:DistanceTo(target.pos) <= 700 and RDmg >= hp and Menu.ks.full:Value() and Ready(_R) and Menu.Targets[target.charName] and Menu.Targets[target.charName]:Value() then
 			Control.CastSpell(HK_R, target)
 		end
 	end
@@ -371,7 +388,7 @@ if target == nil then return end
 			end
 		end
 		
-		if myHero.pos:DistanceTo(target.pos) <= 700 then	
+		if myHero.pos:DistanceTo(target.pos) <= 700 and Menu.Targets[target.charName] and Menu.Targets[target.charName]:Value() then	
 			if Ready(_R) and Menu.Combo.UseR:Value() then
 				Control.CastSpell(HK_R, target)
 			end
