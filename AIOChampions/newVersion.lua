@@ -11,7 +11,7 @@ Data = {
     Champions = {
         Mordekaiser = {
             Changelog = "Mordekaiser Changelog Here",
-            Version = 0.05,
+            Version = 0.06,
         },
         Cassiopeia = {
             Changelog = "Cassiopeia Changelog Here",
@@ -75,11 +75,11 @@ Data = {
         },
         Malzahar = {
             Changelog = "Malzahar Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         }, 
         Camille = {
             Changelog = "Camille Changelog Here",
-            Version = 0.10,
+            Version = 0.11,
         },
          Jhin = {
             Changelog = "Jhin Changelog Here",
@@ -207,7 +207,7 @@ Data = {
         },
         Velkoz = {
             Changelog = "Velkoz Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         }, 
         Illaoi = {
             Changelog = "Illaoi Changelog Here",
