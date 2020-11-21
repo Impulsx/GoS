@@ -435,7 +435,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
 	Menu:MenuElement({name = " ", drop = {"Full reworked Version from Sikaka"}})
 	
 	Menu:MenuElement({id = "General", name = "General Settings", type = MENU})
@@ -507,8 +507,9 @@ function LoadScript()
 		Menu.Skills:MenuElement({id = "R", name = "R", type = MENU})
 			Menu.Skills.R:MenuElement({id = "R2", name = "Auto/Combo ?", value = 2, drop = {"AutoUlt", "Use Ult only in ComboMode"}})
 			Menu.Skills.R:MenuElement({id = "R1", name = "Ult function", value = 2, drop = {"Ult if killable", "Ult if Hp lower than Hp Slider", "never use Ult"}})
-			Menu.Skills.R:MenuElement({id = "Hp", name = "Hp Slider for AutoR function 2", value = 50, min = 0, max = 100, identifier = "%"})
+			Menu.Skills.R:MenuElement({id = "Hp", name = "Hp Slider for Ult function 2", value = 50, min = 0, max = 100, identifier = "%"})
 			Menu.Skills.R:MenuElement({id = "Range", name = "Max R cast Range", value = 1200, min = 0, max = 1550, identifier = "range"})
+			Menu.Skills.R:MenuElement({id = "Stop", name = "Stop Ult if Enemy out of range", value = false })			
 			Menu.Skills.R:MenuElement({id = "Active", name = "Semi. manual Key", key = string.byte("T")})
 
 	Menu:MenuElement({id = "Farm", name = "Farm Settings", type = MENU})
@@ -593,7 +594,7 @@ function Tick()
 	if IsRActive() then
 		SetMovement(false)
 		ControlUlt()
-		if GetEnemyCount(1650, myHero) == 0 then
+		if (Menu.Skills.R.Stop:Value() and GetEnemyCount(1650, myHero) == 0) then
 			Control.CastSpell(HK_R)
 		end
 	else
@@ -798,10 +799,10 @@ function AutoQ()
 					local castPos4 = castPos3:Extended(myHero.pos, range/2+250)
 					local Delay4 = myHero.pos:DistanceTo(castPos4)/Q.Speed  + ping
 					if CheckMinionCollision(myHero, PredPos2, Q.Delay, Q.Width, Q.Speed, Q.Range, castPos2) then
-						print("Right")
+						--print("Right")
 					end
 					if CheckMinionCollision(myHero, PredPos2, Q.Delay, Q.Width, Q.Speed, Q.Range, castPos4) then
-						print("Left")
+						--print("Left")
 					end					
 					if not CheckMinionCollision(myHero, castPos2, Q.Delay, Q.Width, Q.Speed, Q.Range, myHero.pos) and not CheckMinionCollision(myHero, PredPos2, Delay2, Q2.Width, Q2.Speed, Q2.Range, castPos2) then
 						Control.CastSpell(HK_Q, castPos2)
