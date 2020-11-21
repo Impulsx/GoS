@@ -48,17 +48,18 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.11"}})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({name = " ", drop = {"AutoSwitch Combo: BurstCombo / StandardCombo"}})
-	Menu.Combo:MenuElement({name = " ", drop = {"Set AutoAttacks = ( +Calc. AADmg for BustCombo )"}})	
+	Menu.Combo:MenuElement({name = " ", drop = {"Set AutoAttacks = (+Calc. AADmg for BustCombo)"}})	
 	Menu.Combo:MenuElement({id = "UseAA", name = "Set AutoAttacks", value = 3, min = 0, max = 10, identifier = "AutoAttack/s"})	
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Combo:MenuElement({id = "UseW2", name = "[E] > [W] > [E] if possible", value = true})	
-	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})		
+	Menu.Combo:MenuElement({id = "UseE", name = "[E1]", value = true})
+	Menu.Combo:MenuElement({id = "UseE2", name = "[E2]", value = true})	
 	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})	
 	
 	--HarassMenu
@@ -91,7 +92,8 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
 	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})
 	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
-	Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})		
+	Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})	
+	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E2]", value = 1, drop = {"Normal", "High", "Immobile"}})	
 
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
@@ -105,6 +107,13 @@ function LoadScript()
 	}
 
 	WspellData = {speed = 1750, range = 610, delay = 0.25, radius = 0, angle = 70, collision = {nil}, type = "conic"}
+	
+	EData =
+	{
+	Type = _G.SPELLTYPE_LINE, Delay = 0, Radius = 130, Range = 1400, Speed = 1050+myHero.ms, Collision = false
+	}
+
+	EspellData = {speed = 1050+myHero.ms, range = 1400, delay = 0, radius = 130, collision = {nil}, type = "linear"}	
 
 	Callback.Add("Tick", function() Tick() end)
 
@@ -187,15 +196,25 @@ if target == nil then return end
 	if IsValid(target) then
 	local QRange = (myHero.range + 50 + myHero.boundingRadius + target.boundingRadius)
 		
-		if Menu.Combo.UseE:Value() and Ready(_E) then
+		if Menu.Combo.UseE2:Value() and Ready(_E) then
 			if myHero:GetSpellData(_E).name == "CamilleEDash2" then
-				if myHero.pos:DistanceTo(target.pos) <= 1000 then
-					Control.SetCursorPos(target.pos)
-					Control.CastSpell(HK_E, target)
-				
-				else
-					Control.CastSpell(HK_E, target.pos)					
-				end
+				if Menu.Pred.Change:Value() == 1 then
+					local pred = GetGamsteronPrediction(target, EData, myHero)
+					if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
+						Control.CastSpell(HK_E, pred.CastPosition)
+					end
+				elseif Menu.Pred.Change:Value() == 2 then
+					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
+					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
+						Control.CastSpell(HK_E, pred.CastPos)
+					end
+				else				
+					local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0, Radius = 130, Range = 1400, Speed = 1050+myHero.ms, Collision = false})
+					EPrediction:GetPrediction(target, myHero)
+					if EPrediction:CanHit(Menu.Pred.PredE:Value()+1) then
+						Control.CastSpell(HK_E, EPrediction.CastPosition)
+					end
+				end	
 			end
 		end	
 		
@@ -206,14 +225,14 @@ if target == nil then return end
 			if Ready(_R) then
 				if myHero.pos:DistanceTo(target.pos) > 500 and Menu.Combo.UseE:Value() and Ready(_E) then
 					local castPos = FindBestWPos(Objects.WALL)
-					if castPos ~= nil and target.pos:DistanceTo(castPos) < 1000 and myHero.pos:DistanceTo(castPos) < 900 then			
+					if castPos ~= nil and target.pos:DistanceTo(castPos) < 1000 and myHero.pos:DistanceTo(castPos) < 800 then			
 						Control.CastSpell(HK_E, castPos)
 					end
 				end
 			else
 				if myHero.pos:DistanceTo(target.pos) > 300 and Menu.Combo.UseE:Value() and Ready(_E) then
 					local castPos = FindBestWPos(Objects.WALL)
-					if castPos ~= nil and target.pos:DistanceTo(castPos) < 1000 and myHero.pos:DistanceTo(castPos) < 900 then			
+					if castPos ~= nil and target.pos:DistanceTo(castPos) < 1000 and myHero.pos:DistanceTo(castPos) < 800 then			
 						Control.CastSpell(HK_E, castPos)
 					end
 				end				
@@ -256,7 +275,7 @@ if target == nil then return end
 
 			if myHero.pos:DistanceTo(target.pos) > 300 and Menu.Combo.UseE:Value() and Ready(_E) then
 				local castPos = FindBestWPos(Objects.WALL)
-				if castPos ~= nil and target.pos:DistanceTo(castPos) < 1000 and myHero.pos:DistanceTo(castPos) < 900 then			
+				if castPos ~= nil and target.pos:DistanceTo(castPos) < 1000 and myHero.pos:DistanceTo(castPos) < 800 then			
 					Control.CastSpell(HK_E, castPos)
 				end
 			end
