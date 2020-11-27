@@ -43,7 +43,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
 	
 	Menu:MenuElement({type = MENU, id = "Flee", name = "Flee Mode"})
 	Menu.Flee:MenuElement({id = "Use", name = "Use [W] for Flee", value = true})	
@@ -64,6 +64,7 @@ function LoadScript()
 
 	--AutoR
 	Menu:MenuElement({type = MENU, id = "AutoR", name = "AutoR Mode"})
+	Menu.AutoR:MenuElement({id = "range", name = "Only cast if Enemy range lower than -->", value = 700, min = 0, max = 1500, step = 10, identifier = "range"})	
 	Menu.AutoR:MenuElement({id = "self", name = "Ult self", value = true})
 	Menu.AutoR:MenuElement({id = "ally", name = "Ult Ally", value = true})
 	Menu.AutoR:MenuElement({id = "HP", name = "HP Self/Ally", value = 40, min = 0, max = 100, step = 1, identifier = "%"})
@@ -89,7 +90,8 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear Mode"})	
 	Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.Clear:MenuElement({id = "UseQ2", name = "Only [Q] if killable", value = true})	
-	Menu.Clear:MenuElement({id = "UseE", name = "[E]", value = true})	
+	Menu.Clear:MenuElement({id = "UseE", name = "[E]", value = true})
+	Menu.Clear:MenuElement({id = "UseE2", name = "[E] only Lasthit", value = true})	
 	Menu.Clear:MenuElement({id = "Mana", name = "Min Mana [Q]", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
@@ -134,11 +136,24 @@ function LoadScript()
 		if Menu.Drawing.DrawR:Value() and Ready(_R) then
 			DrawCircle(myHero, 900, 1, DrawColor(225, 225, 0, 10))
 		end		
-	end)		
+	end)
+
+		
 end
 
+local ActiveUlt = false
 function Tick()
-if MyHeroNotReady() then return end
+	
+	local currSpell = myHero.activeSpell
+	if currSpell and currSpell.valid and myHero.isChanneling and currSpell.name == "KayleR" then
+		ActiveUlt = true
+		SetAttack(false)
+	else
+		ActiveUlt = false
+		SetAttack(true)
+	end
+
+if MyHeroNotReady() or ActiveUlt then return end
 	local Mode = GetMode()
 	if Mode == "Combo" then
 		Combo()
@@ -156,11 +171,13 @@ if MyHeroNotReady() then return end
 	AutoW()
 end
 
-function AAReset()
-	if myHero.activeSpell.name == "KayleBasicAttack3" or myHero.activeSpell.name == "KayleBasicAttack4" then
-		DelayAction(function()
-			Control.CastSpell(HK_E)
-		end,0.1)	
+function AAReset(unit)
+	if Control.CastSpell(HK_E, unit) then
+		if _G.SDK and _G.SDK.Orbwalker then
+			_G.SDK.Orbwalker:__OnAutoAttackReset()
+		elseif _G.PremiumOrbwalker then
+			_G.PremiumOrbwalker:ResetAutoAttack()
+		end		
 	end
 end
 
@@ -172,7 +189,7 @@ end
 
 function AutoW()
 	local target = GetTarget(1200)     	
-	if target == nil then return end		
+	if target == nil then return end	
 	
 	if IsValid(target) and myHero.mana/myHero.maxMana >= Menu.AutoW.Mana:Value() / 100 then
 		
@@ -193,7 +210,7 @@ function AutoW()
 end
 
 function AutoR()
-	if EnemyInRange(myHero, 1500) >= 1 then
+	if EnemyInRange(myHero, Menu.AutoR.range:Value()) >= 1 then
 		if Ready(_R) and Menu.AutoR.self:Value() then
 			if myHero.health/myHero.maxHealth <= Menu.AutoR.HP:Value()/100 then	
 				Control.CastSpell(HK_R, myHero)
@@ -203,7 +220,7 @@ function AutoR()
 		if Ready(_R) and Menu.AutoR.ally:Value() then
 			for i, Ally in ipairs(GetAllyHeroes()) do
 				if Ally and myHero.pos:DistanceTo(Ally.pos) < 900 and IsValid(Ally) then
-				local enemy = EnemyInRange(Ally, 650)			
+				local enemy = EnemyInRange(Ally, Menu.AutoR.range:Value())			
 					if enemy >= 1 and Ally.health/Ally.maxHealth <= Menu.AutoR.HP:Value()/100 and Menu.AutoR.Targets[Ally.charName] and Menu.AutoR.Targets[Ally.charName]:Value() then
 						Control.CastSpell(HK_R, Ally)
 					end
@@ -219,15 +236,9 @@ function Combo()
 	
 	if IsValid(target) then
 					
-		if myHero.range >= 520 then
-			if myHero.pos:DistanceTo(target.pos) <= 530 and Menu.Combo.UseE:Value() and Ready(_E) then					
-				AAReset()
-				return
-			end
-		else	
-			if myHero.pos:DistanceTo(target.pos) <= 525 and Menu.Combo.UseE:Value() and Ready(_E) then					
-				Control.CastSpell(HK_E)	
-			end
+		if myHero.pos:DistanceTo(target.pos) <= 525 and Menu.Combo.UseE:Value() and Ready(_E) then					
+			AAReset(target)
+			return
 		end			
 		
 		if myHero.pos:DistanceTo(target.pos) <= 850 and Menu.Combo.UseQ:Value() and Ready(_Q) then
@@ -257,17 +268,11 @@ function Harass()
 	if target == nil then return end
 	
 	if IsValid(target) then
-		
-		if myHero.range >= 520 then
-			if myHero.pos:DistanceTo(target.pos) <= 530 and Menu.Harass.UseE:Value() and Ready(_E) then					
-				AAReset()
-				return
-			end
-		else	
-			if myHero.pos:DistanceTo(target.pos) <= 525 and Menu.Harass.UseE:Value() and Ready(_E) then					
-				Control.CastSpell(HK_E)	
-			end
-		end			
+
+		if myHero.pos:DistanceTo(target.pos) <= 525 and Menu.Harass.UseE:Value() and Ready(_E) then					
+			AAReset(target)
+			return
+		end		
 		
 		if myHero.pos:DistanceTo(target.pos) <= 850 and Menu.Harass.UseQ:Value() and Ready(_Q) and myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value() / 100 then
 			if Menu.Pred.Change:Value() == 1 then
@@ -291,6 +296,13 @@ function Harass()
 	end
 end	
 
+local function CalcEDmg(unit)
+	local eLvl = myHero:GetSpellData(_E).level
+	local Dmg = ({ 15, 20, 25, 30, 35 })[eLvl] + 0.1*myHero.bonusDamage + 0.25*myHero.ap
+	local EDmg = CalcMagicalDamage(myHero, unit, Dmg)
+	return getdmg("E", unit, myHero) + EDmg
+end
+
 function Clear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
@@ -308,13 +320,14 @@ function Clear()
 				end	
 			end	
 
-			if myHero.range >= 520 then
-				if myHero.pos:DistanceTo(minion.pos) <= 530 and Menu.Clear.UseE:Value() and Ready(_E) then					
-					AAReset()	
-				end
-			else	
-				if myHero.pos:DistanceTo(minion.pos) <= 525 and Menu.Clear.UseE:Value() and Ready(_E) then					
-					Control.CastSpell(HK_E)	
+			if myHero.pos:DistanceTo(minion.pos) <= 525 and Menu.Clear.UseE:Value() and Ready(_E) then					
+				if Menu.Clear.UseE2:Value() then
+					local Dmg = CalcEDmg(minion)
+					if Dmg >= minion.health then
+						AAReset(minion)	
+					end
+				else
+					AAReset(minion)
 				end
 			end				
 		end
@@ -331,15 +344,9 @@ function JungleClear()
 				Control.CastSpell(HK_Q, minion.pos)	
 			end	
 
-			if myHero.range >= 520 then
-				if myHero.pos:DistanceTo(minion.pos) <= 530 and Menu.JClear.UseE:Value() and Ready(_E) then					
-					AAReset()	
-				end
-			else	
-				if myHero.pos:DistanceTo(minion.pos) <= 525 and Menu.JClear.UseE:Value() and Ready(_E) then					
-					Control.CastSpell(HK_E)	
-				end
-			end				
+			if myHero.pos:DistanceTo(minion.pos) <= 525 and Menu.JClear.UseE:Value() and Ready(_E) then					
+				AAReset(minion)	
+			end			
 		end
 	end    
 end
