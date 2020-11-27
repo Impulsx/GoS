@@ -215,7 +215,11 @@ Data = {
          Kayle = {
             Changelog = "Kayle Changelog Here",
             Version = 0.01,
-        },       
+        },
+         Graves = {
+            Changelog = "Graves Changelog Here",
+            Version = 0.01,
+        },         
     },
     Loader = {
         Version = 0.2,
