@@ -224,7 +224,11 @@ Data = {
          Graves = {
             Changelog = "Graves Changelog Here",
             Version = 0.03,
-        },        
+        }, 
+         Shen = {
+            Changelog = "Shen Changelog Here",
+            Version = 0.01,
+        },         
     },
 }
 
