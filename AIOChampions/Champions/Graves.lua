@@ -1,34 +1,3 @@
-local function GetEnemyHeroes()
-	local _EnemyHeroes = {}
-	for i = 1, GameHeroCount() do
-		local unit = GameHero(i)
-		if unit.team ~= myHero.team then
-			TableInsert(_EnemyHeroes, unit)
-		end
-	end
-	return _EnemyHeroes
-end
-
-local function EnemyInRange(pos, range)
-	local count = 0
-	for i, target in ipairs(GetEnemyHeroes()) do
-		if target.pos:DistanceTo(pos.pos) <= range and IsValid(target) then 
-			count = count + 1
-		end
-	end
-	return count
-end
-
-local function GetAllyHeroes()
-    local _AllyHeroes = {}
-    for i = 1, GameHeroCount() do
-        local unit = GameHero(i)
-        if unit.isAlly and not unit.isMe then
-            TableInsert(_AllyHeroes, unit)
-        end
-    end
-    return _AllyHeroes
-end
 
 local function HasBuff(unit, buffname)
 	for i = 0, unit.buffCount do
@@ -40,23 +9,30 @@ local function HasBuff(unit, buffname)
 	return false
 end
 
---require "2DGeometry"
+local function VectorWay(A,B)
+	WayX = B.x - A.x
+	WayY = B.y - A.y
+	WayZ = B.z - A.z
+	return Vector(WayX, WayY, WayZ)
+end
+
 require "MapPositionGOS"
 
--- Reworked Internal Script from Noddy --
+-- Most stuff reworked Internal Script from Noddy --
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
-	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
+	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	Menu.Combo:MenuElement({id = "UseQ2", name = "Only [Q] if can donate Terrain", value = true})	
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
-	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
+	Menu.Combo:MenuElement({id = "UseE", name = "[E] Mouse Position", value = true})
 	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})
 	Menu.Combo:MenuElement({id = "Burst", name = "Burst Combo", value = true})
-	Menu.Combo:MenuElement({id = "BurstE", name = "Burst [E] helper", value = true})	
+	Menu.Combo:MenuElement({id = "BurstE", name = "Burst [E] helper (Gapclose)", value = true})	
 	
 	--HarassMenu
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass Mode"})	
@@ -66,10 +42,8 @@ function LoadScript()
   
 	--LaneClear Menu
 	Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear Mode"})	
-	Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})
-	Menu.Clear:MenuElement({id = "UseQ2", name = "Only [Q] if killable", value = true})	
+	Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	Menu.Clear:MenuElement({id = "UseE", name = "[E]", value = true})
-	Menu.Clear:MenuElement({id = "UseE2", name = "[E] only Lasthit", value = true})	
 	Menu.Clear:MenuElement({id = "Mana", name = "Min Mana [Q]", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
@@ -95,31 +69,31 @@ function LoadScript()
 	
 	QData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 1.4, Radius = 20, Range = 925, Speed = MathHuge, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 20, Range = 925, Speed = 2000, Collision = false
 	}
 	
-	QspellData = {speed = MathHuge, range = 925, delay = 1.4, radius = 20, collision = {nil}, type = "linear"}	
+	QspellData = {speed = 2000, range = 925, delay = 0.25, radius = 20, collision = {nil}, type = "linear"}	
 	
 	WData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.15, Radius = 250, Range = 950, Speed = 1500, Collision = false
+	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.15, Radius = 110, Range = 950, Speed = 1500, Collision = false
 	}
 	
-	WspellData = {speed = 1500, range = 950, delay = 0.15, radius = 250, collision = {nil}, type = "circular"}	
+	WspellData = {speed = 1500, range = 950, delay = 0.15, radius = 110, collision = {nil}, type = "circular"}	
 
 	RData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 1000, Speed = 2100, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 50, Range = 1000, Speed = 2100, Collision = false
 	}
 	
-	RspellData = {speed = 2100, range = 1000, delay = 0.25, radius = 100, collision = {nil}, type = "linear"}
+	RspellData = {speed = 2100, range = 1000, delay = 0.25, radius = 50, collision = {nil}, type = "linear"}
 
 	R2Data =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 200, Range = 1800, Speed = 2100, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 1800, Speed = 2100, Collision = false
 	}
 	
-	R2spellData = {speed = 2100, range = 1800, delay = 0.25, radius = 200, collision = {nil}, type = "linear"}	
+	R2spellData = {speed = 2100, range = 1800, delay = 0.25, radius = 100, collision = {nil}, type = "linear"}	
 			
   	                                          
 	Callback.Add("Tick", function() Tick() end)
@@ -157,8 +131,8 @@ if MyHeroNotReady() then return end
 	elseif Mode == "Harass" then
 		Harass()
 	elseif Mode == "Clear" then
-		--Clear()
-		--JungleClear()	
+		Clear()
+		JungleClear()	
 	end
 end
 
@@ -264,9 +238,49 @@ function Combo()
 	
 	if IsValid(target) then
 
-		-- Burstcombo
-		if Ready(_Q) and Ready(_R) and Menu.Combo.Burst:Value() and target.health < DPS then
+		-- Burstcombo --
+		if Ready(_Q) and Ready(_R) and Menu.Combo.Burst:Value() and myHero.pos:DistanceTo(target.pos) <= 1300 and target.health < DPS then
 			if myHero.pos:DistanceTo(target.pos) <= 900 then
+				if Menu.Pred.Change:Value() == 1 then
+					local predq = GetGamsteronPrediction(target, QData, myHero)
+					local predr = GetGamsteronPrediction(target, RData, myHero)
+					if predq.Hitchance >= Menu.Pred.PredQ:Value()+1 and predr.Hitchance >= Menu.Pred.PredR:Value()+1 then
+						if Control.CastSpell(HK_Q, predq.CastPosition) then	
+							Control.CastSpell(HK_R, predr.CastPosition)	
+						end			
+					end
+				elseif Menu.Pred.Change:Value() == 2 then
+					local predq = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+					local predr = _G.PremiumPrediction:GetPrediction(myHero, target, RspellData)
+					if (predq.CastPos and ConvertToHitChance(Menu.Pred.PredQ:Value(), predq.HitChance)) and (predr.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), predr.HitChance)) then
+						if Control.CastSpell(HK_Q, predq.CastPos) then	
+							Control.CastSpell(HK_R, predr.CastPos)	
+						end							
+					end
+				else
+					local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 20, Range = 925, Speed = 2000, Collision = false})
+					local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 50, Range = 1000, Speed = 2100, Collision = false})
+					QPrediction:GetPrediction(target, myHero)
+					RPrediction:GetPrediction(target, myHero)
+					if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) and RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then	
+						if Control.CastSpell(HK_Q, QPrediction.CastPosition) then	
+							Control.CastSpell(HK_R, RPrediction.CastPosition)	
+						end				
+					end
+				end
+			end	
+			
+			if myHero.pos:DistanceTo(target.pos) > 925 and Ready(_E) and Menu.Combo.BurstE:Value() then
+				Control.CastSpell(HK_E, target.pos)
+			end					
+			
+		else
+			-- Normal Combo --
+			if myHero.pos:DistanceTo(target.pos) <= 950 and not HasBuff(myHero, "gravesbasicattackammo2") and Ready(_E) and Menu.Combo.UseE:Value() then
+				AAReset(mousePos)
+			end				
+			
+			if Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 900 and Menu.Combo.UseQ:Value() then
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, QData, myHero)
 					if pred.Hitchance >= Menu.Pred.PredQ:Value()+1 then
@@ -350,7 +364,7 @@ function Combo()
 						end
 					end
 				else
-					local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 1.4, Radius = 20, Range = 925, Speed = MathHuge, Collision = false})
+					local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 20, Range = 925, Speed = 2000, Collision = false})
 					QPrediction:GetPrediction(target, myHero)
 					if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then	
 						
@@ -392,8 +406,8 @@ function Combo()
 						end
 					end
 				end
-			end
-
+			end	
+		
 			if Ready(_W) and myHero.pos:DistanceTo(target.pos) <= 950 and Menu.Combo.UseW:Value() then
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, WData, myHero)
@@ -406,7 +420,7 @@ function Combo()
 						Control.CastSpell(HK_W, pred.CastPos)
 					end
 				else
-					local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.15, Radius = 250, Range = 950, Speed = 1500, Collision = false})
+					local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.15, Radius = 110, Range = 950, Speed = 1500, Collision = false})
 					WPrediction:GetPrediction(target, myHero)
 					if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 						Control.CastSpell(HK_W, WPrediction.CastPosition)
@@ -427,7 +441,7 @@ function Combo()
 						Control.CastSpell(HK_R, pred.CastPos)
 					end
 				else
-					local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 1000, Speed = 2100, Collision = false})
+					local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 50, Range = 1000, Speed = 2100, Collision = false})
 					RPrediction:GetPrediction(target, myHero)
 					if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
 						Control.CastSpell(HK_R, RPrediction.CastPosition)
@@ -447,7 +461,7 @@ function Combo()
 						Control.CastSpell(HK_R, pred.CastPos)
 					end
 				else
-					local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 200, Range = 1800, Speed = 2100, Collision = false})
+					local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 1800, Speed = 2100, Collision = false})
 					RPrediction:GetPrediction(target, myHero)
 					if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
 						Control.CastSpell(HK_R, RPrediction.CastPosition)
@@ -549,7 +563,7 @@ function Harass()
 					end
 				end
 			else
-				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 1.4, Radius = 20, Range = 925, Speed = MathHuge, Collision = false})
+				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 20, Range = 925, Speed = 2000, Collision = false})
 				QPrediction:GetPrediction(target, myHero)
 				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then	
 					
@@ -595,13 +609,6 @@ function Harass()
 	end
 end	
 
-function VectorWay(A,B)
-WayX = B.x - A.x
-WayY = B.y - A.y
-WayZ = B.z - A.z
-return Vector(WayX, WayY, WayZ)
-end
---[[
 function Clear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
@@ -609,25 +616,11 @@ function Clear()
 		if myHero.pos:DistanceTo(minion.pos) <= 900 and minion.team == TEAM_ENEMY and IsValid(minion) then					
 			
 			if Ready(_Q) and Menu.Clear.UseQ:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
-				if Menu.Clear.UseQ2:Value() then
-					local QDmg = getdmg("Q", minion, myHero)
-					if minion.health < QDmg then
-						Control.CastSpell(HK_Q, minion.pos)
-					end	
-				else
-					Control.CastSpell(HK_Q, minion.pos)	
-				end	
+				Control.CastSpell(HK_Q, minion.pos)	
 			end	
 
-			if myHero.pos:DistanceTo(minion.pos) <= 525 and Menu.Clear.UseE:Value() and Ready(_E) then					
-				if Menu.Clear.UseE2:Value() then
-					local Dmg = CalcEDmg(minion)
-					if Dmg >= minion.health then
-						AAReset(minion)	
-					end
-				else
-					AAReset(minion)
-				end
+			if myHero.pos:DistanceTo(minion.pos) <= myHero.range and Menu.Clear.UseE:Value() and Ready(_E) then					
+				AAReset(minion.pos)	
 			end				
 		end
 	end
@@ -643,10 +636,9 @@ function JungleClear()
 				Control.CastSpell(HK_Q, minion.pos)	
 			end	
 
-			if myHero.pos:DistanceTo(minion.pos) <= 525 and Menu.JClear.UseE:Value() and Ready(_E) then					
-				AAReset(minion)	
+			if myHero.pos:DistanceTo(minion.pos) <= myHero.range and Menu.JClear.UseE:Value() and Ready(_E) then					
+				AAReset(minion.pos)	
 			end			
 		end
 	end    
 end
-]]
