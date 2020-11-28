@@ -219,7 +219,11 @@ Data = {
          Graves = {
             Changelog = "Graves Changelog Here",
             Version = 0.01,
-        },         
+        },
+         Shen = {
+            Changelog = "Shen Changelog Here",
+            Version = 0.01,
+        },        
     },
     Loader = {
         Version = 0.2,
