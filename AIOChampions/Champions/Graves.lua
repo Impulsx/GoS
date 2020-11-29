@@ -18,11 +18,16 @@ end
 
 require "MapPositionGOS"
 
--- Most stuff reworked Internal Script from Noddy --
+-- Most stuff reworked from Internal Script by Noddy --
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
+	
+	--UltMenu  
+	Menu:MenuElement({type = MENU, id = "Ult", name = "Semi Ult"})
+	Menu.Ult:MenuElement({id = "Change", name = "Which Range?", value = 1, drop = {"Ult + Doante Range (1800)", "Only Ult Range (1000)"}})	
+	Menu.Ult:MenuElement({id = "Key", name = "Semi manual Ult Key", key = string.byte("T")})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
@@ -134,6 +139,10 @@ if MyHeroNotReady() then return end
 		Clear()
 		JungleClear()	
 	end
+	 
+	if Menu.Ult.Key:Value() then
+		SemiUlt()
+	end
 end
 
 local Qpred = false
@@ -230,6 +239,76 @@ function AAReset(unit)
 			_G.PremiumOrbwalker:ResetAutoAttack()
 		end		
 	end
+end
+
+function SemiUlt()
+	if Menu.Ult.Change:Value() == 1 then
+		local target = GetTarget(1750)
+		if target == nil then return end
+		
+		if Ready(_R) and IsValid(target) then
+			if myHero.pos:DistanceTo(target.pos) > 1000 then
+				if Menu.Pred.Change:Value() == 1 then
+					local pred = GetGamsteronPrediction(target, R2Data, myHero)
+					if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
+						Control.CastSpell(HK_R, pred.CastPosition)
+					end
+				elseif Menu.Pred.Change:Value() == 2 then
+					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, R2spellData)
+					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
+						Control.CastSpell(HK_R, pred.CastPos)
+					end
+				else
+					local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 1800, Speed = 2100, Collision = false})
+					RPrediction:GetPrediction(target, myHero)
+					if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
+						Control.CastSpell(HK_R, RPrediction.CastPosition)
+					end	
+				end
+			else				
+				if Menu.Pred.Change:Value() == 1 then
+					local pred = GetGamsteronPrediction(target, RData, myHero)
+					if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
+						Control.CastSpell(HK_R, pred.CastPosition)
+					end
+				elseif Menu.Pred.Change:Value() == 2 then
+					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, RspellData)
+					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
+						Control.CastSpell(HK_R, pred.CastPos)
+					end
+				else
+					local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 50, Range = 1000, Speed = 2100, Collision = false})
+					RPrediction:GetPrediction(target, myHero)
+					if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
+						Control.CastSpell(HK_R, RPrediction.CastPosition)
+					end	
+				end
+			end	
+		end
+	else
+		local target = GetTarget(950)
+		if target == nil then return end
+		
+		if Ready(_R) and IsValid(target) then				
+			if Menu.Pred.Change:Value() == 1 then
+				local pred = GetGamsteronPrediction(target, RData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
+					Control.CastSpell(HK_R, pred.CastPosition)
+				end
+			elseif Menu.Pred.Change:Value() == 2 then
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, RspellData)
+				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
+					Control.CastSpell(HK_R, pred.CastPos)
+				end
+			else
+				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 50, Range = 1000, Speed = 2100, Collision = false})
+				RPrediction:GetPrediction(target, myHero)
+				if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
+					Control.CastSpell(HK_R, RPrediction.CastPosition)
+				end	
+			end
+		end	
+	end	
 end	
 
 function Combo()
