@@ -20,25 +20,11 @@ local function GetAllyHeroes()
 	return _AllyHeroes
 end
 
-local function GetMinionCount(range, pos)
-    local pos = pos.pos
-	local count = 0
-	for i = 1,GameMinionCount() do
-	local hero = GameMinion(i)
-	local Range = range * range
-		if hero.team ~= TEAM_ALLY and hero.dead == false and GetDistanceSqr(pos, hero.pos) < Range then
-		count = count + 1
-		end
-	end
-	return count
-end
-
 local function GetEnemyCount(range, pos)
 	local count = 0
-	for i = 1, GameHeroCount() do 
-	local hero = GameHero(i)
+	for i, hero in ipairs(GetEnemyHeroes()) do
 	local Range = range * range
-		if hero.team ~= TEAM_ALLY and GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
+		if GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
 		count = count + 1
 		end
 	end
@@ -57,33 +43,6 @@ local function IsUnderTurret(unit, radius)
         end
     end
     return false
-end
-
-local function DistanceSquared(p1, p2)
-	local dx, dy = p2.x - p1.x, p2.y - p1.y
-	return dx * dx + dy * dy
-end
-
-local function GetCircularAOEPos(points, radius)
-    local bestPos, count = Vector(0, 0, 0), #points
-    if count == 0 then return nil, 0 end
-    if count == 1 then return points[1], 1 end
-    local inside, furthest, id = 0, 0, 0
-    for i, point in ipairs(points) do
-        bestPos = bestPos + point
-    end
-    bestPos = bestPos / count
-    for i, point in ipairs(points) do
-        local distSqr = DistanceSquared(bestPos, point)
-        if distSqr < radius * radius then inside = inside + 1 end
-        if distSqr > furthest then furthest = distSqr; id = i end
-    end
-    if inside == count then
-        return bestPos, count
-    else
-        TableRemove(points, id)
-        return GetCircularAOEPos(points, radius)
-    end
 end
 
 local function HasBuff(unit, buffname)
@@ -133,29 +92,6 @@ local function GetDamage(spell)
 	return damage
 end
 
-local function VectorPointProjectionOnLineSegment(v1, v2, v)
-	local cx, cy, ax, ay, bx, by = v.x, v.z, v1.x, v1.z, v2.x, v2.z
-	local rL = ((cx - ax) * (bx - ax) + (cy - ay) * (by - ay)) / ((bx - ax) ^ 2 + (by - ay) ^ 2)
-	local pointLine = { x = ax + rL * (bx - ax), y = ay + rL * (by - ay) }
-	local rS = rL < 0 and 0 or (rL > 1 and 1 or rL)
-	local isOnSegment = rS == rL
-	local pointSegment = isOnSegment and pointLine or { x = ax + rS * (bx - ax), y = ay + rS * (by - ay) }
-	return pointSegment, pointLine, isOnSegment
-end
-
-local function MinionCollision(unit, position)
-	for i = 1,GameMinionCount() do
-		local minion = GameMinion(i)
-		if minion.isTargetable and minion.team == TEAM_ENEMY and minion.dead == false then
-			local linesegment, line, isOnSegment = VectorPointProjectionOnLineSegment(unit, position, minion.pos)
-			if linesegment and isOnSegment and (GetDistanceSqr(minion.pos, linesegment) <= (minion.boundingRadius + 55) * (minion.boundingRadius + 55)) then
-				return true
-			end
-		end
-	end
-	return false
-end
-
 local function OnProcessSpell()
 	for i = 1, #Units do
 		local unit = Units[i].unit; local last = Units[i].spell; local spell = unit.activeSpell
@@ -180,7 +116,7 @@ local RTime = 0
 function LoadScript()
 	--OnProcessSpell()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})			
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -206,29 +142,7 @@ function LoadScript()
 	Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})	
 	Menu.Harass:MenuElement({id = "Change", name = "[E] Logic", value = 1, drop = {"Auto [E]", "HarassKey [E]"}})	
 	Menu.Harass:MenuElement({id = "Mana", name = "Min Energy to Harass", value = 40, min = 0, max = 100, identifier = "%"})
-  --[[
-	--LaneClear Menu
-	Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear"})	
-	Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = false})		
-	Menu.Clear:MenuElement({id = "UseW", name = "[W1] + [E]", value = true})  
-	Menu.Clear:MenuElement({id = "UseWM", name = "Use [W1] + [E] min Minions", value = 3, min = 1, max = 6})
-	Menu.Clear:MenuElement({id = "UseE", name = "[E]", value = true})	
-	Menu.Clear:MenuElement({id = "Mana", name = "Min Energy to LaneClear", value = 40, min = 0, max = 100, identifier = "%"})
-  
-	--JungleClear
-	Menu:MenuElement({type = MENU, id = "JClear", name = "JungelClear"})
-	Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = false})         	
-	Menu.JClear:MenuElement({id = "UseW", name = "[W]", value = true})
-	Menu.JClear:MenuElement({id = "UseE", name = "[E]", value = true})
-	Menu.JClear:MenuElement({id = "Mana", name = "Min Energy to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
 
-	--Flee
-	Menu:MenuElement({type = MENU, id = "Flee", name = "Flee"})
-	Menu.Flee:MenuElement({id = "key", name = "Flee Key", key = string.byte("A")})	
-	Menu.Flee:MenuElement({id = "UseQ", name = "[Q] if possible", value = true})         	
-	Menu.Flee:MenuElement({id = "UseW", name = "[W1] + [W2]", value = true})
-	Menu.Flee:MenuElement({id = "UseE", name = "[E] if possible", value = true})	
-]]
 	--KillSteal
 	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
 	Menu.ks:MenuElement({id = "UseQE", name = "KS: [W1]>[E]>[Q]", value = true})
@@ -236,7 +150,7 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "spells", name = "Evade"})
 	Menu.spells:MenuElement({id = "wblock", name = "Evade[W] MousePos", value = true})		
 	Menu.spells:MenuElement({id = "rblock", name = "Evade[R] if not ready [W]", value = true})
-	for i, enemy in pairs(GetEnemyHeroes()) do
+	for i, enemy in ipairs(GetEnemyHeroes()) do
 		Menu.spells:MenuElement({type = MENU, id = enemy.charName, name = enemy.charName})	
 	end	
 	
@@ -253,7 +167,7 @@ function LoadScript()
 	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})	
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
-	Menu.Drawing:MenuElement({id = "Kill", name = "Draw Kill Text onScreen/Minimap", value = true})	
+	Menu.Drawing:MenuElement({id = "KillText", name = "Draw Kill Text onScreen/Minimap", value = false})	
 
 
 	QData ={Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 900, Speed = 900,  Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}
@@ -274,9 +188,8 @@ function LoadScript()
 end
 
 function LoadBlockSpells()
-	for i = 1, GameHeroCount(i) do
-	local t = GameHero(i)
-		if t and t.isEnemy then		
+	for i, t in ipairs(GetEnemyHeroes()) do
+		if t then		
 			for slot = 0, 3 do
 			local enemy = t
 			local spellName = enemy:GetSpellData(slot).name
@@ -321,14 +234,7 @@ local Mode = GetMode()
 		W()
 		if Menu.Harass.Change:Value() == 2 then
 			E()
-		end
-	--elseif Mode == "Clear" then
-		--Clear()
-		--JungleClear()
-	--elseif Mode == "Flee" then
-		--if Menu.Flee.key:Value() then
-			--Flee()
-		--end	
+		end	
 	end
 	
 	if R1casted and myHero:GetSpellData(_R).name == "ZedR2" then
@@ -441,7 +347,7 @@ local unit, spell = OnProcessSpell()
 end
 
 function CastEvadeR()
-	for i, enemy in pairs(GetEnemyHeroes()) do
+	for i, enemy in ipairs(GetEnemyHeroes()) do
 		if enemy and myHero.pos:DistanceTo(enemy.pos) <= 625 and IsValid(enemy) then
 			Control.CastSpell(HK_R, enemy)
 			R1casted = true
@@ -465,8 +371,8 @@ function Drawing()
 	DrawCircle(myHero, 290, 1, DrawColor(225, 225, 125, 10))
 	end	
 
-	if Menu.Drawing.Kill:Value() then
-		for i, target in pairs(GetEnemyHeroes()) do
+	if Menu.Drawing.KillText:Value() then
+		for i, target in ipairs(GetEnemyHeroes()) do
 			local Qdmg2		= Ready(_Q) and GetDamage(HK_Q) or 0
 			local Edmg2 	= Ready(_E) and GetDamage(HK_E) or 0
 			local IGdmg 	= GetDamage(Ignite) or 0			
@@ -479,12 +385,12 @@ function Drawing()
 			local QEDmg 	= (Qdmg + Edmg) - (target.hpRegen*3)
 			local currentEnergyNeeded = GetEnergy()
 			if Ready(_R) then
-				if myHero.pos:DistanceTo(target.pos) <= 5000 and IsValid(target) and target.health < TotalDmg and myHero.mana > currentEnergyNeeded then 
+				if myHero.pos:DistanceTo(target.pos) <= 2000 and IsValid(target) and target.health < TotalDmg and myHero.mana > currentEnergyNeeded then 
 					DrawText("Kill", 24, target.pos2D.x, target.pos2D.y,DrawColor(255, 255, 0, 0))
 					DrawText("Kill", 10, target.posMM.x - 15, target.posMM.y - 15,DrawColor(255, 255, 0, 0))			
 				end
 			else
-				if myHero.pos:DistanceTo(target.pos) <= 5000 and IsValid(target) and target.health < QEDmg then
+				if myHero.pos:DistanceTo(target.pos) <= 2000 and IsValid(target) and target.health < QEDmg then
 					DrawText("Kill", 24, target.pos2D.x, target.pos2D.y,DrawColor(255, 255, 0, 0))
 					DrawText("Kill", 10, target.posMM.x - 15, target.posMM.y - 15,DrawColor(255, 255, 0, 0))	
 				end				
@@ -553,7 +459,7 @@ end
 function Q()
 local target = GetTarget(2000)
 if target == nil then return end
-    if Ready(_Q) and ((Menu.Combo.UseQ:Value() and GetMode() == "Combo") or (Menu.Harass.UseQ:Value() and GetMode() == "Harass")) then
+    if Ready(_Q) then
 
 		if myHero.pos:DistanceTo(target.pos) <= 850 and not Ready(_W) then
 			CastQ(target, myHero)
@@ -581,7 +487,7 @@ end
 function W()
 local target = GetTarget(2000)
 if target == nil then return end    
-    if Ready(_W) and ((Menu.Combo.UseW:Value() and GetMode() == "Combo") or (Menu.Harass.UseW:Value() and GetMode() == "Harass")) then
+    if Ready(_W) then
 
 		if myHero:GetSpellData(_W).name ~= "ZedW2" then
 			if Ready(_Q) and not Ready(_E) then
@@ -613,8 +519,8 @@ if target == nil then return end
 end
 
 function E()
-	for i, target in pairs(GetEnemyHeroes()) do 
-		if Ready(_E) and ((Menu.Combo.UseE:Value() and GetMode() == "Combo") or (Menu.Harass.UseE:Value() and GetMode() == "Harass")) and myHero.pos:DistanceTo(target.pos) <= 2000 and IsValid(target) then
+	for i, target in ipairs(GetEnemyHeroes()) do 
+		if Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 2000 and IsValid(target) then
 		
 			if GetDistance(target.pos, myHero.pos) < 290 then
 				Control.CastSpell(HK_E)
@@ -636,7 +542,7 @@ function E()
 end
 
 function AutoE()
-	for i, target in pairs(GetEnemyHeroes()) do 
+	for i, target in ipairs(GetEnemyHeroes()) do 
 		if Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 2000 and IsValid(target) then
 		
 			if GetDistance(target.pos, myHero.pos) < 290 then
@@ -703,7 +609,7 @@ if target == nil then return end
 						return
 					end
 				else
-					for i, ally in pairs(GetAllyHeroes()) do
+					for i, ally in ipairs(GetAllyHeroes()) do
 						if target.health < TotalDmg and myHero.mana > currentEnergyNeeded then
 							if not IsUnderTurret(target) or (IsUnderTurret(target) and ally.pos:DistanceTo(target.pos) < 900 and IsUnderTurret(ally)) then
 								UltKillable = true
@@ -730,7 +636,7 @@ if target == nil then return end
 								UltKillable = false
 							end,0.2)	
 						else
-							for i, ally in pairs(GetAllyHeroes()) do
+							for i, ally in ipairs(GetAllyHeroes()) do
 								if not IsUnderTurret(target) or (IsUnderTurret(target) and ally.pos:DistanceTo(target.pos) < 800 and IsUnderTurret(ally)) then
 									UltKillable = true
 									Wshadow = myHero.pos
@@ -754,7 +660,7 @@ if target == nil then return end
 										UltKillable = false
 									end,0.2)
 								else
-									for i, ally in pairs(GetAllyHeroes()) do
+									for i, ally in ipairs(GetAllyHeroes()) do
 										if not IsUnderTurret(target) or (IsUnderTurret(target) and ally.pos:DistanceTo(target.pos) < 800 and IsUnderTurret(ally)) then
 											UltKillable = true
 											Control.CastSpell(HK_W, target.pos)
@@ -779,7 +685,7 @@ if target == nil then return end
 end
 
 function AutoBack()
-	for i, target in pairs(Rtarget) do
+	for i, target in ipairs(Rtarget) do
 		
 		if Menu.Combo.Ult.UseR2:Value() and HasBuff(myHero, "ZedR2") and Rshadow ~= nil and target then
 			if GetEnemyCount(600, myHero.pos) > 1 or IsUnderTurret(myHero) then
@@ -798,7 +704,7 @@ function AutoBack()
 end
 
 function QEKill()
-	for i, target in pairs(GetEnemyHeroes()) do
+	for i, target in ipairs(GetEnemyHeroes()) do
 		if myHero.pos:DistanceTo(target.pos) < 900 and IsValid(target) then
 			local Qdmg 	= Ready(_Q) and getdmg("Q", target, myHero) or 0
 			local Edmg 	= Ready(_E) and getdmg("E", target, myHero) or 0
@@ -817,51 +723,3 @@ function QEKill()
 		QEKillable = false
 	end
 end	
---[[
-
-
-function Clear()
-    for i = 1, GameMinionCount() do
-    local minion = GameMinion(i)
-        if minion.team == TEAM_ENEMY then
-            local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
-            
-			if Menu.Clear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 575 and IsValid(minion) and Ready(_Q) then
-				Control.CastSpell(HK_Q, minion)
-            end
-			
-            if Menu.Clear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 600 and IsValid(minion) and Ready(_W) then
-                local count = GetMinionCount(575, minion)
-				if count >= Menu.Clear.UseWM:Value() then
-					Control.CastSpell(HK_W)
-				end
-            end
-			
-			if Menu.Clear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and Ready(_E) then
-				Control.CastSpell(HK_E, minion.pos)
-            end			
-        end
-    end
-end
-
-function JungleClear()
-    for i = 1, GameMinionCount() do
-    local minion = GameMinion(i)
-        if minion.team == TEAM_JUNGLE then
-            local mana_ok = myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100
-            
-			if Menu.JClear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 575 and IsValid(minion) and Ready(_Q) then
-                Control.CastSpell(HK_Q, minion.pos)
-            end
-			
-            if Menu.JClear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 550 and IsValid(minion) and Ready(_W) then	
-				Control.CastSpell(HK_W)
-            end
-			
-			if Menu.JClear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and Ready(_E) then
-				Control.CastSpell(HK_E, minion.pos)
-            end			
-        end
-    end
-end
-]]
