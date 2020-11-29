@@ -171,7 +171,7 @@ Data = {
         }, 
            Zed = {
             Changelog = "Zed Changelog Here",
-            Version = 0.07,
+            Version = 0.08,
         },
            Volibear = {
             Changelog = "Volibear Changelog Here",
