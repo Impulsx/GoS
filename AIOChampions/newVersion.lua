@@ -228,7 +228,11 @@ Data = {
          Shen = {
             Changelog = "Shen Changelog Here",
             Version = 0.02,
-        },         
+        },
+          Thresh = {
+            Changelog = "Thresh Changelog Here",
+            Version = 0.01,
+        },        
     },
 }
 
