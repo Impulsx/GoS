@@ -227,7 +227,11 @@ Data = {
           Thresh = {
             Changelog = "Thresh Changelog Here",
             Version = 0.01,
-        },        
+        }, 
+           Rell = {
+            Changelog = "Rell Changelog Here",
+            Version = 0.01,
+        },       
     },
     Loader = {
         Version = 0.2,
