@@ -37,14 +37,15 @@ end
 function LoadScript() 
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})			
 		
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
-	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})	
+	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})
+	Menu.Combo:MenuElement({id = "HP", name = "[R1] if EnemyHP lower than -->", value = 50, min = 0, max = 100, identifier = "%"})	
 	
 	--HarassMenu  
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
@@ -135,12 +136,29 @@ local Mode = GetMode()
 	KillSteal()	
 end
 
+function RbDmg(unit)
+    local LvL = myHero:GetSpellData(_R).level
+	local R2Dmg = (({75, 145, 215})[LvL] + 0.3 * myHero.ap)
+	local PercentMissingHealth = (1 - (unit.health / unit.maxHealth)) * 100
+	
+	if PercentMissingHealth < 7 then
+		local RDmg = R2Dmg 
+        return CalcMagicalDamage(myHero, unit, RDmg)
+	elseif PercentMissingHealth >= 7 and PercentMissingHealth < 70 then
+        local RDmg = R2Dmg + ((0.0286 * PercentMissingHealth) * R2Dmg)
+        return CalcMagicalDamage(myHero, unit, RDmg)
+    else
+        local RDmg = R2Dmg * 3
+        return CalcMagicalDamage(myHero, unit, RDmg)
+    end
+end
+
 function Combo()
 local target = GetTarget(1500)     	
 if target == nil then return end
 	if IsValid(target) then
 
-		if myHero.pos:DistanceTo(target.pos) < 825 and Menu.Combo.UseR:Value() and Ready(_R) and myHero:GetSpellData(_R).name == "AkaliR" then
+		if myHero.pos:DistanceTo(target.pos) < 800 and Menu.Combo.UseR:Value() and Ready(_R) and myHero:GetSpellData(_R).name == "AkaliR" and target.health/target.maxHealth <= Menu.Combo.HP:Value() /100 then
 			Control.CastSpell(HK_R, target)	
 		end	
 				
@@ -176,11 +194,15 @@ if target == nil then return end
 			CastSpell(HK_W, target.pos)	
 		end	
 
-		if myHero.pos:DistanceTo(target.pos) < 750 and Ready(_R) and myHero:GetSpellData(_R).name == "AkaliRb" then
-			CastSpell(HK_R, target.pos)	
-		end			
+		if myHero.pos:DistanceTo(target.pos) < 725 and Ready(_R) and myHero:GetSpellData(_R).name == "AkaliRb" then
+			local R2Dmg = RbDmg(target)
+			if R2Dmg >= target.health then
+				CastSpell(HK_R, target.pos)
+			end
+		end
+					
 	end	
-end	
+end		
 
 function Harass()
 local target = GetTarget(700)     	
