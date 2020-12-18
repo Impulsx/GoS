@@ -42,10 +42,10 @@ local function GetAngle(v1, v2)
 	return false
 end
 
-local function UseDarkHarvest()
+local function DarkHarvest()
 	for i = 0, myHero.buffCount do
 		local buff = myHero:GetBuff(i)
-		if buff.name:lower():find("darkharvest") and buff.count > 0 then 
+		if buff and buff.name:lower():find("darkharvest") then 
 			return true
 		end
 	end
@@ -55,7 +55,7 @@ end
 local function DarkHarvestReady()
 	for i = 0, myHero.buffCount do
 		local buff = myHero:GetBuff(i)
-		if buff.name:lower():find("darkharvestcooldown") and buff.count > 0 then 
+		if buff and buff.name:lower():find("darkharvestcooldown") and buff.count == 0 then 
 			return true
 		end
 	end
@@ -71,15 +71,17 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})	
 	
 	--AutoW 
 	Menu:MenuElement({type = MENU, id = "AutoW", name = "Stack Dark Harvest"})
-	if UseDarkHarvest() then	
-		Menu.AutoW:MenuElement({id = "UseW", name = "Auto[W] HP Enemy is less 50%", value = true})
-	else
-		Menu.AutoW:MenuElement({name = " ", drop = {"Dark Harvest not equipped"}})	
-	end
+	DelayAction(function()
+		if DarkHarvest() then	
+			Menu.AutoW:MenuElement({id = "UseW", name = "Auto[W] HP Enemy is less 50%", value = true})
+		else
+			Menu.AutoW:MenuElement({name = " ", drop = {"Dark Harvest not equipped"}})	
+		end
+	end,0.2)	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -128,10 +130,10 @@ function LoadScript()
 	
 	WData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 2, Radius = 20, Range = 3000, Speed = 5000, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.75, Radius = 20, Range = 3000, Speed = 5000, Collision = false
 	}
 	
-	WspellData = {speed = 5000, range = 3000, delay = 2, radius = 20, collision = {nil}, type = "linear"}
+	WspellData = {speed = 5000, range = 3000, delay = 0.75, radius = 20, collision = {nil}, type = "linear"}
 
 	EData =
 	{
@@ -180,6 +182,7 @@ end
 
 function Tick()
 if MyHeroNotReady() then return end
+local currSpell = myHero.activeSpell
 
 local Mode = GetMode()
 	if Mode == "Combo" then
@@ -234,7 +237,7 @@ end
 function AutoW()
 if myHero:GetSpellData(_R).name == "JhinRShot" then return end	
 	for i, target in ipairs(GetEnemyHeroes()) do     	
-		if Ready(_W) and not DarkHarvestReady() and target and myHero.pos:DistanceTo(target.pos) <= 3000 and IsValid(target) then
+		if Ready(_W) and DarkHarvestReady() and target and myHero.pos:DistanceTo(target.pos) <= 3000 and IsValid(target) then
 			if target.health/target.maxHealth < 0.5 then
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, WData, myHero)
@@ -422,7 +425,7 @@ end
 
 function CastGGPred(spell, unit)
 	if spell == _W then
-		local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 2, Radius = 20, Range = 3000, Speed = 5000, Collision = false})
+		local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.75, Radius = 20, Range = 3000, Speed = 5000, Collision = false})
 		WPrediction:GetPrediction(unit, myHero)
 		if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 			Control.CastSpell(HK_W, WPrediction.CastPosition)
