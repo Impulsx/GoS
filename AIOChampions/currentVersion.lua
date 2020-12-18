@@ -231,7 +231,11 @@ Data = {
            Rell = {
             Changelog = "Rell Changelog Here",
             Version = 0.01,
-        },       
+        },
+           Orianna = {
+            Changelog = "Orianna Changelog Here",
+            Version = 0.01,
+        },        
     },
     Loader = {
         Version = 0.2,
