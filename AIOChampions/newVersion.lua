@@ -236,6 +236,10 @@ Data = {
           Rell = {
             Changelog = "Rell Changelog Here",
             Version = 0.02,
+        },
+           Orianna = {
+            Changelog = "Orianna Changelog Here",
+            Version = 0.01,
         },        
     },
 }
