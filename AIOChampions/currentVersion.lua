@@ -235,6 +235,10 @@ Data = {
            Orianna = {
             Changelog = "Orianna Changelog Here",
             Version = 0.01,
+        },
+           Khazix = {
+            Changelog = "Khazix Changelog Here",
+            Version = 0.01,
         },        
     },
     Loader = {
