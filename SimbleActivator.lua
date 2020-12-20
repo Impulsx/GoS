@@ -306,7 +306,7 @@ end
 function Activator:LoadMenu()
     
     self.Menu = MenuElement({type = MENU, id = "PussyActivator", leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png"})
-	self.Menu:MenuElement({name = " ", drop = {"Version 0.27"}})    
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.28"}})    
 	
 	--Shield/Heal MyHero
     self.Menu:MenuElement({id = "ZS", name = "MyHero/Ally [Shield/Heal Items]", type = MENU})
@@ -906,16 +906,18 @@ if myHero.alive == false then return end
 		for j = ITEM_1, ITEM_6 do
 			InventoryTable[j] = myHero:GetItemData(j);
 		end
-		local HealthPotionSlot = GetInventorySlotItem(2003);
-		local CookiePotionSlot = GetInventorySlotItem(2010);
-		local RefillablePotSlot = GetInventorySlotItem(2031);
-		local CorruptPotionSlot = GetInventorySlotItem(2033);
-
+		local HealthPotionSlot = GetInventorySlotItem(2003)
+		local CookiePotionSlot = GetInventorySlotItem(2010)
+		local RefillablePotSlot = GetInventorySlotItem(2031)
+		local RefillAmmo = myHero:GetItemData(RefillablePotSlot).ammo
+		local CorruptPotionSlot = GetInventorySlotItem(2033)
+		local CorruptAmmo = myHero:GetItemData(CorruptPotionSlot).ammo
+		
 		for i = 0, 63 do
 			local buffData = myHero:GetBuff(i);
 			if buffData.count > 0 then
+			--print(buffData.name)
 				if (buffData.type == 13) or (buffData.type == 26) then 
-				--print(buffData.name)
 					if (buffData.name == "ItemDarkCrystalFlask") or (buffData.name == "ItemCrystalFlaskJungle") or (buffData.name == "ItemCrystalFlask") or (buffData.name == "Item2010") or (buffData.name == "Item2003") then
 						currentlyDrinkingPotion = true;
 						break;
@@ -926,15 +928,19 @@ if myHero.alive == false then return end
 		
 		if (currentlyDrinkingPotion == false) and myHero.health/myHero.maxHealth <= self.Menu.Healing.UsePotsPercent:Value()/100 then
 			if HealthPotionSlot and self.Menu.Healing.UsePots:Value() then
+				--print("Use Potion")
 				Control.CastSpell(ItemHotKey[HealthPotionSlot])
 			end
 			if CookiePotionSlot and self.Menu.Healing.UseCookies:Value() then
+				--print("Use Potion")
 				Control.CastSpell(ItemHotKey[CookiePotionSlot])
 			end
-			if RefillablePotSlot and self.Menu.Healing.UseRefill:Value() then
+			if RefillablePotSlot and RefillAmmo > 0 and self.Menu.Healing.UseRefill:Value() then
+				--print("Use Potion")
 				Control.CastSpell(ItemHotKey[RefillablePotSlot])
 			end
-			if CorruptPotionSlot and self.Menu.Healing.UseCorrupt:Value() then
+			if CorruptPotionSlot and CorruptAmmo > 0 and self.Menu.Healing.UseCorrupt:Value() then
+				--print("Use Potion")
 				Control.CastSpell(ItemHotKey[CorruptPotionSlot])
 			end
 		end
