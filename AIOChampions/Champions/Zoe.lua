@@ -1,3 +1,6 @@
+require "MapPositionGOS"
+require "2DGeometry"
+
 local CCSpells = {
 	["AatroxW"] = {charName = "Aatrox", displayName = "Infernal Chains", slot = _W, type = "linear", speed = 1800, range = 825, delay = 0.25, radius = 80, collision = true},
 	["AhriSeduce"] = {charName = "Ahri", displayName = "Seduce", slot = _E, type = "linear", speed = 1500, range = 975, delay = 0.25, radius = 60, collision = true},
@@ -129,7 +132,14 @@ local CCSpells = {
 }
 
 local function GetEnemyHeroes()
-	return Enemies
+	local _EnemyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.team ~= myHero.team then
+			TableInsert(_EnemyHeroes, unit)
+		end
+	end
+	return _EnemyHeroes
 end 
 
 local function OnProcessSpell()
@@ -209,14 +219,31 @@ local function CalculateCollisionTime(startPos, endPos, unitPos, startTime, spee
 	return GetDistance(unitPos, pos) / speed
 end
 
-require "MapPositionGOS"
-require "2DGeometry"
-function LoadScript()
-	OnProcessSpell() 
+local function minionCollision2(Pos1, Pos2, wight)
+	local Collision = 0
+	for i = 1, GameMinionCount() do
+		local minion = GameMinion(i)
+		if minion.isTargetable and minion.team == TEAM_ENEMY and minion.dead == false then
+			local linesegment, line, isOnSegment = VectorPointProjectionOnLineSegment(Pos1, Pos2, minion.pos)
+			if linesegment and isOnSegment and (GetDistanceSqr(minion.pos, linesegment) <= (minion.boundingRadius + wight) * (minion.boundingRadius + wight)) then
+				Collision = Collision + 1
+			end
+		end
+	end
+	return Collision
+end
+
+local CastE = nil
+local OldPos = nil
+local noBuff = 0
+local stuncast = 0
+local Q2range = (math.floor(800 * myHero.ms))
+
+function LoadScript() 
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})	
 	
 	Menu:MenuElement({type = MENU, id = "RSet", name = "AutoR+E Incomming CC Spells"})	
 	Menu.RSet:MenuElement({id = "UseR", name = "Use AutoR + E Stun", value = true})	
@@ -224,14 +251,16 @@ function LoadScript()
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
-	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
-	Menu.Combo:MenuElement({id = "UseQ2", name = "[Q2]", value = true})
+	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	Menu.Combo:MenuElement({id = "UseQ2", name = "[Q2]", value = true})	
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
-	Menu.Combo:MenuElement({id = "UseR", name = "[R] Increase Q2 Range", value = true})		
+	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})	
+	Menu.Combo:MenuElement({name = " ", drop = {"Save[R] = only if Hard CC Enemy near"}})	
+	Menu.Combo:MenuElement({id = "UseR2", name = "Save[R] for incomming CC", value = true})	
 	
 	--W Seetings
-	Menu.Combo:MenuElement({type = MENU, id = "Wset", name = "W Settings"})	
-	Menu.Combo.Wset:MenuElement({id = "UseW", name = "Use[W]", value = true})
+	Menu.Combo:MenuElement({type = MENU, id = "Wset", name = "W Settings Comming Soon !!!"})	
+	Menu.Combo.Wset:MenuElement({id = "UseW", name = "Use[W]", value = false})
 	Menu.Combo.Wset:MenuElement({id = "HP", name = "Min Hp use Def Items/Summoner", value = 40, min = 0, max = 100, identifier = "%"})	
     Menu.Combo.Wset:MenuElement({id = "ignite", name = "Summoner Ignite", value = true})
     Menu.Combo.Wset:MenuElement({id = "exhaust", name = "Summoner Exhaust", value = true})
@@ -239,17 +268,8 @@ function LoadScript()
     Menu.Combo.Wset:MenuElement({id = "heal", name = "Summoner Heal", value = true})
     Menu.Combo.Wset:MenuElement({id = "barrier", name = "Summoner Barrier", value = true})
     Menu.Combo.Wset:MenuElement({id = "cleanse", name = "Summoner Cleanse", value = true})
-    Menu.Combo.Wset:MenuElement({id = "zhonya", name = "Zhonya", value = true})	
-    Menu.Combo.Wset:MenuElement({id = "proto", name = "Hectech Protobelt", value = true})
-    Menu.Combo.Wset:MenuElement({id = "glp", name = "Hectech GLP-800", value = true})
-    Menu.Combo.Wset:MenuElement({id = "hex", name = "Hextech Gunblade", value = true})    
+    Menu.Combo.Wset:MenuElement({id = "zhonya", name = "Zhonya", value = true})	    
 	Menu.Combo.Wset:MenuElement({id = "red", name = "Redemption", value = true})
-    Menu.Combo.Wset:MenuElement({id = "botrk", name = "Blade Of The Ruined King", value = true})
-    Menu.Combo.Wset:MenuElement({id = "solari", name = "Locket of the Iron Solari", value = true})
-    Menu.Combo.Wset:MenuElement({id = "omen", name = "Randuin's Omen", value = true})	
-    Menu.Combo.Wset:MenuElement({id = "yo", name = "Youmuus Ghostblade", value = true})
-    Menu.Combo.Wset:MenuElement({id = "rg", name = "Righteous Glory", value = true})
-    Menu.Combo.Wset:MenuElement({id = "twin", name = "Twin Shadows", value = true})	
 	
 	--Ult Settings
 --[[	Menu.Combo:MenuElement({type = MENU, id = "Ult", name = " Extra Ultimate Settings"})
@@ -274,39 +294,36 @@ function LoadScript()
 ]]
 	--HarassMenu
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
-	Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})	
+	Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.Harass:MenuElement({id = "UseQ2", name = "[Q2]", value = true})	
 	Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--LaneClear Menu
 	Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear"})	
-	Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})		  
+	Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	Menu.Clear:MenuElement({id = "UseQ2", name = "[Q2]", value = true})	
 	Menu.Clear:MenuElement({id = "UseQM", name = "Use[Q] min Minions", value = 3, min = 1, max = 6})	
 	Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to LaneClear", value = 40, min = 0, max = 100, identifier = "%"})
   
 	--JungleClear
 	Menu:MenuElement({type = MENU, id = "JClear", name = "JungelClear"})
-	Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true})         	
-	Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  
- 
-	--KillSteal
-	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
-	Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})	
-	Menu.ks:MenuElement({id = "UseE", name = "[E]", value = true})	
+	Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	Menu.JClear:MenuElement({id = "UseQ2", name = "[Q2]", value = true})	
+	Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 40, min = 0, max = 100, identifier = "%"})  	
 
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
-	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Gamsteron Prediction", "Premium Prediction"}})	
-	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 1, drop = {"Normal", "High", "Immobile"}})	
-	Menu.Pred:MenuElement({id = "PredQ2", name = "Hitchance[Q2]", value = 1, drop = {"Normal", "High", "Immobile"}})
-	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})	
+	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})		
+	Menu.Pred:MenuElement({id = "PredQ2", name = "Hitchance[Q2]", value = 2, drop = {"Normal", "High", "Immobile"}})
+	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})	
  
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
-	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true})
-	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = true})
-	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true})
-	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = true})
+	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
 	
 	Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
 	DelayAction(function()
@@ -320,38 +337,21 @@ function LoadScript()
 		end
 	end, 0.01)
 
+	
 	QData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 100, Range = 800, Speed = 1200, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_LINE, Delay = 0, Radius = 70, Range = 2500, Speed = 2500, Collision = false
 	}
 	
-	QspellData = {speed = 1200, range = 800, delay = 0.25, radius = 100, collision = {"minion"}, type = "circular"}	
-	
-	Q2Data =
-	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 100, Range = 2550, Speed = 1200, Collision = false
-	}
-	
-	Q2spellData = {speed = 1200, range = 2550, delay = 0.25, radius = 100, collision = {}, type = "circular"}	
+	QspellData = {speed = 2500, range = 2500, delay = 0, radius = 70, collision = {nil}, type = "linear"}		
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.5, Radius = 250, Range = 800, Speed = 2000, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.3, Radius = 50, Range = 800, Speed = 1700, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}
 	}
 
-	EspellData = {speed = 2000, range = 800, delay = 0.5, radius = 250, collision = {"minion"}, type = "linear"}	
-  	                                           
-	if _G.EOWLoaded then
-		Orb = 1
-	elseif _G.SDK and _G.SDK.Orbwalker then
-		Orb = 2
-	elseif _G.GOS then
-		Orb = 3
-	elseif _G.gsoSDK then
-		Orb = 4
-	elseif _G.PremiumOrbwalker then
-		Orb = 5		
-	end	
+	EspellData = {speed = 1700, range = 800, delay = 0.3, radius = 50, collision = {"minion"}, type = "linear"}	
+  	                                           	
 	Callback.Add("Tick", function() Tick() end)
 	
 	Callback.Add("Draw", function()
@@ -373,66 +373,37 @@ function LoadScript()
 end
 
 function Tick()
-if MyHeroNotReady() then return end
-if Menu.RSet.UseR:Value() and Ready(_R) then
-	ProcessSpell()
-	for i, spell in pairs(DetectedSpells) do
-		UseR(i, spell)
-	end
-end
+	if MyHeroNotReady() then return end
 
-local Mode = GetMode()
+	if Menu.RSet.UseR:Value() then
+		Stun()
+		ProcessSpell()
+		for i, spell in pairs(DetectedSpells) do
+			UseR(i, spell)
+		end
+	end
+
+	local Mode = GetMode()
 	if Mode == "Combo" then
-		Combo()
-		CastW()
+		if CastE == nil then
+			Combo1()
+			Combo2()
+		end	
 		--CastR()
-	elseif Mode == "Harass" then
+	elseif Mode == "Harass" then		
 		Harass()
 	elseif Mode == "Clear" then
 		Clear()
-		JungleClear()
-	elseif Mode == "Flee" then
-			
-	end	
-
-	KillSteal()	
-end
-
-function QCollision(startpos, endpos)
-	for i = 1, GameMinionCount() do
-    local minion = GameMinion(i)
-		if (minion.team == TEAM_ENEMY or minion.team == TEAM_JUNGLE) and minion.dead == false then
-			local linesegment, line, isOnSegment = VectorPointProjectionOnLineSegment(startpos, endpos, minion.pos)
-			if linesegment and isOnSegment and (minion.pos:DistanceTo(linesegment) <= (minion.boundingRadius + 100) * (minion.boundingRadius + 100)) then
-				return false
-			end
-		end
-	end
-	return true
-end
-
-function CheckQPos(unit)
-	local startpos = myHero.pos
-    local endpos = Vector(unit.pos)
-    local finalpos = (endpos - startpos):Normalized()
-	local pos1 = Vector(unit.pos):Extended(myHero.pos, 1000)
-	local pos2 = finalpos:Perpendicular()
-	local pos3 = unit.pos:Perpendicular2()
-	local pos4 = unit.pos:Perpendicular2():Perpendicular2()	
-	
-	if QCollision(myHero.pos, pos1) then
-		ControlCastSpell(HK_Q, pos1)
-	
-	elseif QCollision(myHero.pos, pos2) == 0 then
-		ControlCastSpell(HK_Q, pos2)
-	
-	elseif QCollision(myHero.pos, pos3) == 0 then
-		ControlCastSpell(HK_Q, pos3)
-		
-	elseif QCollision(myHero.pos, pos4) == 0 then		
-		ControlCastSpell(HK_Q, pos4)
-	end
+		JungleClear()			
+	end		
 end	
+
+local function QRecast()   
+    if myHero:GetSpellData(_Q).name == "ZoeQRecast" then 
+		return true 
+    end 
+	return false
+end
 
 function ProcessSpell()	
 	local unit, spell = OnProcessSpell()
@@ -444,15 +415,14 @@ function ProcessSpell()
 			if spell.target == myHero.handle then 
 				SetMovement(false)
 				if myHero.pos:DistanceTo(unit.pos) < 1300 and Ready(_E) then
-					ControlCastSpell(HK_R, unit.pos)
+					CastE = unit.pos
+					OldPos = myHero.pos
+					Control.CastSpell(HK_R, unit.pos) 				
 					table.remove(DetectedSpells, i)
-					if myHero.isChanneling then
-						CastE(unit)
-					end
 				end	
 				if not Ready(_E) then	
-					local castPos = Vector(unit) - (Vector(myHero) - Vector(unit)):Perpendicular():Normalized() * 350	
-					ControlCastSpell(HK_R, castPos)
+					local castPos = Vector(unit.pos) - (Vector(myHero.pos) - Vector(unit.pos)):Perpendicular():Normalized() * 350	
+					Control.CastSpell(HK_R, castPos)
 					table.remove(DetectedSpells, i)
 				end
 				SetMovement(true)
@@ -474,22 +444,21 @@ function UseR(i, s)
 		local EndPosition = endPos+Vector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
 		startPos = StartPosition; endPos = EndPosition
 	end
-	if s.startTime + travelTime > Game.Timer() then
+	if s.startTime + travelTime > Game.Timer() and Ready(_R) then
 		local Col = VectorPointProjectionOnLineSegment(startPos, endPos, myHero.pos)
 		if s.type == "circular" or s.type == "linear" then 
 			if GetDistanceSqr(myHero.pos, endPos) < (s.radius + myHero.boundingRadius) ^ 2 or GetDistanceSqr(myHero.pos, Col) < (s.radius + myHero.boundingRadius * 1.25) ^ 2 then
 				local t = s.speed ~= math.huge and CalculateCollisionTime(startPos, endPos, myHero.pos, s.startTime, s.speed, s.delay) or 0.29
-				if t < 0.3 then
+				if t < 0.7 then
 					SetMovement(false)
-					if myHero.pos:DistanceTo(startPos) < 1300 and Ready(_E) then
-						ControlCastSpell(HK_R, startPos)
-						if myHero.isChanneling then
-							CastE(startPos)
-						end
+					if myHero.pos:DistanceTo(s.startPos) < 1300 and Ready(_E) then
+						CastE = s.startPos
+						OldPos = myHero.pos
+						Control.CastSpell(HK_R, s.startPos) 	
 					end	
 					if not Ready(_E) then	
-						local castPos = Vector(startPos) - (Vector(myHero) - Vector(startPos)):Perpendicular():Normalized() * 350	
-						ControlCastSpell(HK_R, castPos)
+						local castPos = Vector(s.startPos) - (Vector(myHero.pos) - Vector(s.startPos)):Perpendicular():Normalized() * 350	
+						Control.CastSpell(HK_R, castPos)
 					end
 					SetMovement(true)
 				end				
@@ -498,141 +467,287 @@ function UseR(i, s)
 	else table.remove(DetectedSpells, i) end
 end
 
-function CastE(Pos)
-	if myHero.pos:DistanceTo(Pos.pos) < 800 and IsValid(Pos) then
-		if Menu.Pred.Change:Value() == 1 then
-			local pred = GetGamsteronPrediction(target, EData, myHero)
-			if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
-				ControlCastSpell(HK_E, pred.CastPosition)
-			end
-		else
-			local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
-			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
-				ControlCastSpell(HK_E, pred.CastPos)
+function Stun()
+	if CastE ~= nil and OldPos ~= nil and Ready(_E) then
+		if CastE:DistanceTo(myHero.pos) < CastE:DistanceTo(OldPos) then
+			if Control.CastSpell(HK_E, CastE) then
+				DelayAction(function()
+					CastE = nil
+					OldPos = nil
+				end,0.3)	
 			end	
 		end
 	end
 end
 
-function KillSteal()	
-local target = GetTarget(1500)
-if target == nil then return end
-	if IsValid(target) then
-		
-		if Menu.ks.UseQ:Value() and Ready(_Q) then
-			if myHero:GetSpellData(_Q).name == "ZoeQRecast" and myHero.pos:DistanceTo(target.pos) < 800 then
-				local pred = GetGamsteronPrediction(target, Q2Data, myHero)
-				if pred.Hitchance >= Menu.Pred.PredQ2:Value() + 1 then
-					DelayAction(function()
-					SetMovement(false)
-					ControlCastSpell(HK_Q, pred.CastPosition)
-					SetMovement(true)
-					end,0.3)
-				end	
-			end
+function Combo1()
+    
+    local target = GetTarget(1500)
+    local Collision
+	local Collision2
+    local pDir
+    local point3
+    local point4
+    local point5
+    
+	if target and IsValid(target) then
+        
+		if myHero.pos:DistanceTo(target.pos) < 800 and Menu.Combo.UseE:Value() and Ready(_E) then            
+			if Menu.Pred.Change:Value() == 1 then
+				local pred = GetGamsteronPrediction(target, EData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
+					stuncast = os.clock()
+					Control.CastSpell(HK_E, pred.CastPosition) 
+				end
+			elseif Menu.Pred.Change:Value() == 2 then
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
+				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
+					stuncast = os.clock()
+					Control.CastSpell(HK_E, pred.CastPos) 
+				end
+			else
+				local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.3, Radius = 50, Range = 800, Speed = 1700, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+				EPrediction:GetPrediction(target, myHero)
+				if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+					stuncast = os.clock()
+					Control.CastSpell(HK_E, EPrediction.CastPosition)  
+				end					
+			end 
         end
 
-		if Menu.ks.UseQ:Value() and Ready(_Q) then
-			local QDmg = getdmg("Q", target, myHero)
-			if myHero:GetSpellData(_Q).name == "ZoeQ" and myHero.pos:DistanceTo(target.pos) < 800 and QDmg >= target.health then
-				SetMovement(false)
-				CheckQPos(target)
-				SetMovement(true)
-			end
-        end			
-		
-        if Menu.ks.UseE:Value() and Ready(_E) then
-            local EDmg = getdmg("E", target, myHero)
-			if EDmg >= target.health then
-				
-				if myHero.pos:DistanceTo(target.pos) < 1400 then
-					local WallPos = LineSegment(Point(myHero.pos), Point(target.pos))
-					if MapPosition:intersectsWall(WallPos) then	
-						ControlCastSpell(HK_E, target.pos)
-					end
+        if HasBuff(target, "zoeesleepcountdownslow") and os.clock() - stuncast > 1 and Ready(_Q) and Menu.Combo.UseQ:Value() and Ready(_R) and Menu.Combo.UseR:Value() then
+            local pointr = myHero.pos + (target.pos - myHero.pos):Normalized() * - 600
+            for i, spell in pairs(CCSpells) do
+				if Menu.Combo.UseR2:Value() and Menu.RSet.UseR:Value() and spell.charName == target.charName and myHero.pos:DistanceTo(target.pos) < 2000 and IsValid(target) then return end
+
+				if GetDistance(target.pos, myHero.pos) < 600 then
+					Control.CastSpell(HK_R, pointr)
 				end
-				
-				if myHero.pos:DistanceTo(target.pos) < 800 then
-					if Menu.Pred.Change:Value() == 1 then
-						local pred = GetGamsteronPrediction(target, EData, myHero)
-						if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
-							ControlCastSpell(HK_E, pred.CastPosition)
-						end
-					else
-						local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
-						if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
-							ControlCastSpell(HK_E, pred.CastPos)
-						end	
-					end
-				end	
 			end	
+        end
+
+        if Menu.Combo.UseQ:Value() and Ready(_Q) and not QRecast() and myHero.pos:DistanceTo(target.pos) < 800 then
+			
+			if os.clock() - stuncast > 1 then
+				local startpos = myHero.pos
+				local endpos = target.pos				
+				pDir = startpos-Vector(startpos-endpos):Normalized():Perpendicular()*700
+				Collision = minionCollision2(myHero.pos, pDir, 50)
+				Collision2 = minionCollision2(pDir, Vector(target.pos), 70)
+				if Collision == 0 and Collision2 == 0 then
+					noBuff = os.clock()
+					Control.CastSpell(HK_Q, pDir)
+					return
+				end 
+			end
+		
+			if os.clock() - stuncast > 1 then
+				local startpos = myHero.pos
+				local endpos = target.pos				
+				point3 = startpos-Vector(startpos-endpos):Normalized():Perpendicular2()*700
+				Collision = minionCollision2(myHero.pos, point3, 50)
+				Collision2 = minionCollision2(point3, Vector(target.pos), 70)				
+				if Collision == 0 and Collision2 == 0 then
+					noBuff = os.clock()
+					Control.CastSpell(HK_Q, point3)
+					return
+				end 
+			end
+						
+			if os.clock() - stuncast > 1 then
+				local startpos = myHero.pos
+				local endpos = target.pos				
+				point4 = startpos-Vector(startpos-endpos):Normalized():Perpendicular2():Perpendicular2()*700
+				Collision = minionCollision2(myHero.pos, point4, 50)
+				Collision2 = minionCollision2(point4, Vector(target.pos), 70)				
+				if Collision == 0 and Collision2 == 0 then
+					noBuff = os.clock()
+					Control.CastSpell(HK_Q, point4) 
+					return
+				end 
+			end
+			
+			if os.clock() - stuncast > 1 then  
+				point5 = Vector(target.pos):Extended(myHero.pos, (700+myHero.pos:DistanceTo(target.pos)))
+				Collision = minionCollision2(myHero.pos, point5, 50)
+				Collision2 = minionCollision2(point5, Vector(target.pos), 70)				
+				if Collision == 0 and Collision2 == 0 then
+					noBuff = os.clock()
+					Control.CastSpell(HK_Q, point5) 
+					return
+				end
+			end 
+		end
+	end	
+
+	if QRecast() and Menu.Combo.UseQ2:Value() and Ready(_Q) then
+		local Q2target = GetTarget(5000)
+		local CastPosition	
+		
+		if Q2target and IsValid(Q2target) then 				
+			local PredPos = Pred(Q, Q2target)
+			if PredPos then
+				CastPosition = PredPos
+			end
+					
+			if HasBuff(Q2target, "zoeesleepstun") and myHero.pos:DistanceTo(Q2target.pos) < Q2range then
+				Control.CastSpell(HK_Q, Q2target.pos)
+				
+			end
+			
+			if CastPosition and os.clock() - noBuff > 0.6 and HasBuff(Q2target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(Q2target.pos) < Q2range then
+				Control.CastSpell(HK_Q, CastPosition)
+				
+			end
+			
+			if IsImmobileTarget(Q2target) and myHero.pos:DistanceTo(Q2target.pos) < 800 then
+				Control.CastSpell(HK_Q, Q2target.pos)
+				
+			end
+			
+			if CastPosition and os.clock() - noBuff > 0.5 and myHero.pos:DistanceTo(Q2target.pos) < Q2range and not HasBuff(Q2target, "zoeesleepcountdownslow") then  
+				Control.CastSpell(HK_Q, CastPosition)
+			end
+		end	
+    end
+end
+
+function Combo2()
+    
+    local target = GetTarget(1500)
+    local Collision
+	local Collision2
+    local point
+    local pDir
+    local point3
+    local point4
+    local point5
+    
+	if target and IsValid(target) then
+        
+		if Menu.Combo.UseQ:Value() and Ready(_Q) and not QRecast() then
+		
+			if os.clock() - stuncast > 1 and HasBuff(target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(target.pos) < 800 then
+				point = Vector(target.pos):Extended(myHero.pos, (700+myHero.pos:DistanceTo(target.pos)))
+				Collision = minionCollision2(myHero.pos, point, 50)
+				Collision2 = minionCollision2(point, Vector(target.pos), 70)				
+				if Collision == 0 and Collision2 == 0 then
+					noBuff = os.clock()
+					Control.CastSpell(HK_Q, point)
+					return
+				end 
+			end
+			
+			if os.clock() - stuncast > 1 and HasBuff(target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(target.pos) < Q2range then
+				local startpos = myHero.pos
+				local endpos = target.pos				
+				pDir = startpos-Vector(startpos-endpos):Normalized():Perpendicular()*700
+				Collision = minionCollision2(myHero.pos, pDir, 50)
+				Collision2 = minionCollision2(pDir, Vector(target.pos), 70)				
+				if Collision == 0 and Collision2 == 0 then
+					noBuff = os.clock()
+					Control.CastSpell(HK_Q, pDir)
+					return
+				end 
+			end
+						
+			if os.clock() - stuncast > 1 and HasBuff(target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(target.pos) < Q2range then
+				local startpos = myHero.pos
+				local endpos = target.pos				
+				point3 = startpos-Vector(startpos-endpos):Normalized():Perpendicular2()*700
+				Collision = minionCollision2(myHero.pos, point3, 50)
+				Collision2 = minionCollision2(point3, Vector(target.pos), 70)				
+				if Collision == 0 and Collision2 == 0 then
+					noBuff = os.clock()
+					Control.CastSpell(HK_Q, point3)
+					return
+				end 
+			end
+							
+			if os.clock() - stuncast > 1 and HasBuff(target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(target.pos) < Q2range then
+				local startpos = myHero.pos
+				local endpos = target.pos				
+				point4 = startpos-Vector(startpos-endpos):Normalized():Perpendicular2():Perpendicular2()*700
+				Collision = minionCollision2(myHero.pos, point4, 50)
+				Collision2 = minionCollision2(point4, Vector(target.pos), 70)				
+				if Collision == 0 and Collision2 == 0 then
+					noBuff = os.clock()
+					Control.CastSpell(HK_Q, point4) 
+					return
+				end 
+			end
+						
+			if os.clock() - stuncast > 1  and myHero.pos:DistanceTo(target.pos) < 800 and not Ready(_E) then
+				point5 = Vector(target.pos):Extended(myHero.pos, (700+myHero.pos:DistanceTo(target.pos)))
+				Collision = minionCollision2(myHero.pos, point5, 50)
+				Collision2 = minionCollision2(point5, Vector(target.pos), 70)				
+				if Collision == 0 and Collision2 == 0 then
+					noBuff = os.clock()
+					Control.CastSpell(HK_Q, point5) 	
+				end
+			end 
+		end           
+            
+		if Ready(_Q) and Ready(_R) and QRecast() and Menu.Combo.UseQ:Value() and Menu.Combo.UseR:Value() then
+			local pointr = myHero.pos:Extended(Vector(target.pos), 1000)
+            for i, spell in pairs(CCSpells) do
+				if Menu.Combo.UseR2:Value() and Menu.RSet.UseR:Value() and spell.charName == target.charName and myHero.pos:DistanceTo(target.pos) < 2000 and IsValid(target) then return end
+			
+				if GetDistance(target.pos, myHero.pos) > 600 then
+					Control.CastSpell(HK_R, pointr)
+				end 
+			end	
+		end
+            
+		if QRecast() and Menu.Combo.UseQ2:Value() and Ready(_Q) then
+			local CastPosition = Pred(Q, target)	
+		
+			if HasBuff(target, "zoeesleepstun") and myHero.pos:DistanceTo(target.pos) < Q2range then
+				Control.CastSpell(HK_Q, target.pos)
+				return
+			end
+			
+			if CastPosition and os.clock() - noBuff > 0.6 and HasBuff(target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(target.pos) < Q2range then
+				Control.CastSpell(HK_Q, CastPosition)
+				return
+			end
+			
+			if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) < 800 then
+				Control.CastSpell(HK_Q, target.pos)
+				return
+			end
+			
+			if CastPosition and os.clock() - noBuff > 0.5 and myHero.pos:DistanceTo(target.pos) < Q2range and not HasBuff(target, "zoeesleepcountdownslow") then  
+				Control.CastSpell(HK_Q, CastPosition)
+			end	
+		end	
+     
+		if myHero.pos:DistanceTo(target.pos) < 800 and Menu.Combo.UseE:Value() and Ready(_E) then            
+			if Menu.Pred.Change:Value() == 1 then
+				local pred = GetGamsteronPrediction(target, EData, myHero)
+				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
+					stuncast = os.clock()
+					Control.CastSpell(HK_E, pred.CastPosition) 
+				end
+			elseif Menu.Pred.Change:Value() == 2 then
+				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
+				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
+					stuncast = os.clock()
+					Control.CastSpell(HK_E, pred.CastPos) 
+				end
+			else
+				local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.3, Radius = 50, Range = 800, Speed = 1700, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+				EPrediction:GetPrediction(target, myHero)
+				if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
+					stuncast = os.clock()
+					Control.CastSpell(HK_E, EPrediction.CastPosition)  
+				end					
+			end			
         end
 	end	
 end	
 
-function Combo()
-local target = GetTarget(2600)
-if target == nil then return end
-	if IsValid(target) then
-	
-		if Menu.Combo.UseE:Value() and Ready(_E) then
-			if myHero.pos:DistanceTo(target.pos) < 1400 then
-				local WallPos = LineSegment(Point(myHero.pos), Point(target.pos))
-				if MapPosition:intersectsWall(WallPos) then	
-					ControlCastSpell(HK_E, target.pos)
-				end
-			end
-			
-			if myHero.pos:DistanceTo(target.pos) < 800 then
-				if Menu.Pred.Change:Value() == 1 then
-					local pred = GetGamsteronPrediction(target, EData, myHero)
-					if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
-						ControlCastSpell(HK_E, pred.CastPosition)
-					end
-				else
-					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
-					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
-						ControlCastSpell(HK_E, pred.CastPos)
-					end	
-				end
-			end
-        end	
-        
-		if Menu.Combo.UseQ2:Value() and Ready(_Q) then
-			if myHero:GetSpellData(_Q).name == "ZoeQRecast" and myHero.pos:DistanceTo(target.pos) < 800 then
-				local pred = GetGamsteronPrediction(target, Q2Data, myHero)
-				if pred.Hitchance >= Menu.Pred.PredQ2:Value() + 1 then
-					DelayAction(function()
-					SetMovement(false)
-					ControlCastSpell(HK_Q, pred.CastPosition)
-					SetMovement(true)
-					end,0.3)
-				end	
-			end
-        end
-		
-		if Menu.Combo.UseQ:Value() and Ready(_Q) and myHero:GetSpellData(_Q).name == "ZoeQ" then			
-			if myHero.pos:DistanceTo(target.pos) < 1400 and Ready(_R) then
-				SetMovement(false)
-				CheckQPos(target)
-				SetMovement(true)
-			end
-        end	
-
-		if Menu.Combo.UseQ:Value() and Ready(_Q) then
-			if myHero:GetSpellData(_Q).name == "ZoeQ" and myHero.pos:DistanceTo(target.pos) < 800 then
-				SetMovement(false)
-				CheckQPos(target)
-				SetMovement(true)
-			end
-        end		
-
-        if Menu.Combo.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 1400 and myHero.pos:DistanceTo(target.pos) > 750 and Ready(_R) and Ready(_Q) and myHero:GetSpellData(_Q).name == "ZoeQRecast" then
-			ControlCastSpell(HK_R, target)
-		end
-	end	
-end
-
+--[[
 function CastW()
 local target = GetTarget(2000)
 if target == nil then return end
@@ -645,7 +760,7 @@ if target == nil then return end
 			or WName == "hextechgunblade"  and target.pos:DistanceTo() < 700 and Menu.Combo.Wset.hex:Value()
 			or WName == "s5_summonersmiteplayerganker"  and target.pos:DistanceTo() < 500 and Menu.Combo.Wset.smite:Value() 
 			or WName == "itemswordoffeastandfamine"  and target.pos:DistanceTo() < 550 and Menu.Combo.Wset.botrk:Value()
-			then ControlCastSpell(HK_W, target) 
+			then Control.CastSpell(HK_W, target) 
 			end
 
 			if WName == "summonerheal" and myHero.health/myHero.maxHealth < Menu.Combo.Wset.HP:Value() / 100  and Menu.Combo.Wset.heal:Value() 
@@ -657,20 +772,19 @@ if target == nil then return end
 			or WName == "itemrighteousglory"  and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.rg:Value()
 			or WName == "itemomen"  and target.pos:DistanceTo() < 500 and Menu.Combo.Wset.omen:Value()
 			or WName == "itemtwin"  and target.pos:DistanceTo() < 2000 and target.pos:DistanceTo() > 500 and Menu.Combo.Wset.twin:Value()			
-			then ControlCastSpell(HK_W) 
+			then Control.CastSpell(HK_W) 
 			end
 
 			if WName == "itemsofboltspellbase" and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.proto:Value()  
 			or WName == "itemwillboltspellbase" and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.glp:Value() 
 			or WName == "itemredemption" and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.red:Value() 
 			or WName == "ironstylus" and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.red:Value() 
-			then ControlCastSpell(HK_W, target.pos) 
+			then Control.CastSpell(HK_W, target.pos) 
 			end	
 		end
 	end	
 end
 
---[[
 function CastR()
 	if Menu.Combo.Ult.UseR:Value() and Ready(_R) then
 			local WName = myHero:GetSpellData(_W).name:lower()
@@ -680,7 +794,7 @@ function CastR()
 			or WName == "hextechgunblade"  and target.pos:DistanceTo() < 700 and Menu.Combo.Wset.hex:Value()
 			or WName == "s5_summonersmiteplayerganker"  and target.pos:DistanceTo() < 500 and Menu.Combo.Wset.smite:Value() 
 			or WName == "itemswordoffeastandfamine"  and target.pos:DistanceTo() < 550 and Menu.Combo.Wset.botrk:Value()
-			then ControlCastSpell(HK_W, target) 
+			then Control.CastSpell(HK_W, target) 
 			end
 
 			if WName == "summonerheal" and Hp and Menu.Combo.Wset.heal:Value() 
@@ -692,103 +806,191 @@ function CastR()
 			or WName == "itemrighteousglory"  and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.rg:Value()
 			or WName == "itemomen"  and target.pos:DistanceTo() < 500 and Menu.Combo.Wset.omen:Value()
 			or WName == "itemtwin"  and target.pos:DistanceTo() < 2000 and target.pos:DistanceTo() > 500 and Menu.Combo.Wset.twin:Value()			
-			then ControlCastSpell(HK_W) 
+			then Control.CastSpell(HK_W) 
 			end
 
 			if WName == "itemsofboltspellbase" and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.proto:Value()  
 			or WName == "itemwillboltspellbase" and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.glp:Value() 
 			or WName == "itemredemption" and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.red:Value() 
 			or WName == "ironstylus" and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.red:Value() 
-			then ControlCastSpell(HK_W, target.pos) 
+			then Control.CastSpell(HK_W, target.pos) 
 			end	
 		end
 	end	
 ]]
 
-function Harass()
-local target = GetTarget(1200)
-if target == nil then return end
-	local mana_ok = myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value() / 100
-	if IsValid(target) and mana_ok then
-        
-        
-		if Menu.Harass.UseQ2:Value() and Ready(_Q) then
-			if myHero:GetSpellData(_Q).name == "ZoeQRecast" and myHero.pos:DistanceTo(target.pos) < 800 then
-				local pred = GetGamsteronPrediction(target, Q2Data, myHero)
-				if pred.Hitchance >= Menu.Pred.PredQ2:Value() + 1 then
-					DelayAction(function()
-					SetMovement(false)
-					ControlCastSpell(HK_Q, pred.CastPosition)
-					SetMovement(true)
-					end,0.3)
-				end	
-			end
-        end
-
-		if Menu.Harass.UseQ:Value() and Ready(_Q) then
-			if myHero:GetSpellData(_Q).name == "ZoeQ" and myHero.pos:DistanceTo(target.pos) < 800 then
-				SetMovement(false)
-				CheckQPos(target)
-				SetMovement(true)
-			end
-        end	
-	end
-end	
-
-function Clear()
-    for i = 1, GameMinionCount() do
-    local minion = GameMinion(i)
-		local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
-		if myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and minion.team == TEAM_ENEMY and mana_ok then
-            
+function Harass()              
+	if Menu.Harass.UseQ:Value() and Ready(_Q) and not QRecast() then
+		local target = GetTarget(800)
+		if target == nil then return end
 			
-			if Menu.Clear.UseQ:Value() and Ready(_Q) then
-				if myHero:GetSpellData(_Q).name == "ZoeQRecast" then
-					DelayAction(function()
-					SetMovement(false)
-					ControlCastSpell(HK_Q, minion.pos)
-					SetMovement(true)
-					end,0.3)	
+		local mana_ok = myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value() / 100
+		if IsValid(target) and mana_ok then			
+			if os.clock() - stuncast > 1 then
+				local startpos = myHero.pos
+				local endpos = target.pos				
+				pDir = startpos-Vector(startpos-endpos):Normalized():Perpendicular()*700
+				Collision = minionCollision2(myHero.pos, pDir, 50)
+				Collision2 = minionCollision2(pDir, Vector(target.pos), 70)
+				if Collision == 0 and Collision2 == 0 then
+					noBuff = os.clock()
+					Control.CastSpell(HK_Q, pDir)
+					return
+				end 
+			end
+		
+			if os.clock() - stuncast > 1 then
+				local startpos = myHero.pos
+				local endpos = target.pos				
+				point3 = startpos-Vector(startpos-endpos):Normalized():Perpendicular2()*700
+				Collision = minionCollision2(myHero.pos, point3, 50)
+				Collision2 = minionCollision2(point3, Vector(target.pos), 70)				
+				if Collision == 0 and Collision2 == 0 then
+					noBuff = os.clock()
+					Control.CastSpell(HK_Q, point3)
+					return
+				end 
+			end
+						
+			if os.clock() - stuncast > 1 then
+				local startpos = myHero.pos
+				local endpos = target.pos				
+				point4 = startpos-Vector(startpos-endpos):Normalized():Perpendicular2():Perpendicular2()*700
+				Collision = minionCollision2(myHero.pos, point4, 50)
+				Collision2 = minionCollision2(point4, Vector(target.pos), 70)				
+				if Collision == 0 and Collision2 == 0 then
+					noBuff = os.clock()
+					Control.CastSpell(HK_Q, point4) 
+					return
+				end 
+			end
+			
+			if os.clock() - stuncast > 1 then  
+				point5 = Vector(target.pos):Extended(myHero.pos, (700+myHero.pos:DistanceTo(target.pos)))
+				Collision = minionCollision2(myHero.pos, point5, 50)
+				Collision2 = minionCollision2(point5, Vector(target.pos), 70)				
+				if Collision == 0 and Collision2 == 0 then
+					noBuff = os.clock()
+					Control.CastSpell(HK_Q, point5) 
+					return
 				end
+			end 
+		end
+	end	
+	
+	if QRecast() and Menu.Harass.UseQ2:Value() and Ready(_Q) then
+		local Q2target = GetTarget(5000)
+		local CastPosition	
+		
+		if Q2target and IsValid(Q2target) then 				
+			local PredPos = Pred(Q, Q2target)
+			if PredPos then
+				CastPosition = PredPos
+			end
+					
+			if HasBuff(Q2target, "zoeesleepstun") and myHero.pos:DistanceTo(Q2target.pos) < Q2range then
+				Control.CastSpell(HK_Q, Q2target.pos)
+				
 			end
 			
-			if Menu.Clear.UseQ:Value() and Ready(_Q) then			
-				if myHero:GetSpellData(_Q).name == "ZoeQ" then
-					local count = GetMinionCount(275, minion)
-					if count >= Menu.Clear.UseQM:Value() then				
-						SetMovement(false)
-						CheckQPos(minion)
-						SetMovement(true)
-					end
-				end			
+			if CastPosition and os.clock() - noBuff > 0.6 and HasBuff(Q2target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(Q2target.pos) < Q2range then
+				Control.CastSpell(HK_Q, CastPosition)
+				
+			end
+			
+			if IsImmobileTarget(Q2target) and myHero.pos:DistanceTo(Q2target.pos) < 800 then
+				Control.CastSpell(HK_Q, Q2target.pos)
+				
+			end
+			
+			if CastPosition and os.clock() - noBuff > 0.5 and myHero.pos:DistanceTo(Q2target.pos) < Q2range and not HasBuff(Q2target, "zoeesleepcountdownslow") then  
+				Control.CastSpell(HK_Q, CastPosition)
 			end
 		end	
-    end
+	end		
+end	
+
+function Pred(Spell, unit)
+	if Spell == Q then
+		if Menu.Pred.Change:Value() == 1 then
+			local pred = GetGamsteronPrediction(unit, QData, myHero)
+			if pred.Hitchance >= Menu.Pred.PredQ2:Value()+1 then
+				return pred.CastPosition	
+			end
+		elseif Menu.Pred.Change:Value() == 2 then
+			local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, QspellData)
+			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ2:Value(), pred.HitChance) then
+				return pred.CastPos
+			end	
+		else
+			local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0, Radius = 70, Range = 2500, Speed = 2500, Collision = false})
+			QPrediction:GetPrediction(unit, myHero)
+			if QPrediction:CanHit(Menu.Pred.PredQ2:Value() + 1) then
+				return QPrediction.CastPosition	
+			end					
+		end	
+	end
+end
+
+function Clear()
+	if Ready(_Q) then
+		for i = 1, GameMinionCount() do
+		local minion = GameMinion(i)
+			
+			if QRecast() then	
+				if os.clock() - noBuff > 0.8 and myHero.pos:DistanceTo(minion.pos) < 2000 and IsValid(minion) and minion.team == TEAM_ENEMY then			
+					if Menu.Clear.UseQ2:Value() then
+						Control.CastSpell(HK_Q, minion.pos)	
+					end
+				end	
+			
+			else
+			
+				if myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and minion.team == TEAM_ENEMY then			
+					local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100					
+					if Menu.Clear.UseQ:Value() and mana_ok  then
+						local count = GetMinionCount(275, minion)
+						if count >= Menu.Clear.UseQM:Value() then					
+							local Pos = Vector(minion.pos):Extended(myHero.pos, (700+myHero.pos:DistanceTo(minion.pos)))
+							local Collision = minionCollision2(myHero.pos, Pos, 50)
+							if Collision == 0 then
+								noBuff = os.clock()
+								Control.CastSpell(HK_Q, Pos)
+							end
+						end	
+					end			
+				end
+			end
+		end	
+	end
 end
 
 function JungleClear()
-    for i = 1, GameMinionCount() do
-    local minion = GameMinion(i)
-		local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
-		if myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and minion.team == TEAM_JUNGLE and mana_ok then
+	if Ready(_Q) then
+		for i = 1, GameMinionCount() do
+		local minion = GameMinion(i)
 			
-			if Menu.JClear.UseQ:Value() and Ready(_Q) then
-				if myHero:GetSpellData(_Q).name == "ZoeQRecast" then
-					DelayAction(function()
-					SetMovement(false)
-					ControlCastSpell(HK_Q, minion.pos)
-					SetMovement(true)
-					end,0.3)	
+			if QRecast() then	
+				if os.clock() - noBuff > 0.8 and myHero.pos:DistanceTo(minion.pos) < 2000 and IsValid(minion) and minion.team == TEAM_JUNGLE then			
+					if Menu.JClear.UseQ2:Value() then
+						Control.CastSpell(HK_Q, minion.pos)	
+					end
+				end	
+			
+			else
+			
+				if myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and minion.team == TEAM_JUNGLE then			
+					local mana_ok = myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100
+					if Menu.JClear.UseQ:Value() and mana_ok  then							
+						local Pos = Vector(minion.pos):Extended(myHero.pos, (700+myHero.pos:DistanceTo(minion.pos)))
+						local Collision = minionCollision2(myHero.pos, Pos, 50)
+						if Collision == 0 then
+							noBuff = os.clock()
+							Control.CastSpell(HK_Q, Pos)
+						end				
+					end			
 				end
 			end
-			
-			if Menu.JClear.UseQ:Value() and Ready(_Q) then			
-				if myHero:GetSpellData(_Q).name == "ZoeQ" then				
-					SetMovement(false)
-					CheckQPos(minion)
-					SetMovement(true)
-				end			
-			end			
-        end
-    end
+		end	
+	end	
 end
