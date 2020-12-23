@@ -142,6 +142,17 @@ local function GetEnemyHeroes()
 	return _EnemyHeroes
 end
 
+local function GetAllyHeroes() 
+	local _AllyHeroes = {}
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.isAlly and not unit.isMe then
+			TableInsert(_AllyHeroes, unit)
+		end
+	end
+	return _AllyHeroes
+end
+
 local function GetEnemyTurret()
 	local _EnemyTurrets = {}
     for i = 1, GameTurretCount() do
@@ -206,6 +217,18 @@ local function GetMinionCount(range, pos)
 	return count
 end
 
+local function GetEnemyCount(range, pos)
+    local pos = pos.pos
+	local count = 0
+	for i, hero in ipairs(GetEnemyHeroes()) do
+	local Range = range * range
+		if GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
+			count = count + 1
+		end
+	end
+	return count
+end
+
 local function VectorPointProjectionOnLineSegment(v1, v2, v)
 	local cx, cy, ax, ay, bx, by = v.x, v.z, v1.x, v1.z, v2.x, v2.z
 	local rL = ((cx - ax) * (bx - ax) + (cy - ay) * (by - ay)) / ((bx - ax) ^ 2 + (by - ay) ^ 2)
@@ -254,6 +277,36 @@ local function minionCollision2(Pos1, Pos2, wight)
 	return Collision
 end
 
+local function CastSpellMM(spell,pos,range,delay)
+local range = range or MathHuge
+local delay = delay or 250
+local ticker = GetTickCount()
+	if castSpell.state == 0 and GetDistance(myHero.pos,pos) < range and ticker - castSpell.casting > delay + Game.Latency() then
+		castSpell.state = 1
+		castSpell.mouse = mousePos
+		castSpell.tick = ticker
+	end
+	if castSpell.state == 1 then
+		if ticker - castSpell.tick < Game.Latency() then
+			local castPosMM = pos:ToMM()
+			Control.SetCursorPos(castPosMM.x,castPosMM.y)
+			Control.KeyDown(spell)
+			Control.KeyUp(spell)
+			castSpell.casting = ticker + delay
+			DelayAction(function()
+				if castSpell.state == 1 then
+					Control.SetCursorPos(castSpell.mouse)
+					castSpell.state = 0
+				end
+			end,Game.Latency()/1000)
+		end
+		if ticker - castSpell.casting > Game.Latency() then
+			Control.SetCursorPos(castSpell.mouse)
+			castSpell.state = 0
+		end
+	end
+end
+
 local RQCast = false
 local CastE = nil
 local OldPos = nil
@@ -264,7 +317,7 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.11"}})	
 	
 	Menu:MenuElement({type = MENU, id = "RSet", name = "AutoR+E Incomming CC Spells"})	
 	Menu.RSet:MenuElement({id = "UseR", name = "Use AutoR + E Stun", value = true})	
@@ -279,17 +332,69 @@ function LoadScript()
 	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})	
 	
 	--W Seetings
-	Menu.Combo:MenuElement({type = MENU, id = "Wset", name = "W Settings Comming Soon !!!"})	
-	Menu.Combo.Wset:MenuElement({id = "UseW", name = "Use[W]", value = false})
-	Menu.Combo.Wset:MenuElement({id = "HP", name = "Min Hp use Def Items/Summoner", value = 40, min = 0, max = 100, identifier = "%"})	
-    Menu.Combo.Wset:MenuElement({id = "ignite", name = "Summoner Ignite", value = true})
-    Menu.Combo.Wset:MenuElement({id = "exhaust", name = "Summoner Exhaust", value = true})
-    Menu.Combo.Wset:MenuElement({id = "smite", name = "Summoner Smite", value = true})
-    Menu.Combo.Wset:MenuElement({id = "heal", name = "Summoner Heal", value = true})
-    Menu.Combo.Wset:MenuElement({id = "barrier", name = "Summoner Barrier", value = true})
-    Menu.Combo.Wset:MenuElement({id = "cleanse", name = "Summoner Cleanse", value = true})
-    Menu.Combo.Wset:MenuElement({id = "zhonya", name = "Zhonya", value = true})	    
-	Menu.Combo.Wset:MenuElement({id = "red", name = "Redemption", value = true})
+	Menu.Combo:MenuElement({type = MENU, id = "Wset", name = "W Settings"})	
+	Menu.Combo.Wset:MenuElement({id = "UseW", name = "Use[W]", value = true})
+	Menu.Combo.Wset:MenuElement({id = "Change", name = "Auto or Combo/Harass?", value = 2, drop = {"AutoW", "Combo/Harass"}})	
+
+	Menu.Combo.Wset:MenuElement({type = MENU, id = "red", name = "Redemption", leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3107.png"})	
+    Menu.Combo.Wset.red:MenuElement({id = "Self", name = "Use Redemption Zoe", value = true})	    
+	Menu.Combo.Wset.red:MenuElement({id = "HPself", name = "If Zoe Hp lower than -->", value = 30, min = 0, max = 100, identifier = "%"})
+    Menu.Combo.Wset.red:MenuElement({id = "Ally", name = "Use Redemption Ally", value = true})	    
+	Menu.Combo.Wset.red:MenuElement({id = "HPally", name = "If Ally Hp lower than -->", value = 30, min = 0, max = 100, identifier = "%"})	
+	
+	Menu.Combo.Wset:MenuElement({type = MENU, id = "Sol", name = "Locket of the Iron Solari", leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3190.png"})	
+    Menu.Combo.Wset.Sol:MenuElement({id = "Self", name = "Use Solari Zoe", value = true})	    
+	Menu.Combo.Wset.Sol:MenuElement({id = "HPself", name = "If Zoe Hp lower than -->", value = 30, min = 0, max = 100, identifier = "%"})
+    Menu.Combo.Wset.Sol:MenuElement({id = "Ally", name = "Use Solari Ally near", value = true})	    
+	Menu.Combo.Wset.Sol:MenuElement({id = "HPally", name = "If Ally Hp lower than -->", value = 30, min = 0, max = 100, identifier = "%"})	
+	
+	Menu.Combo.Wset:MenuElement({type = MENU, id = "You", name = "Youmuu's Ghostblade", leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3142.png"})	
+    Menu.Combo.Wset.You:MenuElement({id = "Youmuu", name = "Use Youmuu's", value = true})	    
+	Menu.Combo.Wset.You:MenuElement({id = "HP", name = "If Zoe Hp lower than -->", value = 30, min = 0, max = 100, identifier = "%"})	
+	
+	Menu.Combo.Wset:MenuElement({type = MENU, id = "Zho", name = "Zhonya's Hourglass", leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3157.png"})	
+    Menu.Combo.Wset.Zho:MenuElement({id = "zhonya", name = "Use Zhonya's", value = true})	    
+	Menu.Combo.Wset.Zho:MenuElement({id = "HP", name = "If Zoe Hp lower than -->", value = 30, min = 0, max = 100, identifier = "%"})	
+	
+	Menu.Combo.Wset:MenuElement({type = MENU, id = "Hex", name = "Hextech Rocketbelt", leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3152.png"})	
+	Menu.Combo.Wset.Hex:MenuElement({id = "Hextech", name = "Use Hextech", value = true})	
+	
+	Menu.Combo.Wset:MenuElement({type = MENU, id = "Eve", name = "EverFrost", leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6656.png"})
+	Menu.Combo.Wset.Eve:MenuElement({id = "EverFrost", name = "Use EverFrost", value = true})	
+	
+	Menu.Combo.Wset:MenuElement({type = MENU, id = "Pre", name = "Predator Boots"--[[, leftIcon = "https://cdn.discordapp.com/attachments/577088725394391073/791398878477811742/Predator_rune.png"]]})
+    Menu.Combo.Wset.Pre:MenuElement({id = "Predator", name = "Use Predator Boots", value = true})
+	Menu.Combo.Wset.Pre:MenuElement({id = "range", name = "If Target range lower than -->", value = 500, min = 0, max = 3000})		
+
+    Menu.Combo.Wset:MenuElement({type = MENU, id = "Ran", name = "Randuin's Omen", leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3143.png"})
+    Menu.Combo.Wset.Ran:MenuElement({id = "randuin", name = "Use Randuin's", value = true})	
+ 	Menu.Combo.Wset.Ran:MenuElement({id = "count", name = "Min Targets", value = 2, min = 1, max = 5, step = 1})	
+	
+    Menu.Combo.Wset:MenuElement({type = MENU, id = "Ign", name = "Summoner Ignite", leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/spell/SummonerDot.png"})
+	Menu.Combo.Wset.Ign:MenuElement({id = "ignite", name = "Use Ignite KS", value = true})
+	
+	Menu.Combo.Wset:MenuElement({type = MENU, id = "ex", name = "Summoner Exhaust", leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/spell/SummonerExhaust.png"})
+    Menu.Combo.Wset.ex:MenuElement({id = "exhaust", name = "Use Exhaust", value = true})
+	Menu.Combo.Wset.ex:MenuElement({id = "HP", name = "If Target Hp lower than -->", value = 30, min = 0, max = 100, identifier = "%"})	
+	
+	Menu.Combo.Wset:MenuElement({type = MENU, id = "Sm", name = "Summoner Smite", leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/spell/SummonerSmite.png"})    
+	Menu.Combo.Wset.Sm:MenuElement({id = "smite", name = "Use Smite", value = true})
+	Menu.Combo.Wset.Sm:MenuElement({id = "HP", name = "If Target Hp lower than -->", value = 60, min = 0, max = 100, identifier = "%"})	
+	
+	Menu.Combo.Wset:MenuElement({type = MENU, id = "He", name = "Summoner Heal", leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/spell/SummonerHeal.png"})   
+	Menu.Combo.Wset.He:MenuElement({id = "heal", name = "Use Heal", value = true})
+	Menu.Combo.Wset.He:MenuElement({id = "HP", name = "If Zoe Hp lower than -->", value = 30, min = 0, max = 100, identifier = "%"})	
+	
+	Menu.Combo.Wset:MenuElement({type = MENU, id = "Ba", name = "Summoner Barrier", leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/spell/SummonerBarrier.png"})	
+    Menu.Combo.Wset.Ba:MenuElement({id = "barrier", name = "Use Barrier", value = true})
+	Menu.Combo.Wset.Ba:MenuElement({id = "HP", name = "If Zoe Hp lower than -->", value = 30, min = 0, max = 100, identifier = "%"})    
+	
+	Menu.Combo.Wset:MenuElement({type = MENU, id = "Cl", name = "Summoner Cleanse", leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/spell/SummonerBoost.png"})	
+	Menu.Combo.Wset.Cl:MenuElement({id = "cleanse", name = "Use Cleanse if Immobile", value = true})
+
+	Menu.Combo.Wset:MenuElement({type = MENU, id = "Ha", name = "Summoner Haste", leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/spell/SummonerHaste.png"})   
+	Menu.Combo.Wset.Ha:MenuElement({id = "haste", name = "Use Haste", value = true})
+	Menu.Combo.Wset.Ha:MenuElement({id = "HP", name = "If Zoe Hp lower than -->", value = 30, min = 0, max = 100, identifier = "%"})
 	
 	--Ult Settings
 --[[	Menu.Combo:MenuElement({type = MENU, id = "Ult", name = " Extra Ultimate Settings"})
@@ -391,14 +496,14 @@ function LoadScript()
 		end
 	end)		
 end
-
+ 
 function Tick()
 	if RQCast and not Ready(_R) then
 		DelayAction(function()
 			RQCast = false
 		end,2.5)	
 	end
-	
+
 	if MyHeroNotReady() then return end
 
 	if Menu.RSet.UseR:Value() then
@@ -411,16 +516,26 @@ function Tick()
 
 	local Mode = GetMode()
 	if Mode == "Combo" then
+		if Menu.Combo.Wset.Change:Value() == 2 then
+			CastW()
+		end
 		if CastE == nil then
 			Combo1()
 		end	
 		--CastR()
 	elseif Mode == "Harass" then		
+		if Menu.Combo.Wset.Change:Value() == 2 then
+			CastW()
+		end		
 		Harass()
 	elseif Mode == "Clear" then
 		Clear()
 		JungleClear()			
-	end		
+	end
+
+	if Menu.Combo.Wset.Change:Value() == 1 then
+		CastW()
+	end
 end	
 
 local function QRecast()   
@@ -716,46 +831,127 @@ function Combo1()
 			end	
 		end	
     end
-end
+end	
 
---[[
 function CastW()
-local target = GetTarget(2000)
-if target == nil then return end
+	local WName = myHero:GetSpellData(_W).name:lower()
+	if WName == "zoew" then return end
+	if WName == "itemredemption" and Menu.Combo.Wset.UseW:Value() and Ready(_W) then
+		if Menu.Combo.Wset.red.Self:Value() and myHero.health/myHero.maxHealth < Menu.Combo.Wset.red.HPself:Value() / 100 and GetEnemyCount(1500, myHero) > 0 then
+			Control.CastSpell(HK_W, myHero.pos)
+		else
+			if Menu.Combo.Wset.red.Ally:Value() then
+				for i, Ally in ipairs(GetAllyHeroes()) do
+					if Ally and myHero.pos:DistanceTo(Ally.pos) <= 5500 and IsValid(Ally) and Ally.health/Ally.maxHealth < Menu.Combo.Wset.red.HPally:Value() / 100 and GetEnemyCount(1500, Ally) > 0 then
+						if Ally.pos:To2D().onScreen then						
+							Control.CastSpell(HK_W, Ally.pos) 
+							
+						elseif not Ally.pos:To2D().onScreen then			
+							CastSpellMM(HK_W, Ally.pos, 5500)
+						end								
+					end
+				end
+			end	
+		end	
+	end	
+	
+	local target = GetTarget(2000)
+	if target == nil then return end
+	
 	if IsValid(target) then
 		if Menu.Combo.Wset.UseW:Value() and Ready(_W) then
-		local WName = myHero:GetSpellData(_W).name:lower()
 
-			if WName == "summonerdot" and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.ignite:Value()
-			or WName == "summonerexhaust"  and target.pos:DistanceTo() < 650 and Menu.Combo.Wset.exhaust:Value() 
-			or WName == "hextechgunblade"  and target.pos:DistanceTo() < 700 and Menu.Combo.Wset.hex:Value()
-			or WName == "s5_summonersmiteplayerganker"  and target.pos:DistanceTo() < 500 and Menu.Combo.Wset.smite:Value() 
-			or WName == "itemswordoffeastandfamine"  and target.pos:DistanceTo() < 550 and Menu.Combo.Wset.botrk:Value()
-			then Control.CastSpell(HK_W, target) 
-			end
-
-			if WName == "summonerheal" and myHero.health/myHero.maxHealth < Menu.Combo.Wset.HP:Value() / 100  and Menu.Combo.Wset.heal:Value() 
-			or WName == "summonerbarrier" and myHero.health/myHero.maxHealth < Menu.Combo.Wset.HP:Value() / 100  and Menu.Combo.Wset.barrier:Value()
-			or WName == "zhonyasHourglass" and myHero.health/myHero.maxHealth < Menu.Combo.Wset.HP:Value() / 100  and Menu.Combo.Wset.zhonya:Value()
-			or WName == "summonerboost" and myHero.health/myHero.maxHealth < Menu.Combo.Wset.HP:Value() / 100  and Menu.Combo.Wset.cleanse:Value()
-		 	or WName == "itemstylus"  and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.solari:Value()
-			or WName == "youmusblade"  and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.yo:Value() 
-			or WName == "itemrighteousglory"  and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.rg:Value()
-			or WName == "itemomen"  and target.pos:DistanceTo() < 500 and Menu.Combo.Wset.omen:Value()
-			or WName == "itemtwin"  and target.pos:DistanceTo() < 2000 and target.pos:DistanceTo() > 500 and Menu.Combo.Wset.twin:Value()			
-			then Control.CastSpell(HK_W) 
-			end
-
-			if WName == "itemsofboltspellbase" and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.proto:Value()  
-			or WName == "itemwillboltspellbase" and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.glp:Value() 
-			or WName == "itemredemption" and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.red:Value() 
-			or WName == "ironstylus" and target.pos:DistanceTo() < 600 and Menu.Combo.Wset.red:Value() 
-			then Control.CastSpell(HK_W, target.pos) 
+			--//// OFFENSIVE ////--
+			if WName == "summonerdot" then --
+				if target.pos:DistanceTo() < 600 and Menu.Combo.Wset.Ign.ignite:Value() then
+					local IgnDmg = getdmg("IGNITE", target, myHero)
+					if target.health < IgnDmg then
+						Control.CastSpell(HK_W, target)
+					end	
+				end
+				
+			elseif WName == "summonerexhaust" then  --
+				if target.pos:DistanceTo() < 650 and Menu.Combo.Wset.ex.exhaust:Value() then 
+					if target.health/target.maxHealth <= Menu.Combo.Wset.ex.HP:Value()/100 then
+						Control.CastSpell(HK_W, target)
+					end	
+				end
+				
+			elseif WName == "s5_summonersmiteplayerganker" then  --
+				if target.pos:DistanceTo() < 500 and Menu.Combo.Wset.Sm.smite:Value() then
+					if target.health/target.maxHealth <= Menu.Combo.Wset.Sm.HP:Value()/100 then
+						Control.CastSpell(HK_W, target)
+					end	
+				end
+				
+			elseif WName == "randuinsomen" then --
+				if GetEnemyCount(500, myHero) >= Menu.Combo.Wset.Ran.count:Value() and Menu.Combo.Wset.Ran.randuin:Value() then
+					Control.CastSpell(HK_W)
+				end
+				
+			elseif WName == "itembloodmoonbootsactive" then --
+				if target.pos:DistanceTo() < Menu.Combo.Wset.Pre.range:Value() and Menu.Combo.Wset.Pre.Predator:Value() then
+					Control.CastSpell(HK_W)
+				end	
+				
+			elseif WName == "6656cast" then --
+				if target.pos:DistanceTo() < 700 and Menu.Combo.Wset.Eve.EverFrost:Value() then	
+					Control.CastSpell(HK_W, target.pos)
+				end
+				
+			elseif WName == "3152active" then --
+				if target.pos:DistanceTo() < 700 and Menu.Combo.Wset.Hex.Hextech:Value() then					
+					Control.CastSpell(HK_W, target.pos) 
+				end
+			
+			--//// DEFENSIVE ////--
+			elseif WName == "summonerheal" then--
+				if myHero.health/myHero.maxHealth < Menu.Combo.Wset.He.HP:Value() / 100 and Menu.Combo.Wset.He.heal:Value() then 
+					Control.CastSpell(HK_W)
+				end
+				
+			elseif WName == "summonerbarrier" then --
+				if myHero.health/myHero.maxHealth < Menu.Combo.Wset.Ba.HP:Value() / 100 and Menu.Combo.Wset.Ba.barrier:Value() then
+					Control.CastSpell(HK_W)
+				end	
+				
+			elseif WName == "summonerhaste" then --
+				if myHero.health/myHero.maxHealth < Menu.Combo.Wset.Ha.HP:Value() / 100 and Menu.Combo.Wset.Ha.haste:Value() then
+					Control.CastSpell(HK_W)
+				end	
+				
+			elseif WName == "summonerboost" then --
+				if IsImmobileTarget(myHero) and Menu.Combo.Wset.Cl.cleanse:Value() then
+					Control.CastSpell(HK_W)
+				end
+				
+			elseif WName == "zhonyashourglass" then --
+				if myHero.health/myHero.maxHealth < Menu.Combo.Wset.Zho.HP:Value() / 100 and Menu.Combo.Wset.Zho.zhonya:Value() then
+					Control.CastSpell(HK_W)
+				end
+				
+			elseif WName == "youmusblade" then --
+				if myHero.health/myHero.maxHealth < Menu.Combo.Wset.You.HP:Value() / 100 and Menu.Combo.Wset.You.Youmuu:Value() then
+					Control.CastSpell(HK_W)
+				end	
+	
+			elseif WName == "3190active" then --
+				if Menu.Combo.Wset.Sol.Self:Value() and myHero.health/myHero.maxHealth < Menu.Combo.Wset.Sol.HPself:Value() / 100 then
+					Control.CastSpell(HK_W)
+				else
+					if Menu.Combo.Wset.Sol.Ally:Value() then
+						for i, Ally in ipairs(GetAllyHeroes()) do
+							if Ally and myHero.pos:DistanceTo(Ally.pos) <= 600 and IsValid(Ally) and Ally.health/Ally.maxHealth < Menu.Combo.Wset.Sol.HPally:Value() / 100 then
+								Control.CastSpell(HK_W)
+							end
+						end
+					end	
+				end			
 			end	
 		end
 	end	
 end
-
+--[[
 function CastR()
 	if Menu.Combo.Ult.UseR:Value() and Ready(_R) then
 			local WName = myHero:GetSpellData(_W).name:lower()
