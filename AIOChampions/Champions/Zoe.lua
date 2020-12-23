@@ -244,7 +244,7 @@ local function minionCollision2(Pos1, Pos2, wight)
 	local Collision = 0
 	for i = 1, GameMinionCount() do
 		local minion = GameMinion(i)
-		if minion.isTargetable and minion.team == TEAM_ENEMY and minion.dead == false then
+		if minion.isTargetable and minion.team ~= TEAM_ALLY and minion.dead == false then
 			local linesegment, line, isOnSegment = VectorPointProjectionOnLineSegment(Pos1, Pos2, minion.pos)
 			if linesegment and isOnSegment and (GetDistanceSqr(minion.pos, linesegment) <= (minion.boundingRadius + wight) * (minion.boundingRadius + wight)) then
 				Collision = Collision + 1
@@ -264,7 +264,7 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})	
 	
 	Menu:MenuElement({type = MENU, id = "RSet", name = "AutoR+E Incomming CC Spells"})	
 	Menu.RSet:MenuElement({id = "UseR", name = "Use AutoR + E Stun", value = true})	
@@ -391,7 +391,7 @@ function LoadScript()
 		end
 	end)		
 end
- --Vector(target.pos):Extended(myHero.pos, (700+myHero.pos:DistanceTo(target.pos)))
+
 function Tick()
 	if RQCast and not Ready(_R) then
 		DelayAction(function()
@@ -542,7 +542,7 @@ function Combo1()
 			end 
         end
 		
-		if os.clock() - stuncast > 1 and Ready(_Q) and Menu.Combo.UseQ:Value() and Ready(_R) and Menu.Combo.UseR:Value() and not QRecast() and target.health/target.maxHealth < 0.4 and not IsUnderTurret(myHero) then
+		if os.clock() - stuncast > 1 and Ready(_Q) and Menu.Combo.UseQ:Value() and Ready(_R) and Menu.Combo.UseR:Value() and not QRecast() then
 			if myHero.pos:DistanceTo(target.pos) < 700 then
 				local startpos = myHero.pos
 				local endpos = target.pos			
@@ -559,7 +559,7 @@ function Combo1()
 					end
 				end
 			else
-				if myHero.pos:DistanceTo(target.pos) > 700 and myHero.pos:DistanceTo(target.pos) < 1200 then
+				if myHero.pos:DistanceTo(target.pos) > 700 and myHero.pos:DistanceTo(target.pos) < 1200 and target.health/target.maxHealth < 0.4 and not IsUnderTurret(myHero) then
 					local GapPos = myHero.pos:Extended(Vector(target.pos), 1000)
 					if os.clock() - stuncast > 1 then
 						local startpos = myHero.pos
