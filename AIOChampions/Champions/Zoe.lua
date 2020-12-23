@@ -140,6 +140,27 @@ local function GetEnemyHeroes()
 		end
 	end
 	return _EnemyHeroes
+end
+
+local function GetEnemyTurret()
+	local _EnemyTurrets = {}
+    for i = 1, GameTurretCount() do
+        local turret = GameTurret(i)
+        if turret.isEnemy and not turret.dead then
+			TableInsert(_EnemyTurrets, turret)
+		end
+	end
+	return _EnemyTurrets		
+end
+
+local function IsUnderTurret(unit)
+	for i, turret in ipairs(GetEnemyTurret()) do
+        local range = (turret.boundingRadius + 750 + unit.boundingRadius / 2) 
+		if turret.pos:DistanceTo(unit.pos) < range then
+			return true
+		end
+    end
+    return false
 end 
 
 local function OnProcessSpell()
@@ -233,11 +254,11 @@ local function minionCollision2(Pos1, Pos2, wight)
 	return Collision
 end
 
+local RQCast = false
 local CastE = nil
 local OldPos = nil
 local noBuff = 0
 local stuncast = 0
-local Q2range = (math.floor(800 * myHero.ms))
 
 function LoadScript() 
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
@@ -254,9 +275,8 @@ function LoadScript()
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.Combo:MenuElement({id = "UseQ2", name = "[Q2]", value = true})	
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
+	Menu.Combo:MenuElement({id = "ERange", name = "[E] max Cast range", value = 700, min = 0, max = 800, step = 10})	
 	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})	
-	Menu.Combo:MenuElement({name = " ", drop = {"Save[R] = only if Hard CC Enemy near"}})	
-	Menu.Combo:MenuElement({id = "UseR2", name = "Save[R] for incomming CC", value = true})	
 	
 	--W Seetings
 	Menu.Combo:MenuElement({type = MENU, id = "Wset", name = "W Settings Comming Soon !!!"})	
@@ -371,8 +391,14 @@ function LoadScript()
 		end
 	end)		
 end
-
+ --Vector(target.pos):Extended(myHero.pos, (700+myHero.pos:DistanceTo(target.pos)))
 function Tick()
+	if RQCast and not Ready(_R) then
+		DelayAction(function()
+			RQCast = false
+		end,2.5)	
+	end
+	
 	if MyHeroNotReady() then return end
 
 	if Menu.RSet.UseR:Value() then
@@ -387,7 +413,6 @@ function Tick()
 	if Mode == "Combo" then
 		if CastE == nil then
 			Combo1()
-			Combo2()
 		end	
 		--CastR()
 	elseif Mode == "Harass" then		
@@ -482,17 +507,19 @@ end
 
 function Combo1()
     
-    local target = GetTarget(1500)
+    local target = GetTarget(1700)
     local Collision
 	local Collision2
     local pDir
     local point3
     local point4
     local point5
-    
+	local RPos
+    local Q1PlacementPos
+	
 	if target and IsValid(target) then
         
-		if myHero.pos:DistanceTo(target.pos) < 800 and Menu.Combo.UseE:Value() and Ready(_E) then            
+		if myHero.pos:DistanceTo(target.pos) < Menu.Combo.ERange:Value() and Menu.Combo.UseE:Value() and Ready(_E) then            
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, EData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
@@ -514,19 +541,99 @@ function Combo1()
 				end					
 			end 
         end
-
-        if HasBuff(target, "zoeesleepcountdownslow") and os.clock() - stuncast > 1 and Ready(_Q) and Menu.Combo.UseQ:Value() and Ready(_R) and Menu.Combo.UseR:Value() then
-            local pointr = myHero.pos + (target.pos - myHero.pos):Normalized() * - 600
-            for i, spell in pairs(CCSpells) do
-				if Menu.Combo.UseR2:Value() and Menu.RSet.UseR:Value() and spell.charName == target.charName and myHero.pos:DistanceTo(target.pos) < 2000 and IsValid(target) then return end
-
-				if GetDistance(target.pos, myHero.pos) < 600 then
-					Control.CastSpell(HK_R, pointr)
+		
+		if os.clock() - stuncast > 1 and Ready(_Q) and Menu.Combo.UseQ:Value() and Ready(_R) and Menu.Combo.UseR:Value() and not QRecast() and target.health/target.maxHealth < 0.4 and not IsUnderTurret(myHero) then
+			if myHero.pos:DistanceTo(target.pos) < 700 then
+				local startpos = myHero.pos
+				local endpos = target.pos			
+				local Rpoint = (startpos-Vector(startpos-endpos):Normalized():Perpendicular2():Perpendicular2()*700)		
+				RPos = (Rpoint):Extended(myHero.pos, -600)	            
+				Collision = minionCollision2(myHero.pos, RPos, 50)
+				Collision2 = minionCollision2(RPos, Vector(target.pos), 70)
+				if Collision == 0 and Collision2 == 0 then
+					RQCast = true
+					if Control.CastSpell(HK_R, (myHero.pos):Extended(RPos, 600)) and not QRecast() then
+						DelayAction(function()
+							Control.CastSpell(HK_Q, RPos)
+						end,0.8)	
+					end
+				end
+			else
+				if myHero.pos:DistanceTo(target.pos) > 700 and myHero.pos:DistanceTo(target.pos) < 1200 then
+					local GapPos = myHero.pos:Extended(Vector(target.pos), 1000)
+					if os.clock() - stuncast > 1 then
+						local startpos = myHero.pos
+						local endpos = target.pos				
+						pDir = startpos-Vector(startpos-endpos):Normalized():Perpendicular()*700
+						Collision = minionCollision2(myHero.pos, pDir, 50)
+						Collision2 = minionCollision2(pDir, Vector(target.pos), 70)
+						if Collision == 0 and Collision2 == 0 then
+							--print("R1")
+							RQCast = true
+							noBuff = os.clock()
+							if not QRecast() and Control.CastSpell(HK_Q, pDir) then
+								DelayAction(function()
+									Control.CastSpell(HK_R, GapPos)
+								end,0.3)							
+							end
+							
+						elseif os.clock() - stuncast > 1 then
+							local startpos = myHero.pos
+							local endpos = target.pos				
+							point3 = startpos-Vector(startpos-endpos):Normalized():Perpendicular2()*700
+							Collision = minionCollision2(myHero.pos, point3, 50)
+							Collision2 = minionCollision2(point3, Vector(target.pos), 70)				
+							if Collision == 0 and Collision2 == 0 then
+								--print("R2")
+								RQCast = true
+								noBuff = os.clock()
+								if not QRecast() and Control.CastSpell(HK_Q, point3) then
+									DelayAction(function()
+										Control.CastSpell(HK_R, GapPos)
+									end,0.3)							
+								end
+							
+							elseif os.clock() - stuncast > 1 then
+								local startpos = myHero.pos
+								local endpos = target.pos				
+								point4 = startpos-Vector(startpos-endpos):Normalized():Perpendicular2():Perpendicular2()*700
+								Collision = minionCollision2(myHero.pos, point4, 50)
+								Collision2 = minionCollision2(point4, Vector(target.pos), 70)				
+								if Collision == 0 and Collision2 == 0 then
+									--print("R3")
+									RQCast = true
+									noBuff = os.clock()
+									if not QRecast() and Control.CastSpell(HK_Q, point4) then
+										DelayAction(function()
+											Control.CastSpell(HK_R, GapPos)
+										end,0.3)							
+									end
+									
+								else
+									if os.clock() - stuncast > 1 then  
+										point5 = Vector(target.pos):Extended(myHero.pos, (700+myHero.pos:DistanceTo(target.pos)))
+										Collision = minionCollision2(myHero.pos, point5, 50)
+										Collision2 = minionCollision2(point5, Vector(target.pos), 70)				
+										if Collision == 0 and Collision2 == 0 then
+											--print("R4")
+											RQCast = true
+											noBuff = os.clock()
+											if not QRecast() and Control.CastSpell(HK_Q, point5) then
+												DelayAction(function()
+													Control.CastSpell(HK_R, GapPos)
+												end,0.3)							
+											end 									
+										end
+									end 						
+								end 										
+							end 					
+						end 
+					end					
 				end
 			end	
-        end
+		end			
 
-        if Menu.Combo.UseQ:Value() and Ready(_Q) and not QRecast() and myHero.pos:DistanceTo(target.pos) < 800 then
+        if not RQCast and Menu.Combo.UseQ:Value() and Ready(_Q) and not QRecast() and myHero.pos:DistanceTo(target.pos) < 800 then			
 			
 			if os.clock() - stuncast > 1 then
 				local startpos = myHero.pos
@@ -535,217 +642,81 @@ function Combo1()
 				Collision = minionCollision2(myHero.pos, pDir, 50)
 				Collision2 = minionCollision2(pDir, Vector(target.pos), 70)
 				if Collision == 0 and Collision2 == 0 then
+					--print("1")
 					noBuff = os.clock()
 					Control.CastSpell(HK_Q, pDir)
-					return
+					
+				elseif os.clock() - stuncast > 1 then
+					local startpos = myHero.pos
+					local endpos = target.pos				
+					point3 = startpos-Vector(startpos-endpos):Normalized():Perpendicular2()*700
+					Collision = minionCollision2(myHero.pos, point3, 50)
+					Collision2 = minionCollision2(point3, Vector(target.pos), 70)				
+					if Collision == 0 and Collision2 == 0 then
+						--print("2")
+						noBuff = os.clock()
+						Control.CastSpell(HK_Q, point3)
+					
+					elseif os.clock() - stuncast > 1 then
+						local startpos = myHero.pos
+						local endpos = target.pos				
+						point4 = startpos-Vector(startpos-endpos):Normalized():Perpendicular2():Perpendicular2()*700
+						Collision = minionCollision2(myHero.pos, point4, 50)
+						Collision2 = minionCollision2(point4, Vector(target.pos), 70)				
+						if Collision == 0 and Collision2 == 0 then
+							--print("3")
+							noBuff = os.clock()
+							Control.CastSpell(HK_Q, point4) 
+							
+						else
+							if os.clock() - stuncast > 1 then  
+								point5 = Vector(target.pos):Extended(myHero.pos, (700+myHero.pos:DistanceTo(target.pos)))
+								Collision = minionCollision2(myHero.pos, point5, 50)
+								Collision2 = minionCollision2(point5, Vector(target.pos), 70)				
+								if Collision == 0 and Collision2 == 0 then
+									--print("4")
+									noBuff = os.clock()
+									Control.CastSpell(HK_Q, point5) 									
+								end
+							end 						
+						end 										
+					end 					
 				end 
 			end
-		
-			if os.clock() - stuncast > 1 then
-				local startpos = myHero.pos
-				local endpos = target.pos				
-				point3 = startpos-Vector(startpos-endpos):Normalized():Perpendicular2()*700
-				Collision = minionCollision2(myHero.pos, point3, 50)
-				Collision2 = minionCollision2(point3, Vector(target.pos), 70)				
-				if Collision == 0 and Collision2 == 0 then
-					noBuff = os.clock()
-					Control.CastSpell(HK_Q, point3)
-					return
-				end 
-			end
-						
-			if os.clock() - stuncast > 1 then
-				local startpos = myHero.pos
-				local endpos = target.pos				
-				point4 = startpos-Vector(startpos-endpos):Normalized():Perpendicular2():Perpendicular2()*700
-				Collision = minionCollision2(myHero.pos, point4, 50)
-				Collision2 = minionCollision2(point4, Vector(target.pos), 70)				
-				if Collision == 0 and Collision2 == 0 then
-					noBuff = os.clock()
-					Control.CastSpell(HK_Q, point4) 
-					return
-				end 
-			end
-			
-			if os.clock() - stuncast > 1 then  
-				point5 = Vector(target.pos):Extended(myHero.pos, (700+myHero.pos:DistanceTo(target.pos)))
-				Collision = minionCollision2(myHero.pos, point5, 50)
-				Collision2 = minionCollision2(point5, Vector(target.pos), 70)				
-				if Collision == 0 and Collision2 == 0 then
-					noBuff = os.clock()
-					Control.CastSpell(HK_Q, point5) 
-					return
-				end
-			end 
 		end
 	end	
 
 	if QRecast() and Menu.Combo.UseQ2:Value() and Ready(_Q) then
-		local Q2target = GetTarget(5000)
+		local Q2target = GetTarget(3000)
 		local CastPosition	
 		
 		if Q2target and IsValid(Q2target) then 				
-			local PredPos = Pred(Q, Q2target)
+			local PredPos = PredQ2(Q2target)
 			if PredPos then
 				CastPosition = PredPos
-			end
+			end		
+			
+			if not RQCast and CastPosition and myHero.pos:DistanceTo(CastPosition) > 750 then
+				--print("Q2Secure")
+				Control.CastSpell(HK_Q, CastPosition)
 					
-			if HasBuff(Q2target, "zoeesleepstun") and myHero.pos:DistanceTo(Q2target.pos) < Q2range then
+			elseif HasBuff(Q2target, "zoeesleepstun") and myHero.pos:DistanceTo(Q2target.pos) < 800 then
+				Control.CastSpell(HK_Q, Q2target.pos)
+			
+			elseif CastPosition and os.clock() - noBuff > 0.6 and HasBuff(Q2target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(Q2target.pos) < 800 then
+				Control.CastSpell(HK_Q, CastPosition)
+			
+			elseif IsImmobileTarget(Q2target) and myHero.pos:DistanceTo(Q2target.pos) < 800 then
 				Control.CastSpell(HK_Q, Q2target.pos)
 				
-			end
-			
-			if CastPosition and os.clock() - noBuff > 0.6 and HasBuff(Q2target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(Q2target.pos) < Q2range then
-				Control.CastSpell(HK_Q, CastPosition)
-				
-			end
-			
-			if IsImmobileTarget(Q2target) and myHero.pos:DistanceTo(Q2target.pos) < 800 then
-				Control.CastSpell(HK_Q, Q2target.pos)
-				
-			end
-			
-			if CastPosition and os.clock() - noBuff > 0.5 and myHero.pos:DistanceTo(Q2target.pos) < Q2range and not HasBuff(Q2target, "zoeesleepcountdownslow") then  
-				Control.CastSpell(HK_Q, CastPosition)
-			end
+			else				
+				if CastPosition and os.clock() - noBuff > 0.5 and myHero.pos:DistanceTo(Q2target.pos) < 800 and not HasBuff(Q2target, "zoeesleepcountdownslow") then  
+					Control.CastSpell(HK_Q, CastPosition)
+				end
+			end	
 		end	
     end
 end
-
-function Combo2()
-    
-    local target = GetTarget(1500)
-    local Collision
-	local Collision2
-    local point
-    local pDir
-    local point3
-    local point4
-    local point5
-    
-	if target and IsValid(target) then
-        
-		if Menu.Combo.UseQ:Value() and Ready(_Q) and not QRecast() then
-		
-			if os.clock() - stuncast > 1 and HasBuff(target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(target.pos) < 800 then
-				point = Vector(target.pos):Extended(myHero.pos, (700+myHero.pos:DistanceTo(target.pos)))
-				Collision = minionCollision2(myHero.pos, point, 50)
-				Collision2 = minionCollision2(point, Vector(target.pos), 70)				
-				if Collision == 0 and Collision2 == 0 then
-					noBuff = os.clock()
-					Control.CastSpell(HK_Q, point)
-					return
-				end 
-			end
-			
-			if os.clock() - stuncast > 1 and HasBuff(target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(target.pos) < Q2range then
-				local startpos = myHero.pos
-				local endpos = target.pos				
-				pDir = startpos-Vector(startpos-endpos):Normalized():Perpendicular()*700
-				Collision = minionCollision2(myHero.pos, pDir, 50)
-				Collision2 = minionCollision2(pDir, Vector(target.pos), 70)				
-				if Collision == 0 and Collision2 == 0 then
-					noBuff = os.clock()
-					Control.CastSpell(HK_Q, pDir)
-					return
-				end 
-			end
-						
-			if os.clock() - stuncast > 1 and HasBuff(target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(target.pos) < Q2range then
-				local startpos = myHero.pos
-				local endpos = target.pos				
-				point3 = startpos-Vector(startpos-endpos):Normalized():Perpendicular2()*700
-				Collision = minionCollision2(myHero.pos, point3, 50)
-				Collision2 = minionCollision2(point3, Vector(target.pos), 70)				
-				if Collision == 0 and Collision2 == 0 then
-					noBuff = os.clock()
-					Control.CastSpell(HK_Q, point3)
-					return
-				end 
-			end
-							
-			if os.clock() - stuncast > 1 and HasBuff(target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(target.pos) < Q2range then
-				local startpos = myHero.pos
-				local endpos = target.pos				
-				point4 = startpos-Vector(startpos-endpos):Normalized():Perpendicular2():Perpendicular2()*700
-				Collision = minionCollision2(myHero.pos, point4, 50)
-				Collision2 = minionCollision2(point4, Vector(target.pos), 70)				
-				if Collision == 0 and Collision2 == 0 then
-					noBuff = os.clock()
-					Control.CastSpell(HK_Q, point4) 
-					return
-				end 
-			end
-						
-			if os.clock() - stuncast > 1  and myHero.pos:DistanceTo(target.pos) < 800 and not Ready(_E) then
-				point5 = Vector(target.pos):Extended(myHero.pos, (700+myHero.pos:DistanceTo(target.pos)))
-				Collision = minionCollision2(myHero.pos, point5, 50)
-				Collision2 = minionCollision2(point5, Vector(target.pos), 70)				
-				if Collision == 0 and Collision2 == 0 then
-					noBuff = os.clock()
-					Control.CastSpell(HK_Q, point5) 	
-				end
-			end 
-		end           
-            
-		if Ready(_Q) and Ready(_R) and QRecast() and Menu.Combo.UseQ:Value() and Menu.Combo.UseR:Value() then
-			local pointr = myHero.pos:Extended(Vector(target.pos), 1000)
-            for i, spell in pairs(CCSpells) do
-				if Menu.Combo.UseR2:Value() and Menu.RSet.UseR:Value() and spell.charName == target.charName and myHero.pos:DistanceTo(target.pos) < 2000 and IsValid(target) then return end
-			
-				if GetDistance(target.pos, myHero.pos) > 600 then
-					Control.CastSpell(HK_R, pointr)
-				end 
-			end	
-		end
-            
-		if QRecast() and Menu.Combo.UseQ2:Value() and Ready(_Q) then
-			local CastPosition = Pred(Q, target)	
-		
-			if HasBuff(target, "zoeesleepstun") and myHero.pos:DistanceTo(target.pos) < Q2range then
-				Control.CastSpell(HK_Q, target.pos)
-				return
-			end
-			
-			if CastPosition and os.clock() - noBuff > 0.6 and HasBuff(target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(target.pos) < Q2range then
-				Control.CastSpell(HK_Q, CastPosition)
-				return
-			end
-			
-			if IsImmobileTarget(target) and myHero.pos:DistanceTo(target.pos) < 800 then
-				Control.CastSpell(HK_Q, target.pos)
-				return
-			end
-			
-			if CastPosition and os.clock() - noBuff > 0.5 and myHero.pos:DistanceTo(target.pos) < Q2range and not HasBuff(target, "zoeesleepcountdownslow") then  
-				Control.CastSpell(HK_Q, CastPosition)
-			end	
-		end	
-     
-		if myHero.pos:DistanceTo(target.pos) < 800 and Menu.Combo.UseE:Value() and Ready(_E) then            
-			if Menu.Pred.Change:Value() == 1 then
-				local pred = GetGamsteronPrediction(target, EData, myHero)
-				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
-					stuncast = os.clock()
-					Control.CastSpell(HK_E, pred.CastPosition) 
-				end
-			elseif Menu.Pred.Change:Value() == 2 then
-				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
-				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredE:Value(), pred.HitChance) then
-					stuncast = os.clock()
-					Control.CastSpell(HK_E, pred.CastPos) 
-				end
-			else
-				local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.3, Radius = 50, Range = 800, Speed = 1700, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
-				EPrediction:GetPrediction(target, myHero)
-				if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
-					stuncast = os.clock()
-					Control.CastSpell(HK_E, EPrediction.CastPosition)  
-				end					
-			end			
-        end
-	end	
-end	
 
 --[[
 function CastW()
@@ -883,17 +854,17 @@ function Harass()
 		local CastPosition	
 		
 		if Q2target and IsValid(Q2target) then 				
-			local PredPos = Pred(Q, Q2target)
+			local PredPos = PredQ2(Q2target)
 			if PredPos then
 				CastPosition = PredPos
 			end
 					
-			if HasBuff(Q2target, "zoeesleepstun") and myHero.pos:DistanceTo(Q2target.pos) < Q2range then
+			if HasBuff(Q2target, "zoeesleepstun") and myHero.pos:DistanceTo(Q2target.pos) < 800 then
 				Control.CastSpell(HK_Q, Q2target.pos)
 				
 			end
 			
-			if CastPosition and os.clock() - noBuff > 0.6 and HasBuff(Q2target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(Q2target.pos) < Q2range then
+			if CastPosition and os.clock() - noBuff > 0.6 and HasBuff(Q2target, "zoeesleepcountdownslow") and myHero.pos:DistanceTo(Q2target.pos) < 800 then
 				Control.CastSpell(HK_Q, CastPosition)
 				
 			end
@@ -903,33 +874,33 @@ function Harass()
 				
 			end
 			
-			if CastPosition and os.clock() - noBuff > 0.5 and myHero.pos:DistanceTo(Q2target.pos) < Q2range and not HasBuff(Q2target, "zoeesleepcountdownslow") then  
+			if CastPosition and os.clock() - noBuff > 0.5 and myHero.pos:DistanceTo(Q2target.pos) < 800 and not HasBuff(Q2target, "zoeesleepcountdownslow") then  
 				Control.CastSpell(HK_Q, CastPosition)
 			end
 		end	
 	end		
 end	
 
-function Pred(Spell, unit)
-	if Spell == Q then
-		if Menu.Pred.Change:Value() == 1 then
-			local pred = GetGamsteronPrediction(unit, QData, myHero)
-			if pred.Hitchance >= Menu.Pred.PredQ2:Value()+1 then
-				return pred.CastPosition	
-			end
-		elseif Menu.Pred.Change:Value() == 2 then
-			local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, QspellData)
-			if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ2:Value(), pred.HitChance) then
-				return pred.CastPos
-			end	
-		else
-			local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0, Radius = 70, Range = 2500, Speed = 2500, Collision = false})
-			QPrediction:GetPrediction(unit, myHero)
-			if QPrediction:CanHit(Menu.Pred.PredQ2:Value() + 1) then
-				return QPrediction.CastPosition	
-			end					
+function PredQ2(unit)
+	local PredictPos = nil
+	if Menu.Pred.Change:Value() == 1 then
+		local pred = GetGamsteronPrediction(unit, QData, myHero)
+		if pred.Hitchance >= Menu.Pred.PredQ2:Value()+1 then
+			PredictPos = pred.CastPosition	
+		end
+	elseif Menu.Pred.Change:Value() == 2 then
+		local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, QspellData)
+		if pred.CastPos and ConvertToHitChance(Menu.Pred.PredQ2:Value(), pred.HitChance) then
+			PredictPos = pred.CastPos
 		end	
+	else
+		local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.3, Radius = 70, Range = 2500, Speed = 2500, Collision = false})
+		QPrediction:GetPrediction(unit, myHero)
+		if QPrediction:CanHit(Menu.Pred.PredQ2:Value() + 1) then
+			PredictPos = QPrediction.CastPosition	
+		end					
 	end
+	return PredictPos
 end
 
 function Clear()
