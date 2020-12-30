@@ -239,7 +239,11 @@ Data = {
            Khazix = {
             Changelog = "Khazix Changelog Here",
             Version = 0.01,
-        },        
+        },
+           Aatrox = {
+            Changelog = "Aatrox Changelog Here",
+           Version = 0.01,
+        },      
     },
     Loader = {
         Version = 0.2,
