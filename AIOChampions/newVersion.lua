@@ -244,6 +244,10 @@ Data = {
            Khazix = {
             Changelog = "Khazix Changelog Here",
             Version = 0.02,
+        }, 
+           Aatrox = {
+            Changelog = "Aatrox Changelog Here",
+           Version = 0.01,
         },         
     },
 }
