@@ -414,7 +414,8 @@ local WspellData = {speed = math.huge, range = 500, delay = 0.25+ping, radius = 
 function LoadScript()                     
 	
 --MainMenu
-Menu = MenuElement({type = MENU, id = "Azir", name = "Version 0.01"})
+Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
+Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
 		
 --Combo 
 Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
@@ -493,8 +494,35 @@ Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings Mode"})
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
 	
 	Callback.Add("Tick", function() Tick() end)
-	Callback.Add("Draw", function() Draw() end)
 	
+	Callback.Add("Draw", function()
+		if myHero.dead then return end                                                 
+		
+		if Menu.Drawing.DrawR:Value() and Ready(_R) then
+			Draw.Circle(myHero, 250, 1, Draw.Color(255, 225, 255, 10))
+		end                                                 
+		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
+			Draw.Circle(myHero, 740, 1, Draw.Color(225, 225, 0, 10))
+		end
+		if Menu.Drawing.DrawE:Value() and Ready(_E) then
+			Draw.Circle(myHero, 1100, 1, Draw.Color(225, 225, 125, 10))
+		end
+		if Menu.Drawing.DrawW:Value() and Ready(_W) then
+			Draw.Circle(myHero, 500, 1, Draw.Color(225, 225, 125, 10))
+		end	
+		
+		if Menu.Drawing.DrawSoldier:Value() then		
+			local Soldier = GetSoldiersNearEnemy()
+			if Soldier then
+				Draw.Circle(Soldier, 100, 1, Draw.Color(225, 50, 205, 50))
+				if GetDistance(myHero.pos, Soldier.pos) <= 750 then
+					Draw.Circle(myHero, 750, 1, Draw.Color(225, 50, 205, 50))
+				else
+					Draw.Circle(myHero, 750, 1, Draw.Color(225, 220, 20, 60))
+				end
+			end	
+		end	
+	end)	
 end
 
 local ReadyforInsec = false
@@ -524,10 +552,14 @@ function Tick()
 		end	
 	elseif Mode == "Harass" then
 		Harass()	
-	elseif Mode == "LaneClear" then
+	elseif Mode == "Clear" then
 		Clear()
 	end
-	if Mode == "Combo" then print("ON") else print("OFF") end
+	
+	if ReadyforInsec and Mode ~= "Combo" then
+		ReadyforInsec = false
+	end
+	
 	if Menu.Insec.Mode2.Enable:Value() then 
 		if Menu.Insec.Mode2.Mode:Value() == 2 then
 			InsecAllyTurret()
@@ -560,35 +592,6 @@ function RemoveSoldiers()
 			TableRemove(AzirSoldiers, i)
 			--print("Remove")
 		end
-	end	
-end
-  
-function Draw()
-	if myHero.dead then return end                                                 
-	
-	if Menu.Drawing.DrawR:Value() and Ready(_R) then
-		Draw.Circle(myHero, 250, 1, Draw.Color(255, 225, 255, 10))
-	end                                                 
-	if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-		Draw.Circle(myHero, 740, 1, Draw.Color(225, 225, 0, 10))
-	end
-	if Menu.Drawing.DrawE:Value() and Ready(_E) then
-		Draw.Circle(myHero, 1100, 1, Draw.Color(225, 225, 125, 10))
-	end
-	if Menu.Drawing.DrawW:Value() and Ready(_W) then
-		Draw.Circle(myHero, 500, 1, Draw.Color(225, 225, 125, 10))
-	end	
-	
-	if Menu.Drawing.DrawSoldier:Value() then		
-		local Soldier = GetSoldiersNearEnemy()
-		if Soldier then
-			Draw.Circle(Soldier, 100, 1, Draw.Color(225, 50, 205, 50))
-			if GetDistance(myHero.pos, Soldier.pos) <= 750 then
-				Draw.Circle(myHero, 750, 1, Draw.Color(225, 50, 205, 50))
-			else
-				Draw.Circle(myHero, 750, 1, Draw.Color(225, 220, 20, 60))
-			end
-		end	
 	end	
 end
 
@@ -997,7 +1000,7 @@ function BestTurretTarget()
 				end	
 			end
 		else
-			if unit and unit ~= Target and GetDistanceSqr(myHero.pos, unit.pos) <= Range and IsValid(unit) then
+			if unit and unit ~= Target and GetDistance(myHero.pos, unit.pos) <= 1500 and IsValid(unit) then
 				local AllyTurret = NearestTower(unit, 1290)
 				if AllyTurret and GetDistance(AllyTurret.pos, myHero.pos) <= 3000 then
 					local MidPos = Vector(unit.pos)	
@@ -1062,7 +1065,7 @@ function BestAllyTarget()
 				end	
 			end
 		else
-			if unit and unit ~= Target and GetDistanceSqr(myHero.pos, unit.pos) <= Range and IsValid(unit) then
+			if unit and unit ~= Target and GetDistance(myHero.pos, unit.pos) <= 1500 and IsValid(unit) then
 				local Ally = NearestAlly(unit, 1290)
 				if Ally and GetDistance(Ally.pos, myHero.pos) <= 2500 then
 					local MidPos = Vector(unit.pos)	
