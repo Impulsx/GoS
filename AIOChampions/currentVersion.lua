@@ -243,7 +243,11 @@ Data = {
            Aatrox = {
             Changelog = "Aatrox Changelog Here",
            Version = 0.01,
-        },      
+        },
+           Azir = {
+            Changelog = "Azir Changelog Here",
+           Version = 0.01,
+        },         
     },
     Loader = {
         Version = 0.2,
