@@ -27,16 +27,10 @@ if not FileExist(COMMON_PATH .. "GGPrediction.lua") then
 	return
 end
 
-local InfoBoxPos = false
-if FileExist(COMMON_PATH .. "PussyBoxPos.lua") then
-	InfoBoxPos = true
-	require "PussyBoxPos"
-end
-
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.31
+    local Version = 0.32
     
     local Files = {
         Lua = {
@@ -85,10 +79,10 @@ end
 --|                    Utils                     |--
 ----------------------------------------------------
 
-local DrawSaved = false
-local LoadPos = false
-local Down = false
-local UnLockBox = false
+local PredLoaded = false
+local LastQ = 0
+local KillMinion = nil
+local WStart = 0
 local DrawTime = false
 local checkCount = 0 
 local heroes = false
@@ -125,21 +119,10 @@ local GameMinion = Game.Minion
 local GameTurretCount = Game.TurretCount
 local GameTurret = Game.Turret
 local GameIsChatOpen = Game.IsChatOpen
-local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
+
 
 _G.LATENCY = 0.05
 
-
-local DangerousSpells = {
-	["CaitlynAceintheHole"] = {charName = "Caitlyn", slot = _R, type = "targeted", displayName = "Ace in the Hole", range = 3500},
-	["CaitlynEntrapment"] = {charName = "Caitlyn", displayName = "Entrapment", slot = _E, type = "linear", speed = 1600, range = 750, delay = 0.15, radius = 70, collision = true},	
-	["DravenR"] = {charName = "Draven", displayName = "Whirling Death", slot = _R, type = "linear", speed = 2000, range = 12500, delay = 0.25, radius = 160, collision = false},	
-	["JinxR"] = {charName = "Jinx", displayName = "Death Rocket", slot = _R, type = "linear", speed = 1700, range = 12500, delay = 0.6, radius = 140, collision = false},
-	["JayceShockBlast"] = {charName = "Jayce", displayName = "ShockBlast", slot = _Q, type = "linear", speed = 2350, range = 1300, delay = 0.25, radius = 70, collision = true},
-	["BlindMonkRKick"] = {charName = "LeeSin", slot = _R, type = "targeted", displayName = "Dragon's Rage", range = 375},	
-	["UrgotR"] = {charName = "Urgot", displayName = "Fear Beyond Death", slot = _R, type = "linear", speed = 3200, range = 1600, delay = 0.4, radius = 80, collision = false},
-
-}
 
 function LoadUnits()
 	for i = 1, GameHeroCount() do
@@ -153,7 +136,7 @@ function LoadUnits()
 	end
 end
 
-local function CheckLoadedEnemyies()
+local function CheckLoadedEnemies()
 	local count = 0
 	for i, unit in ipairs(Enemies) do
         if unit and unit.isEnemy then
@@ -164,14 +147,7 @@ local function CheckLoadedEnemyies()
 end
 
 local function IsValid(unit)
-    if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) then
-        return true;
-    end
-    return false;
-end
-
-local function IsValidCrap(unit)
-    if (unit and unit.isTargetable and unit.dead == false) then
+    if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0 and not unit.dead) then
         return true;
     end
     return false;
@@ -190,16 +166,6 @@ end
 
 local function GetDistance(pos1, pos2)
 	return sqrt(GetDistanceSqr(pos1, pos2))
-end
-
-local function GetDistance2D(p1,p2)
-    return sqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y))
-end
-
-local function DistanceSquared(p1, p2)
-	local dx, dy = p2.x - p1.x, p2.y - p1.y
-	--print(math.floor((dx * dx + dy * dy)/10000))
-	return math.floor((dx * dx + dy * dy)/10000)
 end
 
 function GetTarget(range) 
@@ -236,19 +202,6 @@ function GetMode()
 	return nil
 end
 
-local function SetAttack(bool)
-	if _G.EOWLoaded then
-		EOW:SetAttacks(bool)
-	elseif _G.SDK then                                                        
-		_G.SDK.Orbwalker:SetAttack(bool)
-	elseif _G.PremiumOrbwalker then
-		_G.PremiumOrbwalker:SetAttack(bool)	
-	else
-		GOS.BlockAttack = not bool
-	end
-
-end
-
 local function SetMovement(bool)
 	if _G.EOWLoaded then
 		EOW:SetMovements(bool)
@@ -272,8 +225,67 @@ local function GetEnemyHeroes()
     return _EnemyHeroes
 end
 
-local function GetEnemyTurrets()
-	return Turrets
+local function GetEnemyTurret()
+	local _EnemyTurrets = {}
+    for i = 1, GameTurretCount() do
+        local turret = GameTurret(i)
+		if turret.isEnemy and GetDistance(myHero.pos, turret.pos) < 1500 and not turret.dead then
+			TableInsert(_EnemyTurrets, turret)
+		end
+	end
+	return _EnemyTurrets		
+end
+
+local function GetMinions(range, typ) -- 1 = Enemy / 2 = Ally / 3 = Monsters
+	if _G.SDK and _G.SDK.Orbwalker then
+		if typ == 1 then
+			return _G.SDK.ObjectManager:GetEnemyMinions(range)
+		elseif typ == 2 then
+			return _G.SDK.ObjectManager:GetAllyMinions(range)
+		elseif typ == 3 then
+			return _G.SDK.ObjectManager:GetMonsters(range)
+		end
+		
+	elseif _G.PremiumOrbwalker then
+		if typ < 3 then
+			return _G.PremiumOrbwalker:GetMinionsAround(range, typ)
+		else
+			local Monsters = {}
+			local minions = _G.PremiumOrbwalker:GetMinionsAround(range, typ)
+			if minions then
+				for i = 1, #minions do
+					local unit = minions[i]
+					if unit.isEnemy and unit.team == 300 then
+						TableInsert(Monsters, unit)
+					end
+				end	
+			end
+			return Monsters
+		end
+	end
+end
+
+local function IsUnderTurret(unit)
+	for i, turret in ipairs(GetEnemyTurret()) do
+        local range = (turret.boundingRadius + 775 + unit.boundingRadius / 2) 
+		local TRange = range * range
+		if GetDistanceSqr(turret.pos, unit.pos) < TRange then
+			return true
+		end
+    end
+    return false
+end
+
+local function AllyMinionUnderTower()
+	local Minions = GetMinions(1500, 2)
+	if next(Minions) == nil then return false end
+	for i = 1, #Minions do
+		local minion = Minions[i]
+		if IsValid(minion) and IsUnderTurret(minion) then
+			return true
+		end
+	end
+	return false
 end
 
 local function GetEnemyCount(range, pos)
@@ -288,55 +300,10 @@ local function GetEnemyCount(range, pos)
 	return count
 end
 
-local function GetMinionCount(range, pos)
-    local pos = pos.pos
-	local count = 0
-	for i = 1,GameMinionCount() do
-	local hero = GameMinion(i)
-	local Range = range * range
-		if hero.team ~= TEAM_ALLY and hero.dead == false and GetDistanceSqr(pos, hero.pos) < Range then
-			count = count + 1
-		end
-	end
-	return count
-end
-
-local function IsUnderTurret(unit)
-	for i, turret in ipairs(GetEnemyTurrets()) do
-        local range = (turret.boundingRadius + 750 + unit.boundingRadius / 2)
-        if not turret.dead then 
-            if turret.pos:DistanceTo(unit.pos) < range then
-                return true
-            end
-        end
-    end
-    return false
-end
-
-local function AllyMinionUnderTower()
-	for i = 1, GameMinionCount() do
-    local minion = GameMinion(i)
-		if minion.team == TEAM_ALLY and IsValid(minion) and IsUnderTurret(minion) and myHero.pos:DistanceTo(minion.pos) <= 750 then
-			return true
-		end
-	end
-	return false
-end
-
 local function HasBuff(unit, buffname)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
 		if buff.name == buffname and buff.count > 0 then 
-			return true
-		end
-	end
-	return false
-end
-
-local function HasItemBuff(unit, buffname)
-	for i = 0, unit.buffCount do
-		local buff = unit:GetBuff(i)
-		if buff.name == buffname then 
 			return true
 		end
 	end
@@ -350,7 +317,7 @@ local function GetBuffData(unit, buffname)
 			return buff
 		end
 	end
-	return {type = 0, name = "", startTime = 0, expireTime = 0, duration = 0, stacks = 0, count = 0}
+	return false
 end
 
 local function IsRecalling(unit)
@@ -364,25 +331,261 @@ end
 local function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
-		if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.name == 10 ) and buff.count > 0 then
+		if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.name == 10 or buff.type == 22 or buff.name == 8 ) and buff.count > 0 then
 			return true
 		end
 	end
 	return false	
 end
 
-local function ISMarked(range)
-	local count = 0
-	for i, target in ipairs(GetEnemyHeroes()) do
-		local Range = range*range
-		if target and GetDistanceSqr(myHero.pos, target.pos) <= Range and IsValid(target) and HasBuff(target, "ireliamark") then	
-			count = count + 1	
+local castSpell = {state = 0, tick = GetTickCount(), casting = 500, mouse = mousePos} 
+local function CastSpell(spell,pos,delay)
+local delay = delay or 250
+local ticker = GetTickCount()
+
+	if castSpell.state == 0 and ticker - castSpell.casting > delay + Game.Latency() and pos.pos:ToScreen().onScreen then
+		castSpell.state = 1
+		castSpell.mouse = mousePos
+		castSpell.tick = ticker
+	end
+	if castSpell.state == 1 then
+		if ticker - castSpell.tick < Game.Latency() and Game.Timer() - myHero:GetSpellData(_Q).castTime > delay/1000 then
+			Control.CastSpell(spell, pos)
+			castSpell.casting = ticker + delay
+			DelayAction(function()
+				if castSpell.state == 1 then
+					Control.SetCursorPos(castSpell.mouse)
+					castSpell.state = 0
+				end
+			end,500)
+		end
+		if ticker - castSpell.casting > Game.Latency() then
+			Control.SetCursorPos(castSpell.mouse)
+			castSpell.state = 0
 		end
 	end
-	if count > 0 then
-		return true	
+end
+
+local function CheckHPPred(unit)
+local ms = myHero.ms
+local speed = (1500+ms)
+local range = GetDistance(myHero.pos, unit.pos)/(1500+ms)
+local DashTime = range / speed
+	if _G.SDK and _G.SDK.Orbwalker then
+		return _G.SDK.HealthPrediction:GetPrediction(unit, DashTime)
+	elseif _G.PremiumOrbwalker then
+		return _G.PremiumOrbwalker:GetHealthPrediction(unit, DashTime)
+	end
+end
+
+local function ConvertToHitChance(menuValue, hitChance)
+    return menuValue == 1 and _G.PremiumPrediction.HitChance.High(hitChance)
+    or menuValue == 2 and _G.PremiumPrediction.HitChance.VeryHigh(hitChance)
+    or _G.PremiumPrediction.HitChance.Immobile(hitChance)
+end
+
+local function MyHeroNotReady()
+    return myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero)
+end
+
+local function CheckDmgItems(itemID)
+    assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
+    for _, j in pairs({ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6, ITEM_7}) do
+        if myHero:GetItemData(j).itemID == itemID then return j end
+    end
+    return nil
+end
+
+function CalcExtraDmg(unit, typ) -- typ 1 = minion / typ 2 = Enemy
+	local total = 0	
+	local Passive = HasBuff(myHero, "ireliapassivestacksmax")								--Irelia Passive
+	local RecurveBow = CheckDmgItems(1043)													--Recurve Bow
+	local BladeKing = CheckDmgItems(3153)													--Blade of the ruined King
+	local WitsEnd = CheckDmgItems(3091)														--Wits End
+	local Titanic = CheckDmgItems(3748)														--T.Hydra
+	local Divine = CheckDmgItems(6632)														--Divine Sunderer  
+	local Sheen = CheckDmgItems(3057)														--Sheen				
+	local Black = CheckDmgItems(3071) 														--Black Cleaver    
+	local Trinity = CheckDmgItems(3078)														--Trinity Force
+	local Eclipse = CheckDmgItems(6692)														--Eclipse		
+	local LvL = myHero.levelData.lvl 	
+
+	if Passive then
+		total = total + CalcMagicalDamage(myHero, unit, (12 + (3 * LvL)) + 0.25 * myHero.bonusDamage)
+	end
+	
+	if BladeKing then
+		if typ == 1 then
+			if unit.health*0.1 > 60 then
+				total = total + CalcPhysicalDamage(myHero, unit, 60)
+			else	
+				total = total + CalcPhysicalDamage(myHero, unit, (unit.health*0.1))
+			end
+		else
+			total = total + CalcPhysicalDamage(myHero, unit, (unit.health*0.1) + (HasBuff(myHero, "3153speed") and CalcMagicalDamage(myHero, unit, 35+4.5*LvL) or 0))
+		end
+	end
+	
+	if WitsEnd and myHero:GetSpellData(WitsEnd).currentCd == 0 then
+		total = total + CalcMagicalDamage(myHero, unit, 11.1 + (3.8 * LvL))
+	end
+
+	if RecurveBow and myHero:GetSpellData(RecurveBow).currentCd == 0 then
+		total = total + CalcPhysicalDamage(myHero, unit, 15)
 	end	
-	return false
+	
+	if Titanic and myHero:GetSpellData(Titanic).currentCd == 0 then
+		total = total + CalcPhysicalDamage(myHero, unit, (myHero.maxHealth*0.01) + (5+myHero.maxHealth*0.015))
+	end	
+
+	if Sheen and myHero:GetSpellData(Sheen).currentCd == 0 then 
+		total = total + CalcPhysicalDamage(myHero, unit, myHero.baseDamage)
+	end	
+
+	if Divine and myHero:GetSpellData(Divine).currentCd == 0 then  
+		if typ == 1 then
+			if unit.maxHealth*0.1 < 1.5*myHero.baseDamage then
+				total = total + CalcPhysicalDamage(myHero, unit, 1.5*myHero.baseDamage)
+			else
+				if unit.maxHealth*0.1 > 2.5*myHero.baseDamage then
+					total = total + CalcPhysicalDamage(myHero, unit, 2.5*myHero.baseDamage)
+				else
+					total = total + CalcPhysicalDamage(myHero, unit, unit.maxHealth*0.1)
+				end
+			end
+		else
+			if unit.maxHealth*0.1 < 1.5*myHero.baseDamage then
+				total = total + CalcPhysicalDamage(myHero, unit, 1.5*myHero.baseDamage)
+			else
+				total = total + CalcPhysicalDamage(myHero, unit, unit.maxHealth*0.1)
+			end
+		end
+	end	
+
+	if typ == 2 and Black then 
+		local Buff = GetBuffData(unit, "3071blackcleavermainbuff")
+		if Buff.count == 6 then
+			total = total + CalcPhysicalDamage(myHero, unit, (unit.maxHealth-unit.health)*0.05)
+		end	
+	end
+
+	if Trinity and myHero:GetSpellData(Trinity).currentCd == 0 then 		
+		total = total + CalcPhysicalDamage(myHero, unit, 2*myHero.baseDamage) 	
+	end
+
+	if typ == 2 and Eclipse and myHero:GetSpellData(Eclipse).currentCd > 6.5 then 
+		total = total + CalcPhysicalDamage(myHero, unit, unit.maxHealth*0.06)
+	end	
+	return total		
+end
+
+local function ISMarked(range)
+	local NearestTarget = nil
+	local Range = range*range	
+	for i, unit in ipairs(GetEnemyHeroes()) do
+		if NearestTarget == nil then
+			if unit and GetDistanceSqr(myHero.pos, unit.pos) <= Range and IsValid(unit) then
+				local Buff = GetBuffData(unit, "ireliamark")
+				local time = GetDistance(myHero.pos, unit.pos) / (1500+myHero.ms)
+				if Buff and Buff.duration > time then
+					NearestTarget = unit
+				end
+			end
+		else
+			if unit and unit ~= NearestTarget and GetDistanceSqr(myHero.pos, unit.pos) <= Range and IsValid(unit) and GetDistance(myHero.pos, unit.pos) < GetDistance(myHero.pos, NearestTarget.pos) then
+				local Buff = GetBuffData(unit, "ireliamark")
+				local time = GetDistance(myHero.pos, unit.pos) / (1500+myHero.ms)
+				if Buff and Buff.duration > time then
+					NearestTarget = unit
+				end
+			end		
+		end	
+	end	
+	return NearestTarget
+end
+
+local function Widesttarget(range)
+	local Target = nil
+	local Range = range*range	
+	for i, unit in ipairs(GetEnemyHeroes()) do
+		if Target == nil then
+			if unit and GetDistanceSqr(myHero.pos, unit.pos) <= Range and IsValid(unit) then
+				Target = unit
+			end
+		else
+			if unit and unit ~= Target and GetDistanceSqr(myHero.pos, unit.pos) <= Range and IsValid(unit) and GetDistance(myHero.pos, unit.pos) > GetDistance(myHero.pos, Target.pos) then
+				Target = unit
+			end		
+		end	
+	end	
+	return Target
+end
+
+local function GetKillableMinion()
+	if Ready(_Q) and KillMinion == nil then
+		local Minions = GetMinions(600, 1)
+		if next(Minions) == nil then return end
+		for i = 1, #Minions do
+			local minion = Minions[i]
+			local QDmg = getdmg("Q", minion, myHero, 2) + CalcExtraDmg(minion, 1)
+			if minion.team == TEAM_ENEMY and QDmg > minion.health and IsValid(minion) then				
+				KillMinion = minion
+				return
+			end
+		end	
+	end
+end
+
+local function WDamage(unit)
+	local WDmg = getdmg("W", unit, myHero)
+	local Buff = GetBuffData(myHero, "ireliawdefense")
+	local ChargeTime = clock() - WStart
+	
+	if Buff then
+		if ChargeTime < 0.08 then
+			return WDmg 				
+		elseif ChargeTime >= 0.08 and ChargeTime < 0.15 then
+			return WDmg + WDmg*0.1
+		elseif ChargeTime >= 0.15 and ChargeTime < 0.23 then
+			return WDmg + WDmg*0.2
+		elseif ChargeTime >= 0.23 and ChargeTime < 0.3 then
+			return WDmg + WDmg*0.3
+		elseif ChargeTime >= 0.3 and ChargeTime < 0.38 then
+			return WDmg + WDmg*0.4
+		elseif ChargeTime >= 0.38 and ChargeTime < 0.45 then
+			return WDmg + WDmg*0.5
+		elseif ChargeTime >= 0.45 and ChargeTime < 0.53 then
+			return WDmg + WDmg*0.6
+		elseif ChargeTime >= 0.53 and ChargeTime < 0.6 then
+			return WDmg + WDmg*0.7
+		elseif ChargeTime >= 0.6 and ChargeTime < 0.68 then
+			return WDmg + WDmg*0.8
+		elseif ChargeTime >= 0.68 and ChargeTime < 0.75 then
+			return WDmg + WDmg*0.9
+   		else
+			return WDmg*2
+		end
+	else
+		return WDmg
+	end
+end
+
+local function DistanceSquared(p1, p2)
+	local dx, dy = p2.x - p1.x, p2.y - p1.y
+	return math.floor((dx * dx + dy * dy)/10000)
+end
+
+local function LineCircleIntersection(p1, p2, circle, radius)
+    local dx, dy = p2.x - p1.x, p2.z - p1.z
+    local a = dx * dx + dy * dy
+    local b = 2 * (dx * (p1.x - circle.x) + dy * (p1.z - circle.z))
+    local c = (p1.x - circle.x) * (p1.x - circle.x) + (p1.z - circle.z) * (p1.z - circle.z) - (radius * radius)
+    local delta = b * b - 4 * a * c
+    if delta >= 0 then
+        local t1, t2 = (-b + math.sqrt(delta)) / (2 * a), (-b - math.sqrt(delta)) / (2 * a)
+        return Vector(p1.x + t1 * dx, p1.y, p1.z + t1 * dy), Vector(p1.x + t2 * dx, p1.y, p1.z + t2 * dy)
+    end
+    return nil, nil
 end
 
 local function VectorPointProjectionOnLineSegment(v1, v2, v)
@@ -392,93 +595,7 @@ local function VectorPointProjectionOnLineSegment(v1, v2, v)
 	local rS = rL < 0 and 0 or (rL > 1 and 1 or rL)
 	local isOnSegment = rS == rL
 	local pointSegment = isOnSegment and pointLine or { x = ax + rS * (bx - ax), y = ay + rS * (by - ay) }
-	return pointSegment, pointLine, isOnSegment
-end 
-
-local function OnVision(unit)
-	_OnVision[unit.networkID] = _OnVision[unit.networkID] == nil and {state = unit.visible, tick = GetTickCount(), pos = unit.pos} or _OnVision[unit.networkID]
-	if _OnVision[unit.networkID].state == true and not unit.visible then
-		_OnVision[unit.networkID].state = false
-		_OnVision[unit.networkID].tick = GetTickCount()
-	end
-	if _OnVision[unit.networkID].state == false and unit.visible then
-		_OnVision[unit.networkID].state = true
-		_OnVision[unit.networkID].tick = GetTickCount()
-	end
-	return _OnVision[unit.networkID]
-end
-
-local _OnWaypoint = {}
-local function OnWaypoint(unit)
-	if _OnWaypoint[unit.networkID] == nil then _OnWaypoint[unit.networkID] = {pos = unit.posTo , speed = unit.ms, time = GameTimer()} end
-	if _OnWaypoint[unit.networkID].pos ~= unit.posTo then 
-		_OnWaypoint[unit.networkID] = {startPos = unit.pos, pos = unit.posTo , speed = unit.ms, time = GameTimer()}
-			DelayAction(function()
-				local time = (GameTimer() - _OnWaypoint[unit.networkID].time)
-				local speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(GameTimer() - _OnWaypoint[unit.networkID].time)
-				if speed > 1250 and time > 0 and unit.posTo == _OnWaypoint[unit.networkID].pos and GetDistance(unit.pos,_OnWaypoint[unit.networkID].pos) > 200 then
-					_OnWaypoint[unit.networkID].speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(GameTimer() - _OnWaypoint[unit.networkID].time)
-				end
-			end,0.05)
-	end
-	return _OnWaypoint[unit.networkID]
-end
-
-local function GetPred(unit,speed,delay)
-	local speed = speed or MathHuge
-	local delay = delay or 0.25
-	local unitSpeed = unit.ms
-	if OnWaypoint(unit).speed > unitSpeed then unitSpeed = OnWaypoint(unit).speed end
-	if OnVision(unit).state == false then
-		local unitPos = unit.pos + Vector(unit.pos,unit.posTo):Normalized() * ((GetTickCount() - OnVision(unit).tick)/1000 * unitSpeed)
-		local predPos = unitPos + Vector(unit.pos,unit.posTo):Normalized() * (unitSpeed * (delay + (GetDistance(myHero.pos,unitPos)/speed)))
-		if GetDistance(unit.pos,predPos) > GetDistance(unit.pos,unit.posTo) then predPos = unit.posTo end
-		return predPos
-	else
-		if unitSpeed > unit.ms then
-			local predPos = unit.pos + Vector(OnWaypoint(unit).startPos,unit.posTo):Normalized() * (unitSpeed * (delay + (GetDistance(myHero.pos,unit.pos)/speed)))
-			if GetDistance(unit.pos,predPos) > GetDistance(unit.pos,unit.posTo) then predPos = unit.posTo end
-			return predPos
-		elseif IsImmobileTarget(unit) then
-			return unit.pos
-		else
-			return unit:GetPrediction(speed,delay)
-		end
-	end
-end
-
-local function CalculateCollisionTime(startPos, endPos, unitPos, startTime, speed, delay, origin)
-	local pos = startPos:Extended(endPos, speed * (GameTimer() - delay - startTime))
-	return GetDistance(unitPos, pos) / speed
-end
-
-local function CalculateEndPos(startPos, placementPos, unitPos, range, radius, collision, type)
-	local range = range or 3000; local endPos = startPos:Extended(placementPos, range)
-	if type == "circular" or type == "rectangular" then
-		if range > 0 then if GetDistance(unitPos, placementPos) < range then endPos = placementPos end
-		else endPos = unitPos end
-	elseif collision then
-		for i = 1, GameMinionCount() do
-			local minion = GameMinion(i)
-			if minion and minion.team == myHero.team and minion.alive and GetDistance(minion.pos, startPos) < range then
-				local col = VectorPointProjectionOnLineSegment(startPos, placementPos, minion.pos)
-				if col and GetDistance(col, minion.pos) < (radius + minion.boundingRadius / 2) then
-					range = GetDistance(startPos, col); endPos = startPos:Extended(placementPos, range); break
-				end
-			end
-		end
-	end
-	return endPos, range
-end
-
-local function OnProcessSpell()
-	for i = 1, #Units do
-		local unit = Units[i].unit; local last = Units[i].spell; local spell = unit.activeSpell
-		if spell and last ~= (spell.name .. spell.endTime) and unit.activeSpell.isChanneling then
-			Units[i].spell = spell.name .. spell.endTime; return unit, spell
-		end
-	end
-	return nil, nil
+	return pointLine, pointSegment, isOnSegment
 end
 
 local function GetPathNodes(unit)
@@ -519,112 +636,21 @@ local function PredictUnitPosition(unit, delay)
 end
 
 local function GetLineTargetCount(source, Pos, delay, speed, width)
+	local PredPos = nil
 	local Count = 0
 	for i = 1, GameMinionCount() do
 		local minion = GameMinion(i)
-		if minion and minion.team == TEAM_ENEMY and myHero.pos:DistanceTo(minion.pos) <= 1000 and IsValid(minion) then
+		if minion and minion.team == TEAM_ENEMY and myHero.pos:DistanceTo(minion.pos) <= 800 and IsValid(minion) then
 			
 			local predictedPos = PredictUnitPosition(minion, delay+ GetDistance(source, minion.pos) / speed)
 			local proj1, pointLine, isOnSegment = VectorPointProjectionOnLineSegment(source, Pos, predictedPos)
 			if proj1 and isOnSegment and (GetDistanceSqr(predictedPos, proj1) <= (minion.boundingRadius + width) * (minion.boundingRadius + width)) then
 				Count = Count + 1
+				PredPos = predictedPos
 			end
 		end
 	end
-	return Count
-end
-
-keybindings = { [ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6}
-local function GetInventorySlotItem(itemID)
-    assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
-    for _, j in pairs({ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6, ITEM_7}) do
-		if myHero:GetItemData(j).itemID == itemID and myHero:GetSpellData(j).currentCd == 0 then return j end
-    end
-    return nil
-end
- 
-local function CastSpell(spell,pos,range,delay)
-local range = range or math.huge
-local delay = delay or 250
-local ticker = GetTickCount()
-
-	if castSpell.state == 0 and GetDistance(myHero.pos,pos) < range and ticker - castSpell.casting > delay + Game.Latency() and pos:ToScreen().onScreen then
-		castSpell.state = 1
-		castSpell.mouse = mousePos
-		castSpell.tick = ticker
-	end
-	if castSpell.state == 1 then
-		if ticker - castSpell.tick < Game.Latency() and Game.Timer() - myHero:GetSpellData(_Q).castTime > 0.3 then
-			Control.SetCursorPos(pos)
-			Control.KeyDown(spell)
-			Control.KeyUp(spell)
-			castSpell.casting = ticker + delay
-			DelayAction(function()
-				if castSpell.state == 1 then
-					Control.SetCursorPos(castSpell.mouse)
-					castSpell.state = 0
-				end
-			end,Game.Latency()/1000)
-		end
-		if ticker - castSpell.casting > Game.Latency() then
-			Control.SetCursorPos(castSpell.mouse)
-			castSpell.state = 0
-		end
-	end
-end
-
-local function CheckDmgItems(itemID)
-    assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
-    for _, j in pairs({ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6, ITEM_7}) do
-        if myHero:GetItemData(j).itemID == itemID then return j end
-    end
-    return nil
-end
---[[
-local function CheckHPPred(unit)
-local speed = 1500+myHero.ms
-local range = myHero.pos:DistanceTo(unit.pos)
-local time = range / speed
-	if _G.SDK and _G.SDK.Orbwalker then
-		return _G.SDK.HealthPrediction:GetPrediction(unit, time)
-	elseif _G.PremiumOrbwalker then
-		return _G.PremiumOrbwalker:GetHealthPrediction(unit, time)
-	end
-end
-]]
-local function ConvertToHitChance(menuValue, hitChance)
-    return menuValue == 1 and _G.PremiumPrediction.HitChance.High(hitChance)
-    or menuValue == 2 and _G.PremiumPrediction.HitChance.VeryHigh(hitChance)
-    or _G.PremiumPrediction.HitChance.Immobile(hitChance)
-end
-
-local function MyHeroNotReady()
-    return myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero)
-end
-
-local function ActiveModes()
-	local Mode = GetMode()	
-	if Mode == "Combo" or 
-	   Mode == "Harass" or 
-	   Mode == "Clear" or 
-	   Mode == "Flee" or 
-	   Mode == "LastHit" then
-	   return true
-	end
-	return false
-end
-
-function CalcExtraDmg(unit)
-	local total = 0	
-	local Passive = HasBuff(myHero, "ireliapassivestacksmax")
-	local PassiveDmg = CalcMagicalDamage(myHero, unit, (12 + 3 * myHero.levelData.lvl) + (0.25 * myHero.bonusDamage))	
-
-	if Passive then
-		total = PassiveDmg
-	else
-		total = 0
-	end		
-	return total		
+	return PredPos, Count
 end
 
 ----------------------------------------------------
@@ -634,21 +660,23 @@ end
 class "Irelia"
 
 
-local RData = {Type = _G.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 80, Range = 950, Speed = 2000, Collision = false}
-local RspellData = {speed = 2000, range = 950, delay = 0.25 + ping, radius = 80, collision = {nil}, type = "linear"}
-local PredLoaded = false
+local RData = {Type = _G.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 160, Range = 950, Speed = 2000, Collision = false}
+local RspellData = {speed = 2000, range = 950, delay = 0.25 + ping, radius = 160, collision = {nil}, type = "linear"}
+
+local WData = {Type = _G.SPELLTYPE_LINE, Delay = 0.6 + ping, Radius = 80, Range = 825, Speed = MathHuge, Collision = false}
+local WspellData = {speed = MathHuge, range = 825, delay = 0.6 + ping, radius = 80, collision = {nil}, type = "linear"}
+
+local EData = {Type = _G.SPELLTYPE_LINE, Delay = 0.4 + ping, Radius = 35, Range = 850, Speed = MathHuge, Collision = false}
+local EspellData = {speed = MathHuge, range = 850, delay = 0.4 + ping, radius = 35, collision = {nil}, type = "linear"}
+
+local E2Data = {Type = _G.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 35, Range = 850, Speed = MathHuge, Collision = false}
+local E2spellData = {speed = MathHuge, range = 850, delay = 0.25 + ping, radius = 35, collision = {nil}, type = "linear"}
 
 function Irelia:__init()
-	self.Window = {x = Game.Resolution().x * 0.5, y = Game.Resolution().y * 0.5}
-	self.AllowMove = nil
-	self.ButtonDown = false
-	self.DetectedMissiles = {}; self.DetectedSpells = {}; self.Target = nil; self.Timer = 0 	
-	self.charging = false
 	self:LoadMenu()
 
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
-	Callback.Add("WndMsg", function(...) self:OnWndMsg(...) end)
 
 	if not PredLoaded then
 		DelayAction(function()
@@ -666,132 +694,61 @@ function Irelia:__init()
 	end
 end
 
-function Irelia:IsOnButton(pt)
-	local x, y = self.Window.x, self.Window.y
-	return pt.x >= x + 72 and pt.x <= x + 169
-		and pt.y >= y + 127 and pt.y <= y + 143
-end
-
-function Irelia:IsInStatusBox(pt, pos)
-	if pos == 1 then
-		return pt.x >= self.Window.x and pt.x <= self.Window.x + 240
-			and pt.y >= self.Window.y and pt.y <= self.Window.y + 153
-	elseif pos == 2 then
-		return pt.x >= self.Window.x and pt.x <= self.Window.x + 240
-			and pt.y >= self.Window.y and pt.y <= self.Window.y + 20 and pt.y >= self.Window.y
-	elseif pos == 3 then
-		return pt.x >= self.Window.x and pt.x <= self.Window.x + 240
-			and pt.y >= self.Window.y and pt.y <= self.Window.y + 40 and pt.y >= self.Window.y + 20
-	elseif pos == 4 then
-		return pt.x >= self.Window.x and pt.x <= self.Window.x + 240
-			and pt.y >= self.Window.y and pt.y <= self.Window.y + 60 and pt.y >= self.Window.y + 40
-	elseif pos == 5 then
-		return pt.x >= self.Window.x and pt.x <= self.Window.x + 240
-			and pt.y >= self.Window.y and pt.y <= self.Window.y + 80 and pt.y >= self.Window.y + 60
-	elseif pos == 6 then
-		return pt.x >= self.Window.x and pt.x <= self.Window.x + 240
-			and pt.y >= self.Window.y and pt.y <= self.Window.y + 100 and pt.y >= self.Window.y + 80
-	elseif pos == 7 then
-		return pt.x >= self.Window.x and pt.x <= self.Window.x + 240
-			and pt.y >= self.Window.y and pt.y <= self.Window.y + 120 and pt.y >= self.Window.y + 100			
-	end		
-end
-
-function Irelia:OnWndMsg(msg, wParam)
-	if self.ButtonDown then return end
-	if self:IsOnButton(cursorPos) then
-		DelayAction(function()
-			Down = true
-			self.ButtonDown = true
-		end,0.3)	
-	end	
-	self.AllowMove = msg == 513 and wParam == 0 and self:IsInStatusBox(cursorPos, 1)
-		and {x = self.Window.x - cursorPos.x, y = self.Window.y - cursorPos.y} or nil
-	if msg ~= 256 then return end
-end
-
 function Irelia:LoadMenu()                     	
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "Irelia", name = "PussyIrelia"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.31"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 0.32"}})
 
+	--ComboMenu 
 self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
-	
-	--ComboMenu  
-	self.Menu.ComboSet:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
-	self.Menu.ComboSet.Combo:MenuElement({name = " ", drop = {"E1, W, R, Q, E2, Q + (Q when kill / almost kill)"}})
-	self.Menu.ComboSet.Combo:MenuElement({id = "LogicQ", name = "Last[Q]Almost Kill or Kill", key = 0x61, value = false, toggle = true})
-	self.Menu.ComboSet.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
-	self.Menu.ComboSet.Combo:MenuElement({id = "UseW", name = "[W]", value = false})
-	self.Menu.ComboSet.Combo:MenuElement({id = "UseE", name = "[E]", value = true})	
-	self.Menu.ComboSet.Combo:MenuElement({id = "UseR", name = "[R]Single Target if almost killable", value = true})
-	self.Menu.ComboSet.Combo:MenuElement({id = "UseRCount", name = "Auto[R] Multiple Enemys", value = true})	
-	self.Menu.ComboSet.Combo:MenuElement({id = "RCount", name = "Multiple Enemys", value = 2, min = 2, max = 5, step = 1})
-	self.Menu.ComboSet.Combo:MenuElement({id = "Gap", name = "Gapclose [Q]", value = true})
-	self.Menu.ComboSet.Combo:MenuElement({id = "Stack", name = "Stack Passive near Target/Minion", value = true})		
-	
-	--BurstModeMenu
-	self.Menu.ComboSet:MenuElement({type = MENU, id = "Burst", name = "Burst Mode"})	
-	self.Menu.ComboSet.Burst:MenuElement({name = " ", drop = {"If Burst Active then Combo Mode is Inactive"}})	
-	self.Menu.ComboSet.Burst:MenuElement({id = "StartB", name = "Use Burst Mode", key = 0x62, value = true, toggle = true})
-	self.Menu.ComboSet.Burst:MenuElement({id = "Lvl", name = "Irelia Level to Start Burst", value = 6, min = 6, max = 18, step = 1})	
-
-
-	self.Menu.ComboSet:MenuElement({type = MENU, id = "Ninja", name = "Ninja Mode"})
-	self.Menu.ComboSet.Ninja:MenuElement({id = "UseQ", name = "Q on all Marked Enemys", key = 0x63, value = true, toggle = true})
-
-self.Menu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
-
-	--LaneClear Menu
-	self.Menu.ClearSet:MenuElement({type = MENU, id = "Clear", name = "Clear Mode"})
-	self.Menu.ClearSet.Clear:MenuElement({type = MENU, id = "Last", name = "LastHit"})
-	self.Menu.ClearSet.Clear.Last:MenuElement({name = " ", drop = {"Is only active, if AutoQ Off)"}})	
-	self.Menu.ClearSet.Clear.Last:MenuElement({id = "UseQ", name = "LastHit[Q]", value = true})	
-	self.Menu.ClearSet.Clear:MenuElement({id = "UseW", name = "[W]", value = false})
-	self.Menu.ClearSet.Clear:MenuElement({id = "UseE", name = "[E] in Line", value = false})	
-	self.Menu.ClearSet.Clear:MenuElement({id = "countEnemy", name = "[E] only if no Enemy near", value = true})	
-	self.Menu.ClearSet.Clear:MenuElement({id = "ECount", name = "min Minions for [E]", value = 4, min = 1, max = 7, step = 1})	
-	self.Menu.ClearSet.Clear:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
-	self.Menu.ClearSet.Clear:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
-	
-	--JungleClear Menu
-	self.Menu.ClearSet:MenuElement({type = MENU, id = "JClear", name = "JungleClear Mode"})
-	self.Menu.ClearSet.JClear:MenuElement({id = "UseQ", name = "LastHit[Q]", value = true})	
-	self.Menu.ClearSet.JClear:MenuElement({id = "UseW", name = "[W]", value = true})
-	self.Menu.ClearSet.JClear:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
-	self.Menu.ClearSet.JClear:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
-
-	--LastHitMode Menu
-	self.Menu.ClearSet:MenuElement({type = MENU, id = "LastHit", name = "LastHit Mode"})
-	self.Menu.ClearSet.LastHit:MenuElement({name = " ", drop = {"Is only active, if AutoQ Off)"}})	
-	self.Menu.ClearSet.LastHit:MenuElement({id = "UseQ", name = "LastHit[Q]", value = true})	
-	self.Menu.ClearSet.LastHit:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = true})	
-	self.Menu.ClearSet.LastHit:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})	
-	self.Menu.ClearSet.LastHit:MenuElement({id = "Active", name = "LastHit Key", key = string.byte("X")})
-
-	--AutoQ
-	self.Menu.ClearSet:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ Mode"})
-	self.Menu.ClearSet.AutoQ:MenuElement({id = "UseItem", name = "Use Hydra/Tiamat", value = false})	
-	self.Menu.ClearSet.AutoQ:MenuElement({id = "UseQ", name = "Auto Q Toggle Key", key = 0x64, value = false, toggle = true})
-	self.Menu.ClearSet.AutoQ:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})		
+	 	
+	self.Menu.ComboSet:MenuElement({name = " ", drop = {"[Q] not an option, we need Q for an optimal combo"}})	
+	self.Menu.ComboSet:MenuElement({id = "UseW", name = "[W]", value = true})	
+	self.Menu.ComboSet:MenuElement({id = "ImmoW", name = "[W-Shield] If Irelia Immobile", value = true})	
+	self.Menu.ComboSet:MenuElement({id = "UseE", name = "[E]", value = true})
+	self.Menu.ComboSet:MenuElement({id = "Flash", name = "[SummonerFlash] if out of E2 range for Kill", value = true})	
+	self.Menu.ComboSet:MenuElement({id = "UseE2", name = "[E] Try stun multiple enemies", value = true})	
+	self.Menu.ComboSet:MenuElement({id = "UseRKill", name = "[R] if Enemy killable with full BurstDmg", value = true})	
+	self.Menu.ComboSet:MenuElement({id = "UseRCount", name = "[R] Try hit multiple Enemies", value = true})	
+	self.Menu.ComboSet:MenuElement({id = "RCount", name = "[R] Multiple Enemies", value = 3, min = 1, max = 5})	
 
 
 	--HarassMenu
 self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})	
 	
-	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] Logic", value = 1, drop = {"Marked Target + back killable Minion", "Only Marked Target"}})	
-	self.Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = false})
+	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q] if marked Enemy + back killable Minion", value = true})
+	self.Menu.Harass:MenuElement({id = "UseQ2", name = "[Q] Farm Minions", value = true})
+	self.Menu.Harass:MenuElement({id = "Q2Range", name = "[Q] Farm if range Enemy/Minion bigger than", value = 350, min = 0, max = 1000, step = 10})	
+	self.Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = true})
+	self.Menu.Harass:MenuElement({id = "ImmoW", name = "[W-Shield] if Irelia Immobile", value = true})	
 	self.Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})
 
 
-	--KillSteal
-self.Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal Settings"})
-	
-	self.Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})
-	self.Menu.ks:MenuElement({id = "UseW", name = "[W]", value = false})	
-	self.Menu.ks:MenuElement({id = "UseR", name = "[R]", value = false})		
 
+self.Menu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
+
+	--LaneClear Menu
+	self.Menu.ClearSet:MenuElement({type = MENU, id = "Clear", name = "Clear Mode"})
+	self.Menu.ClearSet.Clear:MenuElement({id = "UseQ", name = "LastHit[Q]", value = true})	
+	self.Menu.ClearSet.Clear:MenuElement({id = "UseE", name = "[E]", value = true})		
+	self.Menu.ClearSet.Clear:MenuElement({id = "ECount", name = "[E] Min Minions", value = 3, min = 1, max = 7, step = 1})	
+	self.Menu.ClearSet.Clear:MenuElement({id = "Mana", name = "Min Mana", value = 30, min = 0, max = 100, identifier = "%"})
 	
+	--JungleClear Menu
+	self.Menu.ClearSet:MenuElement({type = MENU, id = "JClear", name = "JungleClear Mode"})
+	self.Menu.ClearSet.JClear:MenuElement({id = "UseQ", name = "LastHit[Q]", value = true})	
+	self.Menu.ClearSet.JClear:MenuElement({id = "UseW", name = "[W]", value = true})
+	self.Menu.ClearSet.JClear:MenuElement({id = "UseE", name = "[E]", value = true})	
+	self.Menu.ClearSet.JClear:MenuElement({id = "Mana", name = "Min Mana", value = 30, min = 0, max = 100, identifier = "%"})
+
+	--LastHitMode Menu
+	self.Menu.ClearSet:MenuElement({type = MENU, id = "LastHit", name = "LastHit Mode"})
+	self.Menu.ClearSet.LastHit:MenuElement({name = " ", drop = {"Default Hotkey = [X]"}})	
+	self.Menu.ClearSet.LastHit:MenuElement({id = "UseQ", name = "[Q] if out of AA range", value = true})
+	self.Menu.ClearSet.LastHit:MenuElement({id = "Mana", name = "Min Mana", value = 30, min = 0, max = 100, identifier = "%"})	
+
+
+	--Misc			
 self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 
 	self.Menu.MiscSet:MenuElement({type = MENU, id = "Rrange", name = "Ultimate Range setting"})
@@ -799,30 +756,9 @@ self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 
 	--Flee
 	self.Menu.MiscSet:MenuElement({type = MENU, id = "Flee", name = "Flee Mode"})
-	self.Menu.MiscSet.Flee:MenuElement({id = "Q", name = "Flee [Q]", value = true})	
-	self.Menu.MiscSet.Flee:MenuElement({id = "Q2", name = "Flee [Q] even on non killable minions", value = false})	
-
-	--AutoE 
-	self.Menu.MiscSet:MenuElement({type = MENU, id = "AutoECount", name = "AutoE Mode"})
-	self.Menu.MiscSet.AutoECount:MenuElement({id = "UseE", name = "Auto E 2 - 5 Enemies", key = 0x65, value = true, toggle = true})	
-	
-	--AutoW Dangerous Spells
-	self.Menu.MiscSet:MenuElement({id = "WSet", name = "AutoW Mode [Test]", type = MENU})
-	self.Menu.MiscSet.WSet:MenuElement({name = " ", drop = {"Supported Spells"}})
-	self.Menu.MiscSet.WSet:MenuElement({name = " ", drop = {"[DravenR,JinxR,JayceQ,LeeSinR,CaitlynR,UrgotR]"}})	
-	self.Menu.MiscSet.WSet:MenuElement({id = "UseW", name = "Auto W Dangerous Spells", key = 0x66, value = false, toggle = true})
-	self.Menu.MiscSet.WSet:MenuElement({id = "BlockList", name = "Block List", type = MENU})	
-	self.Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
-	DelayAction(function()	
-		for i, spell in pairs(DangerousSpells) do
-			if not DangerousSpells[i] then return end
-			for j, k in ipairs(GetEnemyHeroes()) do
-				if spell.charName == k.charName and not self.Menu.MiscSet.WSet.BlockList[i] then
-					if not self.Menu.MiscSet.WSet.BlockList[i] then self.Menu.MiscSet.WSet.BlockList:MenuElement({id = "Dodge"..i, name = ""..spell.charName.." "..self.Slot[spell.slot].." | "..spell.displayName, value = true}) end
-				end
-			end
-		end
-	end, 0.01)		
+	self.Menu.MiscSet.Flee:MenuElement({name = " ", drop = {"Default Hotkey = [A]"}})	
+	self.Menu.MiscSet.Flee:MenuElement({id = "Q", name = "[Q]", value = true})	
+	self.Menu.MiscSet.Flee:MenuElement({id = "Q2", name = "[Q] even on non killable Minions", value = false})		
 			
 	--Prediction
 	self.Menu.MiscSet:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
@@ -835,303 +771,329 @@ self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 	--Drawing 
 	self.Menu.MiscSet:MenuElement({type = MENU, id = "Drawing", name = "Drawings Mode"})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
-	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
+	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
-	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})	
-	self.Menu.MiscSet.Drawing:MenuElement({type = MENU, id = "XY", name = "Info Box Settings"})
-	self.Menu.MiscSet.Drawing.XY:MenuElement({id = "OnOff", name = "Draw Status Box", key = 0x67, value = true, toggle = true})
-	self.Menu.MiscSet.Drawing.XY:MenuElement({id = "Key", name = "Draw HotKey Info", value = true})	
-	self.Menu.MiscSet.Drawing.XY:MenuElement({id = "Hide", name = "Hide Info Box if active Mode", value = true})	
-	self.Menu.MiscSet.Drawing.XY:MenuElement({id = "T", name = "Status Box transparency", value = 120, min = 0, max = 223, step = 10})	
-	
+	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})	
 end	
 
-function Irelia:Tick()
-	self:CheckInfoBox()	
-	if Control.IsKeyDown(0x69) then
-		self.ButtonDown = false
-		UnLockBox = true
+local SummFlash = 0
+local FlashSlot 
+
+function Irelia:Tick()	
+	if SummFlash == 0 then
+		if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
+			SummFlash = 1
+			FlashSlot = SUMMONER_1
+		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
+			SummFlash = 1
+			FlashSlot = SUMMONER_2
+		else
+			SummFlash = 2
+		end
 	end
 	
-	if heroes == false then 
-		local EnemyCount = CheckLoadedEnemyies()			
-		if EnemyCount < 1 then
+	if not heroes then 
+		local EnemyCount = CheckLoadedEnemies()			
+		if EnemyCount == 0 then
 			LoadUnits()
 		else
 			heroes = true
-		end
-	end	
- 	
-if MyHeroNotReady() then return end
-
-local Mode = GetMode()
-		if Mode == "Combo" then
-			if self.Menu.ComboSet.Ninja.UseQ:Value() then
-				self:Ninja()
-			end	
-			if self.Menu.ComboSet.Burst.StartB:Value() and myHero.levelData.lvl <= self.Menu.ComboSet.Burst.Lvl:Value() then
-				self:Combo()
-			end
-			if not self.Menu.ComboSet.Burst.StartB:Value() then
-				self:Combo()
-			end	
-		elseif Mode == "Harass" then
-			self:Harass()
-		elseif Mode == "LaneClear" then
-			self:JungleClear()
-			self:Clear()
-		elseif Mode == "Flee" then
-			self:Flee()
-		elseif Mode == "LastHit" then
-				if self.Menu.ClearSet.LastHit.Active:Value() then
-				self:LastHit()	
-			end
-		end
+		end	
+ 	end
 	
-	self:KillSteal()
-	self:CastE2()
-
-	if self.Menu.ClearSet.AutoQ.UseQ:Value() and Mode ~= "Combo" then
-		self:AutoQ()
-	end	
-
-	if self.Menu.MiscSet.WSet.UseW:Value() and Ready(_W) then
-		self:OnProcessSpell()
-		for i, spell in pairs(self.DetectedSpells) do
-			self:UseW(i, spell)
-		end
+	if Control.IsKeyDown(HK_W) and (not Ready(_W) or clock() - WStart >= 1.5) then
+		SetMovement(true)
+		Control.KeyUp(HK_W)
 	end
 	
-	local target = GetTarget(1100)     	
-	if target == nil then return end		
-	
-	if Mode == "Combo" and IsValid(target) and self.Menu.ComboSet.Burst.StartB:Value() and myHero.levelData.lvl >= self.Menu.ComboSet.Burst.Lvl:Value() then
-	
-		if myHero.pos:DistanceTo(target.pos) <= 775 and myHero:GetSpellData(_E).toggleState == 0 and not ISMarked(1000) then
-			local aimpos = GetPred(target,math.huge,0.25+ Game.Latency()/1000)
-			if aimpos and not (myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "IreliaR") then
-			Epos = aimpos + (myHero.pos - aimpos): Normalized() * -150
-				SetMovement(false)
-				Control.CastSpell(HK_E, Epos)
-				SetMovement(true)
-			end	
-		end			
-		
-		if myHero.pos:DistanceTo(target.pos) <= 600 and myHero:GetSpellData(_E).toggleState == 1 and Ready(_E) and not ISMarked(1000) then
-			Control.CastSpell(HK_E, myHero.pos)
-		end
-		
-		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and HasBuff(target, "ireliamark") then
-			if IsValid(target) and not myHero.pathing.isDashing then
-				CastSpell(HK_Q, target.pos, 600, ping*1000)	
-			end	
-		end		
-
-		if self.Menu.ComboSet.Combo.UseW:Value() and myHero.pos:DistanceTo(target.pos) <= 400 and Ready(_W) and not Ready(_E) then					
-			Control.CastSpell(HK_W, target)
-		end
-		
-		if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and Ready(_R) and Ready(_Q) then
-			local count = GetEnemyCount(1500, myHero)
-			local AADmg = getdmg("AA", target, myHero) + CalcExtraDmg(target)
-			local QDmg = getdmg("Q", target, myHero) + CalcExtraDmg(target)
-			local RDmg = getdmg("R", target, myHero)
-			local FullDmg = ((QDmg * 3) + RDmg + (AADmg * 4))
-			if FullDmg > target.health and count == 1 then
-				self:CastR(target)
-			end	
-		end
-		
-		local count = GetEnemyCount(400, target)
-		if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and self.Menu.ComboSet.Combo.UseRCount:Value() then
-			if count >= self.Menu.ComboSet.Combo.RCount:Value() and not myHero:GetSpellData(_E).toggleState == 0 then					
-				self:CastR(target)
-			end
-		end		
-
-		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and not self.Menu.ks.UseQ:Value() then			 
-			local QDmg = getdmg("Q", target, myHero) + CalcExtraDmg(target)	 		
-			if QDmg > target.health and IsValid(target) and not myHero.pathing.isDashing then
-				CastSpell(HK_Q, target.pos, 600, ping*1000)	
-			end
-		end	
-		
-		if myHero.pos:DistanceTo(target.pos) > 600 and myHero.pos:DistanceTo(target.pos) < 775 and Ready(_Q) and Ready(_E) then
-			local QDmg = getdmg("Q", target, myHero) + CalcExtraDmg(target)			
-			if QDmg > target.health and not HasBuff(target, "ireliamark") then				
-				if myHero:GetSpellData(_E).toggleState == 1 then
-					Control.CastSpell(HK_E, myHero.pos)
-				end
-			end
-			if myHero.pos:DistanceTo(target.pos) <= 775 and myHero:GetSpellData(_E).toggleState == 0 then
-				local aimpos = GetPred(target,math.huge,0.25+ Game.Latency()/1000)
-				if aimpos and not ISMarked(1000) and not (myHero.activeSpell and myHero.activeSpell.valid and myHero.activeSpell.name == "IreliaR") then
-				Epos = aimpos + (myHero.pos - aimpos): Normalized() * -150
-					SetMovement(false)
-					Control.CastSpell(HK_E, Epos)
-					SetMovement(true)
-				end	
-			end
-		end
-		self:Gapclose(target)
-		self:UseHydraminion(target)
-		if myHero:GetSpellData(_E).name == "IreliaE2" then return end
-		self:StackPassive(target)	
-	end	
-end
-
-function Irelia:Ninja()
-local target1 = GetTarget(1200)	
-	for i, target2 in ipairs(GetEnemyHeroes()) do
-		
-		if Ready(_Q) and GetEnemyCount(1200, myHero) >= 2 then 
-			if target2 and target1 and target2 ~= target1 then
-				if HasBuff(target2, "ireliamark") and myHero.pos:DistanceTo(target2.pos) <= 600 and IsValid(target2) then		
-					local time2 = myHero.pos:DistanceTo(target2.pos) / (1500+myHero.ms)
-					local MarkBuff2 = GetBuffData(target2, "ireliamark")
-					if MarkBuff2.duration > time2 and not myHero.pathing.isDashing then
-						CastSpell(HK_Q, target2.pos, 600, ping*1000)
-					end
-				end
-				if (not HasBuff(target2, "ireliamark") or myHero.pos:DistanceTo(target2.pos) > 600) and HasBuff(target1, "ireliamark") and myHero.pos:DistanceTo(target1.pos) <= 600 and IsValid(target1) then
-					local time1 = myHero.pos:DistanceTo(target1.pos) / (1500+myHero.ms)
-					local MarkBuff1 = GetBuffData(target1, "ireliamark")
-					if MarkBuff1.duration > time1 and not myHero.pathing.isDashing then
-						CastSpell(HK_Q, target1.pos, 600)
-					end
-				end	
-			end
-		end	
-	end	
-end
-
-function Irelia:UseW(i, s)
-	local startPos = s.startPos; local endPos = s.endPos; local travelTime = 0
-	if s.speed == MathHuge then travelTime = s.delay else travelTime = s.range / s.speed + s.delay end
-	if s.type == "rectangular" then
-		local StartPosition = endPos-Vector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
-		local EndPosition = endPos+Vector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
-		startPos = StartPosition; endPos = EndPosition
+	if myHero:GetSpellData(_E).name ~= "IreliaE2" then
+		SetMovement(true)
 	end
-	if s.startTime + travelTime > GameTimer() then
-		local Col = VectorPointProjectionOnLineSegment(startPos, endPos, myHero.pos)
-		if s.type == "circular" and GetDistanceSqr(myHero.pos, endPos) < (s.radius + myHero.boundingRadius) ^ 2 or GetDistanceSqr(myHero.pos, Col) < (s.radius + myHero.boundingRadius * 1.25) ^ 2 then
-			local t = s.speed ~= MathHuge and CalculateCollisionTime(startPos, endPos, myHero.pos, s.startTime, s.speed, s.delay) or 0.29
-			if t < 0.3 and not charging then 
-				Control.KeyDown(HK_W)
-				charging = true
+	
+	if MyHeroNotReady() then return end
+
+	local Mode = GetMode()
+	if Mode == "Combo" then
+		self:Ninja()			
+	elseif Mode == "Harass" then
+		self:Harass()
+	elseif Mode == "LaneClear" then
+		self:Clear()
+		self:JungleClear()
+	elseif Mode == "Flee" then
+		self:Flee()
+	elseif Mode == "LastHit" then
+		self:LastHit()
+	end
+end
+
+function Irelia:Ninja()	
+	if Ready(_Q) and GetEnemyCount(2000, myHero) >= 2 then	
+		if self.Menu.ComboSet.UseE2:Value() then
+			self:CastEaoe()
+		end	
+		for i, hero in ipairs(GetEnemyHeroes()) do
 			
-			else
-				Control.KeyUp(HK_W)
-				charging = false
+			if hero and GetDistanceSqr(myHero.pos, hero.pos) < 2000*2000 and IsValid(hero) then	
+				local Buff = GetBuffData(hero, "ireliamark")
+				local time = GetDistance(myHero.pos, hero.pos) / (1500+myHero.ms)
+				local Range = 600*600				
 				
-			end
+				if Buff and Buff.duration > time then					
+					local QDmg2 = (getdmg("Q", hero, myHero, 1) + CalcExtraDmg(hero, 2))*2
+					if QDmg2 > hero.health then
+						if GetDistance(myHero.pos, hero.pos) < 600 then
+							if CheckHPPred(hero) >= 1 then
+								Control.CastSpell(HK_Q, hero)	 
+								LastQ =((GetDistance(myHero.pos, hero.pos)/(1500+myHero.ms)*1000)+50)
+							else
+								self:Combo()
+							end	
+						else
+							for k, hero2 in ipairs(GetEnemyHeroes()) do
+								local Buff2 = GetBuffData(hero2, "ireliamark")
+								local time2 = GetDistance(myHero.pos, hero2.pos) / (1500+myHero.ms)
+								local Range = 600*600							
+								if hero2 and hero2 ~= hero and Buff2 and Buff2.duration > time2 then
+									if GetDistance(hero2.pos, hero.pos) < 600 then
+										if GetDistance(myHero.pos, hero2.pos) < 600 then
+											Control.CastSpell(HK_Q, hero2)	 
+											LastQ =((GetDistance(myHero.pos, hero2.pos)/(1500+myHero.ms)*1000)+50)										
+										else
+											GetKillableMinion()
+											if KillMinion and GetDistance(KillMinion.pos, hero2.pos) < 600 and GetDistance(KillMinion.pos, myHero.pos) < 600 then
+												if CheckHPPred(KillMinion) >= 1 then
+													Control.CastSpell(HK_Q, KillMinion)	 
+													LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+													KillMinion = nil
+												else
+													self:Combo()
+													KillMinion = nil											
+												end
+											else
+												self:Combo()
+											end
+										end	
+									else
+										GetKillableMinion()
+										if KillMinion and GetDistance(KillMinion.pos, hero.pos) < 600 and GetDistance(KillMinion.pos, myHero.pos) < 600 then
+											if CheckHPPred(KillMinion) >= 1 then
+												Control.CastSpell(HK_Q, KillMinion)	 
+												LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+												KillMinion = nil
+											else
+												self:Combo()
+												KillMinion = nil											
+											end
+										else
+											self:Combo()
+										end	
+									end
+								else
+									GetKillableMinion()
+									if KillMinion and GetDistance(KillMinion.pos, hero.pos) < 600 and GetDistance(KillMinion.pos, myHero.pos) < 600 then
+										if CheckHPPred(KillMinion) >= 1 then
+											Control.CastSpell(HK_Q, KillMinion)	 
+											LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+											KillMinion = nil
+										else
+											self:Combo()
+											KillMinion = nil										
+										end	
+									else
+										self:Combo()
+									end	
+								end
+							end		
+						end	
+					else
+						
+						if GetDistance(myHero.pos, hero.pos) < 600 then
+							if not IsUnderTurret(hero) then 
+								Control.CastSpell(HK_Q, hero)	 
+								LastQ =((GetDistance(myHero.pos, hero.pos)/(1500+myHero.ms)*1000)+50)
+							else
+								self:Combo()
+							end	
+		
+						elseif not IsUnderTurret(hero) then
+							GetKillableMinion()
+							if KillMinion and GetDistance(KillMinion.pos, hero.pos) < 600 and GetDistance(KillMinion.pos, myHero.pos) < 600 then
+								if not IsUnderTurret(KillMinion) then	
+									if CheckHPPred(KillMinion) >= 1 then						
+										Control.CastSpell(HK_Q, KillMinion)	 
+										LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+										KillMinion = nil
+									else
+										self:Combo()
+										KillMinion = nil
+									end
+								else
+									self:Combo()
+								end
+							else
+								self:Combo()
+							end
+						else
+							self:Combo()
+						end	
+					end		
+				else
+					self:Combo()	
+				end
+			end	
 		end
-	else table.remove(self.DetectedSpells, i) end
-end
-
-function Irelia:OnProcessSpell()
-	local unit, spell = OnProcessSpell()
-	if unit and spell and DangerousSpells[spell.name] then
-		if GetDistance(unit.pos, myHero.pos) > 3500 or not self.Menu.MiscSet.WSet.BlockList["Dodge"..spell.name]:Value() then return end
-		local Detected = DangerousSpells[spell.name]
-		local type = Detected.type
-		if type == "targeted" then
-			if spell.target == myHero.handle and not charging then 
-				Control.KeyDown(HK_W)
-				charging = true
-				table.remove(self.DetectedSpells, i)
-			else
-				Control.KeyUp(HK_W)
-				charging = false
-				
-			end
-		else
-			local startPos = Vector(spell.startPos); local placementPos = Vector(spell.placementPos); local unitPos = unit.pos
-			local radius = Detected.radius; local range = Detected.range; local col = Detected.collision; local type = Detected.type
-			local endPos, range2 = CalculateEndPos(startPos, placementPos, unitPos, range, radius, col, type)
-			table.insert(self.DetectedSpells, {startPos = startPos, endPos = endPos, startTime = GameTimer(), speed = Detected.speed, range = range2, delay = Detected.delay, radius = radius, radius2 = radius2 or nil, angle = angle or nil, type = type, collision = col})
-		end
-	end
-end
-
-function Irelia:UseHydraminion(unit)
-local hydraitem = GetInventorySlotItem(3748) or GetInventorySlotItem(3077) or GetInventorySlotItem(3074)
-	if hydraitem and myHero.pos:DistanceTo(unit.pos) <= 400 then
-		Control.CastSpell(keybindings[hydraitem])
-	end
+	else
+		self:Combo()
+	end	
 end
 
 function Irelia:Combo()
-local target = GetTarget(1100)     	
+local target = GetTarget(1500)     	
 if target == nil then return end
 	if IsValid(target) then
-		if Ready(_R) and myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and self.Menu.ComboSet.Combo.UseRCount:Value() then
+	local BuffedTarget = ISMarked(1200)	
+		
+		if Control.IsKeyDown(HK_W) then self:CheckCastW(target) return end			
+		
+		if Ready(_R) and GetDistance(myHero.pos, target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and self.Menu.ComboSet.UseRCount:Value() and myHero:GetSpellData(_E).name ~= "IreliaE2" then
 			local count = GetEnemyCount(400, target)
-			if count >= self.Menu.ComboSet.Combo.RCount:Value() then					
+			if count >= self.Menu.ComboSet.RCount:Value() then					
 				self:CastR(target)
+			else
+				if self.Menu.ComboSet.UseE:Value() and Ready(_E) and GetDistance(myHero.pos, target.pos) < 1400 and not IsImmobileTarget(target) and not ISMarked(650) then
+					self:CheckCastE(target)
+				end			
 			end
-		end			
+					
 		
-		if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) then
-			if myHero.pos:DistanceTo(target.pos) <= 725 then					
-				self:CastE(target)
-			end
-		end	
-			
-		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and HasBuff(target, "ireliamark") and not myHero.pathing.isDashing then
-			CastSpell(HK_Q, target.pos, 600, ping*1000)			
+		elseif self.Menu.ComboSet.UseE:Value() and Ready(_E) and GetDistance(myHero.pos, target.pos) < 1400 and not IsImmobileTarget(target) and not ISMarked(650) then
+			self:CheckCastE(target)
 		end
 		
-		if self.Menu.ComboSet.Combo.UseW:Value() and Ready(_W) then
-			if myHero.pos:DistanceTo(target.pos) <= 825 then					
-				Control.CastSpell(HK_W, target)
+		if Ready(_R) and GetDistance(myHero.pos, target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and self.Menu.ComboSet.UseRKill:Value() and not ISMarked(650) and myHero:GetSpellData(_E).name ~= "IreliaE2" then
+			local Passive = CalcExtraDmg(target, 2)*3
+			local QDmg = Ready(_Q) and getdmg("Q", target, myHero, 1)*3 or 0
+			local WDmg = Ready(_W) and getdmg("W", target, myHero) or 0
+			local EDmg = Ready(_E) and getdmg("E", target, myHero) or 0
+			local RDmg = getdmg("R", target, myHero)
+			local AADmg = getdmg("AA", target, myHero)*2
+			local FullDmg = Passive+QDmg+WDmg+EDmg+RDmg+AADmg
+			if FullDmg >= target.health then					
+				self:CastR(target)
+			else
+				if self.Menu.ComboSet.UseE:Value() and Ready(_E) and GetDistance(myHero.pos, target.pos) < 1400 and not IsImmobileTarget(target) and not ISMarked(650) then
+					self:CheckCastE(target)
+				end			
 			end
-		end	
+					
 		
-		if self.Menu.ComboSet.Combo.UseR:Value() and Ready(_R) then
-			local count = GetEnemyCount(1500, myHero)
-			if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and count == 1 then	
-			local QDmg = getdmg("Q", target, myHero) + CalcExtraDmg(target)
-			local RDmg = getdmg("R", target, myHero)			
-				if (QDmg * 2 + RDmg) > target.health then
-					self:CastR(target)
-				end	
-			end
-		end			
-		
-		if self.Menu.ComboSet.Combo.LogicQ:Value() then 				 
-			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
-				local QDmg = getdmg("Q", target, myHero) + CalcExtraDmg(target)
-				if QDmg >= target.health and IsValid(target) and not myHero.pathing.isDashing then
-					CastSpell(HK_Q, target.pos, 600, ping*1000)		
-				end
-			end			
+		elseif self.Menu.ComboSet.UseE:Value() and Ready(_E) and GetDistance(myHero.pos, target.pos) < 1400 and not IsImmobileTarget(target) and not ISMarked(650) then
+			self:CheckCastE(target)
+		end		
 			
-			if myHero.pos:DistanceTo(target.pos) >= 300 and myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
-				local QDmg = getdmg("Q", target, myHero) + CalcExtraDmg(target)
-				if (QDmg*2) >= target.health and not myHero.pathing.isDashing then
-					CastSpell(HK_Q, target.pos, 600, ping*1000)	
-				end	
-			end		
-		
-		else
-				
-			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
-				local QDmg = getdmg("Q", target, myHero) + CalcExtraDmg(target)
-				if QDmg >= target.health and IsValid(target) and not myHero.pathing.isDashing then
-					CastSpell(HK_Q, target.pos, 600, ping*1000)		
+		if Ready(_Q) then
+			if BuffedTarget then
+				local Q2Dmg = (getdmg("Q", BuffedTarget, myHero, 1) + CalcExtraDmg(BuffedTarget, 2))*2
+				if Q2Dmg > BuffedTarget.health then
+					if GetDistance(myHero.pos, BuffedTarget.pos) < 600 then
+						if CheckHPPred(BuffedTarget) >= 1 then
+							Control.CastSpell(HK_Q, BuffedTarget)	 
+							LastQ =((GetDistance(myHero.pos, BuffedTarget.pos)/(1500+myHero.ms)*1000)+50)
+						end	
+					else
+						GetKillableMinion()
+						if KillMinion and GetDistance(KillMinion.pos, BuffedTarget.pos) < GetDistance(myHero.pos, BuffedTarget.pos) then
+							if CheckHPPred(KillMinion) >= 1 then
+								Control.CastSpell(HK_Q, KillMinion)	 
+								LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+								KillMinion = nil
+							else
+								KillMinion = nil
+							end	
+						end						
+					end
+				else
+					if GetDistance(myHero.pos, BuffedTarget.pos) < 600 then
+						if not IsUnderTurret(BuffedTarget) then
+							Control.CastSpell(HK_Q, BuffedTarget)	 
+							LastQ =((GetDistance(myHero.pos, BuffedTarget.pos)/(1500+myHero.ms)*1000)+50)
+						end	
+					else
+						if not IsUnderTurret(BuffedTarget) then
+							GetKillableMinion()
+							if KillMinion and GetDistance(KillMinion.pos, BuffedTarget.pos) < GetDistance(BuffedTarget.pos, myHero.pos) then
+								if not IsUnderTurret(KillMinion) then							
+									if CheckHPPred(KillMinion) >= 1 then
+										Control.CastSpell(HK_Q, KillMinion)	 
+										LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+										KillMinion = nil
+									else
+										KillMinion = nil
+									end
+								end	
+							end
+						end	
+					end	
 				end
-			end
+			else
+				local QDmg = (getdmg("Q", target, myHero, 1) + CalcExtraDmg(target, 2))
+				if QDmg > target.health then
+					if GetDistance(myHero.pos, target.pos) < 600 then
+						if CheckHPPred(target) >= 1 then
+							Control.CastSpell(HK_Q, target)	 
+							LastQ =((GetDistance(myHero.pos, target.pos)/(1500+myHero.ms)*1000)+50)
+						end	
+					else
+						GetKillableMinion()
+						if KillMinion and GetDistance(KillMinion.pos, target.pos) < GetDistance(target.pos, myHero.pos) then
+							if CheckHPPred(KillMinion) >= 1 then
+								Control.CastSpell(HK_Q, KillMinion)	 
+								LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+								KillMinion = nil
+							else
+								KillMinion = nil
+							end
+						end						
+					end
+				else
+					if GetDistance(myHero.pos, target.pos) <= 600 and myHero:GetSpellData(_E).name ~= "IreliaE2" then
+						if not HasBuff(myHero, "ireliapassivestacksmax") then
+							GetKillableMinion()
+							if KillMinion and GetDistance(myHero.pos, KillMinion.pos) < 600 and GetDistance(KillMinion.pos, target.pos) <= 600 then
+								if not IsUnderTurret(KillMinion) then	
+									if CheckHPPred(KillMinion) >= 1 then						
+										CastSpell(HK_Q, KillMinion, LastQ)	 
+										LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+										KillMinion = nil
+									else
+										KillMinion = nil
+									end	
+								end
+							end
+						end	
+					end				
+				end	
+			end	
 		end
 		
-		if self.Menu.ComboSet.Combo.Gap:Value() then
-			self:Gapclose(target)
+		if self.Menu.ComboSet.ImmoW:Value() and Ready(_W) and not HasBuff(myHero, "ireliawdefense") then
+			if IsImmobileTarget(myHero) and myHero:GetSpellData(_E).name ~= "IreliaE2" then					
+				SetMovement(false)
+				Control.KeyDown(HK_W)
+				WStart = clock()
+			end
 		end	
-		if myHero:GetSpellData(_E).name == "IreliaE2" then return end
-		if self.Menu.ComboSet.Combo.Stack:Value() then
-			self:StackPassive(target)
-		end	
+		
+		if self.Menu.ComboSet.UseW:Value() and Ready(_W) and not Ready(_E) then
+			if GetDistance(myHero.pos, target.pos) <= 600 and not IsImmobileTarget(myHero) then									
+				if myHero:GetSpellData(_E).name ~= "IreliaE2" and not HasBuff(myHero, "ireliawdefense") and not ISMarked(650) then
+					SetMovement(false)
+					Control.KeyDown(HK_W)
+					WStart = clock()
+				end	
+			end
+		end		
 	end	
 end	
 
@@ -1140,411 +1102,439 @@ local target = GetTarget(1100)
 if target == nil then return end 
 	if IsValid(target) then
 				
-		if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) then
-			if self.Menu.Harass.UseQ:Value() ~= 2 then
-				if HasBuff(target, "ireliamark") and not myHero.pathing.isDashing then
-					CastSpell(HK_Q, target.pos, 600, ping*1000)	
-				end
-				if myHero:GetSpellData(_E).name ~= "IreliaE2" and not HasBuff(target, "ireliamark") then
-					self:CastQMinion(target)
-				end	
-			else	
-				CastSpell(HK_Q, target.pos, 600, ping*1000)	
-			end	
-		end
+		if Control.IsKeyDown(HK_W) then self:CheckCastW(target) return end
 		
-		if self.Menu.Harass.UseW:Value() and Ready(_W) then
-			if myHero.pos:DistanceTo(target.pos) <= 825 then					
-				self:CastW(target)				
-			end
-		end	
-		if self.Menu.Harass.UseE:Value() and Ready(_E) then
-			if myHero.pos:DistanceTo(target.pos) <= 725 then					
-				self:CastE(target)				
-			end
-		end	
-	end	
-end
-
-function Irelia:KillSteal()
-	for i, target in ipairs(GetEnemyHeroes()) do     	
-		
-		if target and myHero.pos:DistanceTo(target.pos) <= 1000 and IsValid(target) and myHero:GetSpellData(_E).name ~= "IreliaE2" then
-		
-			if myHero.pos:DistanceTo(target.pos) <= 600 and Ready(_Q) and self.Menu.ks.UseQ:Value() then
-				local QDmg = getdmg("Q", target, myHero) + CalcExtraDmg(target)	 
-				if HasBuff(target, "ireliamark") and (QDmg*2) >= target.health and not myHero.pathing.isDashing then
-					CastSpell(HK_Q, target.pos, 600, ping*1000)	
-				end	
-				if QDmg >= target.health and IsValid(target) and not myHero.pathing.isDashing then
-					CastSpell(HK_Q, target.pos, 600, ping*1000)	
-					DelayAction(function()
-					self:CastQMinion(target)
-					end,0.5)
-				end
-			end
-			
-			if myHero.pos:DistanceTo(target.pos) <= 825 and Ready(_W) and self.Menu.ks.UseW:Value() then
-				local WDmg = getdmg("W", target, myHero)
-				local hp = target.health
-				if WDmg >= hp then
-					self:CastW(target)
-				end
-			end
-			
-			if myHero.pos:DistanceTo(target.pos) <= self.Menu.MiscSet.Rrange.R:Value() and myHero.pos:DistanceTo(target.pos) > 300 and Ready(_R) and self.Menu.ks.UseR:Value() then
-				local EDmg = getdmg("E", target, myHero)
-				local WDmg = getdmg("W", target, myHero)
-				local RDmg = getdmg("R", target, myHero)
-				local QDmg = getdmg("Q", target, myHero) + CalcExtraDmg(target)
-				local FullDmg = RDmg + WDmg + EDmg + (QDmg*2)
-				local hp = target.health
-				if FullDmg >= hp and not HasBuff(target, "ireliamark") then
-					self:CastR(target)
-				end
-			end
-		end
-	end	
-end	
-
-function Irelia:LastHit()
-	for i = 1, GameMinionCount() do
-    local minion = GameMinion(i)
-
-		if minion.team == TEAM_ENEMY and IsValid(minion) then
-			if self.Menu.ClearSet.LastHit.UseItem:Value() then
-				self:UseHydraminion(minion)
-			end	
-            
-			if self.Menu.ClearSet.LastHit.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.LastHit.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) then
-			local QDmg = getdmg("Q", minion, myHero, 2) + CalcExtraDmg(minion) 
-
-				if not IsUnderTurret(minion) then	
-					if QDmg >= minion.health and IsValidCrap(minion) and not myHero.pathing.isDashing then
-						CastSpell(HK_Q, minion.pos, 600, ping*1000)						
-					end	
-				else  
-					if AllyMinionUnderTower() then
-						if QDmg >= minion.health and IsValidCrap(minion) and not myHero.pathing.isDashing then					
-							CastSpell(HK_Q, minion.pos, 600, ping*1000)
-						end
-					end	
-				end	
-            end
-		end
-	end
-end	
-
-function Irelia:AutoQ()
-	if Ready(_Q) then
-		for i = 1, GameMinionCount() do
-		local minion = GameMinion(i) 
-
-			if minion.team == TEAM_ENEMY and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.AutoQ.Mana:Value() / 100 and myHero.pos:DistanceTo(minion.pos) <= 600 and IsValidCrap(minion) then
-				if self.Menu.ClearSet.AutoQ.UseItem:Value() then
-					self:UseHydraminion(minion)
-				end
-				--local Hp = CheckHPPred(minion)
-				--print(ping)
-				local QDmg = getdmg("Q", minion, myHero, 2) + CalcExtraDmg(minion) 					
-				if not IsUnderTurret(minion) then	
-					if QDmg > minion.health and not myHero.pathing.isDashing then
-						--Control.CastSpell(HK_Q, minion)	
-						CastSpell(HK_Q, minion.pos, 600, ping*1000)
-						return
-					end	
-				else  
-					if AllyMinionUnderTower() then
-						if QDmg > minion.health and not myHero.pathing.isDashing then
-							--Control.CastSpell(HK_Q, minion)
-							CastSpell(HK_Q, minion.pos, 600, ping*1000)
-							return
-						end
-					end	
-				end	
-			end
-		end
-	end	
-end
-
-function Irelia:StackPassive(target)
-if HasBuff(myHero, "ireliapassivestacksmax") then return end	
-	for i = 1, GameMinionCount() do
-    local minion = GameMinion(i)
-
-		if minion.team == TEAM_ENEMY then
-			if target.pos:DistanceTo(minion.pos) <= 400 and myHero.pos:DistanceTo(minion.pos) <= 600 and Ready(_Q) and not HasBuff(target, "ireliamark") then
-			local QDmg = getdmg("Q", minion, myHero, 2) + CalcExtraDmg(minion) 
-				if QDmg >= minion.health and IsValid(minion) and not myHero.pathing.isDashing then
-					CastSpell(HK_Q, minion.pos, 600, ping*1000)
-				end	
-			end
-			self:UseHydraminion(minion)
-		end
-	end
-end	
-
-function Irelia:JungleClear()
-	for i = 1, GameMinionCount() do
-    local minion = GameMinion(i)
-
-		if minion.team == TEAM_JUNGLE and IsValid(minion) then
- 			
-			if myHero.pos:DistanceTo(minion.pos) <= 825 and self.Menu.ClearSet.JClear.UseW:Value() and Ready(_W) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 then
-				Control.CastSpell(HK_W, minion.pos)                  
-            end           
-           
-			if self.Menu.ClearSet.JClear.UseItem:Value() then
-				self:UseHydraminion(minion)
-			end				
-			
-			if myHero.pos:DistanceTo(minion.pos) <= 600 and self.Menu.ClearSet.JClear.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 and Ready(_Q) then
-			local QDmg = getdmg("Q", minion, myHero) + CalcExtraDmg(minion) 
-				if QDmg >= minion.health and IsValidCrap(minion) and not myHero.pathing.isDashing then
-					CastSpell(HK_Q, minion.pos, 600, ping*1000)
+		if self.Menu.Harass.UseE:Value() and Ready(_E) and not IsImmobileTarget(target) then
+			if myHero:GetSpellData(_E).name ~= "IreliaE2" and GetDistance(target.pos, myHero.pos) <= 800 then
+				local CastPos1 = Vector(target.pos) + (Vector(myHero.pos) - Vector(target.pos)): Normalized() * 150
+				Control.CastSpell(HK_E, CastPos1)	
+			else
+				if Ready(_E) then
+					local PredPos2 = self:CastE2(target)
+					if PredPos2 then
+						local MoveRange = 0.25*target.ms
+						local CastPos2 = PredPos2 + (myHero.pos - PredPos2): Normalized() * -(150+MoveRange)
+						SetMovement(false)
+						Control.CastSpell(HK_E, CastPos2)
+					end					
 				end	
 			end	
-        end
-    end
-end
-			
-function Irelia:Clear()
-	for i = 1, GameMinionCount() do
-    local minion = GameMinion(i)
-
-		if minion.team == TEAM_ENEMY and IsValid(minion) then
- 			
-			if myHero.pos:DistanceTo(minion.pos) <= 825 and self.Menu.ClearSet.Clear.UseW:Value() and Ready(_W) and not Ready(_Q) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.Clear.Mana:Value() / 100 then
-				Control.CastSpell(HK_W, minion.pos)                   
-            end 
-			
-
-			if self.Menu.ClearSet.Clear.UseE:Value() and Ready(_E) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.Clear.Mana:Value() / 100 then
-				if self.Menu.ClearSet.Clear.countEnemy:Value() then
-					if GetEnemyCount(2000, myHero) == 0 then 				
-						local Count = GetLineTargetCount(myHero.pos, minion.pos, 0.25+ Game.Latency()/1000, math.huge, 100)
-						if Count >= self.Menu.ClearSet.Clear.ECount:Value() then
-							if myHero:GetSpellData(_E).name == "IreliaE" then
-								Control.CastSpell(HK_E, myHero.pos)
-							end
-							if myHero:GetSpellData(_E).name == "IreliaE2" then
-								local Epos = minion.pos + (myHero.pos - minion.pos): Normalized() * -150
-								SetMovement(false)
-								Control.CastSpell(HK_E, Epos)
-								SetMovement(true)
-							end					
-						end
-					end	
+		end		
+		
+		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and HasBuff(target, "ireliamark") and myHero.pos:DistanceTo(target.pos) <= 600 and not IsUnderTurret(target) then
+			GetKillableMinion()
+			if KillMinion and not IsUnderTurret(KillMinion) and GetDistance(KillMinion.pos, target.pos) < 600 and GetDistance(KillMinion.pos, target.pos) > 300 then
+				if Control.CastSpell(HK_Q, target) then	
+					LastQ =((GetDistance(myHero.pos, target.pos)/(1500+myHero.ms)*1000)+50)
+					if CheckHPPred(KillMinion) >= 1 then
+						CastSpell(HK_Q, KillMinion, LastQ)	 
+						LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+						KillMinion = nil
+					else
+						KillMinion = nil
+					end
+				end	
+			end
+		end
+		
+		if self.Menu.Harass.UseQ2:Value() and Ready(_Q) then
+			GetKillableMinion()
+			if KillMinion and not IsUnderTurret(KillMinion) and GetDistance(KillMinion.pos, target.pos) > self.Menu.Harass.Q2Range:Value() and GetDistance(KillMinion.pos, myHero.pos) < 600 then	
+				if CheckHPPred(KillMinion) >= 1 then
+					CastSpell(HK_Q, KillMinion, LastQ)	 
+					LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+					KillMinion = nil
 				else
-					local Count = GetLineTargetCount(myHero.pos, minion.pos, 0.25+ Game.Latency()/1000, math.huge, 100)
-					if Count >= self.Menu.ClearSet.Clear.ECount:Value() then
-						if myHero:GetSpellData(_E).name == "IreliaE" then
-							Control.CastSpell(HK_E, myHero.pos)
-						end
-						if myHero:GetSpellData(_E).name == "IreliaE2" then
-							local Epos = minion.pos + (myHero.pos - minion.pos): Normalized() * -150
-							SetMovement(false)
-							Control.CastSpell(HK_E, Epos)
-							SetMovement(true)
-						end					
+					KillMinion = nil
+				end	
+			end
+		end	
+		
+		if self.Menu.Harass.ImmoW:Value() and Ready(_W) and not HasBuff(myHero, "ireliawdefense") then
+			if IsImmobileTarget(myHero) and myHero:GetSpellData(_E).name ~= "IreliaE2" then					
+				SetMovement(false)
+				Control.KeyDown(HK_W)
+				WStart = clock()
+			end
+		end	
+		
+		if self.Menu.Harass.UseW:Value() and Ready(_W) and not Ready(_E) then
+			if GetDistance(myHero.pos, target.pos) <= 600 and not IsImmobileTarget(myHero) then									
+				if myHero:GetSpellData(_E).name ~= "IreliaE2" and not HasBuff(myHero, "ireliawdefense") and not HasBuff(target, "ireliamark") then
+					SetMovement(false)
+					Control.KeyDown(HK_W)
+					WStart = clock()
+				end	
+			end
+		end				
+	end	
+end
+
+function Irelia:Clear()
+	if myHero.mana/myHero.maxMana >= self.Menu.ClearSet.Clear.Mana:Value() / 100 then
+		if self.Menu.ClearSet.Clear.UseQ:Value() and Ready(_Q) and myHero:GetSpellData(_E).name ~= "IreliaE2" then
+			GetKillableMinion()		
+			if KillMinion then
+				if not IsUnderTurret(KillMinion) then	
+					if CheckHPPred(KillMinion) >= 1 then						
+						CastSpell(HK_Q, KillMinion, LastQ)	 
+						LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+						KillMinion = nil
+					else
+						KillMinion = nil
+					end	
+				else  
+					if AllyMinionUnderTower() then
+						if CheckHPPred(KillMinion) >= 1 then						
+							CastSpell(HK_Q, KillMinion, LastQ)	 
+							LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+							KillMinion = nil
+						else
+							KillMinion = nil
+						end	
+					end	
+				end	
+			end	
+		end
+	end	
+	
+	if self.Menu.ClearSet.Clear.UseE:Value() and Ready(_E) then
+		local Minions = GetMinions(800, 1)
+		if next(Minions) == nil then return end
+		for i = 1, #Minions do
+			local minion = Minions[i]		
+			if minion.team == TEAM_ENEMY then
+				local CastPos, Count = GetLineTargetCount(myHero.pos, minion.pos, 0.25+ping, 2500, 35)
+				if CastPos and Count >= self.Menu.ClearSet.Clear.ECount:Value() then
+					local E2pos = Vector(CastPos) + (Vector(myHero.pos) - Vector(CastPos)): Normalized() * -800
+					--DrawCircle(E2pos, 50, 1, DrawColor(255, 225, 255, 10))
+					if myHero:GetSpellData(_E).name == "IreliaE" then
+						Control.CastSpell(HK_E, myHero.pos)
+					end
+					if myHero:GetSpellData(_E).name == "IreliaE2" then
+						Control.CastSpell(HK_E, E2pos)
 					end					
 				end
-			end
-           
-			if self.Menu.ClearSet.AutoQ.UseQ:Value() then return end
-			if self.Menu.ClearSet.Clear.UseItem:Value() then
-				self:UseHydraminion(minion)
-			end				
+			end	
+		end	
+	end
+end
+
+function Irelia:JungleClear()
+	local Minions = GetMinions(800, 3)
+	if next(Minions) == nil then return end
+	for i = 1, #Minions do
+		local minion = Minions[i]
+		
+		if minion.team == TEAM_JUNGLE and IsValid(minion) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 then
+ 			
+			if Control.IsKeyDown(HK_W) then self:CheckCastW(minion) return end
 			
-			if myHero.pos:DistanceTo(minion.pos) <= 600 and self.Menu.ClearSet.Clear.Last.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.Clear.Mana:Value() / 100 and Ready(_Q) then
-			local QDmg = getdmg("Q", minion, myHero, 2) + CalcExtraDmg(minion) 
-				if not IsUnderTurret(minion) then	
-					if QDmg >= minion.health and IsValidCrap(minion) and not myHero.pathing.isDashing then
-						CastSpell(HK_Q, minion.pos, 600, ping*1000)
+			if self.Menu.ClearSet.JClear.UseE:Value() and Ready(_E) then
+				if myHero:GetSpellData(_E).name ~= "IreliaE2" then
+					local CastPos1 = Vector(minion.pos) + (Vector(myHero.pos) - Vector(minion.pos)): Normalized() * 150
+					Control.CastSpell(HK_E, CastPos1)	
+				else
+					if Ready(_E) then
+						local CastPos2 = Vector(minion.pos) + (myHero.pos - Vector(minion.pos)): Normalized() * -150
+						SetMovement(false)
+						Control.CastSpell(HK_E, CastPos2)						
+					end	
+				end
+			end	
+			
+			if self.Menu.ClearSet.JClear.UseW:Value() and Ready(_W) and not Ready(_E) then
+				if myHero:GetSpellData(_E).name ~= "IreliaE2" and not HasBuff(myHero, "ireliawdefense") and not HasBuff(minion, "ireliamark") then
+					SetMovement(false)
+					Control.KeyDown(HK_W)
+					WStart = clock()
+				end	                  
+            end           				
+			
+			if self.Menu.ClearSet.JClear.UseQ:Value() and Ready(_Q) and GetDistance(myHero.pos, minion.pos) < 600 and myHero:GetSpellData(_E).name ~= "IreliaE2" then
+				if HasBuff(minion, "ireliamark") then
+					if CheckHPPred(minion) >= 1 then						
+						CastSpell(HK_Q, minion, LastQ)	 
+						LastQ =((GetDistance(myHero.pos, minion.pos)/(1500+myHero.ms)*1000)+50)
+					end					
+				end
+			
+				local QDmg = getdmg("Q", minion, myHero, 1) + CalcExtraDmg(minion, 1) 
+				if QDmg > minion.health then
+					if CheckHPPred(minion) >= 1 then						
+						CastSpell(HK_Q, minion, LastQ)	 
+						LastQ =((GetDistance(myHero.pos, minion.pos)/(1500+myHero.ms)*1000)+50)
 					end	
 				end	
-
-				if IsUnderTurret(minion) and AllyMinionUnderTower() then
-					if QDmg >= minion.health and IsValidCrap(minion) and not myHero.pathing.isDashing then					
-						CastSpell(HK_Q, minion.pos, 600, ping*1000)
-					end
-				end				
-			end
+			end	
         end
     end
 end
 
-function Irelia:CastQMinion(target)
-	for i = 1, GameMinionCount() do
-    local minion = GameMinion(i)
-
-		if minion.team == TEAM_ENEMY and IsValid(minion) then
-			local Dmg = getdmg("Q", target, myHero) or getdmg("W", target, myHero) or getdmg("E", target, myHero) or getdmg("R", target, myHero)
-			if IsValid(target) and myHero.pos:DistanceTo(minion.pos) <= 600 and target.pos:DistanceTo(myHero.pos) < minion.pos:DistanceTo(target.pos) and not IsUnderTurret(minion) and target.health > Dmg then
-			local QDmg = getdmg("Q", minion, myHero, 2) + CalcExtraDmg(minion) 
-				if QDmg >= minion.health and IsValidCrap(minion) and not HasBuff(target, "ireliamark") and not myHero.pathing.isDashing then
-					CastSpell(HK_Q, minion.pos, 600, ping*1000)
-				end					
-			end
-		end
-	end
-end	
-
-function Irelia:Gapclose(target)
-	for i = 1, GameMinionCount() do
-    local minion = GameMinion(i)
-	
-		if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) <= 600 and minion.team == TEAM_ENEMY and IsValid(minion) then
-			local QDmg = getdmg("Q", minion, myHero, 2) + CalcExtraDmg(minion)
-			if QDmg > minion.health and myHero.pos:DistanceTo(target.pos) > target.pos:DistanceTo(minion.pos) and not myHero.pathing.isDashing then 
-				CastSpell(HK_Q, minion.pos, 600, ping*1000)			
+function Irelia:LastHit()           
+	if self.Menu.ClearSet.LastHit.UseQ:Value() and Ready(_Q) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.LastHit.Mana:Value() / 100 then
+		GetKillableMinion()		
+		if KillMinion and GetDistance(myHero.pos, KillMinion.pos) > myHero.range then
+			if not IsUnderTurret(KillMinion) then	
+				if CheckHPPred(KillMinion) >= 1 then						
+					CastSpell(HK_Q, KillMinion, LastQ)	 
+					LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+					KillMinion = nil
+				else
+					KillMinion = nil
+				end	
+			else  
+				if AllyMinionUnderTower() then
+					if CheckHPPred(KillMinion) >= 1 then						
+						CastSpell(HK_Q, KillMinion, LastQ)	 
+						LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+						KillMinion = nil
+					else
+						KillMinion = nil
+					end	
+				end	
 			end	
 		end
 	end	
 end	
 
 function Irelia:Flee()
-    local target = GetTarget(2000)     	
-	if target == nil then return end
-	if self.Menu.MiscSet.Flee.Q:Value() then
-		if target.pos:DistanceTo(myHero.pos) < 2000 then
-			if Ready(_Q) then
-				for i = 1, GameMinionCount() do
-				local minion = GameMinion(i)
-					if minion.team == TEAM_ENEMY and IsValid(minion) then
-						if minion.pos:DistanceTo(myHero.pos) <= 600 and target.pos:DistanceTo(myHero.pos) < minion.pos:DistanceTo(target.pos) and not myHero.pathing.isDashing then
-							local QDmg = getdmg("Q", minion, myHero, 2) + CalcExtraDmg(minion)
-							if self.Menu.MiscSet.Flee.Q2:Value() then 							
-								if QDmg >= minion.health then								
-									CastSpell(HK_Q, minion.pos, 600, ping*1000)
-								else
-									CastSpell(HK_Q, minion.pos, 600, ping*1000)
-								end	
-							else
-								if QDmg >= minion.health then								
-									CastSpell(HK_Q, minion.pos, 600, ping*1000)	
-								end	
-							end	
+	if self.Menu.MiscSet.Flee.Q:Value() and Ready(_Q) then
+		GetKillableMinion()		
+		if KillMinion and GetDistance(KillMinion.pos, mousePos) < 500 then
+			if not IsUnderTurret(KillMinion) then	
+				if CheckHPPred(KillMinion) >= 1 then						
+					CastSpell(HK_Q, KillMinion, LastQ)	 
+					LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+					KillMinion = nil
+				else
+					KillMinion = nil
+				end	
+			else  
+				if AllyMinionUnderTower() then
+					if CheckHPPred(KillMinion) >= 1 then						
+						CastSpell(HK_Q, KillMinion, LastQ)	 
+						LastQ =((GetDistance(myHero.pos, KillMinion.pos)/(1500+myHero.ms)*1000)+50)
+						KillMinion = nil
+					else
+						KillMinion = nil
+					end	
+				end	
+			end
+		else
+			if self.Menu.MiscSet.Flee.Q2:Value() then
+				local Minions = GetMinions(600, 1)
+				if next(Minions) == nil then return end
+				for i = 1, #Minions do
+					local minion = Minions[i]
+					if IsValid(minion)	then
+						Control.CastSpell(HK_Q, minion)	 
+						LastQ =((GetDistance(myHero.pos, minion.pos)/(1500+myHero.ms)*1000)+50)					
+					end
+				end	
+			end
+		end			
+	end
+end
+
+function Irelia:CheckCastW(unit)
+    if GetDistance(unit.pos, myHero.pos) < 600 and Ready(_Q) then
+		local WDmg = WDamage(unit)
+		local QDmg = getdmg("Q", unit, myHero, 1) + CalcExtraDmg(unit, 2)
+		local BuffedTarget = ISMarked(600, unit)
+		if BuffedTarget then
+			if (WDmg+QDmg*2) > unit.health and CheckHPPred(unit) >= 1 then
+				self:CastW(unit)
+			end
+		else
+			if (WDmg+QDmg) > unit.health and CheckHPPred(unit) >= 1 then
+				self:CastW(unit)
+			end		
+		end		
+	end
+	
+	if GetDistanceSqr(unit.pos, myHero.pos) < 825 * 825 then
+		
+		local WDmg = WDamage(unit) 
+		if WDmg > unit.health then
+			self:CastW(unit)
+		end
+		
+		if not IsImmobileTarget(myHero) then
+			if GetDistance(unit.pos, myHero.pos) > 700 then
+				self:CastW(unit)				
+			elseif clock() - WStart >= 0.75 then
+				self:CastW(unit)				
+			end
+		else
+			if clock() - WStart >= 1.4 then
+				self:CastW(unit)
+			end
+		end	
+	end
+end
+
+function Irelia:CheckCastE(unit)
+	if (self.Menu.ComboSet.UseE2:Value() and GetEnemyCount(1000, myHero) == 1) or not self.Menu.ComboSet.UseE2:Value() then               	
+		if myHero:GetSpellData(_E).name ~= "IreliaE2" and GetDistance(unit.pos, myHero.pos) <= 800 then
+			local CastPos1 = Vector(unit.pos) + (Vector(myHero.pos) - Vector(unit.pos)): Normalized() * 150
+			Control.CastSpell(HK_E, CastPos1)	
+		else
+			if Ready(_E) then
+				local PredPos2 = self:CastE2(unit)
+				if PredPos2 then
+					local MoveRange = 0.25*unit.ms
+					local CastPos2 = PredPos2 + (myHero.pos - PredPos2): Normalized() * -(200+MoveRange)
+					--DrawCircle(CastPos2, 100, 1, DrawColor(255, 225, 255, 10))
+					SetMovement(false)
+					Control.CastSpell(HK_E, CastPos2)
+				
+				elseif self.Menu.ComboSet.Flash:Value() and SummFlash == 1 then 
+					local Buff = GetBuffData(myHero, "IreliaE")
+					local Passive = CalcExtraDmg(unit, 2)*2
+					local QDmg = Ready(_Q) and getdmg("Q", unit, myHero, 1)*2 or 0
+					local WDmg = Ready(_W) and getdmg("W", unit, myHero) or 0
+					local EDmg = Ready(_E) and getdmg("E", unit, myHero) or 0
+					local RDmg = Ready(_R) and getdmg("R", unit, myHero) or 0
+					local AADmg = getdmg("AA", unit, myHero)*2
+					local FullDmg = Passive+QDmg+WDmg+EDmg+RDmg+AADmg
+										
+					if Buff and (Buff.duration < 0.75 or GetDistance(unit.pos, myHero.pos) > 825) and FullDmg >= unit.health then
+						if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
+							Control.CastSpell(HK_SUMMONER_1, unit.pos)
+						elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
+							Control.CastSpell(HK_SUMMONER_2, unit.pos)
 						end
 					end	
-                end
-            end           
+				end					
+			end	
 		end
 	end
 end
 
-function Irelia:CastW(target)
-    if target and GetDistanceSqr(target.pos, myHero.pos) < 825 * 825 then
-	local aim = GetPred(target,1400,0.6)
-   
-		if not charging and not HasBuff(myHero, "ireliawdefense") then
-            Control.KeyDown(HK_W)
-            wClock = clock()
-            settime = clock()
-            charging = true
-        end
-		
-		if HasBuff(myHero, "ireliawdefense") and (target.pos:DistanceTo(myHero.pos) > 600) then
-			Control.CastSpell(HK_W, aim)
-			charging = false
-		elseif HasBuff(myHero, "ireliawdefense") and clock() - wClock >= 0.5 and target.pos:DistanceTo(myHero.pos) < 825 then
-			Control.CastSpell(HK_W, aim)
-			charging = false
-		end		
-        
-        
-        
-    end
-    if clock() - wClock >= 1.5 then
-    Control.KeyUp(HK_W)
-    charging = false
-    end 
-end
-
-function Irelia:LineCircleIntersection(p1, p2, circle, radius)
-    local dx, dy = p2.x - p1.x, p2.z - p1.z
-    local a = dx * dx + dy * dy
-    local b = 2 * (dx * (p1.x - circle.x) + dy * (p1.z - circle.z))
-    local c = (p1.x - circle.x) * (p1.x - circle.x) + (p1.z - circle.z) * (p1.z - circle.z) - (radius * radius)
-    local delta = b * b - 4 * a * c
-    if delta >= 0 then
-        local t1, t2 = (-b + math.sqrt(delta)) / (2 * a), (-b - math.sqrt(delta)) / (2 * a)		
-        return Vector(p1.x + t1 * dx, p1.y, p1.z + t1 * dy), Vector(p1.x + t2 * dx, p1.y, p1.z + t2 * dy)
-    end
-    return nil, nil
-end
-
-function Irelia:GetBestECastPositions(units)   
-	local startPos, endPos, count = nil, nil, 0
+function Irelia:GetBestECastPositions(units)
+    local startPos, endPos, count = nil, nil, 0
     local candidates, unitPositions = {}, {}
     for i, unit in ipairs(units) do
-		if unit then
-			local cp = GetPred(unit, 775, 0.25)
-			if cp then candidates[i], unitPositions[i] = cp, cp end
+		--print(unit)
+		if unit and IsValid(unit) then
+			local cp = self:CastE2(unit)
+			if cp then candidates[i], unitPositions[i] = cp, cp end	
 		end	
     end
     local maxCount = #units
     for i = 1, maxCount do
         for j = 1, maxCount do
             if candidates[j] ~= candidates[i] then
-                TableInsert(candidates, Vector(candidates[j] + candidates[i]) / 2)
+                TableInsert(candidates, (Vector(candidates[j]) + Vector(candidates[i])) / 2)
             end
         end
     end
-    for i, unit2 in pairs(units) do
-        if unit2 and unit2.pos:DistanceTo(myHero.pos) < 875 then
-			local cp = GetPred(unit2, 775, 0.25)
-			if cp then
-				for i, pos2 in ipairs(candidates) do
-					if pos2 and pos2:DistanceTo(myHero.pos) < 875 then
-						--local range = pos2:DistanceTo(cp)*2+150
-						local ePos = Vector(cp):Extended(pos2, 775)
-						local number = 0
-						for i = 1, #unitPositions do
-							local unitPos = unitPositions[i]
-							if unitPos:DistanceTo(myHero.pos) < 875 and ePos:DistanceTo(myHero.pos) < 875 then
-								local pointLine, pointSegment, onSegment = VectorPointProjectionOnLineSegment(cp, ePos, unitPos)
-								if pointSegment and DistanceSquared(pointSegment, unitPos) < 8400 then number = number + 1 end 
-							end	
-						end
-						if number >= count then startPos, endPos, count = cp, ePos, number end
-					end	
-				end
-			end
-		end	
+    local BestUnit = Widesttarget(800)
+	if BestUnit then	
+		local cp = self:CastE1(BestUnit)
+        if cp then
+            if GetDistance(myHero.pos, cp) < 800 then
+                for i, pos2 in ipairs(candidates) do
+                    if GetDistance(pos2, cp) <= 800 then
+                        local ePos = Vector(cp):Extended(pos2, 800)
+                        local number = 0
+                        for i = 1, #unitPositions do
+                            local unitPos = unitPositions[i]
+                            local pointLine, pointSegment, isOnSegment = VectorPointProjectionOnLineSegment(cp, ePos, unitPos)
+                            if pointSegment and DistanceSquared(pointSegment, unitPos) < 6400 then number = number + 1 end
+                        end
+                        if number >= count then startPos, endPos, count = cp, ePos, number end
+                    end
+                end
+            end
+        end
     end
     return startPos, endPos, count
+end 
+
+function Irelia:CastEaoe()
+	local E1Pos = nil
+	local E2Pos = nil
+	if Ready(_E) then		
+		local StartPos, EndPos, Count = self:GetBestECastPositions(Enemies)
+		if StartPos and EndPos and Count >= 1 then
+			--print(Count)
+			local NewStartPos, NewEndPos = LineCircleIntersection(StartPos, EndPos, myHero.pos, 800)
+			E1Pos = NewStartPos
+			E2Pos = NewEndPos
+		end	
+	end
+
+	if E1Pos and myHero:GetSpellData(_E).name ~= "IreliaE2" then
+		Control.CastSpell(HK_E, E1Pos)
+	end	
+	
+	if E2Pos and myHero:GetSpellData(_E).name == "IreliaE2" then
+		Control.CastSpell(HK_E, E2Pos)
+	end	
 end
 
-function Irelia:CastE2()
-	if self.Menu.MiscSet.AutoECount.UseE:Value() and Ready(_E) then
-		local startPos, endPos, count = self:GetBestECastPositions(Enemies)
-		if count >= 2 and startPos and endPos then 
-			local E1Pos, E2Pos = self:LineCircleIntersection(startPos, endPos, myHero.pos, 775)
-			if myHero:GetSpellData(_E).toggleState == 1 then
-				Control.CastSpell(HK_E, E1Pos, 0.1)
-			end	
-			if myHero:GetSpellData(_E).toggleState == 0 then
-				Control.CastSpell(HK_E, E2Pos, 0.1)
-			end
+function Irelia:CastE1(unit)
+	if self.Menu.MiscSet.Pred.Change:Value() == 1 then
+		local pred = GetGamsteronPrediction(unit, EData, myHero)
+		if pred.Hitchance >= self.Menu.MiscSet.Pred.PredE:Value()+1 then
+			return pred.CastPosition
 		end
+	elseif self.Menu.MiscSet.Pred.Change:Value() == 2 then
+		local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, EspellData)
+		if pred.CastPos and ConvertToHitChance(self.Menu.MiscSet.Pred.PredE:Value(), pred.HitChance) then
+			return pred.CastPos
+		end
+	else
+		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.4 + ping, Radius = 35, Range = 800, Speed = 2500, Collision = false})
+		EPrediction:GetPrediction(unit, myHero)
+		if EPrediction:CanHit(self.Menu.MiscSet.Pred.PredE:Value()+1) then
+			return EPrediction.CastPosition
+		end		
+	end
+end
+
+function Irelia:CastE2(unit)
+	if self.Menu.MiscSet.Pred.Change:Value() == 1 then
+		local pred = GetGamsteronPrediction(unit, E2Data, myHero)
+		if pred.Hitchance >= self.Menu.MiscSet.Pred.PredE:Value()+1 then
+			return pred.CastPosition
+		end
+	elseif self.Menu.MiscSet.Pred.Change:Value() == 2 then
+		local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, E2spellData)
+		if pred.CastPos and ConvertToHitChance(self.Menu.MiscSet.Pred.PredE:Value(), pred.HitChance) then
+			return pred.CastPos
+		end
+	else
+		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 35, Range = 800, Speed = 2500, Collision = false})
+		EPrediction:GetPrediction(unit, myHero)
+		if EPrediction:CanHit(self.Menu.MiscSet.Pred.PredE:Value()+1) then
+			return EPrediction.CastPosition
+		end		
 	end	
-end	
+end
 
-function Irelia:CastE(unit)
-
-    if myHero:GetSpellData(_E).name == "IreliaE"  and not HasBuff(unit, "ireliamark") then
-		Control.CastSpell(HK_E, myHero.pos)
-    end
-	
-    if myHero:GetSpellData(_E).name == "IreliaE2" then
-        local aimpos = GetPred(unit,math.huge,0.25+ Game.Latency()/1000)
-		if aimpos then
-		Epos = aimpos + (myHero.pos - aimpos): Normalized() * -150
-			SetMovement(false)
-			Control.CastSpell(HK_E, Epos)
+function Irelia:CastW(unit)
+	if self.Menu.MiscSet.Pred.Change:Value() == 1 then
+		local pred = GetGamsteronPrediction(unit, WData, myHero)
+		if pred.Hitchance >= self.Menu.MiscSet.Pred.PredW:Value()+1 then
+			Control.CastSpell(HK_W, pred.CastPosition)
 			SetMovement(true)
 		end
+	elseif self.Menu.MiscSet.Pred.Change:Value() == 2 then
+		local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, WspellData)
+		if pred.CastPos and ConvertToHitChance(self.Menu.MiscSet.Pred.PredW:Value(), pred.HitChance) then
+			Control.CastSpell(HK_W, pred.CastPos)
+			SetMovement(true)
+		end
+	else
+		local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.6 + ping, Radius = 80, Range = 825, Speed = MathHuge, Collision = false})
+		WPrediction:GetPrediction(unit, myHero)
+		if WPrediction:CanHit(self.Menu.MiscSet.Pred.PredW:Value()+1) then
+			Control.CastSpell(HK_W, WPrediction.CastPosition)
+			SetMovement(true)
+		end		
 	end
 end
 
@@ -1560,55 +1550,15 @@ function Irelia:CastR(unit)
 			Control.CastSpell(HK_R, pred.CastPos)
 		end
 	else
-		self:CastGGPred(unit)	
+		local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 160, Range = 950, Speed = 2000, Collision = false})
+		RPrediction:GetPrediction(unit, myHero)
+		if RPrediction:CanHit(self.Menu.MiscSet.Pred.PredR:Value()+1) then
+			Control.CastSpell(HK_R, RPrediction.CastPosition)
+		end		
 	end
 end	
-
-function Irelia:CastGGPred(unit)
-	local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 80, Range = 950, Speed = 2000, Collision = false})
-		  RPrediction:GetPrediction(unit, myHero)
-	if RPrediction:CanHit(self.Menu.MiscSet.Pred.PredR:Value()+1) then
-		Control.CastSpell(HK_R, RPrediction.CastPosition)
-	end	
-end
-
-function Irelia:CheckInfoBox() 
-	if InfoBoxPos == true and LoadPos == false then
-		local PosX, PosY = BoxPosition()
-		self.Window.x = PosX
-		self.Window.y = PosY
-		self.ButtonDown = true
-		LoadPos = true
-	end
-	
-	if UnLockBox then
-		DelayAction(function()
-			UnLockBox = false
-		end,2)
-	end	
-
-	if Down then
-		DrawSaved = true
-		self:SaveBox()
-		DelayAction(function()
-			DrawSaved = false
-			Down = false
-		end,2)
-	end
-end
-
-function Irelia:SaveBox()         
-	local f = io.open(COMMON_PATH .. "PussyBoxPos.lua", "w")
-	f:write("function BoxPosition() \n")		
-	f:write("local x = " .. self.Window.x .. "\n")	
-	f:write("local y = " .. self.Window.y .. "\n")	
-	f:write("return x, y \n")
-	f:write("end")	
-	f:close()
-end
  
 function Irelia:Draw()
-	
 	if heroes == false then
 		Draw.Text(myHero.charName.." is Loading (Search Enemies) !!", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 255, 0, 0))
 	else
@@ -1633,211 +1583,6 @@ function Irelia:Draw()
 	end
 	if self.Menu.MiscSet.Drawing.DrawW:Value() and Ready(_W) then
     DrawCircle(myHero, 825, 1, DrawColor(225, 225, 125, 10))
-	end
-	
-	--////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
-
-	if Game.IsChatOpen() or myHero.dead or not self.Menu.MiscSet.Drawing.XY.OnOff:Value() then return end
-	local ActiveMenu = self.Menu.MiscSet.Drawing.XY.Key:Value()
-	local Trans = self.Menu.MiscSet.Drawing.XY.T:Value()	
-	local black, red, blue, green, white, yellow = DrawColor(Trans+32, 23, 23, 23), DrawColor(Trans, 220, 20, 60), DrawColor(Trans, 0, 191, 255), DrawColor(Trans, 50, 205, 50), DrawColor(Trans, 255, 255, 255), DrawColor(Trans, 225, 255, 0)	
-
-	if self.Menu.MiscSet.Drawing.XY.Hide:Value() then
-	 	if ActiveModes() then return end
-		
-		if self.AllowMove then 
-			self.Window = {x = cursorPos.x + self.AllowMove.x, y = cursorPos.y + self.AllowMove.y}
-		end	
-						
-		if DrawSaved then
-			DrawRect(self.Window.x, self.Window.y, 240, 128, black)
-			DrawText("SAVED", 50, self.Window.x + 60, self.Window.y + 40, DrawColor(255, 0, 191, 255))			
-		elseif UnLockBox then
-			DrawRect(self.Window.x, self.Window.y, 240, 128, black)
-			DrawText("UNLOCKED", 50, self.Window.x + 15, self.Window.y + 40, DrawColor(255, 220, 20, 60))		
-		else					
-			if self.ButtonDown == false then
-				DrawRect(self.Window.x, self.Window.y, 240, 128, black)
-				if self:IsInStatusBox(cursorPos, 1) then
-					DrawRect(self.Window.x, self.Window.y - 30, 240, 40, black)
-					DrawText("--- Hold left MouseButton and move Info Box ---", 10, self.Window.x + 20, self.Window.y - 20, blue)
-					DrawRect(self.Window.x, self.Window.y + 125, 240, 20, blue)
-					DrawRect(self.Window.x + 72, self.Window.y + 127, 97, 16, black)			
-					DrawText("Save Pos Button", 14, self.Window.x + 76, self.Window.y + 128, white)	
-				end
-			else
-				DrawRect(self.Window.x, self.Window.y, 240, 148, black)
-				DrawText("Unlock Info Box:", 15, self.Window.x + 10, self.Window.y + 125, white)
-				DrawText("NumPad 9", 15, self.Window.x + 153, self.Window.y + 125, green)
-			end
-
-			if self:IsInStatusBox(cursorPos, 2) and ActiveMenu then
-				DrawText("Standard Hotkey = NumPad 1", 15, self.Window.x + 10, self.Window.y + 5, yellow)
-			else
-				DrawText("Last Q Combo Mode:", 15, self.Window.x + 10, self.Window.y + 5, white)
-				if self.Menu.ComboSet.Combo.LogicQ:Value() then
-					DrawText("Almost Kill", 15, self.Window.x + 153, self.Window.y + 5, green)		
-				else
-					DrawText("Kill", 15, self.Window.x + 153, self.Window.y + 5, green)
-				end	
-			end
-
-			if self:IsInStatusBox(cursorPos, 3) and ActiveMenu then
-				DrawText("Standard Hotkey = NumPad 2", 15, self.Window.x + 10, self.Window.y + 25, yellow)
-			else		
-				DrawText("Burst Mode:", 15, self.Window.x + 10, self.Window.y + 25, white)
-				if self.Menu.ComboSet.Burst.StartB:Value() then
-					if myHero.levelData.lvl >= self.Menu.ComboSet.Burst.Lvl:Value() then
-						DrawText("Active", 15, self.Window.x + 153, self.Window.y + 25, green)
-					else
-						DrawText("Wait for LvL ".. self.Menu.ComboSet.Burst.Lvl:Value(), 15, self.Window.x + 153, self.Window.y + 25, red) 
-					end
-				else
-					DrawText("OFF", 15, self.Window.x + 153, self.Window.y + 25, red) 
-				end	
-			end
-			
-			if self:IsInStatusBox(cursorPos, 4) and ActiveMenu then
-				DrawText("Standard Hotkey = NumPad 3", 15, self.Window.x + 10, self.Window.y + 45, yellow)
-			else		
-				DrawText("Ninja Mode:", 15, self.Window.x + 10, self.Window.y + 45, white)
-				if self.Menu.ComboSet.Ninja.UseQ:Value() then 
-					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 45, green)
-				else
-					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 45, red) 			
-				end	
-			end	
-
-			if self:IsInStatusBox(cursorPos, 5) and ActiveMenu then
-				DrawText("Standard Hotkey = NumPad 4", 15, self.Window.x + 10, self.Window.y + 65, yellow)
-			else
-				DrawText("Auto Q Minion:", 15, self.Window.x + 10, self.Window.y + 65, white)
-				if self.Menu.ClearSet.AutoQ.UseQ:Value() then 
-					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 65, green)
-				else
-					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 65, red)
-				end
-			end	
-			
-			if self:IsInStatusBox(cursorPos, 6) and ActiveMenu then
-				DrawText("Standard Hotkey = NumPad 5", 15, self.Window.x + 10, self.Window.y + 85, yellow)
-			else		
-				DrawText("Auto E 2-5 Enemies:", 15, self.Window.x + 10, self.Window.y + 85, white)
-				if self.Menu.MiscSet.AutoECount.UseE:Value() then 
-					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 85, green)
-				else
-					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 85, red)
-				end
-			end	
-			
-			if self:IsInStatusBox(cursorPos, 7) and ActiveMenu then
-				DrawText("Standard Hotkey = NumPad 6", 15, self.Window.x + 10, self.Window.y + 105, yellow)
-			else		
-				DrawText("Auto W Danger Spells:", 15, self.Window.x + 10, self.Window.y + 105, white)
-				if self.Menu.MiscSet.WSet.UseW:Value() then 
-					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 105, green)
-				else
-					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 105, red)
-				end
-			end
-		end
-	else
-		if self.AllowMove then 
-			self.Window = {x = cursorPos.x + self.AllowMove.x, y = cursorPos.y + self.AllowMove.y}
-		end	
-						
-		if DrawSaved then
-			DrawRect(self.Window.x, self.Window.y, 240, 128, black)
-			DrawText("SAVED", 50, self.Window.x + 60, self.Window.y + 40, DrawColor(255, 0, 191, 255))			
-		elseif UnLockBox then
-			DrawRect(self.Window.x, self.Window.y, 240, 128, black)
-			DrawText("UNLOCKED", 50, self.Window.x + 15, self.Window.y + 40, DrawColor(255, 220, 20, 60))		
-		else					
-			if self.ButtonDown == false then
-				DrawRect(self.Window.x, self.Window.y, 240, 128, black)
-				if self:IsInStatusBox(cursorPos, 1) then
-					DrawRect(self.Window.x, self.Window.y - 30, 240, 40, black)
-					DrawText("--- Hold left MouseButton and move Info Box ---", 10, self.Window.x + 20, self.Window.y - 20, blue)
-					DrawRect(self.Window.x, self.Window.y + 125, 240, 20, blue)
-					DrawRect(self.Window.x + 72, self.Window.y + 127, 97, 16, black)			
-					DrawText("Save Pos Button", 14, self.Window.x + 76, self.Window.y + 128, white)	
-				end
-			else
-				DrawRect(self.Window.x, self.Window.y, 240, 148, black)
-				DrawText("Unlock Info Box:", 15, self.Window.x + 10, self.Window.y + 125, white)
-				DrawText("NumPad 9", 15, self.Window.x + 153, self.Window.y + 125, green)
-			end
-
-			if self:IsInStatusBox(cursorPos, 2) and ActiveMenu then
-				DrawText("Standard Hotkey = NumPad 1", 15, self.Window.x + 10, self.Window.y + 5, yellow)
-			else
-				DrawText("Last Q Combo Mode:", 15, self.Window.x + 10, self.Window.y + 5, white)
-				if self.Menu.ComboSet.Combo.LogicQ:Value() then
-					DrawText("Almost Kill", 15, self.Window.x + 153, self.Window.y + 5, green)		
-				else
-					DrawText("Kill", 15, self.Window.x + 153, self.Window.y + 5, green)
-				end	
-			end
-
-			if self:IsInStatusBox(cursorPos, 3) and ActiveMenu then
-				DrawText("Standard Hotkey = NumPad 2", 15, self.Window.x + 10, self.Window.y + 25, yellow)
-			else		
-				DrawText("Burst Mode:", 15, self.Window.x + 10, self.Window.y + 25, white)
-				if self.Menu.ComboSet.Burst.StartB:Value() then
-					if myHero.levelData.lvl >= self.Menu.ComboSet.Burst.Lvl:Value() then
-						DrawText("Active", 15, self.Window.x + 153, self.Window.y + 25, green)
-					else
-						DrawText("Wait for LvL ".. self.Menu.ComboSet.Burst.Lvl:Value(), 15, self.Window.x + 153, self.Window.y + 25, red) 
-					end
-				else
-					DrawText("OFF", 15, self.Window.x + 153, self.Window.y + 25, red) 
-				end	
-			end
-			
-			if self:IsInStatusBox(cursorPos, 4) and ActiveMenu then
-				DrawText("Standard Hotkey = NumPad 3", 15, self.Window.x + 10, self.Window.y + 45, yellow)
-			else		
-				DrawText("Ninja Mode:", 15, self.Window.x + 10, self.Window.y + 45, white)
-				if self.Menu.ComboSet.Ninja.UseQ:Value() then 
-					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 45, green)
-				else
-					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 45, red) 			
-				end	
-			end	
-
-			if self:IsInStatusBox(cursorPos, 5) and ActiveMenu then
-				DrawText("Standard Hotkey = NumPad 4", 15, self.Window.x + 10, self.Window.y + 65, yellow)
-			else
-				DrawText("Auto Q Minion:", 15, self.Window.x + 10, self.Window.y + 65, white)
-				if self.Menu.ClearSet.AutoQ.UseQ:Value() then 
-					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 65, green)
-				else
-					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 65, red)
-				end
-			end	
-			
-			if self:IsInStatusBox(cursorPos, 6) and ActiveMenu then
-				DrawText("Standard Hotkey = NumPad 5", 15, self.Window.x + 10, self.Window.y + 85, yellow)
-			else		
-				DrawText("Auto E 2-5 Enemies:", 15, self.Window.x + 10, self.Window.y + 85, white)
-				if self.Menu.MiscSet.AutoECount.UseE:Value() then 
-					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 85, green)
-				else
-					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 85, red)
-				end
-			end	
-			
-			if self:IsInStatusBox(cursorPos, 7) and ActiveMenu then
-				DrawText("Standard Hotkey = NumPad 6", 15, self.Window.x + 10, self.Window.y + 105, yellow)
-			else		
-				DrawText("Auto W Danger Spells:", 15, self.Window.x + 10, self.Window.y + 105, white)
-				if self.Menu.MiscSet.WSet.UseW:Value() then 
-					Draw.Text("Active", 15, self.Window.x + 153, self.Window.y + 105, green)
-				else
-					Draw.Text("OFF", 15, self.Window.x + 153, self.Window.y + 105, red)
-				end
-			end
-		end
 	end	
 end
 	
@@ -1847,3 +1592,6 @@ Callback.Add("Load", function()
 		LoadUnits()	
 	end	
 end)
+
+
+
