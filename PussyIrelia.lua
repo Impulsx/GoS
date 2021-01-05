@@ -708,8 +708,7 @@ self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
 	self.Menu.ComboSet:MenuElement({id = "UseW", name = "[W]", value = true})	
 	self.Menu.ComboSet:MenuElement({id = "ImmoW", name = "[W-Shield] If Irelia Immobile", value = true})	
 	self.Menu.ComboSet:MenuElement({id = "UseE", name = "[E]", value = true})
-	self.Menu.ComboSet:MenuElement({id = "Flash", name = "[SummonerFlash] if out of E2 range for Kill", value = true})	
-	self.Menu.ComboSet:MenuElement({id = "UseE2", name = "[E] Try stun multiple enemies", value = true})	
+	self.Menu.ComboSet:MenuElement({id = "Flash", name = "[SummonerFlash] if out of E2 range for Kill", value = true})		
 	self.Menu.ComboSet:MenuElement({id = "UseRKill", name = "[R] if Enemy killable with full BurstDmg", value = true})	
 	self.Menu.ComboSet:MenuElement({id = "UseRCount", name = "[R] Try hit multiple Enemies", value = true})	
 	self.Menu.ComboSet:MenuElement({id = "RCount", name = "[R] Multiple Enemies", value = 3, min = 1, max = 5})	
@@ -739,7 +738,7 @@ self.Menu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
 	--JungleClear Menu
 	self.Menu.ClearSet:MenuElement({type = MENU, id = "JClear", name = "JungleClear Mode"})
 	self.Menu.ClearSet.JClear:MenuElement({id = "UseQ", name = "LastHit[Q]", value = true})	
-	self.Menu.ClearSet.JClear:MenuElement({id = "UseW", name = "[W]", value = true})
+	self.Menu.ClearSet.JClear:MenuElement({id = "UseW", name = "[W]", value = false})
 	self.Menu.ClearSet.JClear:MenuElement({id = "UseE", name = "[E]", value = true})	
 	self.Menu.ClearSet.JClear:MenuElement({id = "Mana", name = "Min Mana", value = 30, min = 0, max = 100, identifier = "%"})
 
@@ -1349,7 +1348,7 @@ function Irelia:CheckCastW(unit)
 	end
 end
 
-local function RaySetDist(start, path, center, dist)
+local function SetDist(start, path, center, dist)
 	local a = start.x - center.x
 	local b = start.y - center.y
 	local c = start.z - center.z
@@ -1430,7 +1429,7 @@ function Irelia:CheckCastE(unit)
 						if dist1 < dist2 then
 							pathNorm = pathNorm * -1
 						end
-						local cast2 = RaySetDist(unit.pos, pathNorm, myHero.pos, 900)
+						local cast2 = SetDist(unit.pos, pathNorm, myHero.pos, 900)
 						Control.CastSpell(HK_E, cast2)
 					end
 				end
@@ -1490,7 +1489,7 @@ function Irelia:CastE1(unit)
 			return pred.CastPos
 		end
 	else
-		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 35, Range = 900, Speed = 3100, Collision = false})
+		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.15 + ping, Radius = 35, Range = 900, Speed = 3100, Collision = false})
 		EPrediction:GetPrediction(unit, myHero)
 		if EPrediction:CanHit(self.Menu.MiscSet.Pred.PredE:Value()+1) then
 			return EPrediction.CastPosition
@@ -1510,7 +1509,7 @@ function Irelia:CastE2(unit, StartPos)
 			return pred.CastPos
 		end
 	else
-		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.4 + ping, Radius = 35, Range = 900, Speed = 1800, Collision = false})
+		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 35, Range = 900, Speed = 1800, Collision = false})
 		EPrediction:GetPrediction(unit, StartPos)
 		if EPrediction:CanHit(self.Menu.MiscSet.Pred.PredE:Value()+1) then
 			return EPrediction.CastPosition
