@@ -415,7 +415,7 @@ function LoadScript()
 	
 --MainMenu
 Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 		
 --Combo 
 Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
@@ -1203,12 +1203,5 @@ function GetPredQ2(unit)
 		if QPrediction:CanHit(Menu.Pred.PredQ:Value()+1) then
 			return QPrediction.CastPosition
 		end		
-	end
-end
-
-function OnLoad()
-	if table.contains(Heroes, myHero.charName) then
-		_G[myHero.charName]()
-		LoadUnits()
 	end
 end
