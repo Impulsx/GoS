@@ -247,7 +247,11 @@ Data = {
            Azir = {
             Changelog = "Azir Changelog Here",
            Version = 0.01,
-        },         
+        },
+           Janna = {
+            Changelog = "Janna Changelog Here",
+           Version = 0.01,
+        },       
     },
     Loader = {
         Version = 0.2,
