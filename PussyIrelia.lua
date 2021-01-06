@@ -30,7 +30,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.33
+    local Version = 0.34
     
     local Files = {
         Lua = {
@@ -356,13 +356,11 @@ local ticker = GetTickCount()
 			castSpell.casting = ticker + delay
 			DelayAction(function()
 				if castSpell.state == 1 then
-					Control.SetCursorPos(castSpell.mouse)
 					castSpell.state = 0
 				end
 			end,Game.Latency()/1000)
 		end
 		if ticker - castSpell.casting > Game.Latency() then
-			Control.SetCursorPos(castSpell.mouse)
 			castSpell.state = 0
 		end
 	end
@@ -699,7 +697,7 @@ end
 function Irelia:LoadMenu()                     	
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "Irelia", name = "PussyIrelia"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.33"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 0.34"}})
 
 	--ComboMenu 
 self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
