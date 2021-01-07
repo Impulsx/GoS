@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.28
+    local Version = 0.29
     
     local Files =
     {
@@ -306,7 +306,7 @@ end
 function Activator:LoadMenu()
     
     self.Menu = MenuElement({type = MENU, id = "PussyActivator", leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png"})
-	self.Menu:MenuElement({name = " ", drop = {"Version 0.28"}})    
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.29"}})    
 	
 	--Shield/Heal MyHero
     self.Menu:MenuElement({id = "ZS", name = "MyHero/Ally [Shield/Heal Items]", type = MENU})
@@ -385,7 +385,8 @@ function Activator:LoadMenu()
  	self.Menu.Dmg:MenuElement({id = "Omen", name = "Randuin's Omen", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3143.png"})	
  	self.Menu.Dmg:MenuElement({id = "Ocount", name = "Randuin's Omen min Targets", value = 2, min = 1, max = 5, step = 1})	
  	self.Menu.Dmg:MenuElement({id = "Gore", name = "Goredrinker", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6630.png"})
- 	self.Menu.Dmg:MenuElement({id = "Gorecount", name = "Goredrinker min Targets", value = 2, min = 1, max = 5, step = 1})	
+ 	self.Menu.Dmg:MenuElement({id = "Gorecount", name = "Goredrinker min Targets", value = 2, min = 1, max = 5, step = 1})
+    self.Menu.Dmg:MenuElement({id = "Gorehp", name = "Goredrinker if self HP lower than ->", value = 40, min = 5, max = 95, identifier = "%"})	
 	self.Menu.Dmg:MenuElement({id = "Whip", name = "Ironspike Whip", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6029.png"})
  	self.Menu.Dmg:MenuElement({id = "Whipcount", name = "Ironspike Whip min Targets", value = 2, min = 1, max = 5, step = 1})	
 	self.Menu.Dmg:MenuElement({id = "Shur", name = "Shurelya's Battlesong", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/2065.png"})
@@ -843,7 +844,7 @@ local Omen, Gore, Whip, Shur = GetInventorySlotItem(3143), GetInventorySlotItem(
 		Control.CastSpell(ItemHotKey[Omen])
 	end	
 
-	if Gore and self.Menu.Dmg.Gore:Value() and self:EnemiesAround(myHero, 400) >= self.Menu.Dmg.Gorecount:Value() then 
+	if Gore and self.Menu.Dmg.Gore:Value() and self:EnemiesAround(myHero, 400) >= self.Menu.Dmg.Gorecount:Value() and myHero.health/myHero.maxHealth <= self.Menu.Dmg.Gorehp:Value()/100 then 
 		Control.CastSpell(ItemHotKey[Gore])
 	end
 	
