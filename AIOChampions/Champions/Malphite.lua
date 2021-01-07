@@ -127,20 +127,28 @@ function LoadScript()
 	
 --MainMenu
 Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
-		
+Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+	
 --Combo 
 Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
 	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})
-	Menu.Combo:MenuElement({id = "Mode", name = "[R] Mode", value = 4, drop = {"Everytime", "[R-AOE]", "KSCombo", "[R-AOE] + KSCombo"}})	
-	Menu.Combo:MenuElement({id = "Count", name = "[R-AOE] Min Enemies", value = 3, min = 2, max = 5})	
+	Menu.Combo:MenuElement({id = "Mode", name = "[R] Mode", value = 4, drop = {"Everytime", "[R-AOE]", "[R] KSCombo", "[R-AOE] + [R] KSCombo"}})	
+	Menu.Combo:MenuElement({id = "Count", name = "[R-AOE] Min Enemies", value = 3, min = 2, max = 5})
+	Menu.Combo:MenuElement({id = "Targets", name = "[R] KSCombo White List", type = MENU})
+	DelayAction(function()
+		for i, Hero in pairs(EnemyHeroes()) do
+			Menu.Combo.Targets:MenuElement({id = Hero.charName, name = "[R] KSCombo on "..Hero.charName, value = true})		
+		end
+	end,0.2)	
 					
 --Harass		
 Menu:MenuElement({type = MENU, id = "Harass", name = "Harass Mode"})
 	Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})	
+	Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = true})
+	Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})	
 
 --LaneClear Menu
 Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear Mode"})	
@@ -227,7 +235,7 @@ function KSCombo()
 			elseif enemy.health <= eDmg and GetDistance(enemy.pos, myHero.pos) < 350 then
 				Control.CastSpell(HK_E, enemy)
 				return																		
-			elseif (Menu.Combo.Mode:Value() == 3 or Menu.Combo.Mode:Value() == 4) and enemy.health <= (qDmg + WDmg + eDmg + rDmg) and GetDistance(enemy.pos, myHero.pos) <= 900 and Ready(_R) then
+			elseif (Menu.Combo.Mode:Value() == 3 or Menu.Combo.Mode:Value() == 4) and enemy.health <= (qDmg + WDmg + eDmg + rDmg) and GetDistance(enemy.pos, myHero.pos) <= 900 and Ready(_R) and Menu.Combo.Targets[enemy.charName] and Menu.Combo.Targets[enemy.charName]:Value() then
 				KsUltTarget = enemy
 				return
 			else
@@ -271,6 +279,14 @@ function Harass()
 		
 		if Menu.Harass.UseQ:Value() and Ready(_Q) then
 			Control.CastSpell(HK_Q, target)
+		end	
+
+		if Menu.Harass.UseE:Value() and Ready(_E) and GetDistance(myHero.pos, target.pos) <= 350 then
+			Control.CastSpell(HK_E, target)
+		end			
+
+		if Menu.Harass.UseW:Value() and Ready(_W) and GetDistance(myHero.pos, target.pos) < 225 then
+			Control.CastSpell(HK_W, target)
 		end			
 	end	
 end
