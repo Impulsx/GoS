@@ -255,7 +255,11 @@ Data = {
            Hecarim = {
             Changelog = "Hecarim Changelog Here",
            Version = 0.01,
-        },        
+        },
+           Malphite = {
+            Changelog = "Malphite Changelog Here",
+           Version = 0.01,
+        },         
     },
     Loader = {
         Version = 0.2,
