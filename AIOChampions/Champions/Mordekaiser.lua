@@ -40,7 +40,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
 	--AutoE
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})
 	Menu.AutoE:MenuElement({id = "UseE", name = "Pull Enemys under Tower",value = true})
@@ -102,17 +102,17 @@ function LoadScript()
 	
 	QData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.5, Radius = 400, Range = 675, Speed = 500, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.4, Radius = 200, Range = 675, Speed = MathHuge, Collision = false
 	}
 	
-	QspellData = {speed = 500, range = 675, delay = 0.5, radius = 400, collision = {nil}, type = "linear"}	
+	QspellData = {speed = MathHuge, range = 675, delay = 0.4, radius = 200, collision = {nil}, type = "linear"}	
 	
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.75, Radius = 200, Range = 900, Speed = MathHuge, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.9, Radius = 120, Range = 900, Speed = MathHuge, Collision = false
 	}
 	
-	EspellData = {speed = MathHuge, range = 900, delay = 0.75, radius = 200, collision = {nil}, type = "linear"}	
+	EspellData = {speed = MathHuge, range = 900, delay = 0.9, radius = 120, collision = {nil}, type = "linear"}	
 
 	Callback.Add("Tick", function() Tick() end)
 	
@@ -171,13 +171,22 @@ function AutoE()
 	end
 end
 
+local function QDmg(unit)
+	local Lvl = myHero.levelData.lvl
+	local QLvl = myHero:GetSpellData(_Q).level
+	local raw = ({50, 80, 110, 140, 170})[QLvl] + 0.6 * myHero.ap
+	local m = ({7, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 29, 32, 35, 38, 42, 46, 50})[Lvl]
+	local Dmg = raw + m
+	return CalcMagicalDamage(myHero, unit, Dmg)
+end
+
 function KillSteal()	
 	local target = GetTarget(1000)
 	if target == nil then return end
 	if IsValid(target) then
         
 		if Menu.ks.UseQ:Value() and myHero.pos:DistanceTo(target.pos) <= 625 and Ready(_Q) then
-			local QDmg = getdmg("Q", target, myHero)
+			local QDmg = QDmg(target)
 			if QDmg >= target.health then
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, QData, myHero)
@@ -190,7 +199,7 @@ function KillSteal()
 						Control.CastSpell(HK_Q, pred.CastPos)
 					end
 				else
-					local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.5, Radius = 400, Range = 675, Speed = 500, Collision = false})
+					local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.4, Radius = 200, Range = 675, Speed = MathHuge, Collision = false})
 					QPrediction:GetPrediction(target, myHero)
 					if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 						Control.CastSpell(HK_Q, QPrediction.CastPosition)
@@ -206,7 +215,7 @@ function KillSteal()
 			end	
         end
         if Menu.ks.Targets.UseR:Value() and Menu.ks.Targets[target.charName] and Menu.ks.Targets[target.charName]:Value() and myHero.pos:DistanceTo(target.pos) <= 650 and Ready(_R) then
-			if (getdmg("Q", target, myHero)+ getdmg("E", target, myHero))*2 >= target.health then
+			if (QDmg(target)+ getdmg("E", target, myHero))*2 >= target.health then
 				Control.CastSpell(HK_R, target.pos)
 			end	
 		end
@@ -230,7 +239,7 @@ function Combo()
 					Control.CastSpell(HK_Q, pred.CastPos)
 				end
 			else
-				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.5, Radius = 400, Range = 675, Speed = 500, Collision = false})
+				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.4, Radius = 200, Range = 675, Speed = MathHuge, Collision = false})
 				QPrediction:GetPrediction(target, myHero)
 				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 					Control.CastSpell(HK_Q, QPrediction.CastPosition)
@@ -266,7 +275,7 @@ function Harass()
 					Control.CastSpell(HK_Q, pred.CastPos)
 				end
 			else
-				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.5, Radius = 400, Range = 675, Speed = 500, Collision = false})
+				local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.4, Radius = 200, Range = 675, Speed = MathHuge, Collision = false})
 				QPrediction:GetPrediction(target, myHero)
 				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 					Control.CastSpell(HK_Q, QPrediction.CastPosition)
@@ -288,7 +297,7 @@ function CastE(unit)
 			Control.CastSpell(HK_E, pred.CastPos)
 		end
 	else
-		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.75, Radius = 200, Range = 900, Speed = MathHuge, Collision = false})
+		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.9, Radius = 120, Range = 900, Speed = MathHuge, Collision = false})
 		EPrediction:GetPrediction(unit, myHero)
 		if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
 			Control.CastSpell(HK_E, EPrediction.CastPosition)
