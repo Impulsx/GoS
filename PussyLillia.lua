@@ -31,7 +31,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.04
+    local Version = 0.05
     
     local Files = {
         Lua = {
@@ -351,12 +351,6 @@ function Lillia:__init()
 
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
-	
-	if _G.SDK then
-		_G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
-	elseif _G.PremiumOrbwalker then
-		_G.PremiumOrbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
-	end	
 
 	if PredLoaded == false then
 		DelayAction(function()
@@ -377,12 +371,11 @@ end
 function Lillia:LoadMenu()                     	
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "PussyLillia", name = "PussyLillia"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
 
 	--AutoQ
 self.Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ Mode"})	
-	self.Menu.AutoQ:MenuElement({name = " ", drop = {"Auto Q only if Combo not activated"}})
-	self.Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto Q Toggle Key", key = string.byte("T"), value = true, toggle = true})
+	self.Menu.AutoQ:MenuElement({id = "UseQ", name = "AutoQ Toggle Key", key = string.byte("T"), value = true, toggle = true})
 	self.Menu.AutoQ:MenuElement({id = "QLogic", name = "[Q] Logic", value = 1, drop = {"Auto Q only outer range (TrueDmg)", "Auto Q always"}})
 
 self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
@@ -438,7 +431,13 @@ self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
-	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})		
+	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})	
+
+	if _G.SDK then
+		_G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
+	elseif _G.PremiumOrbwalker then
+		_G.PremiumOrbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
+	end		
 end	
 
 function Lillia:Tick()	
@@ -463,7 +462,7 @@ function Lillia:Tick()
 			self:Clear()	
 		end
 
-		if Mode ~= "Combo" and self.Menu.AutoQ.UseQ:Value() then
+		if self.Menu.AutoQ.UseQ:Value() then
 			self:AutoQ()
 		end	
 	end	
@@ -499,7 +498,7 @@ local target = GetTarget(2000)
 if target == nil then return end
 	if IsValid(target) then
 
-		if self.Menu.ComboSet.Combo.UseQ:Value() and Ready(_Q) then
+		if not self.Menu.AutoQ.UseQ:Value() and self.Menu.ComboSet.Combo.UseQ:Value() and Ready(_Q) then
 			if self.Menu.ComboSet.Combo.QLogic:Value() == 1 then
 				if myHero.pos:DistanceTo(target.pos) < 475 and myHero.pos:DistanceTo(target.pos) > (225+target.boundingRadius) then
 					Control.CastSpell(HK_Q)
