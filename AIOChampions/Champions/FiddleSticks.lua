@@ -3,7 +3,6 @@ local function GetEnemyHeroes()
 end
 
 local function GetEnemyCount(range, pos)
-    local pos = pos.pos
 	local count = 0
 	for i = 1, GameHeroCount() do 
 	local hero = GameHero(i)
@@ -28,33 +27,6 @@ local function GetMinionCount(range, pos)
 	return count
 end
 
-local function DistanceSquared(p1, p2)
-	local dx, dy = p2.x - p1.x, p2.z - p1.z
-	return dx * dx + dy * dy
-end
-
-local function GetCircularAOEPos(points, radius)
-    local bestPos, count = Vector(0, 0, 0), #points
-    if count == 0 then return nil, 0 end
-    if count == 1 then return points[1], 1 end
-    local inside, furthest, id = 0, 0, 0
-    for i, point in ipairs(points) do
-        bestPos = bestPos + point
-    end
-    bestPos = bestPos / count
-    for i, point in ipairs(points) do
-        local distSqr = DistanceSquared(bestPos, point)
-        if distSqr < radius * radius then inside = inside + 1 end
-        if distSqr > furthest then furthest = distSqr; id = i end
-    end
-    if inside == count then
-        return bestPos, count
-    else
-        TableRemove(points, id)
-        return GetCircularAOEPos(points, radius)
-    end
-end
-
 local function GetInventorySlotItem(itemID)
     assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
     for _, j in pairs({ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6, ITEM_7}) do
@@ -63,10 +35,88 @@ local function GetInventorySlotItem(itemID)
     return nil
 end
 
+local function GetCenter(points)
+	local sum_x = 0
+	local sum_z = 0
+	
+	for i = 1, #points do
+		sum_x = sum_x + points[i].pos.x
+		sum_z = sum_z + points[i].pos.z
+	end	
+	local center = {x = sum_x / #points, y = 0, z = sum_z / #points}	
+	return center
+end
+
+local function ContainsThemAll(circle, points)
+	local _sqrt = circle.radius*circle.radius
+	local contains_them_all = true
+	local i = 1
+	
+	if contains_them_all and i <= #points then
+		contains_them_all = GetDistanceSqr(points[i].pos, circle.center) <= _sqrt
+		i = i + 1
+	end       
+	return contains_them_all
+end
+
+function FarthestFromPositionIndex(points, position)
+    local index = 2
+	local actual_dist_sqr
+    local max_dist_sqr = GetDistanceSqr(points[index], position)       
+	
+	for i = 3, #points do
+		actual_dist_sqr = GetDistanceSqr(points[i].pos, position)
+		if actual_dist_sqr > max_dist_sqr then
+			index = i
+			max_dist_sqr = actual_dist_sqr
+		end
+	end
+	return index
+end
+
+local function RemoveWorst(targets, position)
+    local worst_target = FarthestFromPositionIndex(targets, position)       
+    TableRemove(targets, worst_target)
+    return targets
+end
+
+local function GetInitialTargets(radius, unit)
+    local targets = {unit}
+    local _sqrt = 4 * radius * radius
+        
+	for i, target in ipairs(GetEnemyHeroes()) do
+        if target and target.networkID ~= unit.networkID and IsValid(target) and GetDistanceSqr(unit.pos, target.pos) < _sqrt then 
+			TableInsert(targets, target) 
+		end       
+	end
+    return targets
+end
+
+local function GetAoEPosition(radius, unit)
+	local targets = GetInitialTargets(radius, unit)
+	local position = GetCenter(targets)
+	local best_pos_found = true
+	local circle = {position = position, radius = radius}
+	circle.center = position
+	
+	if #targets > 2 then 
+		best_pos_found = ContainsThemAll(circle, targets) 
+	end
+	
+	if not best_pos_found then
+		targets = RemoveWorst(targets, position)
+		position = GetCenter(targets)
+		circle.center = position
+		best_pos_found = ContainsThemAll(circle, targets)
+	end
+		
+	return position, #targets
+end
+
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})			
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -208,44 +258,43 @@ end
 function Ult()
 	if Menu.Combo.Ult.UseRcount:Value() then	
 		for i, unit in pairs(GetEnemyHeroes()) do
-			local points = {}
-			if unit and myHero.pos:DistanceTo(unit.pos) <= 1100 then TableInsert(points, unit.pos) end
-			local bestPos, count1 = GetCircularAOEPos(points, 600)
-			if ActiveUlt then
-				if myHero.activeSpell.valid and myHero.activeSpell.name == "FiddleSticksR" then
-					if bestPos and myHero.pos:DistanceTo(bestPos) > 300 then
-						if not ActiveW then
-							Control.SetCursorPos(bestPos)
-							Control.mouse_event(MOUSEEVENTF_RIGHTDOWN)
-							Control.mouse_event(MOUSEEVENTF_RIGHTUP)
+			if unit and myHero.pos:DistanceTo(unit.pos) < 800 and IsValid(unit) then 
+				local bestPos = GetAoEPosition(600, unit)
+				
+				if ActiveUlt then									
+					if myHero.activeSpell.valid and myHero.activeSpell.name == "FiddleSticksR" then															
+						if bestPos and myHero.pos:DistanceTo(bestPos) > 300 then
+							if not ActiveW then
+								Control.SetCursorPos(bestPos)
+								Control.mouse_event(MOUSEEVENTF_RIGHTDOWN)
+								Control.mouse_event(MOUSEEVENTF_RIGHTUP)
+							end
+							if ActiveW and myHero.pos:DistanceTo(bestPos) > 450 then
+								Control.SetCursorPos(bestPos)
+								Control.mouse_event(MOUSEEVENTF_RIGHTDOWN)
+								Control.mouse_event(MOUSEEVENTF_RIGHTUP)
+							end	
 						end
-						if ActiveW and myHero.pos:DistanceTo(bestPos) > 450 then
-							Control.SetCursorPos(bestPos)
-							Control.mouse_event(MOUSEEVENTF_RIGHTDOWN)
-							Control.mouse_event(MOUSEEVENTF_RIGHTUP)
-						end	
+					else
+						ActiveUlt = false
 					end
 				else
-					ActiveUlt = false
-				end
-			else
-				SetMovement(true)
-			end	
+					SetMovement(true)
+				end	
+				
 
-			if Ready(_R) then
-				local count1 = GetEnemyCount(2000, myHero)
-				if count1 >= Menu.Combo.Ult.Rcount:Value() then
-					if bestPos and count1 >= Menu.Combo.Ult.Rcount:Value() and myHero.pos:DistanceTo(bestPos) < 800 then
+				if Ready(_R) then
+					if bestPos and GetEnemyCount(600, bestPos) >= Menu.Combo.Ult.Rcount:Value() and myHero.pos:DistanceTo(bestPos) < 800 then
 						local double = GetInventorySlotItem(3330)
-						SetMovement(false)
-						Control.CastSpell(HK_R, bestPos)
-						ActiveUlt = true
 						if Menu.Combo.Ult.ward:Value() and double then
 							Control.CastSpell(ItemHotKey[double], bestPos)
 						end	
+						SetMovement(false)
+						Control.CastSpell(HK_R, bestPos)
+						ActiveUlt = true	
 					end	
 				end
-			end
+			end	
 		end	
 	end
 	
@@ -266,11 +315,11 @@ if target == nil then return end
 	if IsValid(target) then
         local mana_ok = myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value() / 100
         
-		if myHero.pos:DistanceTo(target.pos) <= 575 and Menu.Harass.UseQ:Value() and Ready(_Q) and mana_ok then
+		if not ActiveW and myHero.pos:DistanceTo(target.pos) <= 575 and Menu.Harass.UseQ:Value() and Ready(_Q) and mana_ok then
 			Control.CastSpell(HK_Q, target)
 		end			
 		
-		if myHero.pos:DistanceTo(target.pos) < 800 and Menu.Harass.UseE:Value() and Ready(_E) and mana_ok then
+		if not ActiveW and myHero.pos:DistanceTo(target.pos) < 800 and Menu.Harass.UseE:Value() and Ready(_E) and mana_ok then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, EData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then				
@@ -291,8 +340,18 @@ if target == nil then return end
 		end
 		
 		if myHero.pos:DistanceTo(target.pos) <= 300 and Menu.Harass.UseW:Value() and Ready(_W) and mana_ok then
-			Control.CastSpell(HK_W)
-		end		
+			ActiveW = true
+			Control.CastSpell(HK_W)	
+			SetAttack(false)
+		end	
+		
+		if ActiveW and myHero.activeSpell.valid and myHero.activeSpell.name == "FiddleSticksW" then
+			SetMovement(false)
+		else
+			SetAttack(true)
+			SetMovement(true)
+			ActiveW = false
+		end	
 	end
 end	
 
@@ -302,18 +361,28 @@ function Clear()
         if minion.team == TEAM_ENEMY then
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
             
-			if Menu.Clear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 575 and IsValid(minion) and Ready(_Q) then
+			if not ActiveW and Menu.Clear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 575 and IsValid(minion) and Ready(_Q) then
 				Control.CastSpell(HK_Q, minion)
             end
 			
             if Menu.Clear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 600 and IsValid(minion) and Ready(_W) then
                 local count = GetMinionCount(575, minion)
 				if count >= Menu.Clear.UseWM:Value() then
-					Control.CastSpell(HK_W)
-				end
-            end
+					ActiveW = true
+					Control.CastSpell(HK_W)	
+					SetAttack(false)
+				end	
+			end	
 			
-			if Menu.Clear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and Ready(_E) then
+			if ActiveW and myHero.activeSpell.valid and myHero.activeSpell.name == "FiddleSticksW" then
+				SetMovement(false)
+			else
+				SetAttack(true)
+				SetMovement(true)
+				ActiveW = false
+			end
+			
+			if not ActiveW and Menu.Clear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and Ready(_E) then
 				Control.CastSpell(HK_E, minion.pos)
             end			
         end
@@ -326,17 +395,28 @@ function JungleClear()
         if minion.team == TEAM_JUNGLE then
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100
             
-			if Menu.JClear.UseQ:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 575 and IsValid(minion) and Ready(_Q) then
+			if not ActiveW and mana_ok and myHero.pos:DistanceTo(minion.pos) < 575 and IsValid(minion) and Ready(_Q) then
                 Control.CastSpell(HK_Q, minion.pos)
             end
 			
             if Menu.JClear.UseW:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 550 and IsValid(minion) and Ready(_W) then	
-				Control.CastSpell(HK_W)
-            end
+				ActiveW = true
+				Control.CastSpell(HK_W)	
+				SetAttack(false)	
+			end	
 			
-			if Menu.JClear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and Ready(_E) then
+			if ActiveW and myHero.activeSpell.valid and myHero.activeSpell.name == "FiddleSticksW" then
+				SetMovement(false)
+			else
+				SetAttack(true)
+				SetMovement(true)
+				ActiveW = false
+			end
+			
+			if not ActiveW and Menu.JClear.UseE:Value() and mana_ok and myHero.pos:DistanceTo(minion.pos) < 800 and IsValid(minion) and Ready(_E) then
 				Control.CastSpell(HK_E, minion.pos)
             end			
         end
     end
 end
+
