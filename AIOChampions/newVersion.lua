@@ -11,7 +11,7 @@ Data = {
     Champions = {
         Mordekaiser = {
             Changelog = "Mordekaiser Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         },
         Cassiopeia = {
             Changelog = "Cassiopeia Changelog Here",
@@ -55,7 +55,7 @@ Data = {
         },
         Tristana = {
             Changelog = "Tristana Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         }, 
         Sona = {
             Changelog = "Sona Changelog Here",
@@ -83,7 +83,7 @@ Data = {
         },
          Jhin = {
             Changelog = "Jhin Changelog Here",
-            Version = 0.10,
+            Version = 0.11,
         },
          Ahri = {
             Changelog = "Ahri Changelog Here",
@@ -167,7 +167,7 @@ Data = {
         }, 
            FiddleSticks = {
             Changelog = "Fiddlesticks Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         }, 
            Zed = {
             Changelog = "Zed Changelog Here",
@@ -183,7 +183,7 @@ Data = {
         }, 
            Leona = {
             Changelog = "Leona Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
            Jinx = {
             Changelog = "Jinx Changelog Here",
