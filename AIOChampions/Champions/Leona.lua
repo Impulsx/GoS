@@ -56,11 +56,14 @@ end
 
 function LoadScript() 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
 
 	Menu:MenuElement({type = MENU, id = "EDash", name = "AntiDash"})
 	Menu.EDash:MenuElement({id = "E", name = "Use [E] on Dashing Enemies", value = true})
-	Menu.EDash:MenuElement({id = "Change", name = "AntiDash Option", value = 1, drop = {"Auto Use", "Only in Combo"}})		
+	Menu.EDash:MenuElement({id = "Change", name = "AntiDash Option", value = 1, drop = {"Auto Use", "Only in Combo"}})	
+
+	Menu:MenuElement({type = MENU, id = "Eset", name = "E Settings"})
+	Menu.Eset:MenuElement({id = "Range", name = "Max E range", value = 800, min = 50, max = 900, step = 10})	
 	
 	--Combo
 
@@ -93,12 +96,14 @@ function LoadScript()
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
 
+	ERange = Menu.Eset.Range:Value()
+	
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 875, Speed = 2000, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 900, Speed = 2000, Collision = false
 	}
 	
-	EspellData = {speed = 2000, range = 875, delay = 0.25, radius = 70, collision = {nil}, type = "linear"}	
+	EspellData = {speed = 2000, range = 900, delay = 0.25, radius = 70, collision = {nil}, type = "linear"}	
 	
 	RData =
 	{
@@ -114,7 +119,7 @@ function LoadScript()
 	Callback.Add("Draw", function()
 		if myHero.dead then return end	
 		if Menu.Drawing.DrawE:Value() and Ready(_E) then
-		DrawCircle(myHero, 900, 1, DrawColor(255, 225, 255, 10))
+		DrawCircle(myHero, ERange, 1, DrawColor(255, 225, 255, 10))
 		end                                                 
 		if Menu.Drawing.DrawR:Value() and Ready(_R) then
 		DrawCircle(myHero, 1200, 1, DrawColor(225, 225, 0, 10))
@@ -194,7 +199,7 @@ function Combo()
 local target = GetTarget(1150)
 if target == nil then return end
 
-	if Menu.Combo.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 875  and StopOrb2 == false then
+	if Menu.Combo.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= ERange  and StopOrb2 == false then
 		local Stunned = IsStunned(target)
 		if Stunned then			
 			if Stunned.duration <= 0.3 then			
@@ -242,7 +247,7 @@ function Harass()
 local target = GetTarget(880)
 if target == nil or myHero.mana/myHero.maxMana < Menu.Harass.Mana:Value()/100 then return end
 
-	if Menu.Harass.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 875 then
+	if Menu.Harass.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= ERange then
 		local Stunned = IsStunned(target)
 		if Stunned then
 			if Stunned.duration <= 0.3 then
@@ -290,7 +295,7 @@ function CastE(unit)
 				Control.CastSpell(HK_E, pred.CastPos)
 			end
 		else
-			local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 875, Speed = 2000, Collision = false})
+			local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 900, Speed = 2000, Collision = false})
 			EPrediction:GetPrediction(unit, myHero)
 			if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
 				SetMovement(false)
