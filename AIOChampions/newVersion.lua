@@ -264,7 +264,11 @@ Data = {
            Malphite = {
             Changelog = "Malphite Changelog Here",
            Version = 0.03,
-        },        
+        },
+           Karma = {
+            Changelog = "Karma Changelog Here",
+           Version = 0.01,
+        },         
     },
 }
 
