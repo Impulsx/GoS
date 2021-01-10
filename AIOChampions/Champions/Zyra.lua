@@ -1,12 +1,3 @@
-local function CheckSeed()
-for i = 0, GameObjectCount() do
-	local object = GameObject(i)
-	local Range = 900 * 900
-		if object and GetDistanceSqr(object.pos, myHero.pos) < Range and (object.name == "Seed" or object.name == "Zyra_Base_W_Seed_Indicator_Zyra") then
-		return object, object.pos
-		end
-	end
-end
 
 local function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
@@ -47,7 +38,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})	
 		
 	--AutoE
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})
@@ -55,6 +46,9 @@ function LoadScript()
 
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ"})
+	Menu.AutoQ:MenuElement({name = " ", drop = {"Turn Off Check objects if trouble with Fps"}})
+	Menu.AutoQ:MenuElement({name = " ", drop = {"Check objects off then Q in Combo cast to enemy"}})	
+	Menu.AutoQ:MenuElement({id = "Use", name = "Check for Objects [Seeds]", value = true})	
 	Menu.AutoQ:MenuElement({id = "UseQ", name = "Use[Q] on Seeds near Target", value = 1, drop = {"Automatically", "Combo/Harass Mode"}})
 	
 	--ComboMenu  
@@ -151,11 +145,17 @@ end
 
 
 function Tick()
-if MyHeroNotReady() then return end
-local Mode = GetMode()
+	if MyHeroNotReady() then return end
+	
+	if Menu.AutoQ.Use:Value() then
+		CheckSeed()
+		RemoveSeed()
+	end	
+
+	local Mode = GetMode()
 	if Mode == "Combo" then
 		Combo()
-		if Menu.AutoQ.UseQ:Value() == 2 then
+		if Menu.AutoQ.Use:Value() and Menu.AutoQ.UseQ:Value() == 2 then
 			AutoQ()
 		end		
 	elseif Mode == "Harass" then
@@ -172,21 +172,50 @@ local Mode = GetMode()
 	KillSteal()
 	AutoE()
 	ImmoR()
-	if Menu.AutoQ.UseQ:Value() == 1 then
+	if Menu.AutoQ.Use:Value() and Menu.AutoQ.UseQ:Value() == 1 then
 		AutoQ()
 	end
 end
 
-function AutoQ()
-local target = GetTarget(1400)     	
-if target == nil then return end	
-	
-	if Ready(_Q) and IsValid(target) then
-	local Seed = CheckSeed()
-		if Seed and Seed.pos:DistanceTo(target.pos) <= 600 then
-			Control.CastSpell(HK_Q, Seed.pos)
+local Seeds = {}
+local LastScan = 0
+function CheckSeed()
+	local target = GetTarget(1400)     	
+	if target == nil then return end
+	if GameTimer() - LastScan > 5 then
+		for i = 0, GameObjectCount() do
+			local object = GameObject(i)
+			local Range = 1500 * 1500
+			if object and GetDistanceSqr(object.pos, myHero.pos) < Range and object.name == "Zyra_Base_W_Seed_Indicator_Zyra" then
+				TableInsert(Seeds, object)
+				LastScan = GameTimer()
+				--print("Added")
+				return
+			end
+		end
+	end	
+end
+
+function RemoveSeed()		
+	for i, Seed in pairs(Seeds) do
+		if Seed and Seed.networkID == 0 or Seed.name ~= "Zyra_Base_W_Seed_Indicator_Zyra" then
+			TableRemove(Seeds, i)
+			--print("REMOVED")
 		end	
-	end
+	end	
+end	
+
+function AutoQ()
+	local target = GetTarget(1400)     	
+	if target == nil then return end	
+	if Ready(_Q) and IsValid(target) then	
+		for i, Seed in pairs(Seeds) do
+			--print(Seed.networkID)
+			if Seed and Seed.pos:DistanceTo(target.pos) <= 525 and myHero.pos:DistanceTo(target.pos) < 800 then
+				Control.CastSpell(HK_Q, target.pos)
+			end	
+		end
+	end	
 end	
 
 function AutoE()
@@ -307,6 +336,10 @@ local target = GetTarget(1200)
 if target == nil then return end
 	if IsValid(target) then
 
+		if not Menu.AutoQ.Use:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 750 then
+			Control.CastSpell(HK_Q, target.pos)
+		end
+		
 		if myHero.pos:DistanceTo(target.pos) <= 850 and Menu.Combo.UseW:Value() and Ready(_W) and myHero:GetSpellData(_W).ammo > 0 then
 			Control.CastSpell(HK_W, myHero.pos:Extended(target.pos, 400))
 		end			
@@ -347,8 +380,12 @@ if target == nil then return end
 		end
 		
 		if myHero.pos:DistanceTo(target.pos) <= 700 and Ready(_R) and Menu.Combo.Ult.UseRK:Value() then
-			local RDmg = getdmg("R", target, myHero)+ 1000
-			if RDmg >= target.health then
+			local AADmg = getdmg("AA", target, myHero)*4
+			local QDmg = Ready(_Q) and getdmg("Q", target, myHero) or 0
+			local EDmg = Ready(_E) and getdmg("E", target, myHero) or 0
+			local RDmg = getdmg("R", target, myHero)
+			local FullDmg = AADmg+QDmg+EDmg+RDmg
+			if FullDmg >= target.health then
 				if Menu.Pred.Change:Value() == 1 then
 					local pred = GetGamsteronPrediction(target, RData, myHero)
 					if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
@@ -372,6 +409,10 @@ local target = GetTarget(1200)
 if target == nil then return end
 	if IsValid(target) and myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value() / 100 then
 		
+		if not Menu.AutoQ.Use:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 750 then
+			Control.CastSpell(HK_Q, target.pos)
+		end		
+		
 		if myHero.pos:DistanceTo(target.pos) <= 1000 and Menu.Harass.UseE:Value() and Ready(_E) then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, EData, myHero)
@@ -394,13 +435,12 @@ function Clear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 	
-		if myHero.pos:DistanceTo(minion.pos) <= 1300 and minion.team == TEAM_ENEMY and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then					
-			local Seed = CheckSeed()
-			if Ready(_Q) and Seed and Seed.pos:DistanceTo(minion.pos) <= 600 and Menu.Clear.UseQ:Value() then
-				Control.CastSpell(HK_Q, Seed.pos)
+		if myHero.pos:DistanceTo(minion.pos) <= 1000 and minion.team == TEAM_ENEMY and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then					
+			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 600 and Menu.Clear.UseQ:Value() then
+				Control.CastSpell(HK_Q, minion.pos)
 			end	
 
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 1100 and Menu.Clear.UseE:Value() then
+			if Ready(_E) and Menu.Clear.UseE:Value() then
 				Control.CastSpell(HK_E, minion.pos)
 			end  
 		end
@@ -411,13 +451,12 @@ function JungleClear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)	
 
-		if myHero.pos:DistanceTo(minion.pos) <= 1300 and minion.team == TEAM_JUNGLE and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100 then	
-			local Seed = CheckSeed()
-			if Ready(_Q) and Seed and Seed.pos:DistanceTo(minion.pos) <= 600 and Menu.JClear.UseQ:Value() then
-				Control.CastSpell(HK_Q, Seed.pos)
+		if myHero.pos:DistanceTo(minion.pos) <= 1000 and minion.team == TEAM_JUNGLE and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100 then	
+			if Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 600 and Menu.JClear.UseQ:Value() then
+				Control.CastSpell(HK_Q, minion.pos)
 			end
 
-			if Ready(_E) and myHero.pos:DistanceTo(minion.pos) <= 1100 and Menu.JClear.UseE:Value() then
+			if Ready(_E) and Menu.JClear.UseE:Value() then
 				Control.CastSpell(HK_E, minion.pos)
 			end  
 		end
@@ -441,7 +480,7 @@ function CastEGGPred(unit)
 end
 
 function CastRGGPred(unit)
-	local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 450, Range = 700, Speed = 650, Collision = false})
+	local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 2.25, Radius = 450, Range = 700, Speed = MathHuge, Collision = false})
 	RPrediction:GetPrediction(unit, myHero)
 	if RPrediction:CanHit(Menu.Pred.PredR:Value()+1) then
 		Control.CastSpell(HK_R, RPrediction.CastPosition)
