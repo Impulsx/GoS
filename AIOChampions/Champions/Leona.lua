@@ -51,12 +51,12 @@ local function IsStunned(unit)
 			return buff
 		end
 	end
-	return {type = 0, name = "", startTime = 0, expireTime = 0, duration = 0, stacks = 0, count = 0}
+	return false
 end
 
 function LoadScript() 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
 
 	Menu:MenuElement({type = MENU, id = "EDash", name = "AntiDash"})
 	Menu.EDash:MenuElement({id = "E", name = "Use [E] on Dashing Enemies", value = true})
@@ -96,7 +96,6 @@ function LoadScript()
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
 
-	ERange = Menu.Eset.Range:Value()
 	
 	EData =
 	{
@@ -119,7 +118,7 @@ function LoadScript()
 	Callback.Add("Draw", function()
 		if myHero.dead then return end	
 		if Menu.Drawing.DrawE:Value() and Ready(_E) then
-		DrawCircle(myHero, ERange, 1, DrawColor(255, 225, 255, 10))
+		DrawCircle(myHero, Menu.Eset.Range:Value(), 1, DrawColor(255, 225, 255, 10))
 		end                                                 
 		if Menu.Drawing.DrawR:Value() and Ready(_R) then
 		DrawCircle(myHero, 1200, 1, DrawColor(225, 225, 0, 10))
@@ -199,7 +198,7 @@ function Combo()
 local target = GetTarget(1150)
 if target == nil then return end
 
-	if Menu.Combo.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= ERange  and StopOrb2 == false then
+	if Menu.Combo.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= Menu.Eset.Range:Value()  and StopOrb2 == false then
 		local Stunned = IsStunned(target)
 		if Stunned then			
 			if Stunned.duration <= 0.3 then			
@@ -244,10 +243,10 @@ if target == nil then return end
 end
 
 function Harass()
-local target = GetTarget(880)
+local target = GetTarget(900)
 if target == nil or myHero.mana/myHero.maxMana < Menu.Harass.Mana:Value()/100 then return end
 
-	if Menu.Harass.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= ERange then
+	if Menu.Harass.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= Menu.Eset.Range:Value() then
 		local Stunned = IsStunned(target)
 		if Stunned then
 			if Stunned.duration <= 0.3 then
