@@ -263,7 +263,11 @@ Data = {
            Karma = {
             Changelog = "Karma Changelog Here",
            Version = 0.01,
-        },       
+        }, 
+           Alistar = {
+            Changelog = "Alistar Changelog Here",
+           Version = 0.01,
+        },        
     },
     Loader = {
         Version = 0.2,
