@@ -27,7 +27,7 @@ Data = {
         },
         Zyra = {
             Changelog = "Zyra Changelog Here",
-            Version = 0.07,
+            Version = 0.08,
         },
         XinZhao = {
             Changelog = "XinZhao Changelog Here",
@@ -147,7 +147,7 @@ Data = {
         }, 
           Garen = {
             Changelog = "Garen Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         }, 
           Pyke = {
             Changelog = "Pyke Changelog Here",
@@ -183,7 +183,7 @@ Data = {
         }, 
            Leona = {
             Changelog = "Leona Changelog Here",
-            Version = 0.05,
+            Version = 0.06,
         },
            Jinx = {
             Changelog = "Jinx Changelog Here",
@@ -267,11 +267,11 @@ Data = {
         },
            Karma = {
             Changelog = "Karma Changelog Here",
-           Version = 0.01,
+           Version = 0.02,
         },
            Alistar = {
             Changelog = "Alistar Changelog Here",
-           Version = 0.01,
+           Version = 0.02,
         },        
     },
 }
