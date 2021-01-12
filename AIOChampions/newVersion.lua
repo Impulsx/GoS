@@ -272,7 +272,11 @@ Data = {
            Alistar = {
             Changelog = "Alistar Changelog Here",
            Version = 0.02,
-        },        
+        },
+           Brand = {
+            Changelog = "Brand Changelog Here",
+           Version = 0.01,
+        },          
     },
 }
 
