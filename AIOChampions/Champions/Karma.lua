@@ -136,7 +136,7 @@ local MenuValue = 1
 function LoadScript() 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -230,10 +230,17 @@ function LoadScript()
 	end)	
 end
 
-local KeyDown = false
-local nextChange = true
+Callback.Add("WndMsg", function(msg, wParam)
+	if msg ~= 256 then return end
+	if Menu.Combo.HotKey:Key() == wParam then
+		MenuValue = MenuValue % 3 + 1
+	end
+end)
+
+--local KeyDown = false
+--local nextChange = true
 function Tick()
-	if Menu.Combo.HotKey:Value() and not KeyDown and nextChange then
+	--[[if Menu.Combo.HotKey:Value() and not KeyDown and nextChange then
 		KeyDown = true
 		nextChange = false
 	end
@@ -255,7 +262,7 @@ function Tick()
 			KeyDown = false
 			return
 		end
-	end
+	end]]
 
 	if MyHeroNotReady() then return end
 
