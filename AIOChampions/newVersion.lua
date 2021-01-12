@@ -15,7 +15,7 @@ Data = {
         },
         Cassiopeia = {
             Changelog = "Cassiopeia Changelog Here",
-            Version = 0.10,
+            Version = 0.11,
         },
         Lux = {
             Changelog = "Lux Changelog Here",
@@ -223,7 +223,7 @@ Data = {
         },
          Graves = {
             Changelog = "Graves Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         }, 
          Shen = {
             Changelog = "Shen Changelog Here",
@@ -267,7 +267,7 @@ Data = {
         },
            Karma = {
             Changelog = "Karma Changelog Here",
-           Version = 0.02,
+           Version = 0.03,
         },
            Alistar = {
             Changelog = "Alistar Changelog Here",
