@@ -22,7 +22,7 @@ require "MapPositionGOS"
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
 	
 	--UltMenu  
 	Menu:MenuElement({type = MENU, id = "Ult", name = "Semi Ult"})
@@ -232,7 +232,7 @@ function CheckDmg()
 end
 
 function AAReset(unit)
-	if Control.CastSpell(HK_E, unit) then
+	if not HasBuff(myHero, "gravesbasicattackammo2") and not HasBuff(myHero, "gravesbasicattackammo1") and Control.CastSpell(HK_E, unit) then
 		if _G.SDK and _G.SDK.Orbwalker then
 			_G.SDK.Orbwalker:__OnAutoAttackReset()
 		elseif _G.PremiumOrbwalker then
@@ -355,7 +355,7 @@ function Combo()
 			
 		else
 			-- Normal Combo --
-			if myHero.pos:DistanceTo(target.pos) <= 950 and not HasBuff(myHero, "gravesbasicattackammo2") and Ready(_E) and Menu.Combo.UseE:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 950 and Ready(_E) and Menu.Combo.UseE:Value() then
 				AAReset(mousePos)
 			end				
 			
@@ -695,11 +695,13 @@ function Clear()
 		if myHero.pos:DistanceTo(minion.pos) <= 900 and minion.team == TEAM_ENEMY and IsValid(minion) then					
 			
 			if Ready(_Q) and Menu.Clear.UseQ:Value() and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
-				Control.CastSpell(HK_Q, minion.pos)	
+				if not MapPosition:intersectsWall(myHero.pos, minion.pos) then
+					Control.CastSpell(HK_Q, minion.pos)	
+				end		
 			end	
 
 			if myHero.pos:DistanceTo(minion.pos) <= myHero.range and Menu.Clear.UseE:Value() and Ready(_E) then					
-				AAReset(minion.pos)	
+				AAReset(mousePos)	
 			end				
 		end
 	end
@@ -712,11 +714,13 @@ function JungleClear()
 		if myHero.pos:DistanceTo(minion.pos) <= 900 and minion.team == TEAM_JUNGLE and IsValid(minion) then					
 			
 			if Ready(_Q) and Menu.JClear.UseQ:Value() and myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100 then
-				Control.CastSpell(HK_Q, minion.pos)	
+				if not MapPosition:intersectsWall(myHero.pos, minion.pos) then
+					Control.CastSpell(HK_Q, minion.pos)	
+				end	
 			end	
 
 			if myHero.pos:DistanceTo(minion.pos) <= myHero.range and Menu.JClear.UseE:Value() and Ready(_E) then					
-				AAReset(minion.pos)	
+				AAReset(mousePos)	
 			end			
 		end
 	end    
