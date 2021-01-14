@@ -1,4 +1,4 @@
 Test = {
 ["Test"] = {Time = "06.12.1919"},
-["fearbalthis"] = {Time = "01/13/21"},
+["fearbalthis"] = {Month = "01", Day = "13", Year = "21"},
 }
