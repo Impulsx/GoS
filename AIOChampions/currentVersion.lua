@@ -268,9 +268,13 @@ Data = {
             Changelog = "Alistar Changelog Here",
            Version = 0.01,
         },
-            Brand = {
+           Brand = {
             Changelog = "Brand Changelog Here",
            Version = 0.01,
+        }, 
+          Viego = {
+            Changelog = "Viego Changelog Here",
+          Version = 0.01,
         },        
     },
     Loader = {
