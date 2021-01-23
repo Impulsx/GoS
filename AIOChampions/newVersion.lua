@@ -276,7 +276,11 @@ Data = {
            Brand = {
             Changelog = "Brand Changelog Here",
            Version = 0.02,
-        },          
+        },
+          Viego = {
+            Changelog = "Viego Changelog Here",
+          Version = 0.01,
+        },         
     },
 }
 
