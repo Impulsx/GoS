@@ -143,6 +143,7 @@ local CCSpells = {
 	["SkarnerImpale"] = {charName = "Skarner", slot = _R, type = "targeted", displayName = "Impale", range = 350},
 	["TahmKenchW"] = {charName = "TahmKench", slot = _W, type = "targeted", displayName = "Devour", range = 250},
 	["TristanaR"] = {charName = "Tristana", slot = _R, type = "targeted", displayName = "Buster Shot", range = 669},
+	["TeemoQ"] = {charName = "Teemo", slot = _Q, type = "targeted", displayName = "Blinding Dart", range = 680},	
 	["VeigarPrimordialBurst"] = {charName = "Veigar", slot = _R, type = "targeted", displayName = "Primordial Burst", range = 650}	
 }
 
@@ -227,10 +228,10 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})	
 	
-	Menu:MenuElement({type = MENU, id = "WSet", name = "AutoW Incomming CC Spells"})	
-	Menu.WSet:MenuElement({id = "UseW", name = "AutoW CC Spells", value = true})	
+	Menu:MenuElement({type = MENU, id = "WSet", name = "AutoW Incomming Spells"})	
+	Menu.WSet:MenuElement({id = "UseW", name = "AutoW Spells", value = true})	
 	Menu.WSet:MenuElement({id = "BlockList", name = "Spell List", type = MENU})	
 	
 	--ComboMenu  
@@ -448,7 +449,7 @@ function Ult2(unit)
 				for i = 1, Game.ObjectCount() do				
 					local object = Game.Object(i)
 					if unit.pos:DistanceTo(object.pos) <= 50 then				
-														
+						print(object.name)								
 						if not UltSE and object.name == "Fiora_Base_R_Mark_SE_FioraOnly" or object.name == "Fiora_Base_R_SE_Timeout_FioraOnly" then
 							UltSE = true
 							TableInsert(UltVitalsSE, object)
@@ -708,7 +709,7 @@ if target == nil then return end
 							if Vital.name == "Fiora_Base_Passive_SE" or Vital.name == "Fiora_Base_Passive_SE_Timeout" then
 								local SEPos = Vector(Pos.x - 250 ,Pos.y, Pos.z)	
 								if not myHero.pathing.isDashing and SEPos:DistanceTo(myHero.pos) <= 500 then		
-									--DrawCircle(SEPos, 50, 1, DrawColor(225, 220, 20, 60))
+									--DrawCircle(SEPos, 100, 1, DrawColor(225, 220, 20, 60))
 									Control.CastSpell(HK_Q, SEPos)
 									TableRemove(PassiveVital, i)
 									Passive = false
@@ -717,7 +718,7 @@ if target == nil then return end
 							if Vital.name == "Fiora_Base_Passive_SW" or Vital.name == "Fiora_Base_Passive_SW_Timeout" then
 								local SWPos = Vector(Pos.x ,Pos.y - 250, Pos.z)	
 								if not myHero.pathing.isDashing and SWPos:DistanceTo(myHero.pos) <= 500 then		
-									--DrawCircle(SWPos, 50, 1, DrawColor(225, 0, 191, 255))
+									--DrawCircle(SWPos, 100, 1, DrawColor(225, 0, 191, 255))
 									Control.CastSpell(HK_Q, SWPos)
 									TableRemove(PassiveVital, i)
 									Passive = false
@@ -726,7 +727,7 @@ if target == nil then return end
 							if Vital.name == "Fiora_Base_Passive_NE" or Vital.name == "Fiora_Base_Passive_NE_Timeout" then
 								local NEPos = Vector(Pos.x ,Pos.y + 250, Pos.z)	
 								if not myHero.pathing.isDashing and NEPos:DistanceTo(myHero.pos) <= 500 then		
-									--DrawCircle(NEPos, 50, 1, DrawColor(225, 50, 205, 50))
+									--DrawCircle(NEPos, 100, 1, DrawColor(225, 50, 205, 50))
 									Control.CastSpell(HK_Q, NEPos)
 									TableRemove(PassiveVital, i)
 									Passive = false
@@ -735,7 +736,7 @@ if target == nil then return end
 							if Vital.name == "Fiora_Base_Passive_NW" or Vital.name == "Fiora_Base_Passive_NW_Timeout" then
 								local NWPos = Vector(Pos.x + 250,Pos.y, Pos.z)	
 								if not myHero.pathing.isDashing and NWPos:DistanceTo(myHero.pos) <= 500 then		
-									--DrawCircle(NWPos, 50, 1, DrawColor(225, 255, 255, 255))
+									--DrawCircle(NWPos, 100, 1, DrawColor(225, 255, 255, 255))
 									Control.CastSpell(HK_Q, NWPos)
 									TableRemove(PassiveVital, i)
 									Passive = false
@@ -808,23 +809,27 @@ function PassiveCheck(unit)
 		for i = 1, Game.ObjectCount() do				
 			local object = Game.Object(i)
 			if unit.pos:DistanceTo(object.pos) <= 50 then				
-												
+				print(object.name)								
 				if object.name == "Fiora_Base_Passive_SE" or object.name == "Fiora_Base_Passive_SE_Timeout" then
+					print("Vital SE Found")
 					Passive = true
 					TableInsert(PassiveVital, object)
 					return
 				end	
 				if object.name == "Fiora_Base_Passive_SW" or object.name == "Fiora_Base_Passive_SW_Timeout" then
+					print("Vital SW Found")
 					Passive = true
 					TableInsert(PassiveVital, object)
 					return
 				end	
 				if object.name == "Fiora_Base_Passive_NE" or object.name == "Fiora_Base_Passive_NE_Timeout" then
+					print("Vital NE Found")
 					Passive = true
 					TableInsert(PassiveVital, object)
 					return
 				end	
 				if object.name == "Fiora_Base_Passive_NW" or object.name == "Fiora_Base_Passive_NW_Timeout" then
+					print("Vital NW Found")
 					Passive = true
 					TableInsert(PassiveVital, object)
 					return
