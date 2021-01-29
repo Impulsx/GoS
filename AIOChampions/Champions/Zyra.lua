@@ -38,7 +38,10 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})	
+	
+	Menu:MenuElement({type = MENU, id = "E", name = "E range Setting"})
+	Menu.E:MenuElement({id = "Erange", name = "Max E range", value = 900, min = 100, max = 1100, step = 10})	
 		
 	--AutoE
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})
@@ -222,7 +225,7 @@ function AutoE()
 local target = GetTarget(1200)     	
 if target == nil then return end	
 	
-	if Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 1000 and IsValid(target) and Menu.AutoE.UseE:Value() then
+	if Ready(_E) and myHero.pos:DistanceTo(target.pos) <= Menu.E.Erange:Value() and IsValid(target) and Menu.AutoE.UseE:Value() then
 		if IsImmobileTarget(target) then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, EData, myHero)
@@ -290,7 +293,7 @@ function KillSteal()
 				end
 			end
 		end
-		if myHero.pos:DistanceTo(target.pos) <= 1000 and Menu.ks.UseE:Value() and Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) <= Menu.E.Erange:Value() and Menu.ks.UseE:Value() and Ready(_E) then
 			local EDmg = getdmg("E", target, myHero)
 			if EDmg >= hp then			
 				if Menu.Pred.Change:Value() == 1 then
@@ -344,7 +347,7 @@ if target == nil then return end
 			Control.CastSpell(HK_W, myHero.pos:Extended(target.pos, 400))
 		end			
 		
-		if myHero.pos:DistanceTo(target.pos) <= 1000 and Menu.Combo.UseE:Value() and Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) <= Menu.E.Erange:Value() and Menu.Combo.UseE:Value() and Ready(_E) then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, EData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
@@ -413,7 +416,7 @@ if target == nil then return end
 			Control.CastSpell(HK_Q, target.pos)
 		end		
 		
-		if myHero.pos:DistanceTo(target.pos) <= 1000 and Menu.Harass.UseE:Value() and Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) <= Menu.E.Erange:Value() and Menu.Harass.UseE:Value() and Ready(_E) then
 			if Menu.Pred.Change:Value() == 1 then
 				local pred = GetGamsteronPrediction(target, EData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredE:Value()+1 then
