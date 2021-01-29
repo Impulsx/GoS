@@ -76,150 +76,6 @@ local function GetCircularAOEPos(units, radius, expected)
 	return nil, 0
 end
 
-local function VectorPointProjectionOnLineSegment(v1, v2, v)
-	local cx, cy, ax, ay, bx, by = v.x, v.z, v1.x, v1.z, v2.x, v2.z
-	local rL = ((cx - ax) * (bx - ax) + (cy - ay) * (by - ay)) / ((bx - ax) ^ 2 + (by - ay) ^ 2)
-	local pointLine = { x = ax + rL * (bx - ax), y = ay + rL * (by - ay) }
-	local rS = rL < 0 and 0 or (rL > 1 and 1 or rL)
-	local isOnSegment = rS == rL
-	local pointSegment = isOnSegment and pointLine or { x = ax + rS * (bx - ax), y = ay + rS * (by - ay) }
-	return pointSegment, pointLine, isOnSegment
-end 
-
-local function GetPathNodes(unit)
-	local nodes = {}
-	TableInsert(nodes, unit.pos)
-	if unit.pathing.hasMovePath then
-		for i = unit.pathing.pathIndex, unit.pathing.pathCount do
-			path = unit:GetPath(i)
-			TableInsert(nodes, path)
-		end
-	end		
-	return nodes
-end
-
-local function GetTargetMS(target)
-	local ms = target.ms
-	return ms
-end
-
-local function PredictUnitPosition(unit, delay)
-	local predictedPosition = unit.pos
-	local timeRemaining = delay
-	local pathNodes = GetPathNodes(unit)
-	for i = 1, #pathNodes -1 do
-		local nodeDistance = GetDistance(pathNodes[i], pathNodes[i +1])
-		local nodeTraversalTime = nodeDistance / GetTargetMS(unit)
-			
-		if timeRemaining > nodeTraversalTime then
-			timeRemaining =  timeRemaining - nodeTraversalTime
-			predictedPosition = pathNodes[i + 1]
-		else
-			local directionVector = (pathNodes[i+1] - pathNodes[i]):Normalized()
-			predictedPosition = pathNodes[i] + directionVector *  GetTargetMS(unit) * timeRemaining
-			break;
-		end
-	end
-	return predictedPosition
-end
-
-local function GetLineTargetCount(source, Pos, delay, speed, width, range)
-	local _PossibleUnits = {}
-	local Count = 0
-	local EnemyCount = 0
-	for i, hero in ipairs(GetAllHeroes()) do
-		if hero and myHero.pos:DistanceTo(hero.pos) <= range and IsValid(hero) then
-			
-			local predictedPos = PredictUnitPosition(hero, delay+ GetDistance(source, hero.pos) / speed)
-			local proj1, pointLine, isOnSegment = VectorPointProjectionOnLineSegment(source, Pos, predictedPos)
-			if proj1 and isOnSegment and (GetDistanceSqr(predictedPos, proj1) <= (hero.boundingRadius + width) * (hero.boundingRadius + width)) then
-				Count = Count + 1
-				TableInsert(_PossibleUnits, hero)
-				if hero.team ~= myHero.team then
-					EnemyCount = EnemyCount + 1
-				end
-			end
-		end
-	end	
-	return Count, _PossibleUnits, EnemyCount
-end
-
-local function RRange()
-	local UltRange = 1200
-	local Unit1, Unit2, Unit3, Unit4, Unit5 = nil, nil, nil, nil, nil
-	local range1, range2, range3, range4, range5  = 1200, 99999, 99999, 99999, 99999
-	
-	for i, hero in ipairs(GetEnemyHeroes()) do
-		if hero and myHero.pos:DistanceTo(hero.pos) <= 5000 and IsValid(hero) then
-			local count, Units, EnemyCount = GetLineTargetCount(myHero.pos, hero.pos, 0.5, 1600, 80, 5000)
-			if count >= Menu.Combo.Count:Value() and EnemyCount > 0 then
-				--print (count)
-				for i = 1, #Units do
-					local unit = Units[i]
-					
-					if unit and GetDistance(myHero.pos, unit.pos) < range1 then
-						if UltRange < GetDistance(myHero.pos, unit.pos) + 1200 then
-							UltRange = GetDistance(myHero.pos, unit.pos) + 1200
-						end	
-						range1 = GetDistance(myHero.pos, unit.pos)
-						Unit1 = unit
-						--DrawCircle(unit, 100, 1, DrawColor(225, 220, 20, 60))
-					end
-					
-					if Unit1 and unit and unit ~= Unit1 and GetDistance(myHero.pos, unit.pos) < range2 and GetDistance(myHero.pos, unit.pos) > range1 and GetDistance(Unit1.pos, unit.pos) < 1200 then
-						if UltRange < GetDistance(myHero.pos, unit.pos) + 1200 then
-							UltRange = GetDistance(myHero.pos, unit.pos) + 1200
-						end	
-						range2 = GetDistance(myHero.pos, unit.pos)
-						Unit2 = unit
-						--DrawCircle(unit, 100, 1, DrawColor(225, 50, 205, 50))
-					end
-					
-					if Unit1 and Unit2 and unit and unit ~= Unit1 and unit ~= Unit2 and GetDistance(myHero.pos, unit.pos) < range3 and GetDistance(myHero.pos, unit.pos) > range2  and GetDistance(Unit2.pos, unit.pos) < 1200 then
-						if UltRange < GetDistance(myHero.pos, unit.pos) + 1200 then
-							UltRange = GetDistance(myHero.pos, unit.pos) + 1200
-						end	
-						range3 = GetDistance(myHero.pos, unit.pos)
-						Unit3 = unit
-						--DrawCircle(unit, 100, 1, DrawColor(225, 225, 255, 0))
-					end	
-
-					if Unit1 and Unit2 and Unit3 and unit and unit ~= Unit1 and unit ~= Unit2 and unit ~= Unit3 and GetDistance(myHero.pos, unit.pos) < range4 and GetDistance(myHero.pos, unit.pos) > range3 and GetDistance(Unit3.pos, unit.pos) < 1200 then
-						if UltRange < GetDistance(myHero.pos, unit.pos) + 1200 then
-							UltRange = GetDistance(myHero.pos, unit.pos) + 1200
-						end	
-						range4 = GetDistance(myHero.pos, unit.pos)
-						Unit4 = unit
-						--DrawCircle(unit, 100, 1, DrawColor(225, 23, 23, 23))
-					end	
-
-					if Unit1 and Unit2 and Unit3 and Unit4 and unit and unit ~= Unit1 and unit ~= Unit2 and unit ~= Unit3 and unit ~= Unit4 and GetDistance(myHero.pos, unit.pos) < range5 and GetDistance(myHero.pos, unit.pos) > range4 and GetDistance(Unit4.pos, unit.pos) < 1200 then
-						if UltRange < GetDistance(myHero.pos, unit.pos) + 1200 then
-							UltRange = GetDistance(myHero.pos, unit.pos) + 1200
-						end	
-						range5 = GetDistance(myHero.pos, unit.pos)
-						Unit5 = unit
-					end	
-				end
-			end
-		end
-	end
-	
-	if Unit5 then
-		return UltRange, Unit5
-	elseif Unit4 then
-		return UltRange, Unit4
-	elseif Unit3 then
-		return UltRange, Unit3
-	elseif Unit2 then
-		return UltRange, Unit2
-	elseif Unit1 then
-		return UltRange, Unit1
-	else
-		return 1200, nil
-	end	
-end
-
 local function CheckMissHealth(unit)
 	 local MissHealth = unit.maxHealth - unit.health
 	 local PercentMissHealth = MissHealth / unit.maxHealth
@@ -248,41 +104,11 @@ local function CheckMissHealth(unit)
 		return 0.5
 	end	
 end
---[[
-local function CalcQDmg(unit)
-	local Dmg = 0
-	local qLvl = myHero:GetSpellData(_Q).level
-	if qLvl > 0 then
-		local Calc1 = ({ 55, 65, 75, 85, 95 })[qLvl] + 0.55 * myHero.ap
-		local Calc2 = CheckMissHealth(unit)
-		local Calc3 = (Calc2*Calc1) + Calc1
-		if HasBuff(myHero, "SeraphinePassiveEchoStage2") then
-			Dmg = CalcMagicalDamage(myHero, unit, Calc3)*2
-		else
-			Dmg = CalcMagicalDamage(myHero, unit, Calc3)
-		end
-	end
-	return Dmg
-end
 
-local function CalcEDmg(unit)
-	local Dmg = 0
-	local eLvl = myHero:GetSpellData(_E).level
-	if eLvl > 0 then
-		local Calc = ({ 60, 85, 110, 135, 160 })[eLvl] + 0.35 * myHero.ap
-		if HasBuff(myHero, "SeraphinePassiveEchoStage2") then
-			Dmg = CalcMagicalDamage(myHero, unit, Calc)*2
-		else
-			Dmg = CalcMagicalDamage(myHero, unit, Calc)
-		end
-	end
-	return Dmg
-end
-]]
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
 
 	--AutoE  
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "E Settings"})
@@ -304,8 +130,7 @@ function LoadScript()
 	Menu.Combo:MenuElement({id = "ally", name = "[W] if Ally Hp lower than -->", value = 35, min = 0, max = 100, identifier = "%"})	
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})	
 	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})
-	Menu.Combo:MenuElement({id = "Count", name = "[R] Hit count [Allies+Enemies]", value = 2, min = 1, max = 9, step = 1})
-	Menu.Combo:MenuElement({id = "Active", name = "[R] Semi Key (Dont Check Hit count)", key = string.byte("T")})	
+	Menu.Combo:MenuElement({id = "Active", name = "[R] Semi Key", key = string.byte("T")})	
 	
 	--HarassMenu
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
@@ -350,17 +175,17 @@ function LoadScript()
 	
 	QData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 175, Range = 900, Speed = 500, Collision = false
+	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 350, Range = 900, Speed = 1200, Collision = false
 	}
 	
-	QspellData = {speed = 500, range = 900, delay = 0.25, radius = 175, collision = {nil}, type = "circular"}		
+	QspellData = {speed = 1200, range = 900, delay = 0.25, radius = 350, collision = {nil}, type = "circular"}		
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 35, Range = 1200, Speed = 500, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1200, Speed = 1200, Collision = false
 	}
 	
-	EspellData = {speed = 500, range = 1200, delay = 0.25, radius = 35, collision = {nil}, type = "linear"}	
+	EspellData = {speed = 1200, range = 1200, delay = 0.25, radius = 70, collision = {nil}, type = "linear"}	
 			
 
 	Callback.Add("Tick", function() Tick() end)
@@ -474,27 +299,25 @@ end
 	
 function Ult()	
 	if Menu.Combo.UseR:Value() and Ready(_R) then	
-		local range, target = RRange()
-		if target then
+		local target = GetTarget(1100)
+		if target == nil then return end
+		if IsValid(target) then
 			if Menu.Pred.Change:Value() == 1 then
-				local RData = {Type = _G.SPELLTYPE_LINE, Delay = 0.5, Radius = 80, Range = range, Speed = 500, Collision = false}
+				local RData = {Type = _G.SPELLTYPE_LINE, Delay = 0.5, Radius = 160, Range = 1200, Speed = 1600, Collision = false}
 				local pred = GetGamsteronPrediction(target, RData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
-					CanCastUlt = true
 					Control.CastSpell(HK_R, pred.CastPosition)
 				end
 			elseif Menu.Pred.Change:Value() == 2 then
-				local RspellData = {speed = 500, range = range, delay = 0.5, radius = 80, collision = {nil}, type = "linear"}
+				local RspellData = {speed = 1600, range = 1200, delay = 0.5, radius = 160, collision = {nil}, type = "linear"}
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, RspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
-					CanCastUlt = true
 					Control.CastSpell(HK_R, pred.CastPos)
 				end
 			else
-				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.5, Radius = 80, Range = range, Speed = 500, Collision = false})
+				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.5, Radius = 160, Range = 1200, Speed = 1600, Collision = false})
 				RPrediction:GetPrediction(target, myHero)
 				if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
-					CanCastUlt = true
 					Control.CastSpell(HK_R, RPrediction.CastPosition)
 				end				
 			end						
@@ -508,19 +331,19 @@ function Ult2()
 		if target == nil then return end
 		if IsValid(target) then
 			if Menu.Pred.Change:Value() == 1 then
-				local RData = {Type = _G.SPELLTYPE_LINE, Delay = 0.5, Radius = 80, Range = 1200, Speed = 500, Collision = false}
+				local RData = {Type = _G.SPELLTYPE_LINE, Delay = 0.5, Radius = 160, Range = 1200, Speed = 1600, Collision = false}
 				local pred = GetGamsteronPrediction(target, RData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
 					Control.CastSpell(HK_R, pred.CastPosition)
 				end
 			elseif Menu.Pred.Change:Value() == 2 then
-				local RspellData = {speed = 500, range = 1200, delay = 0.5, radius = 80, collision = {nil}, type = "linear"}
+				local RspellData = {speed = 1600, range = 1200, delay = 0.5, radius = 160, collision = {nil}, type = "linear"}
 				local pred = _G.PremiumPrediction:GetPrediction(myHero, target, RspellData)
 				if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
 					Control.CastSpell(HK_R, pred.CastPos)
 				end
 			else
-				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.5, Radius = 80, Range = 1200, Speed = 500, Collision = false})
+				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.5, Radius = 160, Range = 1200, Speed = 1600, Collision = false})
 				RPrediction:GetPrediction(target, myHero)
 				if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
 					Control.CastSpell(HK_R, RPrediction.CastPosition)
@@ -724,7 +547,7 @@ function CastQ(unit)
 			Control.CastSpell(HK_Q, pred.CastPos)
 		end
 	else
-		local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 175, Range = 900, Speed = 500, Collision = false})
+		local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 350, Range = 900, Speed = 1200, Collision = false})
 		QPrediction:GetPrediction(unit, myHero)
 		if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 			Control.CastSpell(HK_Q, QPrediction.CastPosition)
@@ -746,7 +569,7 @@ function CastE(unit)
 			Control.CastSpell(HK_E, pred.CastPos)
 		end
 	else
-		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 35, Range = 1200, Speed = 500, Collision = false})
+		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1200, Speed = 1200, Collision = false})
 		EPrediction:GetPrediction(unit, myHero)
 		if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
 			CanCastE = true
