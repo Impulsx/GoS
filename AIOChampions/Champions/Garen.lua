@@ -46,10 +46,20 @@ local function Cleans(unit)
 	return false	
 end	
 
+local function HasBuff(unit, buffname)
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff.name == buffname and buff.count > 0 then 
+			return true
+		end
+	end
+	return false
+end
+
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -177,11 +187,10 @@ if target == nil then return end
 		local Enemys2 = EnemiesNear(myHero,500)
 	
 		if Enemys1 == 1 then
-			if myHero.pos:DistanceTo(target.pos) <= 300 and Ready(_Q) and Menu.Combo.UseQ:Value() then
+			if myHero.pos:DistanceTo(target.pos) <= 300 and Ready(_Q) and Menu.Combo.UseQ:Value() and not HasBuff(myHero, "GarenE") then
 				Control.CastSpell(HK_Q)
-			end
 			
-			if myHero:GetSpellData(_E).name == "GarenE" and myHero.pos:DistanceTo(target.pos) <= 325 and Ready(_E) and not Ready(_Q) and Menu.Combo.UseE:Value() then
+			elseif myHero:GetSpellData(_E).name == "GarenE" and myHero.pos:DistanceTo(target.pos) <= 325 and Ready(_E) and not HasBuff(myHero, "GarenQ") and not Ready(_Q) and Menu.Combo.UseE:Value() then
 				Control.CastSpell(HK_E, target.pos)
 			end			
 			
@@ -196,11 +205,10 @@ if target == nil then return end
 		end	
 		
 		if Enemys2 >= 2 then
-			if myHero:GetSpellData(_E).name == "GarenE" and Ready(_E) and not Ready(_Q) and Menu.Combo.UseE:Value() then
-				Control.CastSpell(HK_E, target.pos)
-			end			
+			if myHero:GetSpellData(_E).name == "GarenE" and Ready(_E) and not HasBuff(myHero, "GarenQ") and Menu.Combo.UseE:Value() then
+				Control.CastSpell(HK_E, target.pos)			
 			
-			if myHero.pos:DistanceTo(target.pos) <= 300 and Ready(_Q) and Menu.Combo.UseQ:Value() then
+			elseif myHero.pos:DistanceTo(target.pos) <= 300 and Ready(_Q) and Menu.Combo.UseQ:Value() and not HasBuff(myHero, "GarenE") and not Ready(_E) then
 				Control.CastSpell(HK_Q)
 			end
 			
