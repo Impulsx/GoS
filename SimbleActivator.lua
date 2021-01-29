@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.29
+    local Version = 0.30
     
     local Files =
     {
@@ -306,7 +306,7 @@ end
 function Activator:LoadMenu()
     
     self.Menu = MenuElement({type = MENU, id = "PussyActivator", leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png"})
-	self.Menu:MenuElement({name = " ", drop = {"Version 0.29"}})    
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.30"}})    
 	
 	--Shield/Heal MyHero
     self.Menu:MenuElement({id = "ZS", name = "MyHero/Ally [Shield/Heal Items]", type = MENU})
@@ -757,30 +757,7 @@ end
 -- MyHero Items ---------------
 
 function Activator:MyHero()
-local Zo, St, Mi, Qu, Mik, Iro, Re, Ga, Da = GetInventorySlotItem(3157), GetInventorySlotItem(2420), GetInventorySlotItem(3139), GetInventorySlotItem(3140), GetInventorySlotItem(3222), GetInventorySlotItem(3190), GetInventorySlotItem(3107), GetInventorySlotItem(3193), GetInventorySlotItem(6035)   
-	if self:EnemiesAround(myHero, 1500) > 0 then
-        
-		if Zo and self.Menu.ZS.self.UseZ:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHPZ:Value()/100 then
-            Control.CastSpell(ItemHotKey[Zo])
-        end
-    
-		if St and self.Menu.ZS.self.UseS:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHPS:Value()/100 then
-            Control.CastSpell(ItemHotKey[St])
-        end
-
-		if Iro and self.Menu.ZS.self.Iron:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.IronHP:Value()/100 then
-            Control.CastSpell(ItemHotKey[Iro])
-        end	
-
-		if Re and self.Menu.ZS.self.Red:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.RedHP:Value()/100 then
-            Control.CastSpell(ItemHotKey[Re], myHero.pos)
-        end	
-
-		if Ga and self.Menu.ZS.self.UseG:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHPG:Value()/100 then
-            Control.CastSpell(ItemHotKey[Ga])
-        end			
-    end
-	
+	local Zo, St, Mi, Qu, Mik, Iro, Re, Ga, Da = GetInventorySlotItem(3157), GetInventorySlotItem(2420), GetInventorySlotItem(3139), GetInventorySlotItem(3140), GetInventorySlotItem(3222), GetInventorySlotItem(3190), GetInventorySlotItem(3107), GetInventorySlotItem(3193), GetInventorySlotItem(6035)   		
 	local Immobile = self:Cleans(myHero)
 	local Immobile2 = self:Cleans2(myHero)	
 
@@ -804,6 +781,31 @@ local Zo, St, Mi, Qu, Mik, Iro, Re, Ga, Da = GetInventorySlotItem(3157), GetInve
             Control.CastSpell(ItemHotKey[Da], myHero)
         end			
 	end
+	
+	for i, enemy in pairs(GetEnemyHeroes()) do
+		if enemy and GetDistance(myHero.pos, enemy.pos) < 2000 and IsValid(enemy) and enemy.activeSpell.target == myHero.handle then
+			
+			if Zo and self.Menu.ZS.self.UseZ:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHPZ:Value()/100 then
+				Control.CastSpell(ItemHotKey[Zo])
+			end
+		
+			if St and self.Menu.ZS.self.UseS:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHPS:Value()/100 then
+				Control.CastSpell(ItemHotKey[St])
+			end
+
+			if Iro and self.Menu.ZS.self.Iron:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.IronHP:Value()/100 then
+				Control.CastSpell(ItemHotKey[Iro])
+			end	
+
+			if Re and self.Menu.ZS.self.Red:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.RedHP:Value()/100 then
+				Control.CastSpell(ItemHotKey[Re], myHero.pos)
+			end	
+
+			if Ga and self.Menu.ZS.self.UseG:Value() and myHero.health/myHero.maxHealth < self.Menu.ZS.self.myHPG:Value()/100 then
+				Control.CastSpell(ItemHotKey[Ga])
+			end			
+		end
+	end	
 end   
 
 -- Ally Items ---------------
@@ -813,24 +815,28 @@ function Activator:Ally()
 		if ally then
 			local EnemyNear = self:EnemiesAround(ally, 1500)	
 			local Re, Mik, Iro = GetInventorySlotItem(3107), GetInventorySlotItem(3222), GetInventorySlotItem(3190)	
-			
-			if Re and self.Menu.ZS.ally[ally.charName].Red and self.Menu.ZS.ally[ally.charName].Red:Value() and ally.health/ally.maxHealth < self.Menu.ZS.ally[ally.charName].allyHP:Value()/100 and myHero.pos:DistanceTo(ally.pos) <= 5500 and EnemyNear > 0 and not ally.dead then
-				
-				if ally.pos:To2D().onScreen then						
-					Control.CastSpell(ItemHotKey[Re], ally.pos) 
-					
-				elseif not ally.pos:To2D().onScreen then			
-					CastSpellMM(ItemHotKey[Re], ally.pos, 5500)
-				end
-			end
-			
-			if Iro and self.Menu.ZS.ally[ally.charName].Iron and self.Menu.ZS.ally[ally.charName].Iron:Value() and ally.health/ally.maxHealth < self.Menu.ZS.ally[ally.charName].IronHP:Value()/100 and myHero.pos:DistanceTo(ally.pos) <= 600 and EnemyNear > 0 and not ally.dead then
-				Control.CastSpell(ItemHotKey[Iro])
-			end				
 
 			if Mik and self.Menu.ZS.ally[ally.charName].Mika and self.Menu.ZS.ally[ally.charName].Mika:Value() and myHero.pos:DistanceTo(ally.pos) <= 650 and not ally.dead and self:Cleans2(ally) and EnemyNear > 0 then 
 				Control.CastSpell(ItemHotKey[Mik], ally)
 			end	
+			
+			for k, enemy in pairs(GetEnemyHeroes()) do
+				if enemy and GetDistance(myHero.pos, enemy.pos) < 2000 and IsValid(enemy) and enemy.activeSpell.target == ally.handle then			
+					if Re and self.Menu.ZS.ally[ally.charName].Red and self.Menu.ZS.ally[ally.charName].Red:Value() and ally.health/ally.maxHealth < self.Menu.ZS.ally[ally.charName].allyHP:Value()/100 and myHero.pos:DistanceTo(ally.pos) <= 5500 and not ally.dead then
+						
+						if ally.pos:To2D().onScreen then						
+							Control.CastSpell(ItemHotKey[Re], ally.pos) 
+							
+						elseif not ally.pos:To2D().onScreen then			
+							CastSpellMM(ItemHotKey[Re], ally.pos, 5500)
+						end
+					end
+					
+					if Iro and self.Menu.ZS.ally[ally.charName].Iron and self.Menu.ZS.ally[ally.charName].Iron:Value() and ally.health/ally.maxHealth < self.Menu.ZS.ally[ally.charName].IronHP:Value()/100 and myHero.pos:DistanceTo(ally.pos) <= 600 and not ally.dead then
+						Control.CastSpell(ItemHotKey[Iro])
+					end
+				end
+			end				
 		end	
 	end	
 end
@@ -951,87 +957,88 @@ end
 --Summoners-------------------------
 
 function Activator:Summoner()
-local target = GetTarget(1500)
-if target == nil then return end
-    local MyHp = myHero.health/myHero.maxHealth
-
-    
-    if IsValid(target) then
-        if self.Menu.summ.heal.self:Value() and MyHp <= self.Menu.summ.heal.selfhp:Value()/100 then
-            if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and Ready(SUMMONER_1) then
-                Control.CastSpell(HK_SUMMONER_1, myHero)
-            elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" and Ready(SUMMONER_2) then
-                Control.CastSpell(HK_SUMMONER_2, myHero)
-            end
-        end
-        for i, ally in pairs(GetAllyHeroes()) do
-            if ally then
-				local AllyHp = ally.health/ally.maxHealth
-				if self.Menu.summ.heal.ally:Value() and AllyHp <= self.Menu.summ.heal.allyhp:Value()/100 then
-					if IsValid(ally) and myHero.pos:DistanceTo(ally.pos) <= 850 and not ally.dead then
-						if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and Ready(SUMMONER_1) then
-							Control.CastSpell(HK_SUMMONER_1, ally)
-						elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" and Ready(SUMMONER_2) then
-							Control.CastSpell(HK_SUMMONER_2, ally)
-						end
+	for i, target in pairs(GetEnemyHeroes()) do
+   
+		if target and GetDistance(myHero.pos, target.pos) < 2000 and IsValid(target) then
+			
+			if self.Menu.summ.barr.self:Value() and myHero.health/myHero.maxHealth <= self.Menu.summ.barr.selfhp:Value()/100 and target.activeSpell.target == myHero.handle then
+				if myHero:GetSpellData(SUMMONER_1).name == "SummonerBarrier" and Ready(SUMMONER_1) then
+					Control.CastSpell(HK_SUMMONER_1, myHero)
+				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBarrier" and Ready(SUMMONER_2) then
+					Control.CastSpell(HK_SUMMONER_2, myHero)
+				end
+			end
+			
+			local Immobile = self:Cleans(myHero)
+			if self.Menu.summ.clean.self:Value() and Immobile then
+				if myHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) then
+					Control.CastSpell(HK_SUMMONER_1, myHero)
+				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBoost" and Ready(SUMMONER_2) then
+					Control.CastSpell(HK_SUMMONER_2, myHero)
+				end
+			end
+			
+			if self.Menu.summ.ex.target:Value() then
+				if myHero.pos:DistanceTo(target.pos) <= 650 and target.health/target.maxHealth <= self.Menu.summ.ex.hp:Value()/100 then
+					if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" and Ready(SUMMONER_1) then
+						Control.CastSpell(HK_SUMMONER_1, target)
+					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and Ready(SUMMONER_2) then
+						Control.CastSpell(HK_SUMMONER_2, target)
 					end
 				end
-			end	
-        end
-        if self.Menu.summ.barr.self:Value() and MyHp <= self.Menu.summ.barr.selfhp:Value()/100 then
-            if myHero:GetSpellData(SUMMONER_1).name == "SummonerBarrier" and Ready(SUMMONER_1) then
-                Control.CastSpell(HK_SUMMONER_1, myHero)
-            elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBarrier" and Ready(SUMMONER_2) then
-                Control.CastSpell(HK_SUMMONER_2, myHero)
-            end
-        end
-        local Immobile = self:Cleans(myHero)
-        if self.Menu.summ.clean.self:Value() and Immobile then
-            if myHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) then
-                Control.CastSpell(HK_SUMMONER_1, myHero)
-            elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBoost" and Ready(SUMMONER_2) then
-                Control.CastSpell(HK_SUMMONER_2, myHero)
-            end
-        end
-        local TargetHp = target.health/target.maxHealth
-        if self.Menu.summ.ex.target:Value() then
-            if myHero.pos:DistanceTo(target.pos) <= 650 and TargetHp <= self.Menu.summ.ex.hp:Value()/100 then
-                if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" and Ready(SUMMONER_1) then
-                    Control.CastSpell(HK_SUMMONER_1, target)
-                elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and Ready(SUMMONER_2) then
-                    Control.CastSpell(HK_SUMMONER_2, target)
-                end
-            end
-        end
+			end
+			
+			if self.Menu.summ.heal.self:Value() and myHero.health/myHero.maxHealth <= self.Menu.summ.heal.selfhp:Value()/100 then
+				if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and Ready(SUMMONER_1) then
+					Control.CastSpell(HK_SUMMONER_1, myHero)
+				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" and Ready(SUMMONER_2) then
+					Control.CastSpell(HK_SUMMONER_2, myHero)
+				end
+			end
+			
+			for k, ally in pairs(GetAllyHeroes()) do
+				if ally then
+					if self.Menu.summ.heal.ally:Value() and ally.health/ally.maxHealth <= self.Menu.summ.heal.allyhp:Value()/100 then
+						if IsValid(ally) and myHero.pos:DistanceTo(ally.pos) <= 850 and not ally.dead then
+							if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and Ready(SUMMONER_1) then
+								Control.CastSpell(HK_SUMMONER_1, ally)
+							elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" and Ready(SUMMONER_2) then
+								Control.CastSpell(HK_SUMMONER_2, ally)
+							end
+						end
+					end
+				end	
+			end
+		end	
 	end
 end	
 		
 function Activator:Ignite()		
-local target = GetTarget(600)
-if target == nil then return end
-	if IsValid(target) then	
-		local TargetHp = target.health/target.maxHealth
+	for i, target in pairs(GetEnemyHeroes()) do
+   
+		if target and GetDistance(myHero.pos, target.pos) < 600 and IsValid(target) then	
         
-		if self.Menu.summ.ign.ST:Value() == 1 then
-			if GetMode() == "Combo" and TargetHp <= self.Menu.summ.ign.hp:Value()/100 then
-                if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
-                    Control.CastSpell(HK_SUMMONER_1, target)
-                elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
-                    Control.CastSpell(HK_SUMMONER_2, target)
-                end
-            end
+			if self.Menu.summ.ign.ST:Value() == 1 then
+				if GetMode() == "Combo" and target.health/target.maxHealth <= self.Menu.summ.ign.hp:Value()/100 then
+					if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
+						Control.CastSpell(HK_SUMMONER_1, target)
+					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
+						Control.CastSpell(HK_SUMMONER_2, target)
+					end
+				end
+				
+			else
 			
-        else
-		
-			local IGdamage = 50 + 20 * myHero.levelData.lvl - (target.hpRegen*3)
-			if target.health <= IGdamage then
-                if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
-                    Control.CastSpell(HK_SUMMONER_1, target)
-                elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
-                    Control.CastSpell(HK_SUMMONER_2, target)
-                end
-            end
-        end		
+				local IGdamage = 50 + 20 * myHero.levelData.lvl - (target.hpRegen*3)
+				if target.health <= IGdamage then
+					if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
+						Control.CastSpell(HK_SUMMONER_1, target)
+					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
+						Control.CastSpell(HK_SUMMONER_2, target)
+					end
+				end
+			end	
+		end	
 	end
 end	
 	
