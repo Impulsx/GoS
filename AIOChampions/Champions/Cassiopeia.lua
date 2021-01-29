@@ -24,7 +24,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.11"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.12"}})	
 		Menu:MenuElement({name = " ", drop = {"General Settings"}})	
 		
 		--Combo   
@@ -34,8 +34,8 @@ function LoadScript()
 		Menu.combo:MenuElement({id = "E", name = "Use E", value = true})
 		Menu.combo:MenuElement({id = "SR", name = "Manual R ", key = string.byte("A")})
 		Menu.combo:MenuElement({id = "R", name = "Use R ", value = true})
-		Menu.combo:MenuElement({id = "R2", name = "Use R 1vs1 if killable Full Combo ", value = true})		
-		Menu.combo:MenuElement({id = "Count", name = "Min Amount to hit R", value = 2, min = 1, max = 5, step = 1})
+		Menu.combo:MenuElement({id = "R2", name = "Use R Stun/Slow if killable", value = true})		
+		Menu.combo:MenuElement({id = "Count", name = "Min facing Amount to hit R", value = 2, min = 1, max = 5, step = 1})
 		Menu.combo:MenuElement({id = "P", name = "Use Panic R and Ghost", value = true})
 		Menu.combo:MenuElement({id = "HP", name = "Min HP % to Panic R", value = 30, min = 0, max = 100, step = 1})
 		Menu.combo:MenuElement({name = " ", drop = {"-------------------------------------------"}})		
