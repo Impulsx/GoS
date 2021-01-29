@@ -116,7 +116,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})			
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -395,7 +395,7 @@ function JungleClear()
         if minion.team == TEAM_JUNGLE then
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100
             
-			if not ActiveW and mana_ok and myHero.pos:DistanceTo(minion.pos) < 575 and IsValid(minion) and Ready(_Q) then
+			if Menu.JClear.UseQ:Value() and not ActiveW and mana_ok and myHero.pos:DistanceTo(minion.pos) < 575 and IsValid(minion) and Ready(_Q) then
                 Control.CastSpell(HK_Q, minion.pos)
             end
 			
