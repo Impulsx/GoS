@@ -15,7 +15,7 @@ Data = {
         },
         Cassiopeia = {
             Changelog = "Cassiopeia Changelog Here",
-            Version = 0.11,
+            Version = 0.12,
         },
         Lux = {
             Changelog = "Lux Changelog Here",
@@ -27,7 +27,7 @@ Data = {
         },
         Zyra = {
             Changelog = "Zyra Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         },
         XinZhao = {
             Changelog = "XinZhao Changelog Here",
@@ -55,7 +55,7 @@ Data = {
         },
         Tristana = {
             Changelog = "Tristana Changelog Here",
-            Version = 0.09,
+            Version = 0.10,
         }, 
         Sona = {
             Changelog = "Sona Changelog Here",
@@ -139,7 +139,7 @@ Data = {
         },
           Fiora = {
             Changelog = "Fiora Changelog Here",
-            Version = 0.09,
+            Version = 0.10,
         },
           Nocturne = {
             Changelog = "Nocturne Changelog Here",
@@ -147,7 +147,7 @@ Data = {
         }, 
           Garen = {
             Changelog = "Garen Changelog Here",
-            Version = 0.05,
+            Version = 0.06,
         }, 
           Pyke = {
             Changelog = "Pyke Changelog Here",
@@ -167,7 +167,7 @@ Data = {
         }, 
            FiddleSticks = {
             Changelog = "Fiddlesticks Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         }, 
            Zed = {
             Changelog = "Zed Changelog Here",
@@ -203,7 +203,7 @@ Data = {
         },
         Seraphine = {
             Changelog = "Seraphine Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         },
         Velkoz = {
             Changelog = "Velkoz Changelog Here",
@@ -247,7 +247,7 @@ Data = {
         }, 
            Aatrox = {
             Changelog = "Aatrox Changelog Here",
-           Version = 0.01,
+           Version = 0.02,
         },
            Azir = {
             Changelog = "Azir Changelog Here",
