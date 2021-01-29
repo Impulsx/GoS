@@ -31,10 +31,14 @@ local function CountEnemiesNear(pos, range)
 	return count
 end
 
+local function CastRange()
+	return 517 + (8 * myHero.levelData.lvl)
+end
+
 function LoadScript()
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})	
 	
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ2", name = "[Q]", value = true})	
@@ -82,26 +86,21 @@ function LoadScript()
 	Menu.Drawings:MenuElement({type = MENU, id = "R", name = "Draw R range"})
     Menu.Drawings.R:MenuElement({id = "Enabled", name = "Enabled", value = false})
     Menu.Drawings.R:MenuElement({id = "Width", name = "Width", value = 1, min = 1, max = 5, step = 1})
-    Menu.Drawings.R:MenuElement({id = "Color", name = "Color", color = DrawColor(200, 255, 255, 255)})
-	
-	
-	W = {Range = 900}
-	E = {Range = 517 + (8 * myHero.levelData.lvl)}
-	R = {Range = 517 + (8 * myHero.levelData.lvl)}
-	AA = {Range = 517 + (8 * myHero.levelData.lvl)}	
+    Menu.Drawings.R:MenuElement({id = "Color", name = "Color", color = DrawColor(200, 255, 255, 255)})	
      	                                           
 	Callback.Add("Tick", function() Tick() end)	
 
 	Callback.Add("Draw", function()
 		if myHero.dead then return end
-		if Ready(_W) and Menu.Drawings.W.Enabled:Value() then DrawCircle(myHero, W.Range, Menu.Drawings.W.Width:Value(), Menu.Drawings.W.Color:Value()) end
-		if Ready(_E) and Menu.Drawings.E.Enabled:Value() then DrawCircle(myHero, E.Range, Menu.Drawings.E.Width:Value(), Menu.Drawings.E.Color:Value()) end
-		if Ready(_R) and Menu.Drawings.R.Enabled:Value() then DrawCircle(myHero, R.Range, Menu.Drawings.R.Width:Value(), Menu.Drawings.R.Color:Value()) end
+		if Ready(_W) and Menu.Drawings.W.Enabled:Value() then DrawCircle(myHero, 900, Menu.Drawings.W.Width:Value(), Menu.Drawings.W.Color:Value()) end
+		if Ready(_E) and Menu.Drawings.E.Enabled:Value() then DrawCircle(myHero, CastRange(), Menu.Drawings.E.Width:Value(), Menu.Drawings.E.Color:Value()) end
+		if Ready(_R) and Menu.Drawings.R.Enabled:Value() then DrawCircle(myHero, CastRange(), Menu.Drawings.R.Width:Value(), Menu.Drawings.R.Color:Value()) end
 
 	end)	
 end
 
 function Tick()
+print(CastRange())
 if MyHeroNotReady() then return end
 
 local Mode = GetMode()
@@ -131,9 +130,9 @@ local function EDMG(unit)
 end
 
 function Finisher()
-local target = GetTarget(R.Range)
+local target = GetTarget(CastRange())
 if target == nil then return end
-	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < R.Range and Menu.Combo.UseR:Value() and Ready(_R) then	
+	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < CastRange() and Menu.Combo.UseR:Value() and Ready(_R) then	
 		local Buff = GotBuff(target, "tristanaecharge")
 		if Buff and Buff.count >= 3 then
 			local Edmg = EDMG(target)  
@@ -147,7 +146,7 @@ if target == nil then return end
 end
 
 function ComboQ()
-local target = GetTarget(E.Range)
+local target = GetTarget(CastRange())
 if target == nil then return end
 	
 	if IsValid(target) and Ready(_Q) and Menu.Combo.UseQ2:Value() then
@@ -162,7 +161,7 @@ if target == nil then return end
 end
 	
 function ComboE()
-local target = GetTarget(E.Range)
+local target = GetTarget(CastRange())
 if target == nil then return end
 		
 	if IsValid(target) and Menu.Combo.UseE:Value() and Menu.Combo.Targets[target.charName] and Menu.Combo.Targets[target.charName]:Value() and Ready(_E) then
@@ -173,26 +172,26 @@ end
 local Gapclose2 = false
 local LastPos2 = nil
 function GapcloseR()
-local target = GetTarget((R.Range+W.Range)-100)
+local target = GetTarget((CastRange()+900)-100)
 if target == nil then return end
 		
 	if IsValid(target) and Menu.Combo.gap.UseR:Value() and Ready(_R) then
 		local Rdamage = getdmg("R", target, myHero)		
 		if Rdamage > target.health then		
-			if myHero.pos:DistanceTo(target.pos) > R.Range and Ready(_W) then
-				local jump = Vector(myHero.pos):Extended(Vector(target.pos), W.Range)    ------
+			if myHero.pos:DistanceTo(target.pos) > CastRange() and Ready(_W) then
+				local jump = Vector(myHero.pos):Extended(Vector(target.pos), 900)    ------
 				LastPos2 = myHero.pos
 				Gapclose2 = true				
 				Control.CastSpell(HK_W, jump)
 			else
-				if myHero.pos:DistanceTo(target.pos) <= R.Range then
+				if myHero.pos:DistanceTo(target.pos) <= CastRange() then
 					Control.CastSpell(HK_R, target)
 				end
 			end
 		end
 	end
 	if Ready(_W) and Gapclose2 and Menu.Combo.gap.UseW:Value() and myHero.health/myHero.maxHealth <= Menu.Combo.gap.HP:Value() / 100 then
-		local jump = Vector(LastPos2):Shortened(Vector(target.pos), W.Range-LastPos2:DistanceTo(target.pos))
+		local jump = Vector(LastPos2):Shortened(Vector(target.pos), 900-LastPos2:DistanceTo(target.pos))
 		--DrawCircle(Vector(jump), 50, 1, DrawColor(255, 225, 255, 10))
 		if Control.CastSpell(HK_W, jump) then
 		Gapclose2 = false
@@ -208,9 +207,9 @@ function CastWBack()
 	if Ready(_W) and Menu.Combo.UseW:Value() then
 		for i, target in pairs(GetEnemyHeroes()) do
 			local Buff = GotBuff(target, "tristanaecharge")
-			if myHero.pos:DistanceTo(target.pos) < W.Range and IsValid(target) then
+			if myHero.pos:DistanceTo(target.pos) < 900 and IsValid(target) then
 				  			
-				if myHero.pos:DistanceTo(target.pos) > AA.Range+150 and Buff and Buff.count == 2 then	
+				if myHero.pos:DistanceTo(target.pos) > CastRange()+150 and Buff and Buff.count == 2 then	
 					LastPos = myHero.pos
 					Gapclose = true
 					Control.CastSpell(HK_W, target.pos)
@@ -218,7 +217,7 @@ function CastWBack()
 		
 			
 				if Ready(_W) and Gapclose then
-					local jump = Vector(LastPos):Shortened(Vector(target.pos), W.Range-LastPos:DistanceTo(target.pos))
+					local jump = Vector(LastPos):Shortened(Vector(target.pos), 900-LastPos:DistanceTo(target.pos))
 					--DrawCircle(Vector(jump), 50, 1, DrawColor(255, 225, 255, 10))
 					if Control.CastSpell(HK_W, jump) then
 					Gapclose = false
@@ -232,9 +231,9 @@ function CastWBack()
 end	
 		
 function HarassQ()
-local target = GetTarget(E.Range)
+local target = GetTarget(CastRange())
 if target == nil then return end
-	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < E.Range and Ready(_Q) and Menu.Harass.UseQ2:Value() then
+	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < CastRange() and Ready(_Q) and Menu.Harass.UseQ2:Value() then
 		if Menu.Harass.UseQ:Value() then	
 			if GotBuff(target, "tristanaecharge") then	
 				Control.CastSpell(HK_Q)
@@ -246,9 +245,9 @@ if target == nil then return end
 end
 
 function HarassE()
-local target = GetTarget(E.Range)
+local target = GetTarget(CastRange())
 if target == nil then return end
-    if IsValid(target) and myHero.pos:DistanceTo(target.pos) < E.Range and Menu.Harass.UseE:Value() and Ready(_E) then
+    if IsValid(target) and myHero.pos:DistanceTo(target.pos) < CastRange() and Menu.Harass.UseE:Value() and Ready(_E) then
 		Control.CastSpell(HK_E, target)
 		   
 	end
@@ -257,7 +256,7 @@ end
 function Clear()
     for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
-        if myHero.pos:DistanceTo(minion.pos) < E.Range and minion.team == TEAM_ENEMY and IsValid(minion) then
+        if myHero.pos:DistanceTo(minion.pos) < CastRange() and minion.team == TEAM_ENEMY and IsValid(minion) then
             local mana_ok = myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100
             
             if Menu.Clear.UseE:Value() and mana_ok then
