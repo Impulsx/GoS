@@ -247,7 +247,7 @@ Data = {
         }, 
            Aatrox = {
             Changelog = "Aatrox Changelog Here",
-           Version = 0.02,
+           Version = 0.03,
         },
            Azir = {
             Changelog = "Azir Changelog Here",
