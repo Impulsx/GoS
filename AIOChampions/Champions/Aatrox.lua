@@ -36,10 +36,11 @@ end
 
 function LoadScript()	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 	
 	--ComboMenu  
-	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Settings"})	
+	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Settings"})
+	Menu.Combo:MenuElement({id = "QMode", name = "On = Edge / Off = Ignore Edge", key = string.byte("T"), value = true, toggle = true})	
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q1],[Q2],[Q3]", value = true})
 	Menu.Combo:MenuElement({id = "UseW", name = "[W] after Q1", value = true})	
 	Menu.Combo:MenuElement({id = "UseE", name = "[E] for gapclose Q2/Q3 edge range", value = true})
@@ -70,7 +71,10 @@ function LoadScript()
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings Settings"})
 	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q1/Q2/Q3] Edge CastRange", value = true})
 	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
-	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})		
+	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
+	Menu.Drawing:MenuElement({type = MENU, id = "XY", name = "Text Pos Settings"})		
+	Menu.Drawing.XY:MenuElement({id = "x", name = "Pos: [X]", value = 700, min = 0, max = 1500, step = 10})
+	Menu.Drawing.XY:MenuElement({id = "y", name = "Pos: [Y]", value = 0, min = 0, max = 860, step = 10})	
 
 	
 	QData =
@@ -91,6 +95,12 @@ function LoadScript()
 	
 	Callback.Add("Draw", function()		
 		if myHero.dead then return end
+		DrawText("Q-Edge: ", 15, Menu.Drawing.XY.x:Value(), Menu.Drawing.XY.y:Value()+10, DrawColor(255, 225, 255, 0))
+		if Menu.Combo.QMode:Value() then
+			DrawText("ON", 15, Menu.Drawing.XY.x:Value()+55, Menu.Drawing.XY.y:Value()+10, DrawColor(255, 0, 255, 0))
+		else						
+			DrawText("OFF", 15, Menu.Drawing.XY.x:Value()+55, Menu.Drawing.XY.y:Value()+10, DrawColor(255, 255, 0, 0))		
+		end
 		                                             
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
 			local target = GetTarget(1000)
@@ -133,34 +143,70 @@ function Combo()
 	if IsValid(target) then
 
 		if Menu.Combo.UseQ:Value() and Ready(_Q) then 
-			if myHero:GetSpellData(_Q).name == "AatroxQ" then
-				if myHero.pos:DistanceTo(target.pos) < 600 then
-					QCast(target)
-				end	
-			elseif myHero:GetSpellData(_Q).name == "AatroxQ2" then
-				if myHero.pos:DistanceTo(target.pos) < 450 and myHero.pos:DistanceTo(target.pos) > 370 then
-					Control.CastSpell(HK_Q, target.pos)
+			if Menu.Combo.QMode:Value() then
+				if myHero:GetSpellData(_Q).name == "AatroxQ" then
+					if myHero.pos:DistanceTo(target.pos) < 600 then
+						QCast(target)
+					end	
+				elseif myHero:GetSpellData(_Q).name == "AatroxQ2" then
+					if myHero.pos:DistanceTo(target.pos) < 450 and myHero.pos:DistanceTo(target.pos) > 370 then
+						Control.CastSpell(HK_Q, target.pos)
+					else
+						 if Menu.Combo.UseE:Value() and Ready(_E) then
+							if myHero.pos:DistanceTo(target.pos) < 320 or myHero.pos:DistanceTo(target.pos) > 500 then
+								local EPos = Vector(target.pos) + (Vector(myHero.pos) - Vector(target.pos)): Normalized() * 400
+								Control.CastSpell(HK_E, EPos)
+							end
+						end	
+					end	
 				else
-					 if Menu.Combo.UseE:Value() and Ready(_E) then
-						if myHero.pos:DistanceTo(target.pos) < 320 or myHero.pos:DistanceTo(target.pos) > 500 then
-							local EPos = Vector(target.pos) + (Vector(myHero.pos) - Vector(target.pos)): Normalized() * 400
-							Control.CastSpell(HK_E, EPos)
+					if myHero:GetSpellData(_Q).name == "AatroxQ3" then
+						if myHero.pos:DistanceTo(target.pos) < 340 then
+							Control.CastSpell(HK_Q, target.pos)
+						else
+							 if Menu.Combo.UseE:Value() and Ready(_E) then
+								if myHero.pos:DistanceTo(target.pos) < 640 then
+									local EPos = Vector(target.pos) + (Vector(myHero.pos) - Vector(target.pos)): Normalized() * 300
+									Control.CastSpell(HK_E, EPos)
+								end
+							end						
 						end
 					end	
 				end	
 			else
-				if myHero:GetSpellData(_Q).name == "AatroxQ3" then
-					if myHero.pos:DistanceTo(target.pos) < 340 then
+				if myHero:GetSpellData(_Q).name == "AatroxQ" then
+					if myHero.pos:DistanceTo(target.pos) < 600 then
+						QCast(target)
+					else
+						if Menu.Combo.UseE:Value() and Ready(_E) then
+							if myHero.pos:DistanceTo(target.pos) < 800 then
+								Control.CastSpell(HK_E, target.pos)
+							end
+						end							
+					end	
+				elseif myHero:GetSpellData(_Q).name == "AatroxQ2" then
+					if myHero.pos:DistanceTo(target.pos) < 450 then
 						Control.CastSpell(HK_Q, target.pos)
 					else
-						 if Menu.Combo.UseE:Value() and Ready(_E) then
-							if myHero.pos:DistanceTo(target.pos) < 640 then
-								local EPos = Vector(target.pos) + (Vector(myHero.pos) - Vector(target.pos)): Normalized() * 300
-								Control.CastSpell(HK_E, EPos)
+						if Menu.Combo.UseE:Value() and Ready(_E) then
+							if myHero.pos:DistanceTo(target.pos) < 700 then
+								Control.CastSpell(HK_E, target.pos)
 							end
-						end						
-					end
-				end	
+						end	
+					end	
+				else
+					if myHero:GetSpellData(_Q).name == "AatroxQ3" then
+						if myHero.pos:DistanceTo(target.pos) < 340 then
+							Control.CastSpell(HK_Q, target.pos)
+						else
+							if Menu.Combo.UseE:Value() and Ready(_E) then
+								if myHero.pos:DistanceTo(target.pos) < 600 then
+									Control.CastSpell(HK_E, target.pos)
+								end
+							end						
+						end
+					end	
+				end			
 			end	
 		end
 
