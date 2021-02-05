@@ -275,6 +275,10 @@ Data = {
           Viego = {
             Changelog = "Viego Changelog Here",
           Version = 0.01,
+        },
+           Xayah = {
+            Changelog = "Xayah Changelog Here",
+          Version = 0.01,
         },        
     },
     Loader = {
