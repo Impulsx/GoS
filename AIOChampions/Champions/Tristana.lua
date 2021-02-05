@@ -38,7 +38,7 @@ end
 function LoadScript()
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.11"}})	
 	
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ2", name = "[Q]", value = true})	
@@ -100,7 +100,7 @@ function LoadScript()
 end
 
 function Tick()
-print(CastRange())
+--print(CastRange())
 if MyHeroNotReady() then return end
 
 local Mode = GetMode()
