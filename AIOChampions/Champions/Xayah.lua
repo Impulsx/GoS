@@ -96,7 +96,7 @@ end
 function LoadScript() 
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})			
 		
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -168,7 +168,7 @@ function LoadScript()
 	RspellData = {speed = MathHuge, range = 1100, delay = 1, radius = 150, collision = {nil}, type = "linear"}	
   	                                           
 	Callback.Add("Tick", function() Tick() end)
-	Callback.Add("WndMsg", function(msg, param) CheckWndMsg(msg, param) end)
+	--Callback.Add("WndMsg", function(msg, param) CheckWndMsg(msg, param) end)
 	
 	Callback.Add("Draw", function()
 		if myHero.dead then return end
@@ -184,7 +184,7 @@ end
 
 function Tick()		
 	RemoveFeather()
-	
+	Check()
 	if MyHeroNotReady() then return end
 	local Mode = GetMode()
 	if Mode == "Combo" then
@@ -198,13 +198,13 @@ function Tick()
 	AutoCast()
 end
 
-function CheckWndMsg(msg, param)
+function Check()
 	local delay = nil
-	if param == 81 then
+	if myHero.activeSpell.name == "XayahQ" then
 		delay = 0.5 + ping
-	elseif param == 82 then
+	elseif myHero.activeSpell.name == "XayahR" then
 		delay = 1 + ping
-	elseif param == 69 then
+	elseif myHero.activeSpell.name == "XayahE" then
 		delay = 0.25 + ping
 	elseif myHero.activeSpell.name == "XayahPassiveAttack" then
 		delay = 0.25 + ping		
@@ -243,7 +243,7 @@ function RemoveFeather()
 		if Feathers[i] then
 			local feather = Feathers[i] 
 			local object = feather.obj
-			if object and (object.health <= 0 or object.name ~= "Xayah_Base_Passive_Dagger_Mark8s") then				
+			if object and object.name ~= "Xayah_Base_Passive_Dagger_Mark8s" then				
 				TableRemove(Feathers, i)
 				--print("Removed")
 			end
