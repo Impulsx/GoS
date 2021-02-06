@@ -107,7 +107,7 @@ function Tick()
 	if MyHeroNotReady() then return end
 	local Mode = GetMode()
 	if Mode == "Combo" then
-		if myHero:GetSpellData(_Q).name ~= "ViegoQ" then
+		if HasBuff(myHero, "viegopassivetransform") then
 			if Menu.Combo.Soul:Value() then
 				Combo2()
 			end
@@ -271,21 +271,21 @@ function PredCast(unit, Spell)
 		SpellSpeed = MathHuge
 	end	
 		
-	if spell == _Q then 
+	if Spell == _Q then 
 		local QPrediction = GGPrediction:SpellPrediction({Type = SpellType, Delay = SpellDelay, Radius = SpellRadius, Range = SpellRange, Speed = SpellSpeed, Collision = false})
 		QPrediction:GetPrediction(unit, myHero)
 		if QPrediction:CanHit(2) then
 			Control.CastSpell(HK_Q, QPrediction.CastPosition)
 		end	
 	
-	elseif spell == _W then
+	elseif Spell == _W then
 		local WPrediction = GGPrediction:SpellPrediction({Type = SpellType, Delay = SpellDelay, Radius = SpellRadius, Range = SpellRange, Speed = SpellSpeed, Collision = false})
 		WPrediction:GetPrediction(unit, myHero)
 		if WPrediction:CanHit(2) then
 			Control.CastSpell(HK_W, WPrediction.CastPosition)
 		end	
 	else
-		if spell == _E then
+		if Spell == _E then
 			local EPrediction = GGPrediction:SpellPrediction({Type = SpellType, Delay = SpellDelay, Radius = SpellRadius, Range = SpellRange, Speed = SpellSpeed, Collision = false})
 			EPrediction:GetPrediction(unit, myHero)
 			if EPrediction:CanHit(2) then
