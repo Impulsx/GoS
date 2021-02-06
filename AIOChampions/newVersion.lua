@@ -283,7 +283,7 @@ Data = {
         }, 
            Xayah = {
             Changelog = "Xayah Changelog Here",
-          Version = 0.03,
+          Version = 0.04,
         },         
     },
 }
