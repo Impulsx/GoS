@@ -76,13 +76,22 @@ local function PredictUnitPosition(unit, delay)
 	return predictedPosition
 end
 
-local Feathers = {}
+local OnPostAttack
+OnPostAttack = function(fn)
+    if _G.SDK then
+        return _G.SDK.Orbwalker:OnPostAttack(fn)    
+	elseif _G.PremiumOrbwalker then
+		return _G.PremiumOrbwalker:OnPostAttack(fn)
+	end
+end
+
+local Timer = Game.Timer
+local PassiveTable = {}
 local function GetLineTargetCount(source, Pos, delay, speed, width)
 	local Count = 0
-	for i = 1, #Feathers do
-		local feather = Feathers[i]
-		local object = feather.obj
-		if object and GetDistance(object.pos, myHero.pos) <= 3000 then
+	for i = 1, #PassiveTable do
+		local object = PassiveTable[i]
+		if object and object.placetime > Game.Timer() and GetDistance(object.pos, myHero.pos) <= 3000 then
 			local predictedPos = PredictUnitPosition(Pos, delay+ GetDistance(source, Pos.pos) / speed)
 			local pointLine, proj1, isOnSegment = VectorPointProjectionOnLineSegment(source, object.pos, predictedPos)
 			if proj1 and isOnSegment and (GetDistanceSqr(predictedPos, proj1) <= (Pos.boundingRadius + width) * (Pos.boundingRadius + width)) then
@@ -96,7 +105,7 @@ end
 function LoadScript() 
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})			
 		
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -168,7 +177,8 @@ function LoadScript()
 	RspellData = {speed = MathHuge, range = 1100, delay = 1, radius = 150, collision = {nil}, type = "linear"}	
   	                                           
 	Callback.Add("Tick", function() Tick() end)
-	--Callback.Add("WndMsg", function(msg, param) CheckWndMsg(msg, param) end)
+	Callback.Add("WndMsg", function(msg, param) CheckWndMsg(msg, param) end)
+	OnPostAttack(function(...) PostAttack(...) end)
 	
 	Callback.Add("Draw", function()
 		if myHero.dead then return end
@@ -183,8 +193,6 @@ function LoadScript()
 end
 
 function Tick()		
-	RemoveFeather()
-	Check()
 	if MyHeroNotReady() then return end
 	local Mode = GetMode()
 	if Mode == "Combo" then
@@ -198,57 +206,54 @@ function Tick()
 	AutoCast()
 end
 
-function Check()
-	local delay = nil
-	if myHero.activeSpell.name == "XayahQ" then
-		delay = 0.5 + ping
-	elseif myHero.activeSpell.name == "XayahR" then
-		delay = 1 + ping
-	elseif myHero.activeSpell.name == "XayahE" then
-		delay = 0.25 + ping
-	elseif myHero.activeSpell.name == "XayahPassiveAttack" then
-		delay = 0.25 + ping		
-	end
+function CheckWndMsg(msg, param)
+	if msg == 257 then
+		local delay = nil
+		if param == HK_Q then
+			delay = 0.5 + ping
+		elseif param == HK_R then
+			delay = 1 + ping
+		elseif param == HK_E then
+			delay = ping
+		end
 	
-	if delay then               
-		DelayAction(function() 
-			CheckFeathers() 
-		end, delay)
+		if delay then               
+			DelayAction(function() 
+				CheckFeathers() 
+			end, delay)
+		end
+	end	
+end
+
+function PostAttack()
+	CheckFeathers()
+end
+
+-- Stolen from WR --
+function CheckFeather(obj)
+	for i = 1, #PassiveTable do
+		if PassiveTable[i].ID == obj.networkID then
+			return true
+		end
 	end
 end
 
 function CheckFeathers()
-	for i = 0, GameObjectCount() do
-		local object = GameObject(i)
-		local NewFeather = true
-		if object and  myHero.pos:DistanceTo(object.pos) < 3500 and object.name == "Xayah_Base_Passive_Dagger_Mark8s" then
-			for i = 1, #Feathers do
-				if Feathers[i].networkID == object.networkID then
-					NewFeather = false
-				end
-			end				
-			
-			if NewFeather then 
-				if object.name == "Xayah_Base_Passive_Dagger_Mark8s" then
-					--print("FoundNew")
-					TableInsert(Feathers, 1, {obj = object, networkID = object.networkID})
-				end	
-			end	
-		end
-	end		
-end
-
-function RemoveFeather()
-	for i = 1, #Feathers do
-		if Feathers[i] then
-			local feather = Feathers[i] 
-			local object = feather.obj
-			if object and object.name ~= "Xayah_Base_Passive_Dagger_Mark8s" then				
-				TableRemove(Feathers, i)
-				--print("Removed")
+	for i = 1, GameMissileCount() do
+		local missile = GameMissile(i)
+		--print(missile.missileData.name)
+		if missile.missileData and missile.missileData.owner == myHero.handle and not CheckFeather(missile) then
+			if missile.missileData.name:find("XayahQMissile1") or missile.missileData.name:find("XayahQMissile2") then 
+				PassiveTable[#PassiveTable + 1] = {placetime = Timer() + 6, ID = missile.networkID, pos = Vector(missile.missileData.endPos), hit = false} 
+			elseif missile.missileData.name:find("XayahRMissile") then
+				PassiveTable[#PassiveTable + 1] = {placetime = Timer() + 6, ID = missile.networkID, pos = Vector(missile.missileData.endPos):Extended(myHero.pos, 100), hit = false} 
+			elseif missile.missileData.name:find("XayahPassiveAttack") then
+				PassiveTable[#PassiveTable + 1] = {placetime = Timer() + 6, ID = missile.networkID, pos = Vector(myHero.pos:Extended(missile.missileData.endPos, 1000)), hit = false} 
+			elseif missile.missileData.name:find("XayahEMissileSFX") then
+				PassiveTable = {}
 			end
-		end	
-	end
+		end
+	end	
 end
 
 function AutoCast()
