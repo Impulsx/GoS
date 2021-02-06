@@ -47,13 +47,14 @@ function LoadScript()
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
 	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})			
-		
+	 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
-	Menu.Combo:MenuElement({id = "UseR", name = "Not Transformed [R] KS", value = true})	
+	Menu.Combo:MenuElement({id = "UseR", name = "Not Transformed [R] KS", value = true})
+	Menu.Combo:MenuElement({id = "Soul", name = "Cast Spells if have Soul ?", value = true})	
 	  
 	--LaneClear Menu
 	Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear"})			
@@ -107,7 +108,9 @@ function Tick()
 	local Mode = GetMode()
 	if Mode == "Combo" then
 		if myHero:GetSpellData(_Q).name ~= "ViegoQ" then
-			Combo2()
+			if Menu.Combo.Soul:Value() then
+				Combo2()
+			end
 		else
 			Combo1()
 		end	
