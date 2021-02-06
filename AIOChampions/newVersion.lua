@@ -279,7 +279,7 @@ Data = {
         },
           Viego = {
             Changelog = "Viego Changelog Here",
-          Version = 0.01,
+          Version = 0.02,
         }, 
            Xayah = {
             Changelog = "Xayah Changelog Here",
