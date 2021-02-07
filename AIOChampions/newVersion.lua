@@ -284,7 +284,11 @@ Data = {
            Xayah = {
             Changelog = "Xayah Changelog Here",
           Version = 0.04,
-        },         
+        },
+           Evelynn = {
+            Changelog = "Evelynn Changelog Here",
+          Version = 0.01,
+        },        
     },
 }
 
