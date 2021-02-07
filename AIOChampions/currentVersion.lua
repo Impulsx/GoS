@@ -279,6 +279,10 @@ Data = {
            Xayah = {
             Changelog = "Xayah Changelog Here",
           Version = 0.01,
+        },
+           Evelynn = {
+            Changelog = "Evelynn Changelog Here",
+          Version = 0.01,
         },        
     },
     Loader = {
