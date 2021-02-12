@@ -6,12 +6,12 @@ do
         Lua = {
             Path = SCRIPT_PATH,
             Name = "PussyUtilityAIO.lua",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyUtilityAIO.lua"
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/Utility/PussyUtilityAIO.lua"
         },
         Version = {
             Path = SCRIPT_PATH,
             Name = "PussyUtilityAIO.version",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/PussyUtilityAIO.version"
+            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/Utility/PussyUtilityAIO.version"
         }
     }
     
