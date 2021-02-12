@@ -1,6 +1,6 @@
 do
     
-    local Version = 0.01
+    local Version = 0.02
     
     local Files = {
         Lua = {
@@ -652,20 +652,19 @@ function CooldownTracker:__init()
 end
 
 function CooldownTracker:CLoadData()
-	local _URL = "MenuElement\\"
 	local _SIZE = 0.35
 	
-	self.Summon["SummonerBarrier"] = Sprite(_URL.."SummonerBarrier.png", _SIZE)
-	self.Summon["SummonerBoost"] = Sprite(_URL.."SummonerBoost.png", _SIZE)
-	self.Summon["SummonerExhaust"] = Sprite(_URL.."SummonerExhaust.png", _SIZE)
-	self.Summon["SummonerFlash"] = Sprite(_URL.."SummonerFlash.png", _SIZE)
-	self.Summon["SummonerHaste"] = Sprite(_URL.."SummonerHaste.png", _SIZE)
-	self.Summon["SummonerHeal"] = Sprite(_URL.."SummonerHeal.png", _SIZE)
-	self.Summon["SummonerDot"] = Sprite(_URL.."SummonerDot.png", _SIZE)
-	self.Summon["SummonerSmite"] = Sprite(_URL.."SummonerSmite.png", _SIZE)
-	self.Summon["S5_SummonerSmitePlayerGanker"] = Sprite(_URL.."SummonerSmite.png", _SIZE)
-	self.Summon["S5_SummonerSmiteDuel"] = Sprite(_URL.."SummonerSmite.png", _SIZE)
-	self.Summon["SummonerTeleport"] = Sprite(_URL.."SummonerTeleport.png", _SIZE)
+	self.Summon["SummonerBarrier"] = Sprite("SummonerBarrier.png", _SIZE)
+	self.Summon["SummonerBoost"] = Sprite("SummonerBoost.png", _SIZE)
+	self.Summon["SummonerExhaust"] = Sprite("SummonerExhaust.png", _SIZE)
+	self.Summon["SummonerFlash"] = Sprite("SummonerFlash.png", _SIZE)
+	self.Summon["SummonerHaste"] = Sprite("SummonerHaste.png", _SIZE)
+	self.Summon["SummonerHeal"] = Sprite("SummonerHeal.png", _SIZE)
+	self.Summon["SummonerDot"] = Sprite("SummonerDot.png", _SIZE)
+	self.Summon["SummonerSmite"] = Sprite("SummonerSmite.png", _SIZE)
+	self.Summon["S5_SummonerSmitePlayerGanker"] = Sprite("SummonerSmite.png", _SIZE)
+	self.Summon["S5_SummonerSmiteDuel"] = Sprite("SummonerSmite.png", _SIZE)
+	self.Summon["SummonerTeleport"] = Sprite("SummonerTeleport.png", _SIZE)
 end
 
 function CooldownTracker:LoadCTrackerMenu()
