@@ -283,7 +283,11 @@ Data = {
            Evelynn = {
             Changelog = "Evelynn Changelog Here",
           Version = 0.01,
-        },        
+        },
+          Riven = {
+            Changelog = "Riven Changelog Here",
+          Version = 0.01,
+        },         
     },
     Loader = {
         Version = 0.2,
