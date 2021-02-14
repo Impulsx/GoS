@@ -125,7 +125,7 @@ end
 
 function LoadScript() 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
 	Menu:MenuElement({name = " ", drop = {"Ported from Rman/ProjectWinRate"}})	
 		
 	--ComboMenu  
@@ -261,7 +261,6 @@ function GetActiveBurst()
 end
 
 function OnWndMsg(msg, param)
-	DelayAction(function() UpdateItems() end, 0.1)
 	if msg ~= 257 then return end
 	--
 	local spell
@@ -279,19 +278,6 @@ function OnWndMsg(msg, param)
 	elseif GetActiveBurst() == 2 then
 		OnProcessSpellWer(spell)
 	end           
-end
-
-local itemID = {Youmuu = 3142, Tiamat = 3077, Hydra = 3074, Titanic = 3748}
-local itemName = {[3142] = "Youmuu", [3077] = "Tiamat", [3074] = "Hydra", [3748] = "Titanic"}
-function UpdateItems()              
-	for i = ITEM_1, ITEM_7 do
-		local id = myHero:GetItemData(i).itemID
-		local name = itemName[id]
-		if name then                
-			if (self[name] and i == self[name].Index and id ~= itemID[name]) then self[name] = nil end                 
-			self[name] = {Index = i, Key = ItemHotKey[i]}                
-		end    
-	end
 end
 
 function FOnPreMovement(args)
