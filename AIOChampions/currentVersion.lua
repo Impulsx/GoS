@@ -287,6 +287,10 @@ Data = {
           Riven = {
             Changelog = "Riven Changelog Here",
           Version = 0.01,
+        },
+          Anivia = {
+            Changelog = "Anivia Changelog Here",
+          Version = 0.01,
         },         
     },
     Loader = {
