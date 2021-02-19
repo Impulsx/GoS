@@ -306,7 +306,7 @@ end
 function Activator:LoadMenu()
     
     self.Menu = MenuElement({type = MENU, id = "PussyActivator", leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png"})
-	self.Menu:MenuElement({name = " ", drop = {"Version 0.30"}})    
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.31"}})    
 	
 	--Shield/Heal MyHero
     self.Menu:MenuElement({id = "ZS", name = "MyHero/Ally [Shield/Heal Items]", type = MENU})
@@ -381,7 +381,9 @@ function Activator:LoadMenu()
 	self.Menu.Dmg:MenuElement({id = "Claw", name = "Prowler's Claw", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6693.png"})	
  	self.Menu.Dmg:MenuElement({id = "Hex", name = "Hextech Rocketbelt", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3152.png"})		
  	self.Menu.Dmg:MenuElement({id = "Gale", name = "Galeforce", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6671.png"}) 	
- 	self.Menu.Dmg:MenuElement({id = "EFrost", name = "EverFrost", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6656.png"}) 	      
+	self.Menu.Dmg:MenuElement({id = "Gale2", name = "Galeforce if Enemy miss Hp bigger than ->", value = 60, min = 0, max = 70, identifier = "%"})
+	self.Menu.Dmg:MenuElement({id = "Gale3", name = "Galeforce max Range", value = 800, min = 250, max = 1000, step = 10}) 	
+	self.Menu.Dmg:MenuElement({id = "EFrost", name = "EverFrost", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6656.png"}) 	      
  	self.Menu.Dmg:MenuElement({id = "Omen", name = "Randuin's Omen", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/3143.png"})	
  	self.Menu.Dmg:MenuElement({id = "Ocount", name = "Randuin's Omen min Targets", value = 2, min = 1, max = 5, step = 1})	
  	self.Menu.Dmg:MenuElement({id = "Gore", name = "Goredrinker", value = true, leftIcon = "https://ddragon.leagueoflegends.com/cdn/10.23.1/img/item/6630.png"})
@@ -877,7 +879,7 @@ local Hex, Frost, Gale, Claw, Stride, Turbo = GetInventorySlotItem(3152), GetInv
             Control.CastSpell(ItemHotKey[Stride], target.pos)
         end	
 	
-		if Gale and self.Menu.Dmg.Gale:Value() and myHero.pos:DistanceTo(target.pos) < 450 and myHero.pos:DistanceTo(target.pos) > 210 then 
+		if Gale and self.Menu.Dmg.Gale:Value() and myHero.pos:DistanceTo(target.pos) < self.Menu.Dmg.Gale3:Value() and myHero.pos:DistanceTo(target.pos) > 210 and ((self.Menu.Dmg.Gale2:Value()/100) * (target.maxHealth/100)) <= ((target.maxHealth - target.health)/100) then 
             Control.CastSpell(ItemHotKey[Gale], target.pos)
         end
 		
@@ -1014,8 +1016,7 @@ function Activator:Summoner()
 end	
 		
 function Activator:Ignite()		
-	for i, target in pairs(GetEnemyHeroes()) do
-   
+	for i, target in pairs(GetEnemyHeroes()) do	
 		if target and GetDistance(myHero.pos, target.pos) < 600 and IsValid(target) then	
         
 			if self.Menu.summ.ign.ST:Value() == 1 then
@@ -1028,7 +1029,7 @@ function Activator:Ignite()
 				end
 				
 			else
-			
+				
 				local IGdamage = 50 + 20 * myHero.levelData.lvl - (target.hpRegen*3)
 				if target.health <= IGdamage then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
