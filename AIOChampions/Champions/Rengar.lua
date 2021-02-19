@@ -11,7 +11,7 @@ end
 local function IsImmobile(unit)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
-		if buff and (buff.type == 5 or buff.type == 8 or buff.type == 11 or buff.type == 21 or buff.name == 22 or buff.name == 24 ) and buff.count > 0 then
+		if buff and (buff.type == 5 or buff.type == 8 or buff.type == 10 or buff.type == 11 or buff.type == 21 or buff.type == 22 or buff.type == 24 ) and buff.count > 0 then
 			return true
 		end
 	end
@@ -21,7 +21,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})
 	
 	Menu:MenuElement({type = MENU, id = "Prio", name = "Empowered Spell Priority"})	
 	Menu.Prio:MenuElement({id = "Logic", name = "Empowered[Q] / Empowered[E]", key = string.byte("T"), toggle = true})	
