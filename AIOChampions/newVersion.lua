@@ -19,19 +19,19 @@ Data = {
         },
         Lux = {
             Changelog = "Lux Changelog Here",
-            Version = 0.14,
+            Version = 0.15,
         },
         Soraka = {
             Changelog = "Soraka Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         },
         Zyra = {
             Changelog = "Zyra Changelog Here",
-            Version = 0.09,
+            Version = 0.10,
         },
         XinZhao = {
             Changelog = "XinZhao Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         }, 
         Nidalee = {
             Changelog = "Nidalee Changelog Here",
@@ -43,7 +43,7 @@ Data = {
         }, 
          Neeko = {
             Changelog = "Neeko Changelog Here",
-            Version = 0.07,
+            Version = 0.08,
         }, 
         Warwick = {
             Changelog = "Warwick Changelog Here",
@@ -51,7 +51,7 @@ Data = {
         },
         Veigar = {
             Changelog = "Veigar Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         },
         Tristana = {
             Changelog = "Tristana Changelog Here",
@@ -63,7 +63,7 @@ Data = {
         }, 
         Morgana = {
             Changelog = "Morgana Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         },
         Kassadin = {
             Changelog = "Kassadin Changelog Here",
@@ -75,7 +75,7 @@ Data = {
         },
         Malzahar = {
             Changelog = "Malzahar Changelog Here",
-            Version = 0.09,
+            Version = 0.10,
         }, 
         Camille = {
             Changelog = "Camille Changelog Here",
@@ -87,11 +87,11 @@ Data = {
         },
          Ahri = {
             Changelog = "Ahri Changelog Here",
-            Version = 0.11,
+            Version = 0.12,
         },
          Ekko = {
             Changelog = "Ekko Changelog Here",
-            Version = 0.09,
+            Version = 0.10,
         }, 
          LeeSin = {
             Changelog = "LeeSin Changelog Here",
@@ -99,15 +99,15 @@ Data = {
         },
          Sylas = {
             Changelog = "Sylas Changelog Here",
-            Version = 0.07,
+            Version = 0.08,
         }, 
          Zoe = {
             Changelog = "Zoe Changelog Here",
-            Version = 0.11,
+            Version = 0.12,
         },
          Caitlyn = {
             Changelog = "Caitlyn Changelog Here",
-            Version = 0.18,
+            Version = 0.19,
         },
           Kaisa = {
             Changelog = "Kaisa Changelog Here",
@@ -131,7 +131,7 @@ Data = {
         },
          Rengar = {
             Changelog = "Rengar Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         },
          Diana = {
             Changelog = "Diana Changelog Here",
@@ -175,7 +175,7 @@ Data = {
         },
            Volibear = {
             Changelog = "Volibear Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         }, 
            Karthus = {
             Changelog = "Karthus Changelog Here",
@@ -203,7 +203,7 @@ Data = {
         },
         Seraphine = {
             Changelog = "Seraphine Changelog Here",
-            Version = 0.05,
+            Version = 0.06,
         },
         Velkoz = {
             Changelog = "Velkoz Changelog Here",
@@ -231,7 +231,7 @@ Data = {
         },
           Thresh = {
             Changelog = "Thresh Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         },
           Rell = {
             Changelog = "Rell Changelog Here",
@@ -271,7 +271,7 @@ Data = {
         },
            Alistar = {
             Changelog = "Alistar Changelog Here",
-           Version = 0.02,
+           Version = 0.03,
         },
            Brand = {
             Changelog = "Brand Changelog Here",
@@ -283,7 +283,7 @@ Data = {
         }, 
            Xayah = {
             Changelog = "Xayah Changelog Here",
-          Version = 0.04,
+          Version = 0.05,
         },
            Evelynn = {
             Changelog = "Evelynn Changelog Here",
