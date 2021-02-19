@@ -4,7 +4,7 @@
 
 do
     
-    local Version = 0.30
+    local Version = 0.32
     
     local Files =
     {
@@ -306,7 +306,7 @@ end
 function Activator:LoadMenu()
     
     self.Menu = MenuElement({type = MENU, id = "PussyActivator", leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png"})
-	self.Menu:MenuElement({name = " ", drop = {"Version 0.31"}})    
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.32"}})    
 	
 	--Shield/Heal MyHero
     self.Menu:MenuElement({id = "ZS", name = "MyHero/Ally [Shield/Heal Items]", type = MENU})
