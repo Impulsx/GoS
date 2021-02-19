@@ -214,7 +214,7 @@ end
 
 function LoadScript()	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 
 	Menu:MenuElement({ type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]+[Q2]", value = true })
@@ -283,14 +283,16 @@ end
 function Tick()	
 	CheckSpells()
 	if MyHeroNotReady() then return end
-	AutoW()
 
 	local Mode = GetMode()
 	if Mode == "Combo" then
 		Combo()
 	elseif Mode == "Harass" then
-		Harass()		
+		Harass()
 	end	
+	if Mode ~= "Clear" then
+		AutoW()
+	end		
 end
 
 function CheckSpells()	
@@ -710,4 +712,3 @@ function CastR(target)
 		end
 	end
 end
-
