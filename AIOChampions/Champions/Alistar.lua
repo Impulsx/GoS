@@ -4,7 +4,7 @@ local LastW = 0
 local function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
-		if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.name == 10 or buff.type == 22 or buff.name == 8 ) and buff.count > 0 then
+		if buff and (buff.type == 5 or buff.type == 11 or buff.type == 29 or buff.type == 24 or buff.type == 10 or buff.type == 22 or buff.type == 8 ) and buff.count > 0 then
 			return true
 		end
 	end
@@ -50,7 +50,7 @@ function LoadScript()
 	--MainMenu
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
 	Menu:MenuElement({name = " ", drop = {"Reworked Trust Alistar"}})	
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 	
 	--[[Protector]]
 	Menu:MenuElement({type = MENU, id = "Protector", name = "Protect from dashes"})
