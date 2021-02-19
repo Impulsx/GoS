@@ -34,7 +34,7 @@ end
 local function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
-		if buff and (buff.type == 30 or buff.type == 22 or buff.type == 28 or buff.type == 8 or buff.name == 10 or buff.name == 18 or buff.name == 24 ) and buff.count > 0 then
+		if buff and (buff.type == 30 or buff.type == 22 or buff.type == 28 or buff.type == 8 or buff.type == 10 or buff.type == 18 or buff.type == 24 ) and buff.count > 0 then
 			return true
 		end
 	end
@@ -108,7 +108,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})	
 
 	--AutoE  
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "E Settings"})
