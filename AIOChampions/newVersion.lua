@@ -203,7 +203,7 @@ Data = {
         },
         Seraphine = {
             Changelog = "Seraphine Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
         Velkoz = {
             Changelog = "Velkoz Changelog Here",
