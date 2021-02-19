@@ -108,7 +108,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
 
 	--AutoE  
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "E Settings"})
@@ -193,12 +193,7 @@ function LoadScript()
 	Callback.Add("Draw", function()
 		
 		if Menu.Drawing.DrawR:Value() and Ready(_R) then
-			local range, target = RRange()
-			if target then
-				DrawCircle(myHero, range, 1, DrawColor(255, 225, 255, 10))
-			else
-				DrawCircle(myHero, 1200, 1, DrawColor(255, 225, 255, 10))
-			end	
+		DrawCircle(myHero, 1200, 1, DrawColor(255, 225, 255, 10))
 		end 		
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
 		DrawCircle(myHero, 900, 1, DrawColor(225, 225, 0, 10))
