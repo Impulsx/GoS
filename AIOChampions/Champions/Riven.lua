@@ -1,5 +1,5 @@
 local QStacks = 0 
-local QLastCast  = Game.Timer()
+local QLastCast = Game.Timer()
 local WRange = 260
 local Flash = 	myHero:GetSpellData(SUMMONER_1).name:find("Flash") and {Index = SUMMONER_1, Key = HK_SUMMONER_1} or
 				myHero:GetSpellData(SUMMONER_2).name:find("Flash") and {Index = SUMMONER_2, Key = HK_SUMMONER_2} or nil
@@ -72,6 +72,10 @@ local function Orbwalk()
 	_G.SDK.Orbwalker:Orbwalk()
 end
 
+local function CanAttack()
+	_G.SDK.Orbwalker:CanAttack()
+end
+
 local function ResetAutoAttack()
 	_G.SDK.Orbwalker:__OnAutoAttackReset()
 end
@@ -123,9 +127,22 @@ local function IsFacing(unit, p2)
     end
 end
 
+local function IsR1()
+	return myHero:GetSpellData(_R).name:find("RivenFengShuiEngine")
+end
+
+local function IsR2()
+	return myHero:GetSpellData(_R).name:find("RivenIzunaBlade")
+end
+	
+local function PressKey(k)
+	Control.KeyDown(k)
+	Control.KeyUp(k)
+end	
+
 function LoadScript() 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
 	Menu:MenuElement({name = " ", drop = {"Ported from Rman/ProjectWinRate"}})	
 		
 	--ComboMenu  
@@ -180,9 +197,9 @@ function LoadScript()
 	Menu.Misc:MenuElement({name = " ", drop = {"Misc Settings [Q]"}})
 	Menu.Misc:MenuElement({id = "Alive", name = "Keep Alive", value = false})	
     Menu.Misc:MenuElement({id = "Delay", name = "Animation Cancelling", type = MENU})	
-	Menu.Misc.Delay:MenuElement({id = "Q1", name = "Extra Q1 Delay", value = 100, min = 0, max = 200})
-	Menu.Misc.Delay:MenuElement({id = "Q2", name = "Extra Q2 Delay", value = 100, min = 0, max = 200})
-	Menu.Misc.Delay:MenuElement({id = "Q3", name = "Extra Q3 Delay", value = 100, min = 0, max = 200}) 	
+	Menu.Misc.Delay:MenuElement({id = "Q1", name = "Extra Q1 Delay", value = 0.09, min = 0, max = 2, step = 0.01, identifier = "sec"})
+	Menu.Misc.Delay:MenuElement({id = "Q2", name = "Extra Q2 Delay", value = 0.09, min = 0, max = 2, step = 0.01, identifier = "sec"})
+	Menu.Misc.Delay:MenuElement({id = "Q3", name = "Extra Q3 Delay", value = 0.09, min = 0, max = 2, step = 0.01, identifier = "sec"}) 	
 	Menu.Misc:MenuElement({name = " ", drop = {"Misc Settings [W]"}})
 	Menu.Misc:MenuElement({id = "AutoStun", name = "Auto Stun Nearby", value = 2, min = 0, max = 5, step = 1})
 	Menu.Misc:MenuElement({id = "Burst", name = "Burst Settings", type = MENU})
@@ -216,32 +233,29 @@ function LoadScript()
 			end	
 		end
 	end)
-	Callback.Add("Tick", function() Tick() end)
-	Callback.Add("Tick",function() OnProcessSpell() end)
-	Callback.Add("Tick",function() OnSpellLoop() end)
-	Callback.Add("WndMsg",function(msg, param) OnWndMsg(msg, param) end)        
+	Callback.Add("Tick", function() PTick() end)
+	--Callback.Add("Tick",function() OnProcessSpell() end)
+	--Callback.Add("Tick",function() OnSpellLoop() end)
+	Callback.Add("WndMsg",function(msg, param) POnWndMsg(msg, param) end)        
 	OnPreAttack(function(...) FOnPreAttack(...) end)
 	OnPostAttack(function(...) FOnPostAttack(...) end)
 	OnPreMovement(function(...) FOnPreMovement(...) end) 	
 end
 
-function Tick()
-
+function PTick()
 	if MyHeroNotReady() then return end
 	UpdateSpells()
+	POnProcessSpell()
+	POnSpellLoop()
+	
+	if Menu.Misc.Burst.ShyKey:Value() then            
+		ShyCombo()
+	elseif Menu.Misc.Burst.WerKey:Value() then
+		WerCombo()
+	end	
 
-	if GetActiveBurst() ~= 0 then return end
-	Auto()
-	local Mode = GetMode()
-	if Mode == "Combo" then
-		Combo()
-	elseif Mode == "Harass" then
-		Harass()		
-	elseif Mode == "Clear" then
-		Clear()
-	elseif Mode == "Flee" then
-		Flee()		
-	end		
+	if GetActiveBurst() > 0 then return end
+	Auto()	
 end
 
 function UpdateSpells()
@@ -251,16 +265,15 @@ end
 
 function GetActiveBurst()
 	if Menu.Misc.Burst.ShyKey:Value() then            
-		ShyCombo()
 		return 1
-	elseif Menu.Misc.Burst.WerKey:Value() then
-		WerCombo()
+	end	
+	if Menu.Misc.Burst.WerKey:Value() then
 		return 2
 	end
 	return 0
 end
 
-function OnWndMsg(msg, param)
+function POnWndMsg(msg, param)
 	if msg ~= 257 then return end
 	--
 	local spell
@@ -316,11 +329,13 @@ function Auto()
 	local qBuff = GetBuffData(myHero, "RivenTriCleave")        
 	if qBuff and qBuff.expireTime >= time and Menu.Misc.Alive:Value() and Ready(_Q) and qBuff.expireTime - time <= 0.3 and not IsUnderTurret(myHero.pos + myHero.dir * QRange, TEAM_ENEMY) then            
 		Control.CastSpell(HK_Q, mousePos)
+		return
 	end
 	--
 	local minW = Menu.Misc.AutoStun:Value()
 	if minW ~= 0 and Ready(_W) and GetEnemyCount(WRange, myHero) >= minW then
 		Control.CastSpell(HK_W)
+		return
 	end
       
 	if IsR2() and (Menu.ks.UseR2:Value() or (Menu.Combo.UseR2:Value() and GetMode() == "Combo")) then
@@ -328,7 +343,11 @@ function Auto()
 			if IsValid(target) and myHero.pos:DistanceTo(target.pos) < 1100 then                       
 				local dmg = getdmg("R", target, myHero)                 
 				if dmg > target.health then                        
-					CastR2(target)
+					local CastPos = CastR2(target)
+					if CastPos then
+						Control.CastSpell(HK_R, CastPos)
+						return
+					end
 				end
 			end
 		end
@@ -336,11 +355,26 @@ function Auto()
 		local rBuff = GetBuffData(myHero, "rivenwindslashready") 
 		if rBuff and rBuff.expireTime >= time and rBuff.expireTime - time <= 1 or myHero.health/myHero.maxHealth <= 0.2 then
 			local targ = GetTarget(1100)
-			if IsValid(targ) then
-				CastR2(targ) 
+			if targ and IsValid(targ) then
+				local CastPos = CastR2(targ)
+				if CastPos then
+					Control.CastSpell(HK_R, CastPos)
+					return
+				end				
 			end	
 		end
-	end                              
+	end 
+
+	local Mode = GetMode()
+	if Mode == "Combo" then
+		Combo()
+	elseif Mode == "Harass" then
+		Harass()		
+	elseif Mode == "Clear" then
+		Clear()
+	elseif Mode == "Flee" then
+		Flee()		
+	end		
 end
 
 function Combo()
@@ -686,14 +720,13 @@ function AfterAttackWer(target)
 	end
 end
 
-function OnSpellLoop()
+function POnSpellLoop()
 	local time = Game.Timer()        
 	if not Ready(_Q) then
 		local spellQ = myHero:GetSpellData(_Q)  
 		for i= 1, 3 do
 			local i3 = i ~= 3
 			if (i3 and spellQ.cd or 0.25) + time - spellQ.castTime  < 0.1 and (i3 and i or 0) == spellQ.ammo and (i3 or QStacks ~= 0) and QStacks ~= i then 
-				--print("Q"..i.." Cast")
 				QLastCast = time
 				QStacks = i            
 				ResetQ(i);return               
@@ -703,7 +736,7 @@ function OnSpellLoop()
 end
 
 local lastSpell = {"Spell Reset", Game.Timer()}
-function OnProcessSpell()
+function POnProcessSpell()
 	local spell = myHero.activeSpell
 	local time = Game.Timer()
 	if time - lastSpell[2] > 1 then
@@ -727,12 +760,12 @@ function ResetQ(x)
 	DelayAction(function()
 		ResetAutoAttack()
 		Control.Move(myHero.posTo)            
-	end,extraDelay/1000) 
+	end,extraDelay) 
 end
 
 function CastQ(targ) 
 	local target = targ or mousePos
-	if not Ready(_Q) or (_G.SDK.Orbwalker:CanAttack() and GetDistance(targ.pos, myHero.pos) <= GetTrueAttackRange(myHero)) then return end             
+	if not Ready(_Q) or (CanAttack() and GetDistance(targ.pos, myHero.pos) <= GetTrueAttackRange(myHero)) then return end             
 	Control.CastSpell(HK_Q, targ)     
 end
 
@@ -761,26 +794,27 @@ function CastR1(target)
 end
 
 function CastR2(unit)
-	if not (IsValid(unit) and IsR2()) or not Ready(_R) then return end
+	if not IsValid(unit) or not IsR2() or not Ready(_R) then return end
 	local R2Radius = GetDistance(unit.pos, myHero.pos) * 0.8
 
 	if Menu.Pred.Change:Value() == 1 then
 		local pred = GetGamsteronPrediction(unit, RData, myHero)
 		if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
-			Control.CastSpell(HK_R, pred.CastPosition)	
+			return pred.CastPosition	
 		end
 	elseif Menu.Pred.Change:Value() == 2 then
 		local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, RspellData)
 		if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
-			Control.CastSpell(HK_R, pred.CastPos)	
+			return pred.CastPos	
 		end
 	else
 		local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = R2Radius, Range = 1100, Speed = 1600, Collision = false})
 		RPrediction:GetPrediction(unit, myHero)
 		if RPrediction:CanHit(Menu.Pred.PredR:Value()+1) then	
-			Control.CastSpell(HK_R, RPrediction.CastPosition)	
+			return RPrediction.CastPosition	
 		end
 	end	
+	return nil
 end
 
 function CheckCastR2(target)
@@ -793,19 +827,3 @@ function CheckCastR2(target)
 		CastR2(target)
 	end        
 end
-
-function IsR1()
-	return myHero:GetSpellData(_R).name:find("RivenFengShuiEngine")
-end
-
-function IsR2()
-	return myHero:GetSpellData(_R).name:find("RivenIzunaBlade")
-end
-	
-function PressKey(k)
-	Control.KeyDown(k)
-	Control.KeyUp(k)
-end	
-	
-	
-	
