@@ -30,7 +30,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.37
+    local Version = 0.38
     
     local Files = {
         Lua = {
@@ -677,7 +677,7 @@ function Irelia:__init()
 
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
-	Callback.Add("WndMsg",function(msg, param) self:OnWndMsg(msg, param) end)	
+	--Callback.Add("WndMsg",function(msg, param) self:OnWndMsg(msg, param) end)	
 
 	if not PredLoaded then
 		DelayAction(function()
@@ -698,7 +698,7 @@ end
 function Irelia:LoadMenu()                     	
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "Irelia", name = "PussyIrelia"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.37"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 0.38"}})
 
 	--ComboMenu 
 self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
@@ -779,7 +779,7 @@ end
 local SummFlash = 0
 local FlashSlot 
 
-function Irelia:Tick()	
+function Irelia:Tick()		
 	if SummFlash == 0 then
 		if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then
 			SummFlash = 1
@@ -1069,7 +1069,7 @@ if target == nil then return end
 		end	
 		
 		if self.Menu.ComboSet.UseW:Value() and Ready(_W) and not Ready(_E) then
-			if GetDistance(myHero.pos, target.pos) <= 600 and not IsImmobileTarget(myHero) then									
+			if GetDistance(myHero.pos, target.pos) <= 550 and not IsImmobileTarget(myHero) then									
 				if myHero:GetSpellData(_E).name ~= "IreliaE2" and not HasBuff(myHero, "ireliawdefense") and not ISMarked(650) then
 					SetMovement(false)
 					Control.KeyDown(HK_W)
@@ -1129,7 +1129,7 @@ if target == nil then return end
 		end	
 		
 		if self.Menu.Harass.UseW:Value() and Ready(_W) and not Ready(_E) then
-			if GetDistance(myHero.pos, target.pos) <= 600 and not IsImmobileTarget(myHero) then									
+			if GetDistance(myHero.pos, target.pos) <= 550 and not IsImmobileTarget(myHero) then									
 				if myHero:GetSpellData(_E).name ~= "IreliaE2" and not HasBuff(myHero, "ireliawdefense") and not HasBuff(target, "ireliamark") then
 					SetMovement(false)
 					Control.KeyDown(HK_W)
@@ -1332,7 +1332,7 @@ function Irelia:CheckCastW(unit)
 		end
 		
 		if not IsImmobileTarget(myHero) then
-			if GetDistance(unit.pos, myHero.pos) > 700 then
+			if GetDistance(unit.pos, myHero.pos) > 670 then
 				self:CastW(unit)				
 			elseif clock() - WStart >= 0.75 then
 				self:CastW(unit)				
@@ -1371,45 +1371,6 @@ local function SetDist(start, path, center, dist)
 	return start + r * path
 end
 
-local EMissle = nil
-local CastDelay = 0.5
-function Irelia:OnWndMsg(msg, param)
-	--print(CastDelay)
-	if EMissle and myHero:GetSpellData(_E).name == "IreliaE" then
-		DelayAction(function() 
-			if myHero:GetSpellData(_E).name == "IreliaE" then
-				EMissle = nil
-			end	
-		end, 0.5)		
-	end
-
-	if msg == 257 then 
-	
-		local delay = nil
-		--if myHero:GetSpellData(_E).name == "IreliaE2" then
-			if param == HK_E then 
-				delay = CastDelay
-			end         
-		--end
-		if delay then               
-			DelayAction(function() 
-				self:CheckEMissle() 
-			end, delay)
-		end
-	end	
-end
-
-function Irelia:CheckEMissle()	
-	for i = 1,GameObjectCount() do
-		local missle = GameObject(i)
-		if missle and missle.name:find("Blade") and GetDistance(missle.pos, myHero.pos) > 300 then
-		--if missle and GetDistance(missle.pos, myHero.pos) <= 1000 then
-			--print(missle.name)
-			EMissle = missle
-		end
-	end	
-end	
-
 function Irelia:CheckCastE(unit)
 	
 	if GetDistance(unit.pos, myHero.pos) <= 760 then               	
@@ -1420,66 +1381,52 @@ function Irelia:CheckCastE(unit)
 			local Predpos = self:CastE1(unit)
 
 			if unit.pathing.pathCount == 0 then
-				if Predpos and GetDistance(unit.pos, myHero.pos) <= 700 then
+				if Predpos then
 					local cast1Pos = Vector(myHero.pos) + (Predpos - Vector(myHero.pos)):Normalized() * 700
 					Control.CastSpell(HK_E, cast1Pos)
-					CastDelay = GetDistance(cast1Pos, myHero.pos)/1800 +0.2
 				end
 			else
 				if Predpos then
 					local dist1 = GetDistance(Predpos, myHero.pos)
-					if dist1 <= 700 then
-						local dist2 = GetDistance(unit.pos, myHero.pos)
-						if dist1 < dist2 then
-							pathNorm = pathNorm * -1
-						end
-						local cast2Pos = SetDist(Vector(myHero.pos), pathNorm, Predpos, 700)
-						Control.CastSpell(HK_E, cast2Pos)
-						CastDelay = GetDistance(cast2Pos, myHero.pos)/1800 +0.2
+					local dist2 = GetDistance(unit.pos, myHero.pos)
+					if dist1 < dist2 then
+						pathNorm = pathNorm * -1
 					end
+					local cast2Pos = SetDist(Predpos, pathNorm, Vector(myHero.pos), 700)
+					Control.CastSpell(HK_E, cast2Pos)
 				end
 			end
-		else
-			if EMissle then
-				--DrawCircle(Vector(EMissle.pos), 50, 1, DrawColor(225, 225, 125, 10))
-				local pos2 = self:CastE2(unit, EMissle)
-
-				if pos2 then
-					local M = 0
-					if unit.pathing.pathCount > 0 then
-						if GetDistance(Vector(unit.pathing.endPos), myHero.pos) > GetDistance(Vector(unit.pathing.startPos), myHero.pos) then
-							M = 10
-						end
-					end
-					if GetDistance(pos2, myHero.pos) < 750 + M then
-						--print("OK")
-						local EPOS2 = Vector(EMissle.pos) + (pos2 - Vector(EMissle.pos)):Normalized() * (GetDistance(pos2, Vector(EMissle.pos)) + 500)
-						SetMovement(false)
-						Control.CastSpell(HK_E, EPOS2)
-						EMissle = nil
-					end
+		else				
+			local pos2 = self:CastE2(unit, myHero)
+			if pos2 then
+				if Ready(_E) then
+					SetMovement(false)
+					Control.CastSpell(HK_E, pos2)
+					SetMovement(true)
 				end
+			else
+				local E2Buff = GetBuffData(myHero, "IreliaE")
+				if E2Buff and E2Buff.duration <= 1 and GetMode() == "Combo" and myHero:GetSpellData(_E).name == "IreliaE2" and self.Menu.ComboSet.Flash:Value() and SummFlash == 1 and GetDistance(unit.pos, myHero.pos) <= 1300 then 
+					local Passive = CalcExtraDmg(unit, 2)*2
+					local QDmg = Ready(_Q) and getdmg("Q", unit, myHero, 1)*2 or 0
+					local WDmg = Ready(_W) and getdmg("W", unit, myHero) or 0
+					local EDmg = Ready(_E) and getdmg("E", unit, myHero) or 0
+					local RDmg = Ready(_R) and getdmg("R", unit, myHero) or 0
+					local AADmg = getdmg("AA", unit, myHero)*2
+					local FullDmg = Passive+QDmg+WDmg+EDmg+RDmg+AADmg
+										
+					if FullDmg >= unit.health then
+						local Fpos = myHero.pos + (myHero.pos-unit.pos):Normalized() * -600
+						if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
+							Control.CastSpell(HK_SUMMONER_1, Fpos)
+						elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
+							Control.CastSpell(HK_SUMMONER_2, Fpos)
+						end
+					end			
+				end				
 			end
 		end
-		
-	elseif GetMode() == "Combo" and myHero:GetSpellData(_E).name == "IreliaE2" and self.Menu.ComboSet.Flash:Value() and SummFlash == 1 and GetDistance(unit.pos, myHero.pos) <= 1300 then 
-		local Passive = CalcExtraDmg(unit, 2)*2
-		local QDmg = Ready(_Q) and getdmg("Q", unit, myHero, 1)*2 or 0
-		local WDmg = Ready(_W) and getdmg("W", unit, myHero) or 0
-		local EDmg = Ready(_E) and getdmg("E", unit, myHero) or 0
-		local RDmg = Ready(_R) and getdmg("R", unit, myHero) or 0
-		local AADmg = getdmg("AA", unit, myHero)*2
-		local FullDmg = Passive+QDmg+WDmg+EDmg+RDmg+AADmg
-							
-		if FullDmg >= unit.health then
-			local Fpos = myHero.pos + (myHero.pos-unit.pos):Normalized() * -600
-			if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and Ready(SUMMONER_1) then
-				Control.CastSpell(HK_SUMMONER_1, Fpos)
-			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and Ready(SUMMONER_2) then
-				Control.CastSpell(HK_SUMMONER_2, Fpos)
-			end
-		end			
-	end
+	end	
 end	
 
 function Irelia:CastE1(unit)
@@ -1494,7 +1441,7 @@ function Irelia:CastE1(unit)
 			return pred.CastPos
 		end
 	else
-		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 70, Range = 700, Speed = MathHuge, Collision = false})
+		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = ping, Radius = 70, Range = 700, Speed = 2500, Collision = false})
 		EPrediction:GetPrediction(unit, myHero)
 		if EPrediction:CanHit(self.Menu.MiscSet.Pred.PredE:Value()+1) then
 			return EPrediction.CastPosition
@@ -1514,8 +1461,8 @@ function Irelia:CastE2(unit, StartPos)
 			return pred.CastPos
 		end
 	else
-		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.5 + ping, Radius = 70, Range = 750, Speed = MathHuge, Collision = false})
-		EPrediction:GetPrediction(unit, Vector(StartPos))
+		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25 + ping, Radius = 70, Range = 750, Speed = 2500, Collision = false})
+		EPrediction:GetPrediction(unit, StartPos)
 		if EPrediction:CanHit(self.Menu.MiscSet.Pred.PredE:Value()+1) then
 			return EPrediction.CastPosition
 		end		
