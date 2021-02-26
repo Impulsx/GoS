@@ -142,7 +142,7 @@ end
 
 function LoadScript() 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})	
 	Menu:MenuElement({name = " ", drop = {"Ported from Rman/ProjectWinRate"}})	
 		
 	--ComboMenu  
@@ -278,9 +278,13 @@ function POnWndMsg(msg, param)
 	--
 	local spell
 	if param == HK_Q then 
-		spell = "RivenTriCleave"                   
+		spell = myHero:GetSpellData(_Q).name 
+	elseif param == HK_W then 
+		spell = myHero:GetSpellData(_W).name		
 	elseif param == HK_E then 
-		spell = "RivenFeint"                   
+		spell = myHero:GetSpellData(_E).name
+	elseif param == HK_R then 
+		spell = myHero:GetSpellData(_R).name		
 	end                
 	if not spell then return end
 	--           
@@ -353,7 +357,7 @@ function Auto()
 		end
 		--
 		local rBuff = GetBuffData(myHero, "rivenwindslashready") 
-		if rBuff and rBuff.expireTime >= time and rBuff.expireTime - time <= 1 or myHero.health/myHero.maxHealth <= 0.2 then
+		if rBuff and rBuff.expireTime >= time and (rBuff.expireTime - time <= 1 or myHero.health/myHero.maxHealth <= 0.2) then
 			local targ = GetTarget(1100)
 			if targ and IsValid(targ) then
 				local CastPos = CastR2(targ)
