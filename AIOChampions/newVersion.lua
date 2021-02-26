@@ -291,7 +291,7 @@ Data = {
         },
           Riven = {
             Changelog = "Riven Changelog Here",
-          Version = 0.04,
+          Version = 0.05,
         }, 
           Anivia = {
             Changelog = "Anivia Changelog Here",
