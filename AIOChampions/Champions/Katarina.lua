@@ -70,40 +70,50 @@ local spellW = {range = 400}
 local spellE = {range = 725}
 local spellR = {range = 550}
 
+local function GetTargetQ()
+	return GetTarget(spellQ.range)
+end
 
---/// Ported and reworked from Hanbot by Kornis ///--
+local function GetTargetW()
+	return GetTarget(spellW.range)
+end
+
+local function GetTargetE()
+	return GetTarget(spellE.range)
+end
+
+local function GetTargetR()
+	return GetTarget(spellR.range)
+end
+
 function LoadScript() 	 
 	
-	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})		
+	Menu = MenuElement({type = MENU, id = "PussyAIOKata".. myHero.charName, name = myHero.charName})
+	Menu:MenuElement({name = " ", drop = {"Ported from Hanbot by Kornis"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})		
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
-	Menu.Combo:MenuElement({id = "combomode", name = "Combo Mode:", value = 1, drop = {"Q>E", "E>Q", "E>W>R>Q"}})	
+	Menu.Combo:MenuElement({id = "combomode", name = "Combo Mode:", value = 2, drop = {"Q>E", "E>Q", "E>W>R>Q"}})	
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
-	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})	
+	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
+	Menu.Combo:MenuElement({id = "emode", name = "[E] Mode:", value = 3, drop = {"Infront", "Behind", "Logic"}})	
 	Menu.Combo:MenuElement({id = "ETurret", name = "Dont [E] under Turret", value = false})	
 	Menu.Combo:MenuElement({id = "SaveE", name = "Save [E] if no Daggers", value = false})
-	Menu.Combo:MenuElement({id = "Magnet", name = "Magnet to Daggers", value = false})
-	Menu.Combo:MenuElement({name = " ", drop = {"/////////////////////////////////////////"}})
-	Menu.Combo:MenuElement({name = " ", drop = {"/////////////////////////////////////////"}})	
-	Menu.Combo:MenuElement({id = "emode", name = "[E] Mode:", value = 3, drop = {"Infront", "Behind", "UltLogic"}})
-	Menu.Combo:MenuElement({name = " ", drop = {"[E] Mode: UltLogic ="}})
-	Menu.Combo:MenuElement({name = " ", drop = {"If R is not ready then cast Infront"}})
-	Menu.Combo:MenuElement({name = " ", drop = {"If R is ready then Cast Behind"}})	
-	Menu.Combo:MenuElement({name = " ", drop = {"/////////////////////////////////////////"}})
-	Menu.Combo:MenuElement({name = " ", drop = {"/////////////////////////////////////////"}})	
+	Menu.Combo:MenuElement({id = "Magnet", name = "Magnet to Daggers", value = true})
+	
 	Menu.Combo:MenuElement({type = MENU, id = "rset", name = "Ultimate Settings"})
-	Menu.Combo.rset:MenuElement({id = "rmode", name = "[R] Usage:", value = 3, drop = {"Logic 1: X Enemies", "Logic2: Only if min one killable", "Logic 1 and Logic 2", "Never cast [R]"}})	
-	Menu.Combo.rset:MenuElement({id = "rhit", name = "[R] if Hits X Enemies", value = 3, min = 1, max = 5})
+	Menu.Combo.rset:MenuElement({id = "rmode", name = "[R] Usage:", value = 2, drop = {"Always", "Only if Killable", "Never"}})	
+	Menu.Combo.rset:MenuElement({id = "dagger", name = "How many [R] Daggers for Damage Check", value = 8, min = 1, max = 16})	
+	Menu.Combo.rset:MenuElement({id = "rhit", name = "[R] if Hits X Enemies", value = 1, min = 1, max = 5})
 	Menu.Combo.rset:MenuElement({id = "CancelR", name = "Cancel [R] if no Enemies", value = true})	
 	Menu.Combo.rset:MenuElement({id = "CancelRKS", name = "Cancel [R] if can KS", value = true})
 	Menu.Combo.rset:MenuElement({id = "HP", name = "Don't waste [R] if Enemy Health lower than", value = 15, min = 0, max = 100, identifier = "%"})	
 
 	--HarassMenu
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
-	Menu.Harass:MenuElement({id = "harassmode", name = "Harass Mode:", value = 1, drop = {"Q>E", "E>Q"}})	
+	Menu.Harass:MenuElement({id = "harassmode", name = "Harass Mode:", value = 2, drop = {"Q>E", "E>Q"}})	
 	Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})	
@@ -130,7 +140,13 @@ function LoadScript()
 	Menu.ks:MenuElement({id = "UseQ", name = "[Q]", value = true})	
 	Menu.ks:MenuElement({id = "UseE", name = "[E]", value = true})	
 	Menu.ks:MenuElement({id = "UseEDagger", name = "[E] Dagger", value = true})
-	Menu.ks:MenuElement({id = "UseEGap", name = "[E] Gapclose for [Q] KS", value = true})	
+	Menu.ks:MenuElement({id = "UseEGap", name = "[E] Gapclose for [Q] KS", value = true})
+
+	--Flee
+	Menu:MenuElement({type = MENU, id = "flee", name = "Flee"})
+	Menu.flee:MenuElement({id = "fleew", name = "Use [W]", value = true})	
+	Menu.flee:MenuElement({id = "fleee", name = "Use [E]", value = true})	
+	Menu.flee:MenuElement({id = "dagger", name = "Use [E] on Dagger", value = true})	
  
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
@@ -139,21 +155,67 @@ function LoadScript()
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawDamage", name = "Draw Damage", value = true})
 
-	Callback.Add("Tick", function() KataTick() end)
-	
+	Callback.Add("Tick", function() KataTick() end)	
 	Callback.Add("Draw", function() KataDraw() end)	
+	Callback.Add("WndMsg", function(msg, param) CheckWndMsg(msg, param) end)
+
+	if _G.SDK then
+		_G.SDK.Orbwalker:OnPreAttack(function(...) StopAutoAttack(...) end)
+	elseif _G.PremiumOrbwalker then
+		_G.PremiumOrbwalker:OnPreAttack(function(...) StopAutoAttack(...) end)
+	end		
+	
 end
 
 local objHolder = {}
-local DaggerCount = 0
 local allowing = true
+
+local function GetClosestJungle()
+	local closestMinion = nil
+	local closestMinionDistance = 9999
+
+	for i = 1,GameMinionCount() do
+		local minion = GameMinion(i)
+		if minion and IsValid(minion) and minion.team == TEAM_JUNGLE then
+			if GetDistance(minion.pos, mousePos) < 200 then
+				local minionDistanceToMouse = GetDistance(minion.pos, mousePos)
+
+				if minionDistanceToMouse < closestMinionDistance then
+					closestMinion = minion
+					closestMinionDistance = minionDistanceToMouse
+				end
+			end
+		end
+	end
+	return closestMinion
+end
+
+local function GetClosestMob()
+	local closestMinion = nil
+	local closestMinionDistance = 9999
+
+	for i = 1,GameMinionCount() do
+		local minion = GameMinion(i)
+		if minion and IsValid(minion) and minion.team == TEAM_ENEMY then
+			if GetDistance(minion.pos, mousePos) < 200 then
+				local minionDistanceToMouse = GetDistance(minion.pos, mousePos)
+
+				if minionDistanceToMouse < closestMinionDistance then
+					closestMinion = minion
+					closestMinionDistance = minionDistanceToMouse
+				end
+			end
+		end
+	end
+	return closestMinion
+end
 
 local function GetClosestDagger()
 	local closestDagger = nil
 	local closestDaggerDistance = 9999
 	for i, objs in pairs(objHolder) do
 		if objs then
-			if objs.pos:DistanceTo(myHero.pos) < 500 then
+			if objs.pos:DistanceTo(myHero.pos) < 360 then
 				local DaggerDist = objs.pos:DistanceTo(myHero.pos)
 
 				if DaggerDist < closestDaggerDistance then
@@ -211,7 +273,7 @@ local function EDamage(target)
 end
 
 local function RDamage(target)
-	return Ready(_R) and getdmg("R", target, myHero, 2) or 0
+	return Ready(_R) and ((getdmg("R", target, myHero, 1)+getdmg("R", target, myHero, 3)) * Menu.Combo.rset.dagger:Value()) or 0
 end
 
 local function QDamage(target)
@@ -317,9 +379,13 @@ function KataDraw()
 	end
 end
 
+local StopAA = false
 function KataTick()
-	ScanDagger()
-	RemoveDagger()
+	for i, objs in pairs(objHolder) do
+		if objs and objs.dead then
+			TableRemove(objHolder, i)
+		end
+	end		
 	
 	if HasBuff(myHero, "katarinarsound") then
 		allowing = false
@@ -329,25 +395,34 @@ function KataTick()
 	
 	if size() == 0 then
 		SetMovement(true)
+		StopAA = false
 	end
 	
-local Mode = GetMode()
-	if Menu.Combo.Magnet:Value() and Mode == "Combo" then
+	local Mode = GetMode()
+	if Menu.Combo.Magnet:Value() then
 		for i, enemies in ipairs(GetEnemyHeroes()) do
 			if enemies and IsValid(enemies) and myHero.pos:DistanceTo(enemies.pos) <= 1000 then
 				if not HasBuff(myHero, "katarinarsound") and size() > 0 then
 					local Dagger = GetClosestDagger()
-					if Dagger and Dagger.pos:DistanceTo(myHero.pos) >= 160 and Dagger.pos:DistanceTo(enemies.pos) <= 700 then
-						SetMovement(false)
-						Control.Move(Dagger.pos)
+					if Dagger and myHero.pos:DistanceTo(enemies.pos) < 500 then
+						if myHero.pos:DistanceTo(Dagger.pos) >= 160 and Mode == "Combo" then
+							SetMovement(false)
+							StopAA = true
+							Control.Move(Dagger.pos)
+						else
+							SetMovement(true)
+							StopAA = false
+						end
 					else
 						SetMovement(true)
-					end
+						StopAA = false						
+					end	
 				end
+			else
 				SetMovement(true)
+				StopAA = false				
 			end
 		end
-		SetMovement(true)
 	end
 	
 	if Mode == "Combo" then
@@ -356,60 +431,93 @@ local Mode = GetMode()
 		Harass()
 	elseif Mode == "Clear" then
 		LaneClear()
-		JungleClear()			
+		JungleClear()
+	elseif Mode == "Flee" then
+		Flee()			
 	end		
 
 	KillSteal()
 end
 
-local NewDagger = true
-function ScanDagger()
---print(NewDagger)
-local currSpell = myHero.activeSpell
-	if (currSpell and currSpell.name == "KatarinaQ") or (HasBuff(myHero, "katarinawhaste")) then 
-		DelayAction(function()
-			for i = 1, GameObjectCount() do
-				local Dagger = GameObject(i)
-				
-				if Dagger and myHero.pos:DistanceTo(Dagger.pos) < 1200 and Dagger.name == "HiddenMinion" then
-					for i = 1, #objHolder do
-						--DrawCircle(objHolder[i].pos, 100, 1, DrawColor(255, 225, 255, 10))
-						if objHolder[i].health == 0 then
-							NewDagger = false
-						end
-					end				
-					
-					if NewDagger then 
-						if Dagger.name == "HiddenMinion" then
-							--print("FoundNewTrap")
-							TableInsert(objHolder, Dagger)
-							DaggerCount = DaggerCount + 1
-						end	
-					end	
-				end
-			end
-		end,0.35)	
-	end	
-end
-
-local LastScan = 0
-function RemoveDagger()
-	if DaggerCount > 0 and GameTimer() - LastScan > 1 then
-		for i = 1, #objHolder do
-			if objHolder[i] and (objHolder[i].health == 0 or objHolder[i].name ~= "HiddenMinion") then
-				NewDagger = true
-				LastScan = GameTimer()
-				DaggerCount = DaggerCount - 1				
-				TableRemove(objHolder, i)
-				--print("Removed")
-				--print(DaggerCount)
-			end	
-		end
+function StopAutoAttack(args)
+	if StopAA then
+		args.Process = false 
+		return
+	--else
+		--args.Process = true
 	end
 end
 
+function CheckWndMsg(msg, param)
+	if msg == 257 then
+		local delay = nil
+		if param == HK_Q then
+			delay = 0.6 + ping
+		elseif param == HK_W then
+			delay = 0.35 + ping
+		end
+	
+		if delay then               
+			DelayAction(function() 
+				ScanDagger() 
+			end, delay)
+		end
+	end	
+end
+
+function CheckObject(obj)
+	for i, Dagger in pairs(objHolder) do
+		if Dagger and Dagger.networkID == obj.networkID then
+			return true
+		end
+	end
+	return false
+end
+
+function ScanDagger()
+	for i = 1, GameObjectCount() do
+		local Dagger = GameObject(i)
+		
+		if Dagger and Dagger.name == "HiddenMinion" and not CheckObject(Dagger) then
+			TableInsert(objHolder, Dagger)
+		end
+	end	
+end
+
 function size()
-	return DaggerCount
+	local count = 0
+	for _ in pairs(objHolder) do
+		count = count + 1
+	end
+	return count
+end
+
+function Flee()
+	if Menu.flee.fleew:Value() and Ready(_W) then
+		Control.CastSpell(HK_W, myHero.pos)
+	end
+	
+	if Menu.flee.fleee:Value() and Ready(_E) then
+		local minion = GetClosestMob()
+		if minion then
+			Control.CastSpell(HK_E, minion.pos)		
+		end
+		
+		local jungle = GetClosestJungle()
+		if jungle then
+			Control.CastSpell(HK_E, jungle.pos)
+		end
+	end
+	
+	if Menu.flee.dagger:Value() and Ready(_E) then
+		for i, objs in pairs(objHolder) do
+			if objs then
+				if GetDistance(objs.pos, mousePos) < 200 then
+					Control.CastSpell(HK_E, objs.pos)
+				end
+			end
+		end
+	end
 end
 
 function KillSteal()
@@ -432,7 +540,7 @@ function KillSteal()
 			if Menu.ks.UseQ:Value() and Ready(_Q) then
 				if enemies.pos:DistanceTo(myHero.pos) <= spellQ.range and getdmg("Q", enemies, myHero) > hp then
 					allowing = true
-					Control.CastSpell(HK_Q, enemies.pos)
+					Control.CastSpell(HK_Q, enemies)
 				end
 			end
 			
@@ -444,7 +552,7 @@ function KillSteal()
 			end
 
 			if Menu.ks.UseEGap:Value() and Ready(_E) then
-				if Ready(_Q) and enemies.pos:DistanceTo(myHero.pos) > spellQ.range and enemies.pos:DistanceTo(myHero.pos) < (spellQ.range + spellE.range - 70) and getdmg("Q", enemies, myHero) - 30 > hp then
+				if Ready(_Q) and getdmg("Q", enemies, myHero) - 30 > hp and enemies.pos:DistanceTo(myHero.pos) > spellQ.range and enemies.pos:DistanceTo(myHero.pos) < (spellQ.range + spellE.range - 70) then
 					allowing = true
 					local Lminion = GetClosestMobToEnemy(enemies)
 					if Lminion then
@@ -549,87 +657,151 @@ function Combo()
 		end
 	end
 	
-	local target = GetTarget(1250)
+	
 	if Menu.Combo.rset.CancelRKS:Value() then
-		if target and IsValid(target)then
+		local target = GetTargetE()
+		if target and IsValid(target) then
 			if target.pos:DistanceTo(myHero.pos) <= spellE.range then
-				if HasBuff(myHero, "katarinarsound") then
-					if target.pos:DistanceTo(myHero.pos) >= spellR.range - 100 then
-						if (getdmg("Q", target, myHero) + EDamage(target)) >= target.health then
-							if size() > 0 and Ready(_E) and Ready(_Q) then
-								for i, objs in pairs(objHolder) do
-									if objs then
-									
-										if target.pos:DistanceTo(objs.pos) < 450 then
-											if Menu.Combo.ETurret:Value() then
-												if not IsUnderTurret(objs) then
-													allowing = true
-													local extendedPos = objs.pos:Extended(target.pos, 200)
-													Control.CastSpell(HK_E, extendedPos)
-												end
-											else
+				if HasBuff(myHero, "katarinarsound") and not target.isImmortal then
+					if target.pos:DistanceTo(myHero.pos) >= spellR.range - 100 and myHero:GetSpellData(_E).toggleState == 0 then
+						if size() > 0 then
+							for i, objs in pairs(objHolder) do
+								if objs then
+								
+									if target.pos:DistanceTo(objs.pos) < 450 and target.pos:DistanceTo(myHero.pos) < spellE.range and myHero:GetSpellData(_E).toggleState == 0 then
+										if Menu.Combo.ETurret:Value() then
+											if not IsUnderTurret(objs) then
 												allowing = true
 												local extendedPos = objs.pos:Extended(target.pos, 200)
 												Control.CastSpell(HK_E, extendedPos)
 											end
-										
-
-										elseif objs.pos:DistanceTo(myHero.pos) > spellE.range then
-											if Menu.Combo.ETurret:Value() then
-												if not IsUnderTurret(target) then
-													allowing = true
-													local extendedPos = target.pos:Extended(myHero.pos, -50)
-													Control.CastSpell(HK_E, extendedPos)
-												end
-											else
+										else
+											allowing = true
+											local extendedPos = objs.pos:Extended(target.pos, 200)
+											Control.CastSpell(HK_E, extendedPos)
+										end
+									end
+									
+									if objs.pos:DistanceTo(myHero.pos) > spellE.range and myHero:GetSpellData(_E).toggleState == 0 then
+										if Menu.Combo.ETurret:Value() then
+											if not IsUnderTurret(target) then
 												allowing = true
-												local extendedPos = target.pos:Extended(myHero.pos, -50)
+												local extendedPos = target.pos:Extended(myHero.pos, 50)
 												Control.CastSpell(HK_E, extendedPos)
 											end
-										else										
-											if target.pos:DistanceTo(objs.pos) > 450 then
-												if Menu.Combo.ETurret:Value() then
-													if not IsUnderTurret(target) then
-														allowing = true
-														local extendedPos = target.pos:Extended(myHero.pos, -50)
-														Control.CastSpell(HK_E, extendedPos)
-													end
-												else
-													allowing = true
-													local extendedPos = target.pos:Extended(myHero.pos, -50)
-													Control.CastSpell(HK_E, extendedPos)
-												end
-											end
-										end	
+										else
+											allowing = true
+											local extendedPos = target.pos:Extended(myHero.pos, 50)
+											Control.CastSpell(HK_E, extendedPos)
+										end
 									end
+									
+									if target.pos:DistanceTo(objs.pos) > 450 and myHero:GetSpellData(_E).toggleState == 0 then
+										if Menu.Combo.ETurret:Value() then
+											if not IsUnderTurret(target) then
+												allowing = true
+												local extendedPos = target.pos:Extended(myHero.pos, 50)
+												Control.CastSpell(HK_E, extendedPos)
+											end
+										else
+											allowing = true
+											local extendedPos = target.pos:Extended(myHero.pos, 50)
+											Control.CastSpell(HK_E, extendedPos)
+										end
+									end	
 								end
 							end
-							
-							if size() == 0 and Ready(_E) and Ready(_Q) and target.pos:DistanceTo(myHero.pos) <= spellE.range then
-								if Menu.Combo.ETurret:Value() then
-									if not IsUnderTurret(target) then
-										allowing = true
-										local extendedPos = target.pos:Extended(myHero.pos, -50)
-										Control.CastSpell(HK_E, extendedPos)
-									end
-								else
+						end
+						
+						if size() == 0 and myHero:GetSpellData(_E).toggleState == 0 then
+							if Menu.Combo.ETurret:Value() then
+								if not IsUnderTurret(target) then
 									allowing = true
-									local extendedPos = target.pos:Extended(myHero.pos, -50)
+									local extendedPos = target.pos:Extended(myHero.pos, 50)
 									Control.CastSpell(HK_E, extendedPos)
 								end
-							end
-							
-							if target.pos:DistanceTo(myHero.pos) < spellQ.range and Ready(_Q) then
+							else
 								allowing = true
-								Control.CastSpell(HK_Q, target)
+								local extendedPos = target.pos:Extended(myHero.pos, 50)
+								Control.CastSpell(HK_E, extendedPos)
 							end
 						end
 					end	
+					
+					if (QDamage(target) + EDamage(target)) >= target.health and myHero:GetSpellData(_E).toggleState == 0 then
+						if (size() > 0) then
+							for _, objs in pairs(objHolder) do
+								if objs then
+									if (target.pos:DistanceTo(objs.pos) < 450) then
+										if Menu.Combo.ETurret:Value() then
+											if not IsUnderTurret(objs) then
+												allowing = true
+												local extendedPos = objs.pos:Extended(target.pos, 200)
+												Control.CastSpell(HK_E, extendedPos)
+											end
+										else
+											allowing = true
+											local extendedPos = objs.pos:Extended(target.pos, 200)
+											Control.CastSpell(HK_E, extendedPos)
+										end
+									end
+
+									if (myHero.pos:DistanceTo(objs.pos) > spellE.range) then
+										if Menu.Combo.ETurret:Value() then
+											if not IsUnderTurret(target) then
+												allowing = true
+												local extendedPos = target.pos:Extended(myHero.pos, 50)
+												Control.CastSpell(HK_E, extendedPos)
+											end
+										else
+											allowing = true
+											local extendedPos = target.pos:Extended(myHero.pos, 50)
+											Control.CastSpell(HK_E, extendedPos)
+										end
+									end
+									
+									if (target.pos:DistanceTo(objs.pos) > 450) then
+										if Menu.Combo.ETurret:Value() then
+											if not IsUnderTurret(target) then
+												allowing = true
+												local extendedPos = target.pos:Extended(myHero.pos, 50)
+												Control.CastSpell(HK_E, extendedPos)
+											end
+										else
+											allowing = true
+											local extendedPos = target.pos:Extended(myHero.pos, 50)
+											Control.CastSpell(HK_E, extendedPos)
+										end
+									end
+								end
+							end
+						end
+						
+						if size() == 0 and myHero:GetSpellData(_E).toggleState == 0 then
+							if Menu.Combo.ETurret:Value() then
+								if not IsUnderTurret(target) then
+									allowing = true
+									local extendedPos = target.pos:Extended(myHero.pos, 50)
+									Control.CastSpell(HK_E, extendedPos)
+								end
+							else
+								allowing = true
+								local extendedPos = target.pos:Extended(myHero.pos, 50)
+								Control.CastSpell(HK_E, extendedPos)
+							end
+						end
+						
+						if Ready(_Q) and (target.pos:DistanceTo(myHero.pos) < spellQ.range and myHero:GetSpellData(_W).toggleState == 0) then
+							allowing = true
+							Control.CastSpell(HK_Q, target)
+						end
+					end
 				end
 			end
 		end
 	end
 	
+	local target = GetTargetE()
 	if target then
 		if IsValid(target) then
 			if not HasBuff(myHero, "katarinarsound") then
@@ -642,7 +814,7 @@ function Combo()
 						end
 					end
 					
-					if Menu.Combo.UseE:Value() and not Ready(_Q) then
+					if Menu.Combo.UseE:Value() and myHero:GetSpellData(_Q).toggleState ~= 0 then
 						if size() > 0 and Ready(_E) then
 							for i, objs in pairs(objHolder) do
 								if objs then
@@ -764,6 +936,18 @@ function Combo()
 												end
 											end
 										end
+									else
+										if (objs.pos:DistanceTo(target.pos) < 450) then
+											if Menu.Combo.ETurret:Value() then
+												if not IsUnderTurret(objs) then
+													local extendedPos = objs.pos:Extended(target.pos, 200)
+													Control.CastSpell(HK_E, extendedPos)
+												end
+											else
+												local extendedPos = objs.pos:Extended(target.pos, 200)
+												Control.CastSpell(HK_E, extendedPos)
+											end
+										end									
 									end	
 								end
 							end
@@ -825,8 +1009,9 @@ function Combo()
 					end
 					
 					if Menu.Combo.UseW:Value() and Ready(_W) then
-						if target.pos:DistanceTo(myHero.pos) <= spellW.range then
-							Control.CastSpell(HK_W)
+						local Wtarget = GetTargetW()
+						if Wtarget and IsValid(Wtarget) and Wtarget.pos:DistanceTo(myHero.pos) <= spellW.range then
+							Control.CastSpell(HK_W, Wtarget.pos)
 						end
 					end
 					
@@ -835,7 +1020,7 @@ function Combo()
 							if GetEnemyCount(spellR.range - 100, myHero) >= Menu.Combo.rset.rhit:Value() then
 								if target.health/target.maxHealth >= Menu.Combo.rset.HP:Value()/100 and not Ready(_Q) then
 									if not Ready(_W) then
-										Control.CastSpell(HK_R)
+										Control.CastSpell(HK_R, target.pos)
 									end
 								end
 							end
@@ -843,35 +1028,14 @@ function Combo()
 					
 					elseif Menu.Combo.rset.rmode:Value() == 2 and Ready(_R) then
 						if target.pos:DistanceTo(myHero.pos) <= spellR.range - 100 then
-							if target.health <= RDamage(target) then
+							if target.health <= RDamage(target)+getdmg("Q", target, myHero)+getdmg("E", target, myHero)+PDamage(target) then
 								if target.health/target.maxHealth >= Menu.Combo.rset.HP:Value()/100 and not Ready(_Q) then
 									if not Ready(_W) then
-										Control.CastSpell(HK_R)
+										Control.CastSpell(HK_R, target.pos)
 									end
 								end
 							end
-						end
-						
-					elseif Menu.Combo.rset.rmode:Value() == 3 and Ready(_R) then
-						if target.pos:DistanceTo(myHero.pos) <= spellR.range - 50 then
-							if GetEnemyCount(spellR.range - 100, myHero) >= Menu.Combo.rset.rhit:Value() then
-								if target.health/target.maxHealth >= Menu.Combo.rset.HP:Value()/100 and not Ready(_Q) then
-									if not Ready(_W) then
-										Control.CastSpell(HK_R)
-									end
-								end
-							end
-						end
-
-						if target.pos:DistanceTo(myHero.pos) <= spellR.range - 100 then
-							if target.health <= RDamage(target) then
-								if target.health/target.maxHealth >= Menu.Combo.rset.HP:Value()/100 and not Ready(_Q) then
-									if not Ready(_W) then
-										Control.CastSpell(HK_R)
-									end
-								end
-							end
-						end						
+						end					
 					end
 				
 				elseif Menu.Combo.combomode:Value() == 2 then
@@ -995,6 +1159,18 @@ function Combo()
 												end
 											end
 										end
+									else
+										if (objs.pos:DistanceTo(target.pos) < 450) then
+											if Menu.Combo.ETurret:Value() then
+												if not IsUnderTurret(objs) then
+													local extendedPos = objs.pos:Extended(target.pos, 200)
+													Control.CastSpell(HK_E, extendedPos)
+												end
+											else
+												local extendedPos = objs.pos:Extended(target.pos, 200)
+												Control.CastSpell(HK_E, extendedPos)
+											end
+										end										
 									end
 								end
 							end
@@ -1056,14 +1232,16 @@ function Combo()
 					end
 
 					if Menu.Combo.UseW:Value() and Ready(_W) then
-						if target.pos:DistanceTo(myHero.pos) <= spellW.range then
-							Control.CastSpell(HK_W)
+						local Wtarget = GetTargetW()
+						if Wtarget and IsValid(Wtarget) and Wtarget.pos:DistanceTo(myHero.pos) <= spellW.range then
+							Control.CastSpell(HK_W, Wtarget.pos)
 						end
 					end
 					
 					if Menu.Combo.UseQ:Value() and Ready(_Q) then
-						if target.pos:DistanceTo(myHero.pos) <= spellQ.range then
-							Control.CastSpell(HK_Q, target)
+						local Qtarget = GetTargetQ()
+						if Qtarget and IsValid(Qtarget) and Qtarget.pos:DistanceTo(myHero.pos) <= spellQ.range then
+							Control.CastSpell(HK_Q, Qtarget)
 						end
 					end
 					
@@ -1072,7 +1250,7 @@ function Combo()
 							if GetEnemyCount(spellR.range - 100, myHero) >= Menu.Combo.rset.rhit:Value() then
 								if target.health/target.maxHealth >= Menu.Combo.rset.HP:Value()/100 and not Ready(_Q) then
 									if not Ready(_W) then
-										Control.CastSpell(HK_R)
+										Control.CastSpell(HK_R, target.pos)
 									end
 								end
 							end
@@ -1080,31 +1258,10 @@ function Combo()
 					
 					elseif Menu.Combo.rset.rmode:Value() == 2 and Ready(_R) then
 						if target.pos:DistanceTo(myHero.pos) <= spellR.range - 100 then
-							if target.health <= RDamage(target) then
+							if target.health <= RDamage(target)+getdmg("Q", target, myHero)+getdmg("E", target, myHero)+PDamage(target) then
 								if target.health/target.maxHealth >= Menu.Combo.rset.HP:Value()/100 and not Ready(_Q) then
 									if not Ready(_W) then
-										Control.CastSpell(HK_R)
-									end
-								end
-							end
-						end
-					
-					elseif Menu.Combo.rset.rmode:Value() == 3 and Ready(_R) then
-						if target.pos:DistanceTo(myHero.pos) <= spellR.range - 50 then
-							if GetEnemyCount(spellR.range - 100, myHero) >= Menu.Combo.rset.rhit:Value() then
-								if target.health/target.maxHealth >= Menu.Combo.rset.HP:Value()/100 and not Ready(_Q) then
-									if not Ready(_W) then
-										Control.CastSpell(HK_R)
-									end
-								end
-							end
-						end
-
-						if target.pos:DistanceTo(myHero.pos) <= spellR.range - 100 then
-							if target.health <= RDamage(target) then
-								if target.health/target.maxHealth >= Menu.Combo.rset.HP:Value()/100 and not Ready(_Q) then
-									if not Ready(_W) then
-										Control.CastSpell(HK_R)
+										Control.CastSpell(HK_R, target.pos)
 									end
 								end
 							end
@@ -1236,6 +1393,18 @@ function Combo()
 												end
 											end
 										end
+									else
+										if (objs.pos:DistanceTo(target.pos) < 450) then
+											if Menu.Combo.ETurret:Value() then
+												if not IsUnderTurret(objs) then
+													local extendedPos = objs.pos:Extended(target.pos, 200)
+													Control.CastSpell(HK_E, extendedPos)
+												end
+											else
+												local extendedPos = objs.pos:Extended(target.pos, 200)
+												Control.CastSpell(HK_E, extendedPos)
+											end
+										end											
 									end
 								end
 							end
@@ -1297,14 +1466,15 @@ function Combo()
 					end
 					
 					if Menu.Combo.UseW:Value() and Ready(_W) then
-						if target.pos:DistanceTo(myHero.pos) <= spellW.range then
-							Control.CastSpell(HK_W)
+						local Wtarget = GetTargetW()
+						if Wtarget and IsValid(Wtarget) and Wtarget.pos:DistanceTo(myHero.pos) <= spellW.range then
+							Control.CastSpell(HK_W, Wtarget.pos)
 						end
 					end
 
 					if Ready(_R) and target.pos:DistanceTo(myHero.pos) <= spellR.range - 50 then
 						if not Ready(_W) then
-							Control.CastSpell(HK_R)
+							Control.CastSpell(HK_R, target.pos)
 						end
 					end
 				end
