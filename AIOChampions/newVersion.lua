@@ -195,7 +195,7 @@ Data = {
         },
            Katarina = {
             Changelog = "Katarina Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         },
            Leblanc = {
             Changelog = "Leblanc Changelog Here",
