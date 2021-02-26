@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.03
+    local Version = 0.04
     
     local Files = {
         Lua = {
@@ -516,7 +516,7 @@ function Samira:LoadMenu()
 DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	
 	--MainMenu
 self.Menu = MenuElement({type = MENU, id = "PussySamira", name = "PussySamira"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
 
 	--AutoW
 self.Menu:MenuElement({type = MENU, id = "WSet", name = "AutoW Incomming CC Spells"})
@@ -611,7 +611,7 @@ function Samira:Tick()
 		SetAttack(true)
 	end	
 	
-	if myHero:GetSpellData(_R).currentCd > 0.9 then
+	if myHero:GetSpellData(_R).currentCd > 5.75 then
 		SetAttack(false)
 	else
 		UltAlly = false
