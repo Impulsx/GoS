@@ -48,7 +48,7 @@ end
 
 function LoadScript() 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
 	
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
@@ -124,7 +124,7 @@ function LoadScript()
 		if myHero.dead then return end	
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
 			if isFishBones then
-				DrawCircle(myHero, 600, 1, DrawColor(255, 225, 255, 10))
+				DrawCircle(myHero, 625, 1, DrawColor(255, 225, 255, 10))
 			else
 				DrawCircle(myHero, QRange, 1, DrawColor(255, 225, 255, 10))
 			end	
@@ -147,7 +147,6 @@ function Tick()
 	local target = GetTarget(900)
 	local Wtarget = GetTarget(1450)	
 	local Mode = GetMode()
-
 	if Mode == "Combo" then
 		ComboR()
 		if target ~= nil then
@@ -287,7 +286,7 @@ function CastW(Target)
 				Control.CastSpell(HK_W, pred.CastPos)
 			end
 		else
-			local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.6, Radius = 30, Range = 1400, Speed = 3300, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+			local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.6, Radius = 60, Range = 1400, Speed = 3300, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
 			WPrediction:GetPrediction(Target, myHero)
 			if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 				Control.CastSpell(HK_W, WPrediction.CastPosition)
@@ -308,7 +307,7 @@ function CastE(Target)
 			Control.CastSpell(HK_E, pred.CastPos)
 		end
 	else
-		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 1.5, Radius = 120, Range = 900, Speed = 1100, Collision = false})
+		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 1.2, Radius = 120, Range = 900, Speed = MathHuge, Collision = false})
 		EPrediction:GetPrediction(Target, myHero)
 		if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
 			Control.CastSpell(HK_E, EPrediction.CastPosition)
@@ -334,7 +333,7 @@ function CastR(Target)
 					Control.CastSpell(HK_R, pred.CastPos)
 				end
 			else
-				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 1, Radius = 70, Range = 12500, Speed = CurrentRSpeed, Collision = false})
+				local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.6, Radius = 140, Range = 12500, Speed = CurrentRSpeed, Collision = false})
 				RPrediction:GetPrediction(Target, myHero)
 				if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
 					Control.CastSpell(HK_R, RPrediction.CastPosition)
@@ -471,8 +470,9 @@ local function GetBuffData(unit, buffname)
 end
 
 function Check()
-	QRange = myHero:GetSpellData(_Q).level*25 + 50 + 600
-	if myHero.range < 530 then
+	print(myHero.range)
+	QRange = (myHero:GetSpellData(_Q).level*25) + 75 + 600
+	if myHero.range < 599 then
 		isFishBones = true
 	else
 		isFishBones = false
