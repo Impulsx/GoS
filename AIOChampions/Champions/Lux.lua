@@ -22,6 +22,18 @@ local function GetEnemyHeroes()
 	return _EnemyHeroes
 end
 
+local function GetEnemyCount(range, pos)
+    local pos = pos.pos
+	local count = 0
+	for i, hero in ipairs(GetEnemyHeroes()) do
+	local Range = range * range
+		if GetDistanceSqr(pos, hero.pos) < Range and IsValid(hero) then
+		count = count + 1
+		end
+	end
+	return count
+end
+
 local function GetAllyHeroes() 
 	local _AllyHeroes = {}
 	for i = 1, GameHeroCount() do
@@ -56,7 +68,7 @@ end
 function LoadScript()
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.15"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.16"}})	
 	--AutoQ
 	Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQImmo"})
 	Menu.AutoQ:MenuElement({id = "UseQ", name = "Auto[Q]Immobile Target", value = true})
@@ -69,6 +81,12 @@ function LoadScript()
 	--AutoE
 	Menu:MenuElement({type = MENU, id = "AutoE", name = "AutoE"})
 	Menu.AutoE:MenuElement({id = "UseE", name = "Auto[E]Immobile Target", value = true})
+	
+	--AutoR
+	Menu:MenuElement({type = MENU, id = "AutoR", name = "AutoR"})
+	Menu.AutoR:MenuElement({id = "UseR", name = "Auto[R] count Targets", value = true})	
+	Menu.AutoR:MenuElement({id = "Count", name = "If can hit more than -->", value = 3, min = 2, max = 5, identifier = "Target`s"})
+	Menu.AutoR:MenuElement({id = "range", name = "If No Enemy in range", value = 500, min = 0, max = 2000})	
 	
 	--QSetting
 	Menu:MenuElement({type = MENU, id = "Q", name = "Q Range Setting"})
@@ -128,17 +146,17 @@ function LoadScript()
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 310, Range = 1000, Speed = 1200, Collision = false
+	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 295, Range = 1000, Speed = 1200, Collision = false
 	}
 	
-	EspellData = {speed = 1200, range = 1000, delay = 0.25, radius = 310, collision = {nil}, type = "circular"}
+	EspellData = {speed = 1200, range = 1000, delay = 0.25, radius = 295, collision = {nil}, type = "circular"}
 
 	RData =
 	{
 	Type = _G.SPELLTYPE_LINE, Delay = 1, Radius = 100, Range = 3340, Speed = MathHuge, Collision = false
 	}
 	
-	RspellData = {speed = MathHuge, range = 3340, delay = 1, radius = 100, collision = {nil}, type = "linear"}	
+	RspellData = {speed = MathHuge, range = 3500, delay = 1, radius = 125, collision = {nil}, type = "linear"}	
 	
 
 	Callback.Add("Tick", function() Tick() end)
@@ -178,7 +196,8 @@ local Mode = GetMode()
 	KillSteal()
 	AutoQ()
 	AutoE()
-	AutoW()		
+	AutoW()
+	AutoR()	
 end
 --[[
 local function NearestEnemy(entity)
@@ -483,7 +502,7 @@ function CastGGPred(spell, unit)
 		end	
 	
 	elseif spell == _E then
-		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 310, Range = 1000, Speed = 1200, Collision = false})
+		local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 295, Range = 1000, Speed = 1200, Collision = false})
 		EPrediction:GetPrediction(unit, myHero)
 		if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
 			Control.CastSpell(HK_E, EPrediction.CastPosition)
@@ -491,11 +510,51 @@ function CastGGPred(spell, unit)
 	
 	else
 		if spell == _R then
-			local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 1, Radius = 100, Range = 3340, Speed = MathHuge, Collision = false})
+			local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 1, Radius = 125, Range = 3500, Speed = MathHuge, Collision = false})
 			RPrediction:GetPrediction(unit, myHero)
 			if RPrediction:CanHit(Menu.Pred.PredR:Value() + 1) then
 				Control.CastSpell(HK_R, RPrediction.CastPosition)
 			end
 		end	
 	end
+end
+
+function AutoR()
+	if Menu.AutoR.UseR:Value() and Ready(_R) and GetEnemyCount(Menu.AutoR.range:Value(), myHero) == 0 then		
+		if Menu.Pred.Change:Value() == 2 then
+			for i, target in ipairs(GetEnemyHeroes()) do
+				if target and myHero.pos:DistanceTo(target.pos) <= 3500 and IsValid(target) then
+					local pred = _G.PremiumPrediction:GetAOEPrediction(myHero, target, RspellData)
+					if pred.CastPos and ConvertToHitChance(Menu.Pred.PredR:Value(), pred.HitChance) then
+						if pred.HitCount >= Menu.AutoR.Count:Value() then
+							Control.CastSpell(HK_R, pred.CastPos)
+						end				
+					end
+				end	
+			end	
+			
+		elseif Menu.Pred.Change:Value() == 3 then						
+			local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 1, Radius = 125, Range = 3500, Speed = MathHuge, Collision = false})
+			local minhitchance = Menu.Pred.PredR:Value()+1
+			local aoeresult = RPrediction:GetAOEPrediction(myHero)
+			local bestaoe = nil
+			local bestcount = 0
+			local bestdistance = 1000
+		   
+			for i = 1, #aoeresult do
+				local aoe = aoeresult[i]
+				if aoe.HitChance >= minhitchance and aoe.TimeToHit <= 5 and aoe.Count >= Menu.AutoR.Count:Value() then
+					if aoe.Count > bestcount or (aoe.Count == bestcount and aoe.Distance < bestdistance) then
+						bestdistance = aoe.Distance
+						bestcount = aoe.Count
+						bestaoe = aoe
+					end
+				end
+			end
+			
+			if bestaoe then
+				Control.CastSpell(HK_R, bestaoe.CastPosition)		 
+			end	
+		end
+	end	
 end
