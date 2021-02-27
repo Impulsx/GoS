@@ -46,12 +46,13 @@ local WStart = 0
 function LoadScript() 
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})			
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})			
 	 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
+	Menu.Combo:MenuElement({id = "Active", name = "[W] SemiManual Key", key = string.byte("T")})	
 	Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
 	Menu.Combo:MenuElement({id = "UseR", name = "Not Transformed [R] KS", value = true})
 	Menu.Combo:MenuElement({id = "Soul", name = "Cast Spells if have Soul ?", value = true})	
@@ -117,6 +118,23 @@ function Tick()
 	elseif Mode == "Clear" then
 		Push()
 		JungleClear()		
+	end
+	
+	if Menu.Combo.Active:Value() and Ready(_W) then
+		CastWManual()
+	end
+end
+
+function CastWManual()
+local target = GetTarget(900)     	
+if target == nil then return end
+	if IsValid(target) then
+		if Control.IsKeyDown(HK_W) then CheckCastW(target) return end
+		
+		if not HasBuff(myHero, "ViegoW") then
+			Control.KeyDown(HK_W)
+			WStart = clock()		
+		end		
 	end
 end
 
