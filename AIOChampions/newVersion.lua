@@ -19,7 +19,7 @@ Data = {
         },
         Lux = {
             Changelog = "Lux Changelog Here",
-            Version = 0.15,
+            Version = 0.16,
         },
         Soraka = {
             Changelog = "Soraka Changelog Here",
@@ -187,7 +187,7 @@ Data = {
         },
            Jinx = {
             Changelog = "Jinx Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
            Ashe = {
             Changelog = "Ashe Changelog Here",
@@ -271,7 +271,7 @@ Data = {
         },
            Alistar = {
             Changelog = "Alistar Changelog Here",
-           Version = 0.03,
+           Version = 0.04,
         },
            Brand = {
             Changelog = "Brand Changelog Here",
@@ -279,7 +279,7 @@ Data = {
         },
           Viego = {
             Changelog = "Viego Changelog Here",
-          Version = 0.02,
+          Version = 0.03,
         }, 
            Xayah = {
             Changelog = "Xayah Changelog Here",
