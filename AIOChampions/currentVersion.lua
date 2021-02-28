@@ -291,7 +291,11 @@ Data = {
           Anivia = {
             Changelog = "Anivia Changelog Here",
           Version = 0.01,
-        },         
+        }, 
+          Lulu = {
+            Changelog = "Lulu Changelog Here",
+          Version = 0.01,
+        },        
     },
     Loader = {
         Version = 0.2,
