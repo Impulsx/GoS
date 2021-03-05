@@ -48,7 +48,7 @@ end
 
 function LoadScript() 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
 	
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
@@ -470,7 +470,7 @@ local function GetBuffData(unit, buffname)
 end
 
 function Check()
-	print(myHero.range)
+	--print(myHero.range)
 	QRange = (myHero:GetSpellData(_Q).level*25) + 75 + 600
 	if myHero.range < 599 then
 		isFishBones = true
