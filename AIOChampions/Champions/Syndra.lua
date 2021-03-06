@@ -100,7 +100,7 @@ end
 
 function LoadScript()	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -649,12 +649,17 @@ function Combo()
 											if GetDistance(extendedPos, pos) < (spellQE.width + target.boundingRadius - 20) and GetDistance(myHero.pos, target.pos) >= 50 and GetDistance(myHero.pos, objsq.pos) >= 80 and GetDistance(myHero.pos, target.pos) <= spellQE.range then
 												Control.CastSpell(HK_E, pos)
 												ECasting = os.clock()
-											end
+											else
+												if GetDistance(myHero.pos, pos) <= spellE.range then
+													Control.CastSpell(HK_E, pos)
+													ECasting = os.clock()
+												end	
+											end										
 										end
 									end
 								end
 							end
-						end
+						end					
 					end
 				end
 			end
@@ -776,7 +781,12 @@ function Harass()
 												if GetDistance(extendedPos, pos) < (spellQE.width + target.boundingRadius - 20) and GetDistance(myHero.pos, target.pos) >= 50 and GetDistance(myHero.pos, objsq.pos) >= 80 and GetDistance(myHero.pos, target.pos) <= spellQE.range then
 													Control.CastSpell(HK_E, pos)
 													ECasting = os.clock()
-												end
+												else
+													if GetDistance(myHero.pos, pos) <= spellE.range then
+														Control.CastSpell(HK_E, pos)
+														ECasting = os.clock()
+													end	
+												end													
 											end
 										end
 									end
