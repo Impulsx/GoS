@@ -303,7 +303,7 @@ Data = {
         }, 
            Syndra = {
             Changelog = "Syndra Changelog Here",
-          Version = 0.01,
+          Version = 0.02,
         },        
     },
 }
