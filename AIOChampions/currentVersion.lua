@@ -295,6 +295,10 @@ Data = {
           Lulu = {
             Changelog = "Lulu Changelog Here",
           Version = 0.01,
+        },  
+           Syndra = {
+            Changelog = "Syndra Changelog Here",
+          Version = 0.01,
         },        
     },
     Loader = {
