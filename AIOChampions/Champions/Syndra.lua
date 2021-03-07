@@ -25,10 +25,10 @@ local spellR = {
 }
 
 local spellQE = {
-	range = 1100,
-	width = 22,
-	speed = 4500,
-	delay = 0.15
+	range = 1200,
+	width = 100,
+	speed = 2500,
+	delay = 0.25
 }
 
 local spellQE2 = {
@@ -100,7 +100,7 @@ end
 
 function LoadScript()	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -162,6 +162,7 @@ function LoadScript()
 	--Drawing 
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
 	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawQE", name = "Draw [Q/E] Range", value = false})	
 	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
@@ -184,9 +185,9 @@ function LoadScript()
 
 	QEData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = spellQE.delay, Radius = spellQE.width, Range = spellQE.range, Speed = spellQE.speed, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = spellQE.delay, Radius = spellQE.width, Range = spellQE.range, Speed = spellQE.speed, Collision = false
 	}	
-	QEspellData = {speed = spellQE.speed, range = spellQE.range, delay = spellQE.delay, radius = spellQE.width, collision = {nil}, type = "circular"}	
+	QEspellData = {speed = spellQE.speed, range = spellQE.range, delay = spellQE.delay, radius = spellQE.width, collision = {nil}, type = "linear"}	
 	
 	QE2Data =
 	{
@@ -215,6 +216,9 @@ function LoadScript()
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
 		DrawCircle(myHero, spellQ.range, 1, DrawColor(225, 225, 0, 10))
 		end
+		if Menu.Drawing.DrawQE:Value() and Ready(_Q) and Ready(_E) then
+		DrawCircle(myHero, spellQE.range, 1, DrawColor(225, 225, 0, 10))
+		end		
 		if Menu.Drawing.DrawE:Value() and Ready(_E) then
 		DrawCircle(myHero, spellE.range, 1, DrawColor(225, 225, 125, 10))
 		end
@@ -670,25 +674,29 @@ function Combo()
 		local target = GetTargetQE()
 		if target and IsValid(target) then
 			if myHero.mana > myHero:GetSpellData(_Q).mana + myHero:GetSpellData(_E).mana then
-				if GetDistance(myHero.pos, target.pos) <= spellQE.range then
-					if GetDistance(myHero.pos, target.pos) > 1000 then
-						spellQE2.delay = 0.24
-					end
-					if GetDistance(myHero.pos, target.pos) < 1000 and GetDistance(myHero.pos, target.pos) > 900 then
-						spellQE2.delay = 0.16
-					end
-					if GetDistance(myHero.pos, target.pos) < 900 then
-						spellQE2.delay = 0.25
-					end
-					
-					local pos = GetPredPos(target, QE2)
-					if pos then
-						local CastPos = myHero.pos + (pos - myHero.pos):Normalized() * 700
-						if GetDistance(myHero.pos, target.pos) > spellE.range then
-							Control.CastSpell(HK_Q, CastPos)
-						end
-					end
+				--[[if GetDistance(myHero.pos, target.pos) > 1000 then
+					spellQE.delay = 0.24
 				end
+				if GetDistance(myHero.pos, target.pos) < 1000 and GetDistance(myHero.pos, target.pos) > 900 then
+					spellQE.delay = 0.16
+				end
+				if GetDistance(myHero.pos, target.pos) < 900 then
+					spellQE.delay = 0.25
+				end]]
+				
+				--local pos = GetPredPos(target, QE)
+				--if pos then
+					local CastPos = Vector(target.pos):Shortened(myHero.pos, - (GetDistance(myHero.pos, target.pos)/2))
+					if Control.CastSpell(HK_Q, CastPos) then
+						SetMovement(false)
+						DelayAction(function()
+							Control.CastSpell(HK_E, target.pos)
+							ECasting = os.clock()
+							LastWCast = os.clock()
+							SetMovement(true)
+						end,0.05)	
+					end
+				--end
 			end
 		end
 	end
@@ -865,7 +873,7 @@ function GetPredPos(unit, Spell)
 				return WPrediction.CastPosition
 			end	
 		end
-		
+	
 	elseif Spell == QE then
 		if Menu.Pred.Change:Value() == 1 then
 			local pred = GetGamsteronPrediction(unit, QEData, myHero)
@@ -878,9 +886,9 @@ function GetPredPos(unit, Spell)
 				return pred.CastPos
 			end
 		else
-			local QEPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = spellQE.delay, Radius = spellQE.width, Range = spellQE.range, Speed = spellQE.speed, Collision = false})
+			local QEPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = spellQE.delay, Radius = spellQE.width, Range = spellQE.range, Speed = spellQE.speed, Collision = false})
 			QEPrediction:GetPrediction(unit, myHero)
-			if QEPrediction:CanHit(3) then
+			if QEPrediction:CanHit(Menu.Pred.PredQ:Value()+1) then
 				return QEPrediction.CastPosition
 			end	
 		end
