@@ -73,7 +73,7 @@
 local ScriptVersion = "PussyVers. 0.02"
 
 local Q = { Range = 920, Delay = 0.5, Speed = 2000, Width = 60}
-require "PussyDamageLib"
+require "DamageLib"
 
 if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
 	DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)

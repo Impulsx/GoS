@@ -1695,7 +1695,7 @@ end
 
 DelayAction(function()
 	if table.contains(Heroes, myHero.charName) then		
-		require "PussyDamageLib"
+		require "DamageLib"
 		_G[myHero.charName]()
 		LoadUnits()
 	end		

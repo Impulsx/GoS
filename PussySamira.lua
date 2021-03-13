@@ -2,7 +2,7 @@ local Heroes = {"Samira"}
 
 if not table.contains(Heroes, myHero.charName) then return end
 
-require "PussyDamageLib"
+require "DamageLib"
 
 
 ----------------------------------------------------

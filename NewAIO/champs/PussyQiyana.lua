@@ -32,11 +32,11 @@ if not FileExist(COMMON_PATH, "PussyCore.lua") then
 	return
 end
 
-if not FileExist(COMMON_PATH, "PussyDamageLib.lua") then
-	print("PussyLoader: PussyDamageLib is missing. Script wont start. Downloading...")
+if not FileExist(COMMON_PATH, "DamageLib.lua") then
+	print("PussyLoader: DamageLib is missing. Script wont start. Downloading...")
 
-	DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/PussyDamageLib.lua", COMMON_PATH .. "PussyDamageLib.lua", function()
-		print("PussyLoader: PussyDamageLib downloaded successfully. Please press F6 to restart.")
+	DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/DamageLib.lua", COMMON_PATH .. "DamageLib.lua", function()
+		print("PussyLoader: DamageLib downloaded successfully. Please press F6 to restart.")
 	end)
 
 	return
@@ -49,7 +49,7 @@ end
 local Core = require 'PussyCore'
 require "2DGeometry"
 require "MapPositionGOS"
-require "PussyDamageLib"
+require "DamageLib"
 
 --///////////////////////////////////////////////////////////
 --//////////////////////////// Local Variables
