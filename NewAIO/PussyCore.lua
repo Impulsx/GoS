@@ -8,11 +8,11 @@ local function ReadFile(path, fileName)
     return result
 end
 
-DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/NewAIO/PussyCore.version", COMMON_PATH .. "PussyCore.version", function() 
+DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/NewAIO/PussyCore.version", COMMON_PATH .. "PussyCore.version", function() 
 	local onlineVersion = tonumber(ReadFile(COMMON_PATH , "PussyCore.version"))
 
 	if onlineVersion > version then
-		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/NewAIO/PussyCore.lua", COMMON_PATH .. "PussyCore.lua", function() 
+		DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/NewAIO/PussyCore.lua", COMMON_PATH .. "PussyCore.lua", function() 
 			print("PussyLoader: PussyCore updated. Press F6 to reload.")
 		end)
 

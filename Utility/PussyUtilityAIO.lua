@@ -6,12 +6,12 @@ do
         Lua = {
             Path = SCRIPT_PATH,
             Name = "PussyUtilityAIO.lua",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/Utility/PussyUtilityAIO.lua"
+            Url = "https://raw.githubusercontent.com/Impulsx/GoS/master/Utility/PussyUtilityAIO.lua"
         },
         Version = {
             Path = SCRIPT_PATH,
             Name = "PussyUtilityAIO.version",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/Utility/PussyUtilityAIO.version"
+            Url = "https://raw.githubusercontent.com/Impulsx/GoS/master/Utility/PussyUtilityAIO.version"
         }
     }
     
@@ -470,7 +470,7 @@ function RecallTracker:__init()
 	if not FileExist(SPRITE_PATH.."RecallTracker.png") then
 		print("Missing Images, Downloading...")
 		print("Pls Reload GoS 2xF6...")
-		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/Utility/Images/RecallTracker.png", SPRITE_PATH.."RecallTracker.png", function() end)
+		DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/Utility/Images/RecallTracker.png", SPRITE_PATH.."RecallTracker.png", function() end)
 		return
 	end
 	self:LoadData()
@@ -633,15 +633,15 @@ function CooldownTracker:__init()
 	if not FileExist(SPRITE_PATH.."SummonerBarrier.png") then
 		print("Missing Images, Downloading...")
 		print("Pls Reload GoS 2xF6...")
-		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/Utility/Images/SummonerBarrier.png", SPRITE_PATH.."SummonerBarrier.png", function() end)
-		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/Utility/Images/SummonerBoost.png", SPRITE_PATH.."SummonerBoost.png", function() end)		
-		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/Utility/Images/SummonerExhaust.png", SPRITE_PATH.."SummonerExhaust.png", function() end)
-		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/Utility/Images/SummonerFlash.png", SPRITE_PATH.."SummonerFlash.png", function() end)
-		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/Utility/Images/SummonerHaste.png", SPRITE_PATH.."SummonerHaste.png", function() end)
-		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/Utility/Images/SummonerHeal.png", SPRITE_PATH.."SummonerHeal.png", function() end)
-		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/Utility/Images/SummonerDot.png", SPRITE_PATH.."SummonerDot.png", function() end)
-		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/Utility/Images/SummonerSmite.png", SPRITE_PATH.."SummonerSmite.png", function() end)
-		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/Utility/Images/SummonerTeleport.png", SPRITE_PATH.."SummonerTeleport.png", function() end)
+		DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/Utility/Images/SummonerBarrier.png", SPRITE_PATH.."SummonerBarrier.png", function() end)
+		DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/Utility/Images/SummonerBoost.png", SPRITE_PATH.."SummonerBoost.png", function() end)		
+		DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/Utility/Images/SummonerExhaust.png", SPRITE_PATH.."SummonerExhaust.png", function() end)
+		DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/Utility/Images/SummonerFlash.png", SPRITE_PATH.."SummonerFlash.png", function() end)
+		DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/Utility/Images/SummonerHaste.png", SPRITE_PATH.."SummonerHaste.png", function() end)
+		DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/Utility/Images/SummonerHeal.png", SPRITE_PATH.."SummonerHeal.png", function() end)
+		DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/Utility/Images/SummonerDot.png", SPRITE_PATH.."SummonerDot.png", function() end)
+		DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/Utility/Images/SummonerSmite.png", SPRITE_PATH.."SummonerSmite.png", function() end)
+		DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/Utility/Images/SummonerTeleport.png", SPRITE_PATH.."SummonerTeleport.png", function() end)
 		return
 	end	
 	self.Summon, self.enemies = {}, {}

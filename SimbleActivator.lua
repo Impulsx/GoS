@@ -12,12 +12,12 @@ do
         {
             Path = SCRIPT_PATH,
             Name = "SimbleActivator.lua",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/SimbleActivator.lua"
+            Url = "https://raw.githubusercontent.com/Impulsx/GoS/master/SimbleActivator.lua"
         },
         Version = {
             Path = SCRIPT_PATH,
             Name = "SimbleActivator.version",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/SimbleActivator.version"
+            Url = "https://raw.githubusercontent.com/Impulsx/GoS/master/SimbleActivator.version"
         },
     }
     
@@ -305,7 +305,7 @@ end
 
 function Activator:LoadMenu()
     
-    self.Menu = MenuElement({type = MENU, id = "PussyActivator", leftIcon = "https://raw.githubusercontent.com/Pussykate/GoS/master/PageImage/ActivatorScriptLogo.png"})
+    self.Menu = MenuElement({type = MENU, id = "PussyActivator", leftIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/ActivatorScriptLogo.png"})
 	self.Menu:MenuElement({name = " ", drop = {"Version 0.32"}})    
 	
 	--Shield/Heal MyHero

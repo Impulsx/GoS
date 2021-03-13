@@ -26,12 +26,12 @@ do
         Lua = {
             Path = SCRIPT_PATH,
             Name = "14Yasuo_Vol2.lua",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/14Yasuo_Vol2.lua"
+            Url = "https://raw.githubusercontent.com/Impulsx/GoS/master/14Yasuo_Vol2.lua"
         },
         Version = {
             Path = SCRIPT_PATH,
             Name = "14Yasuo_Vol2.version",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/14Yasuo_Vol2.version"
+            Url = "https://raw.githubusercontent.com/Impulsx/GoS/master/14Yasuo_Vol2.version"
         }
     }
     
@@ -553,7 +553,7 @@ end
 
 function Yasuo:LoadMenu()
     self.tyMenu = MenuElement({type = MENU, id = "14", name = "14Yasuo_Vol.2"})
-	self.tyMenu:MenuElement({name = " ", drop = {"Reworked by Pussykate and ty1314"}})
+	self.tyMenu:MenuElement({name = " ", drop = {"Reworked by Impulsx and ty1314"}})
     self.tyMenu:MenuElement({name = "Ping", id = "ping", value = 20, min = 0, max = 300, step = 1})
 
     self.tyMenu:MenuElement({type = MENU, id = "StackQ", name = "StackQ Logic"})

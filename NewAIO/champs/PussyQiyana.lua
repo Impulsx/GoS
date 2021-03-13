@@ -10,11 +10,11 @@ local function ReadFile(path, fileName)
     return result
 end
 
-DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/NewAIO/champs/PussyQiyana.version", COMMON_PATH .. "PussyQiyana.version", function() 
+DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/NewAIO/champs/PussyQiyana.version", COMMON_PATH .. "PussyQiyana.version", function() 
 	local onlineVersion = tonumber(ReadFile(COMMON_PATH , "PussyQiyana.version"))
 
 	if onlineVersion > version then
-		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/NewAIO/champs/PussyQiyana.lua", COMMON_PATH .. "PussyQiyana.lua", function() 
+		DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/NewAIO/champs/PussyQiyana.lua", COMMON_PATH .. "PussyQiyana.lua", function() 
 			print("PussyLoader: Qiyana updated. Press F6 to reload.")
 		end)
 
@@ -25,7 +25,7 @@ end)
 if not FileExist(COMMON_PATH, "PussyCore.lua") then
 	print("PussyLoader: PussyCore is missing. Script wont start. Downloading...")
 
-	DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/NewAIO/PussyCore.lua", COMMON_PATH .. "PussyCore.lua", function()
+	DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/NewAIO/PussyCore.lua", COMMON_PATH .. "PussyCore.lua", function()
 		print("PussyLoader: PussyCore downloaded successfully. Please press F6 to restart.")
 	end)
 
@@ -35,7 +35,7 @@ end
 if not FileExist(COMMON_PATH, "PussyDamageLib.lua") then
 	print("PussyLoader: PussyDamageLib is missing. Script wont start. Downloading...")
 
-	DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/PussyDamageLib.lua", COMMON_PATH .. "PussyDamageLib.lua", function()
+	DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/PussyDamageLib.lua", COMMON_PATH .. "PussyDamageLib.lua", function()
 		print("PussyLoader: PussyDamageLib downloaded successfully. Please press F6 to restart.")
 	end)
 

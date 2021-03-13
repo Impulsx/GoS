@@ -13,11 +13,11 @@ local function ReadFile(path, fileName)
     return result
 end
 
-DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/NewAIO/PussyLoader.version", COMMON_PATH .. "PussyLoader.version", function() 
+DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/NewAIO/PussyLoader.version", COMMON_PATH .. "PussyLoader.version", function() 
 	local onlineVersion = tonumber(ReadFile(COMMON_PATH , "PussyLoader.version"))
 
 	if onlineVersion > version then
-		DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/NewAIO/PussyLoader.lua", SCRIPT_PATH .. "PussyLoader.lua", function()
+		DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/NewAIO/PussyLoader.lua", SCRIPT_PATH .. "PussyLoader.lua", function()
 			print("PussyLoader updated. Press F6 to reload.")
 		end)
 
@@ -33,7 +33,7 @@ DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/NewAIO
 				print("PussyLoader: " .. filename .. " loaded.")
 			else
 
-				DownloadFileAsync("https://github.com/Pussykate/GoS/tree/master/NewAIO/champs" .. fileName .. ".lua", COMMON_PATH .. fileName .. ".lua", function()
+				DownloadFileAsync("https://github.com/Impulsx/GoS/tree/master/NewAIO/champs" .. fileName .. ".lua", COMMON_PATH .. fileName .. ".lua", function()
 					require fileName
 					print("PussyLoader: " .. filename .. " loaded.")
 				end)
