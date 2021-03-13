@@ -3,7 +3,7 @@ Version: 11.5
 
 Usage:
 
-require "DamageLib"
+require "PussyDamageLib"
 
 local Rdamage = getdmg("R",target,source)
 -------------------------------------------------------
