@@ -11,6 +11,8 @@ local Rdamage = getdmg("R",target,source)
 params:
 
 getdmg("SKILL",target,source,stagedmg,spelllvl)
+
+Test edit by Series
 ]]
 
 print("DamageLib 11.5 loaded")
