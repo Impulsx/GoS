@@ -74,7 +74,7 @@ local function AutoUpdate()
 	
 	local function LoadLibs()
 		
-		require "DamageLib"
+		require "PussyDamageLib"
 		
 
 		if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
