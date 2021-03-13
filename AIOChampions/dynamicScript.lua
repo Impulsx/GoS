@@ -29,7 +29,7 @@ require('GamsteronPrediction')
 
 if not FileExist(COMMON_PATH .. "PussyDamageLib.lua") then
 	print("PussyDamageLib. installed Press 2x F6")
-	DownloadFileAsync("https://raw.githubusercontent.com/Pussykate/GoS/master/PussyDamageLib.lua", COMMON_PATH .. "PussyDamageLib.lua", function() end)
+	DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/PussyDamageLib.lua", COMMON_PATH .. "PussyDamageLib.lua", function() end)
 	while not FileExist(COMMON_PATH .. "PussyDamageLib.lua") do end
 end
     
