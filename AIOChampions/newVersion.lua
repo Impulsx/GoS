@@ -197,6 +197,10 @@ Data = {
             Changelog = "Katarina Changelog Here",
             Version = 0.04,
         },
+           Karthus = {
+            Changelog = "Karthus Changelog Here",
+            Version = 0.04,
+        },
            Leblanc = {
             Changelog = "Leblanc Changelog Here",
             Version = 0.03,
