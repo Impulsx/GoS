@@ -1,11 +1,11 @@
 Data = {
 
     Loader = {
-        Version = 0.20,
+        Version = 0.22,
     },
     Core = {
         Changelog = "Auto Version ChangeLog Here",
-        Version = 0.21,
+        Version = 0.22,
     },
 
     Champions = {
