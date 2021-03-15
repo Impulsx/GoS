@@ -177,10 +177,6 @@ Data = {
             Changelog = "Volibear Changelog Here",
             Version = 0.04,
         }, 
-           Karthus = {
-            Changelog = "Karthus Changelog Here",
-            Version = 0.03,
-        }, 
            Leona = {
             Changelog = "Leona Changelog Here",
             Version = 0.06,
