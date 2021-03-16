@@ -59,6 +59,101 @@ function LoadUnits()
 	end
 end
 
+function LoadScript() 
+	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
+	
+	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
+	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
+	Menu:MenuElement({type = MENU, id = "Extras", name = "Extra Settings"})
+	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})	
+	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
+
+
+	--Combo
+	Menu.Combo:MenuElement({id = "Q", name = "Use [Q]", value = true})
+	Menu.Combo:MenuElement({id = "W", name = "Use [W]", value = true})
+	Menu.Combo:MenuElement({id = "W2", name = "Only [W] if out of AA range", value = true})	
+	Menu.Combo:MenuElement({id = "E", name = "Use [E]", value = true})
+	Menu.Combo:MenuElement({id = "R", name = "Use [R]", value = true})
+
+	--Harass
+	Menu.Harass:MenuElement({id = "Q", name = "Use [Q]", value = true})
+	Menu.Harass:MenuElement({id = "W", name = "Use [W]", value = true})
+	Menu.Harass:MenuElement({id = "E", name = "Use [E]", value = true})
+	Menu.Harass:MenuElement({id = "Mana", name = "Min Mana", value = 30, min = 0, max = 100, identifier = "%"})
+	
+	--Draw 
+	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})	
+	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
+	
+	--Prediction
+	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
+	Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})
+	Menu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+	Menu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 1, drop = {"Normal", "High", "Immobile"}})	
+	
+	--KS
+	Menu.ks:MenuElement({name = " ", drop = {"Only if Combo not active"}})	
+	Menu.ks:MenuElement({id = "UseW", name = "Use [W]", value = true})	
+	Menu.ks:MenuElement({id = "UseR", name = "Use [R]", value = true})
+	
+	--Extras
+	Menu.Extras:MenuElement({id = "Key", name = "SemiKey [R]", key = string.byte("T")})	
+	Menu.Extras:MenuElement({id = "RRange3", name = "Max R Range (Semi Key)", value = 4000, min = 350, max = 12500, identifier = "range"})	
+	Menu.Extras:MenuElement({id = "RRange", name = "Max R Range (Combo / Ks)", value = 2000, min = 350, max = 4000, identifier = "range"})	
+	Menu.Extras:MenuElement({id = "MinRRange", name = "Min R Range (Combo / Ks)", value = 300, min = 0, max = 1800, identifier = "range"})	
+	Menu.Extras:MenuElement({id = "REnemies", name = "R multible Enemies (Combo)", value = 3, min = 1, max = 5})
+	Menu.Extras:MenuElement({id = "RRange2", name = "Max R Range Check multible Enemies", value = 4000, min = 350, max = 12500, identifier = "range"})	
+	Menu.Extras:MenuElement({id = "ROverkill", name = "Check R Overkill", value = true})
+	Menu.Extras:MenuElement({id = "WRange", name = "Min W Range", value = 300, min = 0, max = 1450, identifier = "range"})	
+	Menu.Extras:MenuElement({id = "EGapcloser", name = "Auto E Gapclosers", value = true})
+	Menu.Extras:MenuElement({id = "EAutoCast", name = "Auto E Immobile Target", value = true})
+	Menu.Extras:MenuElement({id = "SwapThree", name = "Swap Q at three fishbone stacks", value = true})
+	Menu.Extras:MenuElement({id = "SwapDistance", name = "Swap Q for Distance", value = true})
+	Menu.Extras:MenuElement({id = "SwapAOE", name = "Swap Q for AoE", value = true})
+	
+	WData =
+	{
+	Type = _G.SPELLTYPE_LINE, Delay = 0.6, Radius = 30, Range = 1400, Speed = 3300, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}
+	}
+	
+	WspellData = {speed = 3300, range = 1400, delay = 0.6, radius = 30, collision = {"minion"}, type = "linear"}	
+	
+	EData =
+	{
+	Type = _G.SPELLTYPE_CIRCLE, Delay = 1.5, Radius = 120, Range = 900, Speed = 1100, Collision = false
+	}
+	
+	EspellData = {speed = 1100, range = 900, delay = 1.5, radius = 120, collision = {nil}, type = "circular"}	
+
+	Callback.Add("Tick", function() Tick() end)
+	
+	Callback.Add("Draw", function()
+		if myHero.dead then return end	
+		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
+			if isFishBones then
+				DrawCircle(myHero, 625, 1, DrawColor(255, 225, 255, 10))
+			else
+				DrawCircle(myHero, QRange, 1, DrawColor(255, 225, 255, 10))
+			end	
+		end 		
+		if Menu.Drawing.DrawW:Value() and Ready(_W) then
+			DrawCircle(myHero, 1500, 1, DrawColor(255, 225, 255, 10))
+		end 		
+		if Menu.Drawing.DrawE:Value() and Ready(_E) then
+			DrawCircle(myHero, 900, 1, DrawColor(255, 225, 255, 10))
+		end                                                 
+		if Menu.Drawing.DrawR:Value() and Ready(_R) then
+			DrawCircle(myHero, Menu.Extras.RRange:Value(), 1, DrawColor(225, 225, 0, 10))
+		end
+	end)	
+end
+
 local function CheckLoadedEnemyies()
 	local count = 0
 	for i, unit in ipairs(Enemies) do
