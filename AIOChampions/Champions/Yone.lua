@@ -178,7 +178,7 @@ end
 function Yone:LoadMenu()                     	
 									 -- MainMenu --
 	self.Menu = MenuElement({type = MENU, id = "PussySeries".. myHero.charName, name = "Yone"})
-	self.Menu:MenuElement({name = " ", drop = {"Version 0.08"}})
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.01"}})
 	
 	
 									  -- Combo --
