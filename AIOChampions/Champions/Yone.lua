@@ -10,10 +10,10 @@ local function GetDistance(pos1, pos2)
 end
 
 local function SetAttack(bool)
-	if _G.SDK then                    a                                    
+	if _G.SDK then
 		_G.SDK.Orbwalker:SetAttack(bool)
 	elseif _G.PremiumOrbwalker then
-		_G.PremiumOrbwalker:SetAttack(bool)	
+		_G.PremiumOrbwalker:SetAttack(bool)
 	end
 end
 
@@ -21,7 +21,7 @@ local function SetMovement(bool)
 	if _G.SDK then
 		_G.SDK.Orbwalker:SetMovement(bool)
 	elseif _G.PremiumOrbwalker then
-		_G.PremiumOrbwalker:SetMovement(bool)	
+		_G.PremiumOrbwalker:SetMovement(bool)
 	end
 end
 
