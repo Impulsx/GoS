@@ -157,7 +157,7 @@ local target = nil
 local LastTargetHealth = 10000
 
 
-function Yone:__init()	
+function Yone:LoadScript()
 	self:LoadMenu()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
