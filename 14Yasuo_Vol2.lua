@@ -26,12 +26,12 @@ do
         Lua = {
             Path = SCRIPT_PATH,
             Name = "14Yasuo_Vol2.lua",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/14Yasuo_Vol2.lua"
+            Url = "https://raw.githubusercontent.com/Impulsx/GoS/master/14Yasuo_Vol2.lua"
         },
         Version = {
             Path = SCRIPT_PATH,
             Name = "14Yasuo_Vol2.version",
-            Url = "https://raw.githubusercontent.com/Pussykate/GoS/master/14Yasuo_Vol2.version"
+            Url = "https://raw.githubusercontent.com/Impulsx/GoS/master/14Yasuo_Vol2.version"
         }
     }
     
