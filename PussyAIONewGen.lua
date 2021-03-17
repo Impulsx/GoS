@@ -22,9 +22,9 @@ end
 
 local function AutoUpdate()
 	local CHAMP_PATH			= AUTO_PATH..'Champions/'
-	local SCRIPT_URL			= "https://raw.githubusercontent.com/Pussykate/GoS/master/"
-	local AUTO_URL				= "https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/"
-	local CHAMP_URL				= "https://raw.githubusercontent.com/Pussykate/GoS/master/AIOChampions/Champions/"
+	local SCRIPT_URL			= "https://raw.githubusercontent.com/Impulsx/GoS/master/"
+	local AUTO_URL				= "https://raw.githubusercontent.com/Impulsx/GoS/master/AIOChampions/"
+	local CHAMP_URL				= "https://raw.githubusercontent.com/Impulsx/GoS/master/AIOChampions/Champions/"
 	local oldVersion			= "currentVersion.lua"
 	local newVersion			= "newVersion.lua"
 	--
@@ -121,14 +121,14 @@ local function AutoUpdate()
 	
 	local function CheckUpdate()
 		local currentData, latestData = dofile(AUTO_PATH..oldVersion), dofile(AUTO_PATH..newVersion)
-		if true then
+		if currentData.Loader.Version < latestData.Loader.Version then
 			print ("Pls Press 2x F6")
 			DownloadFile(SCRIPT_URL, SCRIPT_PATH, "PussyAIONewGen.lua")        
 			currentData.Loader.Version = latestData.Loader.Version
 		end
 		
 		for k,v in pairs(latestData.Champions) do
-			if true then
+			if not FileExist(CHAMP_PATH..k..dotlua) or not currentData.Champions[k] or currentData.Champions[k].Version < v.Version then
 				print("Downloading Champion Script: " .. k)
 				DownloadFile(CHAMP_URL, CHAMP_PATH, k..dotlua)
 				if not currentData.Champions[k] then
@@ -139,7 +139,7 @@ local function AutoUpdate()
 			end
 		end
 		
-		if true then
+		if currentData.Core.Version < latestData.Core.Version or not FileExist(AUTO_PATH.."Core.lua") then
 			DownloadFile(AUTO_URL, AUTO_PATH, "Core.lua")        
 			currentData.Core.Version = latestData.Core.Version
 		end
