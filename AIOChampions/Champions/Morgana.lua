@@ -234,7 +234,7 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})
 	
 	--AutoE
 	Menu:MenuElement({id = "AutoE", name = "AutoE if Ground Controled", type = MENU})
@@ -706,7 +706,7 @@ end
 
 function CastGGPred(spell, unit)
 	if spell == _Q then
-		local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1300, Speed = 1700, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+		local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1300, Speed = 1200, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
 		QPrediction:GetPrediction(unit, myHero)
 		if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 			Control.CastSpell(HK_Q, QPrediction.CastPosition)
