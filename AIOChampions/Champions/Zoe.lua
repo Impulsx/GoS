@@ -317,7 +317,7 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.12"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.13"}})	
 	
 	Menu:MenuElement({type = MENU, id = "RSet", name = "AutoR+E Incomming CC Spells"})	
 	Menu.RSet:MenuElement({id = "UseR", name = "Use AutoR + E Stun", value = true})	
@@ -465,17 +465,17 @@ function LoadScript()
 	
 	QData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0, Radius = 70, Range = 2500, Speed = 2500, Collision = false
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 2500, Speed = 1200, Collision = false
 	}
 	
-	QspellData = {speed = 2500, range = 2500, delay = 0, radius = 70, collision = {nil}, type = "linear"}		
+	QspellData = {speed = 2500, range = 2500, delay = 0.25, radius = 70, collision = {nil}, type = "linear"}		
 
 	EData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.3, Radius = 50, Range = 800, Speed = 1700, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 50, Range = 800, Speed = 1700, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}
 	}
 
-	EspellData = {speed = 1700, range = 800, delay = 0.3, radius = 50, collision = {"minion"}, type = "linear"}	
+	EspellData = {speed = 1700, range = 800, delay = 0.25, radius = 50, collision = {"minion"}, type = "linear"}	
   	                                           	
 	Callback.Add("Tick", function() Tick() end)
 	
@@ -648,7 +648,7 @@ function Combo1()
 					Control.CastSpell(HK_E, pred.CastPos) 
 				end
 			else
-				local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.3, Radius = 50, Range = 800, Speed = 1700, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
+				local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 50, Range = 800, Speed = 1700, Collision = true, CollisionTypes = {GGPrediction.COLLISION_MINION}})
 				EPrediction:GetPrediction(target, myHero)
 				if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
 					stuncast = os.clock()
@@ -1090,7 +1090,7 @@ function PredQ2(unit)
 			PredictPos = pred.CastPos
 		end	
 	else
-		local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.3, Radius = 70, Range = 2500, Speed = 2500, Collision = false})
+		local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 2500, Speed = 1200, Collision = false})
 		QPrediction:GetPrediction(unit, myHero)
 		if QPrediction:CanHit(Menu.Pred.PredQ2:Value() + 1) then
 			PredictPos = QPrediction.CastPosition	
