@@ -85,7 +85,7 @@ end
 
 local function CheckEnemyCollision(location, radius, delay, maxDistance)
 	if not maxDistance then
-		maxDistance = 1200
+		maxDistance = 1050
 	end
 	for i, hero in ipairs(GetEnemyHeroes()) do
 		if IsValid(hero) and GetDistance(hero.pos, location) < maxDistance then
@@ -435,7 +435,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
 	Menu:MenuElement({name = " ", drop = {"Full reworked Version from Sikaka"}})
 	
 	Menu:MenuElement({id = "General", name = "General Settings", type = MENU})
@@ -470,7 +470,7 @@ function LoadScript()
 			Menu.Skills.Q:MenuElement({id = "Detonate", name = "Auto Detonate", value = true })
 			Menu.Skills.Q:MenuElement({id = "TargetImmobile", name = "Q Immobile", value = true })
 			Menu.Skills.Q:MenuElement({id = "TargetDashes", name = "Q Dashes", value = true })
-			Menu.Skills.Q:MenuElement({id = "Range", name = "Max Q cast Range", value = 900, min = 100, max = 1000, step = 25 })
+			Menu.Skills.Q:MenuElement({id = "Range", name = "Max Q cast Range", value = 900, min = 100, max = 1050, step = 25 })
 			Menu.Skills.Q:MenuElement({id = "Mana", name = "Mana Limit", value = 25, min = 1, max = 100, step = 5 })
 		
 		
@@ -538,14 +538,14 @@ function LoadScript()
 	QData = {Type = _G.SPELLTYPE_LINE, Delay = (0.25+ping), Radius = 35, Range = 1050, Speed = 1300, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}	
 	QspellData = {speed = 1300, range = 1050, delay = (0.25+ping), radius = 35, collision = {"minion"}, type = "linear"}
 
-	QNoColData = {Type = _G.SPELLTYPE_LINE, Delay = (0.25+ping), Radius = 35, Range = 1500, Speed = 1300, Collision = false}	
+	QNoColData = {Type = _G.SPELLTYPE_LINE, Delay = (0.25+ping), Radius = 35, Range = 1100, Speed = 2100, Collision = false}	
 	QNoColspellData = {speed = 1300, range = 1500, delay = (0.25+ping), radius = 35, collision = {nil}, type = "linear"}	
 	
 	WData = {Type = _G.SPELLTYPE_LINE, Delay = (0.25+ping), Radius = 87, Range = 1050, Speed = 1700, Collision = false}	
 	WspellData = {speed = 1700, range = 1050, delay = (0.25+ping), radius = 87, collision = {nil}, type = "linear"}
 
-	EData = {Type = _G.SPELLTYPE_CIRCLE, Delay = (0.8+ping), Radius = 185, Range = 800, Speed = MathHuge, Collision = false}	
-	EspellData = {speed = MathHuge, range = 800, delay = (0.8+ping), radius = 185, collision = {nil}, type = "circular"}	
+	EData = {Type = _G.SPELLTYPE_CIRCLE, Delay = (0.25+ping), Radius = 185, Range = 800, Speed = MathHuge, Collision = false}	
+	EspellData = {speed = MathHuge, range = 800, delay = (0.25+ping), radius = 185, collision = {nil}, type = "circular"}	
 end
 
 function LoadSpells()
@@ -553,7 +553,7 @@ function LoadSpells()
 	Q = {Range = 1050, Width = 35,Delay = 0.25, Speed = 1300}
 	Q2 = {Range = 1100, Width = 35,Delay = 0, Speed = 2100}	
 	W = {Range = 1050, Width = 87,Delay = 0.25, Speed = 1700}
-	E = {Range = 800, Width = 185,Delay = 0.8, Speed = math.huge}
+	E = {Range = 800, Width = 185,Delay = 0.25, Speed = math.huge}
 	R = {Range = 1550,Width = 75, Delay = 0.25, Speed = math.huge}
 end
 
@@ -783,7 +783,7 @@ function AutoQ()
 						PredPos2 = pred.CastPos
 					end
 				else
-					local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = (0.25+ping), Radius = 35, Range = 1500, Speed = 1300, Collision = false})
+					local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = (0.25+ping), Radius = 35, Range = 1100, Speed = 2100, Collision = false})
 					QPrediction:GetPrediction(enemy, myHero)
 					if QPrediction:CanHit(2) then
 						PredPos2 = QPrediction.CastPosition
@@ -1053,7 +1053,7 @@ function AutoE()
 					return
 				end
 			else
-				local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = (0.8+ping), Radius = 185, Range = 800, Speed = MathHuge, Collision = false})
+				local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = (0.25+ping), Radius = 185, Range = 800, Speed = MathHuge, Collision = false})
 				EPrediction:GetPrediction(enemy, myHero)
 				if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
 					lastSpellCast = Game.Timer()
@@ -1101,7 +1101,7 @@ function AutoEStasis()
 				return true
 			end
 		else
-			local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = (0.8+ping), Radius = 185, Range = 800, Speed = MathHuge, Collision = false})
+			local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = (0.25+ping), Radius = 185, Range = 800, Speed = MathHuge, Collision = false})
 			EPrediction:GetPrediction(enemy, myHero)
 			if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
 				lastSpellCast = Game.Timer()
@@ -1131,7 +1131,7 @@ function AutoEImmobile()
 				return true
 			end
 		else
-			local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = (0.8+ping), Radius = 185, Range = 800, Speed = MathHuge, Collision = false})
+			local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = (0.25+ping), Radius = 185, Range = 800, Speed = MathHuge, Collision = false})
 			EPrediction:GetPrediction(enemy, myHero)
 			if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
 				lastSpellCast = Game.Timer()
@@ -1161,7 +1161,7 @@ function AutoEDash()
 				return true
 			end
 		else
-			local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = (0.8+ping), Radius = 185, Range = 800, Speed = MathHuge, Collision = false})
+			local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = (0.25+ping), Radius = 185, Range = 800, Speed = MathHuge, Collision = false})
 			EPrediction:GetPrediction(enemy, myHero)
 			if EPrediction:CanHit(Menu.Pred.PredE:Value() + 1) then
 				lastSpellCast = Game.Timer()
