@@ -3,6 +3,9 @@ local Heroes = {"Urgot"}
 if not table.contains(Heroes, myHero.charName) then return end
 
 require "DamageLib"
+require('GGPrediction');
+require('PremiumPrediction')
+require('2DGeometry')
 
 --[[
 -- [ update not enabled until proper rank ]
