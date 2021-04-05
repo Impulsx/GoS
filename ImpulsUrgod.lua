@@ -785,7 +785,7 @@ function Urgot:Tick()
 			end
 		end, 1)	
 	end
-end
+
 
     self:KillSteal()
     
