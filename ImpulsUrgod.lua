@@ -76,10 +76,7 @@ if not FileExist(COMMON_PATH .. "GGPrediction.lua") then
 	print("GGPrediction installed Press 2x F6")
 	return
 end
-require('damagelib')
-require('GGPrediction');
-require('PremiumPrediction')
-require('2DGeometry')
+
     
 local _atan = math.atan2
 local _min = math.min
@@ -579,10 +576,10 @@ function Urgot:LoadMenu()
     --self.UrgotMenu.AutoLevel:MenuElement({id = "AutoLevel", name = "Only Q->W->E", value = true})
 
     self.UrgotMenu:MenuElement({id = "AutoLevel", name = "AutoLevel", type = MENU})
-    self.UrgotMenu:MenuElement({id = "on", name = "Enabled", value = true})
-    self.UrgotMenu:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 2, min = 1, max = 6, step = 1})
-    self.UrgotMenu:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
-    self.UrgotMenu:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
+    self.UrgotMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
+    self.UrgotMenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 2, min = 1, max = 6, step = 1})
+    self.UrgotMenu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
+    self.UrgotMenu.AutoLevel:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
     
     self.UrgotMenu:MenuElement({id = "Escape", name = "Escape", type = MENU})
     self.UrgotMenu.Escape:MenuElement({id = "UseE", name = "Use E", value = true})
