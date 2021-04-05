@@ -220,6 +220,18 @@ function LoadUnits()
 		if turret and turret.isEnemy then TableInsert(Turrets, turret) end
 	end
 end
+
+local function IsValid(unit)
+    if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) then
+        return true;
+    end
+    return false;
+end
+
+local function Ready(spell)
+    return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and GameCanUseSpell(spell) == 0
+end
+
 local function CheckLoadedEnemies()
 	local count = 0
 	for i, unit in ipairs(Enemies) do
@@ -279,6 +291,12 @@ function GetTarget(range)
 	elseif _G.PremiumOrbwalker then
 		return _G.PremiumOrbwalker:GetTarget(range)
 	end
+end
+
+local function ConvertToHitChance(menuValue, hitChance)
+    return menuValue == 1 and _G.PremiumPrediction.HitChance.High(hitChance)
+    or menuValue == 2 and _G.PremiumPrediction.HitChance.VeryHigh(hitChance)
+    or _G.PremiumPrediction.HitChance.Immobile(hitChance)
 end
 
 local function SetMovement(bool)
@@ -397,6 +415,7 @@ function GetDashPos(unit)
     return myHero.pos + (unit.pos - myHero.pos):Normalized() * 500
 end
 
+-- Spell data
 function GetSpellWName()
     return myHero:GetSpellData(_W).name
 end
@@ -700,12 +719,12 @@ function Urgot:LoadMenu()
     self.UrgotMenu:MenuElement({id = "Escape", name = "Escape", type = MENU})
     self.UrgotMenu.Escape:MenuElement({id = "UseE", name = "Use E", value = true})
     	--Prediction
-	self.Menu.MiscSet:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
-	self.Menu.MiscSet.Pred:MenuElement({name = " ", drop = {"After change Prediction Type press 2xF6"}})	
-	self.Menu.MiscSet.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
-	self.Menu.MiscSet.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})
-	self.Menu.MiscSet.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
-	self.Menu.MiscSet.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})
+	self.UrgotMenu:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
+	self.UrgotMenu.Pred:MenuElement({name = " ", drop = {"After change Prediction Type press 2xF6"}})	
+	self.UrgotMenu.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction", "InternalPrediction"}})	
+	self.UrgotMenu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})
+	self.UrgotMenu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
+	self.UrgotMenu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})
         --Drawings
     self.UrgotMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
         self.UrgotMenu.Drawings:MenuElement({id = "DrawQ", name = "Draw Q Range", value = true})
@@ -724,7 +743,7 @@ end
 function Urgot:LoadSpells()
     UrgotQ = {delay = 0.25, speed = math.huge, radius = 210, range = 800}
     UrgotW = {radius = 490, range = 490}
-    UrgotE = {delay = 0.45, speed = 1200, radius = 100, range = 450}
+    UrgotE = {delay = 0.45, speed = 1200, radius = 80, range = 450}
     UrgotR = {delay = 0.5, speed = 3200, range = 2500, radius = 160}
 
 --["UrgotQ"]={charName="Urgot",slot=_Q,type="circular",speed=math.huge,range=800,delay=0.25,radius=210,hitbox=true,aoe=true,cc=true,collision=false},
@@ -773,10 +792,10 @@ function Urgot:Tick()
 	end	
     if not PredLoaded then
 		DelayAction(function()
-			if self.Menu.MiscSet.Pred.Change:Value() == 1 then
+			if self.UrgotMenu.Pred.Change:Value() == 1 then
 				require('GamsteronPrediction')
 				PredLoaded = true
-			elseif self.Menu.MiscSet.Pred.Change:Value() == 2 then
+			elseif self.UrgotMenu.Pred.Change:Value() == 2 then
 				require('PremiumPrediction')
 				PredLoaded = true
 			else 
@@ -785,7 +804,28 @@ function Urgot:Tick()
 			end
 		end, 1)	
 	end
-
+	DelayAction(function()
+		if self.UrgotMenu.Pred.Change:Value() == 1 then
+			self.QData = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 210, Range = 800, Speed = math.huge, Collision = false, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
+			self.WData = {Type = _G.SPELLTYPE_LINE, Delay = 0.00, Radius = 490, Range = 490, Speed = 2000, Collision = false, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
+			self.EData = {Type = _G.SPELLTYPE_LINE, Delay = 0.4JUdGzvrMFDWrUUwY3toJATSeNwjn54LkCnKBPRzDuhzi5vSepHfUckJNxRL2gjkNrSqtCoRUrEDAgRwsQvVCjZbRyFTLRNyDmT1a1boZV = {_G.COLLISION_MINION}}
+			self.RData = {Type = _G.SPELLTYPE_LINE, Delay = 0.50, Radius = 160, Range = 1150, Speed =  3200, Collision = true, MaxCollision = 1, CollisionTypes = {_G.COLLISION_ENEMYHERO}}
+        end
+		if self.UrgotMenu.Pred.Change:Value() == 2 then
+			self.QspellData = {speed = math.huge, range = 1025, delay = 0.25, radius = 210, type = "circular"}
+            self.WspellData = {speed = 2000, range = 1025, delay = 0.00, radius = 490, type = "conic"}
+            self.EspellData = {speed = 1200, range = 1025, delay = 0.45, radius = 80, collision = {"minion"}, type = "linear"}
+            self.RspellData = {speed = 3200, range = 1025, delay = 0.50, radius = 160, type = "linear"}
+		end
+		if self.UrgotMenu.Pred.Change:Value() == 3 then  
+            self.QPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 210, Range = 800, Speed = math_huge, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
+            self.WPrediction = GGPrediction:SpellPrediction({Delay = 0.00, Radius = 490, Range = 490, Speed = 2000, Collision = false, Type = GGPrediction.SPELLTYPE_CONE})
+            self.EPrediction = GGPrediction:SpellPrediction({Delay = 0.45, Radius = 80,  Range = 450, Speed = 1200, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
+            self.RPrediction = GGPrediction:SpellPrediction({Delay = 0.50, Radius = 160, Range = 1150, Speed = 3200, Collision = true, CollisionTypes = {GGPrediction.COLLISION_ENEMYHERO}, Type = GGPrediction.SPELLTYPE_LINE})
+        end
+            if self.UrgotMenu.Pred.Change:Value() == 4 then 
+        end
+	end, 1.2)	
 
     self:KillSteal()
     
@@ -1096,22 +1136,6 @@ function Urgot:Harass()
 
 end
 
-function Urgot:CastQ(target, EcastPos)
-    if LocalGameTimer() - OnWaypoint(target).time > 0.05 and (LocalGameTimer() - OnWaypoint(target).time < 0.125 or LocalGameTimer() - OnWaypoint(target).time > 1.25) then
-        if GetDistance(myHero.pos, EcastPos) <= UrgotQ.range then
-            LocalControlCastSpell(HK_Q, EcastPos)
-        end
-    end
-end
-
-function Urgot:CastR(target, EcastPos)
-    if LocalGameTimer() - OnWaypoint(target).time > 0.05 and (LocalGameTimer() - OnWaypoint(target).time < 0.125 or LocalGameTimer() - OnWaypoint(target).time > 1.25) then
-        if GetDistance(myHero.pos, EcastPos) <= UrgotR.range then
-            LocalControlCastSpell(HK_R, EcastPos)
-        end
-    end
-end
-
 function Urgot:Combo()
     
     local targetQ = GOS:GetTarget(UrgotQ.range, "AD")
@@ -1269,6 +1293,80 @@ function Urgot:Combo()
             end
         end
     end
+end
+
+function Urgot:CastQ(target, EcastPos)
+    if LocalGameTimer() - OnWaypoint(target).time > 0.05 and (LocalGameTimer() - OnWaypoint(target).time < 0.125 or LocalGameTimer() - OnWaypoint(target).time > 1.25) then
+        if GetDistance(myHero.pos, EcastPos) <= UrgotQ.range then
+            LocalControlCastSpell(HK_Q, EcastPos)
+        end
+    end
+    --[[
+    if Ready(_Q) then
+        if self.UrgotMenu.Pred.Change:Value() == 1 then
+            local pred = GetGamsteronPrediction(unit, self.QData, myHero)
+            if pred.Hitchance >= self.UrgotMenu.Pred.PredQ:Value()+1 then
+                Control.CastSpell(HK_Q, pred.CastPosition)
+            end
+        end	
+        if self.UrgotMenu.Pred.Change:Value() == 2 then
+            local pred = _G.PremiumPrediction:GetAOEPrediction(myHero, unit, self.QspellData)
+            if pred.CastPos and ConvertToHitChance(self.Menu.Pred.PredQ:Value(), pred.HitChance) then
+                Control.CastSpell(HK_Q, pred.CastPos)
+            end
+        end	
+        if self.UrgotMenu.Pred.Change:Value() == 3 then
+            self.QPrediction:GetAOEPrediction(unit, myHero)			
+            if self.QPrediction:CanHit(self.UrgotMenu.Pred.PredQ:Value() + 1) then
+                Control.CastSpell(HK_Q, self.QPrediction.CastPosition)
+            end	
+        end
+        if self.UrgotMenu.Pred.Change:Value() == 4 then
+            if LocalGameTimer() - OnWaypoint(target).time > 0.05 and (LocalGameTimer() - OnWaypoint(target).time < 0.125 or LocalGameTimer() - OnWaypoint(target).time > 1.25) then
+                if GetDistance(myHero.pos, EcastPos) <= UrgotQ.range then
+                    LocalControlCastSpell(HK_Q, EcastPos)
+                end
+            end
+        end
+    end
+    ]]
+end
+
+function Urgot:CastR(target, EcastPos)
+    if LocalGameTimer() - OnWaypoint(target).time > 0.05 and (LocalGameTimer() - OnWaypoint(target).time < 0.125 or LocalGameTimer() - OnWaypoint(target).time > 1.25) then
+        if GetDistance(myHero.pos, EcastPos) <= UrgotR.range then
+            LocalControlCastSpell(HK_R, EcastPos)
+        end
+    end
+    --[[
+    if Ready(_R) then
+        if self.UrgotMenu.Pred.Change:Value() == 1 then
+            local pred = GetGamsteronPrediction(unit, self.RData, myHero)
+            if pred.Hitchance >= self.UrgotMenu.Pred.PredR:Value()+1 then
+                Control.CastSpell(HK_R, pred.CastPosition)
+            end
+        end	
+        if self.UrgotMenu.Pred.Change:Value() == 2 then
+            local pred = _G.PremiumPrediction:GetAOEPrediction(myHero, unit, self.RspellData)
+            if pred.CastPos and ConvertToHitChance(self.UrgotMenu.Pred.PredR:Value(), pred.HitChance) then
+                Control.CastSpell(HK_R, pred.CastPos)
+            end
+        end	
+        if self.UrgotMenu.Pred.Change:Value() == 3 then
+            self.RPrediction:GetAOEPrediction(unit, myHero)			
+            if self.RPrediction:CanHit(self.UrgotMenu.Pred.PredR:Value() + 1) then
+                Control.CastSpell(HK_R, self.RPrediction.CastPosition)
+            end	
+        end
+        if self.UrgotMenu.Pred.Change:Value() == 4 then
+            if LocalGameTimer() - OnWaypoint(target).time > 0.05 and (LocalGameTimer() - OnWaypoint(target).time < 0.125 or LocalGameTimer() - OnWaypoint(target).time > 1.25) then
+                if GetDistance(myHero.pos, EcastPos) <= UrgotR.range then
+                    LocalControlCastSpell(HK_R, EcastPos)
+                end
+            end
+        end
+    end
+    ]]
 end
 
 function OnLoad()
