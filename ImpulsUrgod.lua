@@ -3,8 +3,6 @@ local Heroes = {"Urgot"}
 if not table.contains(Heroes, myHero.charName) then return end
 
 require "DamageLib"
-require('GGPrediction');
-require('PremiumPrediction')
 require('2DGeometry')
 
 --[[
@@ -80,6 +78,9 @@ if not FileExist(COMMON_PATH .. "GGPrediction.lua") then
 	return
 end
 
+----------------------------------------------------
+--|                    Utils                     |--
+----------------------------------------------------
     
 local _atan = math.atan2
 local _min = math.min
@@ -131,6 +132,48 @@ local LocalGameParticleCount = Game.ParticleCount;
 local LocalGameParticle = Game.Particle;
 local LocalGameIsChatOpen = Game.IsChatOpen;
 local LocalGameIsOnTop = Game.IsOnTop;
+local PredLoaded = false
+local LastQ = 0
+local KillMinion = nil
+local WStart = 0
+local DrawTime = false
+local checkCount = 0 
+local heroes = false
+local wClock = 0
+local clock = os.clock
+local Latency = Game.Latency
+local ping = Latency() * 0.001
+local foundAUnit = false
+local _movementHistory = {}
+local TEAM_ALLY = myHero.team
+local TEAM_ENEMY = 300 - myHero.team
+local TEAM_JUNGLE = 300
+local wClock = 0
+local _OnVision = {}
+local sqrt = math.sqrt
+local MathHuge = math.huge
+local TableInsert = table.insert
+local TableRemove = table.remove
+local GameTimer = Game.Timer
+local Allies, Enemies, Turrets, Units = {}, {}, {}, {}
+local Orb
+local DrawRect = Draw.Rect
+local DrawCircle = Draw.Circle
+local DrawColor = Draw.Color
+local DrawText = Draw.Text
+local ControlSetCursorPos = Control.SetCursorPos
+local ControlKeyUp = Control.KeyUp
+local ControlKeyDown = Control.KeyDown
+local GameCanUseSpell = Game.CanUseSpell
+local GameHeroCount = Game.HeroCount
+local GameHero = Game.Hero
+local GameMinionCount = Game.MinionCount
+local GameMinion = Game.Minion
+local GameTurretCount = Game.TurretCount
+local GameTurret = Game.Turret
+local GameObjectCount = Game.ObjectCount
+local GameObject = Game.Object
+local GameIsChatOpen = Game.IsChatOpen
 
 local EnemyTraps = {}
 
@@ -166,6 +209,26 @@ for i = 1, Game.HeroCount() do
     local unit = Game.Hero(i)
     units[i] = {unit = unit, spell = nil}
 end
+function LoadUnits()
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i); Units[i] = {unit = unit, spell = nil}
+		if unit.team ~= myHero.team then TableInsert(Enemies, unit)
+		elseif unit.team == myHero.team and unit ~= myHero then TableInsert(Allies, unit) end
+	end
+	for i = 1, Game.TurretCount() do
+		local turret = Game.Turret(i)
+		if turret and turret.isEnemy then TableInsert(Turrets, turret) end
+	end
+end
+local function CheckLoadedEnemies()
+	local count = 0
+	for i, unit in ipairs(Enemies) do
+        if unit and unit.isEnemy then
+		count = count + 1
+		end
+	end
+	return count
+end
 
 function GetMode()   
     if _G.SDK then
@@ -190,7 +253,7 @@ function GetMode()
 end
 
 function IsReady(spell)
-    return Game.CanUseSpell(spell) == 0
+    return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and GameCanUseSpell(spell) == 0
 end
 
 function ValidTarget(target, range)
@@ -204,6 +267,30 @@ end
 
 function GetDistance2D(p1, p2)
     return _sqrt(_pow((p2.x - p1.x), 2) + _pow((p2.y - p1.y), 2))
+end
+
+function GetTarget(range) 
+	if _G.SDK then
+		if myHero.ap > myHero.totalDamage then
+			return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
+		else
+			return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL);
+		end
+	elseif _G.PremiumOrbwalker then
+		return _G.PremiumOrbwalker:GetTarget(range)
+	end
+end
+
+local function SetMovement(bool)
+	if _G.EOWLoaded then
+		EOW:SetMovements(bool)
+	elseif _G.SDK then
+		_G.SDK.Orbwalker:SetMovement(bool)
+	elseif _G.PremiumOrbwalker then
+		_G.PremiumOrbwalker:SetMovement(bool)	
+	else
+		GOS.BlockMovement = not bool
+	end
 end
 
 local _OnWaypoint = {}
@@ -263,6 +350,35 @@ function GetEnemyHeroes()
         end
     end
     return EnemyHeroes
+end
+
+local function GetMinions(range, typ) -- 1 = Enemy / 2 = Ally / 3 = Monsters
+	if _G.SDK and _G.SDK.Orbwalker then
+		if typ == 1 then
+			return _G.SDK.ObjectManager:GetEnemyMinions(range)
+		elseif typ == 2 then
+			return _G.SDK.ObjectManager:GetAllyMinions(range)
+		elseif typ == 3 then
+			return _G.SDK.ObjectManager:GetMonsters(range)
+		end
+		
+	elseif _G.PremiumOrbwalker then
+		if typ < 3 then
+			return _G.PremiumOrbwalker:GetMinionsAround(range, typ)
+		else
+			local Monsters = {}
+			local minions = _G.PremiumOrbwalker:GetMinionsAround(range, typ)
+			if minions then
+				for i = 1, #minions do
+					local unit = minions[i]
+					if unit.isEnemy and unit.team == 300 then
+						TableInsert(Monsters, unit)
+					end
+				end	
+			end
+			return Monsters
+		end
+	end
 end
 
 function IsUnderTurret(unit)
@@ -555,47 +671,51 @@ function Urgot:LoadMenu()
     self.Collision = nil
     
     self.CollisionSpellName = nil
-    
+        --Menu
     self.UrgotMenu = MenuElement({type = MENU, id = "Urgot", name = "Impuls's Urgod", leftIcon = HeroIcon})
-    
+        --Harass
     self.UrgotMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
-    self.UrgotMenu.Harass:MenuElement({id = "UseQ", name = "Use Q", value = true, leftIcon = QIcon})
-    self.UrgotMenu.Harass:MenuElement({id = "UseW", name = "Use W", value = true, leftIcon = WIcon})
-    
+        self.UrgotMenu.Harass:MenuElement({id = "UseQ", name = "Use Q", value = true, leftIcon = QIcon})
+        self.UrgotMenu.Harass:MenuElement({id = "UseW", name = "Use W", value = true, leftIcon = WIcon})
+        --Combo
     self.UrgotMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
-    self.UrgotMenu.Combo:MenuElement({id = "UseQ", name = "Use Q", value = true, leftIcon = QIcon})
-    self.UrgotMenu.Combo:MenuElement({id = "UseW", name = "Use W", value = true, leftIcon = WIcon})
-    self.UrgotMenu.Combo:MenuElement({id = "UseE", name = "Use E", value = true, leftIcon = EIcon})
-    self.UrgotMenu.Combo:MenuElement({id = "UseR", name = "Use R is enemy killable", value = true, leftIcon = RIcon})
-    
+        self.UrgotMenu.Combo:MenuElement({id = "UseQ", name = "Use Q", value = true, leftIcon = QIcon})
+        self.UrgotMenu.Combo:MenuElement({id = "UseW", name = "Use W", value = true, leftIcon = WIcon})
+        self.UrgotMenu.Combo:MenuElement({id = "UseE", name = "Use E", value = true, leftIcon = EIcon})
+        self.UrgotMenu.Combo:MenuElement({id = "UseR", name = "Use R is enemy killable", value = true, leftIcon = RIcon})
+        --KillSteal
     self.UrgotMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
-    self.UrgotMenu.KillSteal:MenuElement({id = "UseIgnite", name = "Use Ignite", value = true, leftIcon = IgniteIcon})
-    self.UrgotMenu.KillSteal:MenuElement({id = "UseQ", name = "Use Q", value = true, leftIcon = QIcon})
-    self.UrgotMenu.KillSteal:MenuElement({id = "UseW", name = "Use W", value = true, leftIcon = WIcon})
-    self.UrgotMenu.KillSteal:MenuElement({id = "UseE", name = "Use E", value = true, leftIcon = EIcon})
-    self.UrgotMenu.KillSteal:MenuElement({id = "UseR", name = "Use R", value = true, leftIcon = EIcon})
---[[
-    self.UrgotMenu:MenuElement({id = "AutoLevel", name = "AutoLevel", type = MENU})
-    self.UrgotMenu.AutoLevel:MenuElement({id = "AutoLevel", name = "Only Q->W->E", value = true})
-   ]]
+        self.UrgotMenu.KillSteal:MenuElement({id = "UseIgnite", name = "Use Ignite", value = true, leftIcon = IgniteIcon})
+        self.UrgotMenu.KillSteal:MenuElement({id = "UseQ", name = "Use Q", value = true, leftIcon = QIcon})
+        self.UrgotMenu.KillSteal:MenuElement({id = "UseW", name = "Use W", value = true, leftIcon = WIcon})
+        self.UrgotMenu.KillSteal:MenuElement({id = "UseE", name = "Use E", value = true, leftIcon = EIcon})
+        self.UrgotMenu.KillSteal:MenuElement({id = "UseR", name = "Use R", value = true, leftIcon = EIcon})
+        --AutoLevel
     self.UrgotMenu:MenuElement({type = MENU, id = "AutoLevel", name =  myHero.charName.." AutoLevel Spells"})
         self.UrgotMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
         self.UrgotMenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 2, min = 1, max = 6, step = 1})
         self.UrgotMenu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
         self.UrgotMenu.AutoLevel:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
- 
+        --Escape
     self.UrgotMenu:MenuElement({id = "Escape", name = "Escape", type = MENU})
     self.UrgotMenu.Escape:MenuElement({id = "UseE", name = "Use E", value = true})
-    
+    	--Prediction
+	self.Menu.MiscSet:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
+	self.Menu.MiscSet.Pred:MenuElement({name = " ", drop = {"After change Prediction Type press 2xF6"}})	
+	self.Menu.MiscSet.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
+	self.Menu.MiscSet.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})
+	self.Menu.MiscSet.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
+	self.Menu.MiscSet.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})
+        --Drawings
     self.UrgotMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
-    self.UrgotMenu.Drawings:MenuElement({id = "DrawQ", name = "Draw Q Range", value = true})
-    self.UrgotMenu.Drawings:MenuElement({id = "DrawW", name = "Draw W Range", value = false})
-    self.UrgotMenu.Drawings:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
-    self.UrgotMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
-    self.UrgotMenu.Drawings:MenuElement({id = "DrawAA", name = "Draw Killable AAs", value = false})
-    self.UrgotMenu.Drawings:MenuElement({id = "DrawKS", name = "Draw Killable Skills", value = true})
-    self.UrgotMenu.Drawings:MenuElement({id = "DrawJng", name = "Draw Jungler Info", value = true})
-    
+        self.UrgotMenu.Drawings:MenuElement({id = "DrawQ", name = "Draw Q Range", value = true})
+        self.UrgotMenu.Drawings:MenuElement({id = "DrawW", name = "Draw W Range", value = false})
+        self.UrgotMenu.Drawings:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
+        self.UrgotMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
+        self.UrgotMenu.Drawings:MenuElement({id = "DrawAA", name = "Draw Killable AAs", value = false})
+        self.UrgotMenu.Drawings:MenuElement({id = "DrawKS", name = "Draw Killable Skills", value = true})
+        self.UrgotMenu.Drawings:MenuElement({id = "DrawJng", name = "Draw Jungler Info", value = true})
+        --Version
     self.UrgotMenu:MenuElement({id = "blank", type = SPACE, name = ""})
     self.UrgotMenu:MenuElement({id = "blank", type = SPACE, name = "Script Ver: " .. Version .. " - LoL Ver: " .. LVersion .. ""})
     self.UrgotMenu:MenuElement({id = "blank", type = SPACE, name = "by " .. Author .. ""})
@@ -605,11 +725,11 @@ function Urgot:LoadSpells()
     UrgotQ = {delay = 0.25, speed = math.huge, radius = 210, range = 800}
     UrgotW = {radius = 490, range = 490}
     UrgotE = {delay = 0.45, speed = 1200, radius = 100, range = 450}
-    UrgotR = {delay = 0.5, speed = 3200, range = 2500, radius = 600}
+    UrgotR = {delay = 0.5, speed = 3200, range = 2500, radius = 160}
 
 --["UrgotQ"]={charName="Urgot",slot=_Q,type="circular",speed=math.huge,range=800,delay=0.25,radius=210,hitbox=true,aoe=true,cc=true,collision=false},
 --["UrgotE"]={charName="Urgot",slot=_E,type="linear",speed=1200,range=450,delay=0.45,radius=100,hitbox=true,aoe=true,cc=true,collision=false},
---["UrgotR"]={charName="Urgot",slot=_R,type="linear",speed=3200,range=2500,delay=0.5,radius=600,hitbox=true,aoe=false,cc=true,collision=false},
+--["UrgotR"]={charName="Urgot",slot=_R,type="linear",speed=3200,range=2500,delay=0.5,radius=160,hitbox=true,aoe=false,cc=true,collision=false},
 end
 
 function Urgot:__init()
@@ -651,37 +771,22 @@ function Urgot:Tick()
     if Game.IsOnTop() then
 		self:AutoLevelStart()
 	end	
---[[
-    if self.UrgotMenu.AutoLevel.AutoLevel:Value() then
-        local mylevel = myHero.levelData.lvl
-        local mylevelpts = myHero.levelData.lvlPts
-        
-        if mylevelpts > 0 then
-            if mylevel == 6 or mylevel == 11 or mylevel == 16 then
-                LocalControlKeyDown(HK_LUS)
-                LocalControlKeyDown(HK_R)
-                LocalControlKeyUp(HK_R)
-                LocalControlKeyUp(HK_LUS)
-            elseif mylevel == 1 or mylevel == 4 or mylevel == 5 or mylevel == 7 or mylevel == 9 then
-                LocalControlKeyDown(HK_LUS)
-                LocalControlKeyDown(HK_Q)
-                LocalControlKeyUp(HK_Q)
-                LocalControlKeyUp(HK_LUS)
-            elseif mylevel == 2 or mylevel == 8 or mylevel == 10 or mylevel == 12 or mylevel == 13 then
-                LocalControlKeyDown(HK_LUS)
-                LocalControlKeyDown(HK_W)
-                LocalControlKeyUp(HK_W)
-                LocalControlKeyUp(HK_LUS)
-            elseif mylevel == 3 or mylevel == 14 or mylevel == 15 or mylevel == 17 or mylevel == 18 then
-                LocalControlKeyDown(HK_LUS)
-                LocalControlKeyDown(HK_E)
-                LocalControlKeyUp(HK_E)
-                LocalControlKeyUp(HK_LUS)
-            end
-        end
-    end
-]]
-    
+    if not PredLoaded then
+		DelayAction(function()
+			if self.Menu.MiscSet.Pred.Change:Value() == 1 then
+				require('GamsteronPrediction')
+				PredLoaded = true
+			elseif self.Menu.MiscSet.Pred.Change:Value() == 2 then
+				require('PremiumPrediction')
+				PredLoaded = true
+			else 
+				require('GGPrediction')
+				PredLoaded = true					
+			end
+		end, 1)	
+	end
+end
+
     self:KillSteal()
     
     if GetMode() == "Harass" then
