@@ -574,10 +574,10 @@ function Urgot:LoadMenu()
     self.UrgotMenu.KillSteal:MenuElement({id = "UseW", name = "Use W", value = true, leftIcon = WIcon})
     self.UrgotMenu.KillSteal:MenuElement({id = "UseE", name = "Use E", value = true, leftIcon = EIcon})
     self.UrgotMenu.KillSteal:MenuElement({id = "UseR", name = "Use R", value = true, leftIcon = EIcon})
-    --[[
-    self.UrgotMenu:MenuElement({id = "AutoLevel", name = "AutoLevel", type = MENU})
-    self.UrgotMenu.AutoLevel:MenuElement({id = "AutoLevel", name = "Only Q->W->E", value = true})
-    ]]
+
+    --self.UrgotMenu:MenuElement({id = "AutoLevel", name = "AutoLevel", type = MENU})
+    --self.UrgotMenu.AutoLevel:MenuElement({id = "AutoLevel", name = "Only Q->W->E", value = true})
+
     self.UrgotMenu:MenuElement({id = "AutoLevel", name = "AutoLevel", type = MENU})
     self.UrgotMenu:MenuElement({id = "on", name = "Enabled", value = true})
     self.UrgotMenu:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 2, min = 1, max = 6, step = 1})
