@@ -76,10 +76,7 @@ if not FileExist(COMMON_PATH .. "GGPrediction.lua") then
 	print("GGPrediction installed Press 2x F6")
 	return
 end
-require('damagelib')
-require('GGPrediction');
-require('PremiumPrediction')
-require('2DGeometry')
+
     
 local _atan = math.atan2
 local _min = math.min
@@ -574,16 +571,16 @@ function Urgot:LoadMenu()
     self.UrgotMenu.KillSteal:MenuElement({id = "UseW", name = "Use W", value = true, leftIcon = WIcon})
     self.UrgotMenu.KillSteal:MenuElement({id = "UseE", name = "Use E", value = true, leftIcon = EIcon})
     self.UrgotMenu.KillSteal:MenuElement({id = "UseR", name = "Use R", value = true, leftIcon = EIcon})
-
-    --self.UrgotMenu:MenuElement({id = "AutoLevel", name = "AutoLevel", type = MENU})
-    --self.UrgotMenu.AutoLevel:MenuElement({id = "AutoLevel", name = "Only Q->W->E", value = true})
+--[[
+    self.UrgotMenu:MenuElement({id = "AutoLevel", name = "AutoLevel", type = MENU})
+    self.UrgotMenu.AutoLevel:MenuElement({id = "AutoLevel", name = "Only Q->W->E", value = true})
 
     self.UrgotMenu:MenuElement({id = "AutoLevel", name = "AutoLevel", type = MENU})
-    self.UrgotMenu:MenuElement({id = "on", name = "Enabled", value = true})
-    self.UrgotMenu:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 2, min = 1, max = 6, step = 1})
-    self.UrgotMenu:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
-    self.UrgotMenu:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
-    
+    self.UrgotMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
+    self.UrgotMenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 2, min = 1, max = 6, step = 1})
+    self.UrgotMenu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
+    self.UrgotMenu.AutoLevel:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
+   ]] 
     self.UrgotMenu:MenuElement({id = "Escape", name = "Escape", type = MENU})
     self.UrgotMenu.Escape:MenuElement({id = "UseE", name = "Use E", value = true})
     
@@ -647,8 +644,8 @@ function Urgot:Tick()
     
     self:Action()
     self:ProcessSpell(GetEnemyHeroes())
-    AutoLvL()
 
+--[[
     if self.UrgotMenu.AutoLevel.AutoLevel:Value() then
         local mylevel = myHero.levelData.lvl
         local mylevelpts = myHero.levelData.lvlPts
@@ -677,7 +674,7 @@ function Urgot:Tick()
             end
         end
     end
-
+]]
     
     self:KillSteal()
     
@@ -1106,6 +1103,7 @@ end
 
 function OnLoad()
     Urgot()
+    AutoLvL()
 end
 
 class "HPred"
@@ -2104,12 +2102,12 @@ function AutoLvL:__init()
 	Callback.Add("Tick", function() self:Tick() end)	
 end
 
-function AutoLvL:LoadLvLMenu()
-	self.Menu = MenuElement({type = MENU, id = myHero.charName.."ALvL", name = "AutoLvL Spells"})
-		self.Menu:MenuElement({id = "on", name = "Enabled", value = true})
-		self.Menu:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 2, min = 1, max = 6, step = 1})
-		self.Menu:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
-		self.Menu:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})	
+function AutoLvL:LoadLvLMenu()	
+    self.UrgotMenu:MenuElement({type = MENU, id = myHero.charName.."AutoLevel", name = "AutoLevel Spells"})
+        self.UrgotMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
+        self.UrgotMenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 2, min = 1, max = 6, step = 1})
+        self.UrgotMenu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
+        self.UrgotMenu.AutoLevel:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
 end
 	
 function AutoLvL:Tick()	
