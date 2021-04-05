@@ -574,13 +574,13 @@ function Urgot:LoadMenu()
 --[[
     self.UrgotMenu:MenuElement({id = "AutoLevel", name = "AutoLevel", type = MENU})
     self.UrgotMenu.AutoLevel:MenuElement({id = "AutoLevel", name = "Only Q->W->E", value = true})
-
-    self.UrgotMenu:MenuElement({id = "AutoLevel", name = "AutoLevel", type = MENU})
-    self.UrgotMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
-    self.UrgotMenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 2, min = 1, max = 6, step = 1})
-    self.UrgotMenu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
-    self.UrgotMenu.AutoLevel:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
-   ]] 
+   ]]
+    self.UrgotMenu:MenuElement({type = MENU, id = "AutoLevel", name =  myHero.charName.." AutoLevel Spells"})
+        self.UrgotMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
+        self.UrgotMenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 2, min = 1, max = 6, step = 1})
+        self.UrgotMenu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
+        self.UrgotMenu.AutoLevel:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
+ 
     self.UrgotMenu:MenuElement({id = "Escape", name = "Escape", type = MENU})
     self.UrgotMenu.Escape:MenuElement({id = "UseE", name = "Use E", value = true})
     
@@ -619,6 +619,7 @@ function Urgot:__init()
         ["YasuoWMovingWall"] = {charName = "Yasuo", range = 400, delay = 3.75, radius = 100, collision = false},
     }
     self.Detected = {}
+    self.levelUP = false		
     Callback.Add("Tick", function()self:Tick() end)
     Callback.Add("Draw", function()self:Draw() end)
 --Callback.Add("Tick", OnProcessSpell)
@@ -644,7 +645,9 @@ function Urgot:Tick()
     
     self:Action()
     self:ProcessSpell(GetEnemyHeroes())
-
+    if Game.IsOnTop() then
+		self:AutoLevelStart()
+	end	
 --[[
     if self.UrgotMenu.AutoLevel.AutoLevel:Value() then
         local mylevel = myHero.levelData.lvl
@@ -684,6 +687,65 @@ function Urgot:Tick()
     if GetMode() == "Combo" then
         self:Combo()
     end
+end
+
+function Urgot:GetSkillOrder()
+	local Spell1, Spell2, Spell3 = HK_Q, HK_W, HK_E
+	if self.UrgotMenu.AutoLevel.Order:Value() == 1 then
+		Spell1, Spell2, Spell3 = HK_Q, HK_W, HK_E
+	elseif self.UrgotMenu.AutoLevel.Order:Value() == 2 then
+		Spell1, Spell2, Spell3 = HK_W, HK_E, HK_Q
+	elseif self.UrgotMenu.AutoLevel.Order:Value() == 3 then
+		Spell1, Spell2, Spell3 = HK_E, HK_Q, HK_W
+	elseif self.UrgotMenu.AutoLevel.Order:Value() == 4 then
+		Spell1, Spell2, Spell3 = HK_E, HK_W, HK_Q
+	elseif self.UrgotMenu.AutoLevel.Order:Value() == 5 then
+		Spell1, Spell2, Spell3 = HK_W, HK_Q, HK_E
+	elseif self.UrgotMenu.AutoLevel.Order:Value() == 6 then
+		Spell1, Spell2, Spell3 = HK_Q, HK_E, HK_W
+	end
+	return Spell1, Spell2, Spell3
+end
+
+function Urgot:AutoLevelStart()
+	if self.UrgotMenu.AutoLevel.on:Value() and not self.levelUP then
+		local actualLevel = myHero.levelData.lvl
+		local levelPoints = myHero.levelData.lvlPts
+		local Spell1, Spell2, Spell3 = self:GetSkillOrder() 
+
+		if (actualLevel == 18 and levelPoints == 0) or self.UrgotMenu.AutoLevel.LvL:Value() > actualLevel then return end
+	
+		if levelPoints > 0 then
+			self.levelUP = true
+			local Delay = self.UrgotMenu.AutoLevel.delay:Value()
+			DelayAction(function()
+				if actualLevel == 6 or actualLevel == 11 or actualLevel == 16 then
+					Control.KeyDown(HK_LUS)
+					Control.KeyDown(HK_R)
+					Control.KeyUp(HK_R)
+					Control.KeyUp(HK_LUS)
+				elseif actualLevel == 1 or actualLevel == 4 or actualLevel == 5 or actualLevel == 7 or actualLevel == 9 then
+					Control.KeyDown(HK_LUS)
+					Control.KeyDown(Spell1)
+					Control.KeyUp(Spell1)
+					Control.KeyUp(HK_LUS)
+				elseif actualLevel == 2 or actualLevel == 8 or actualLevel == 10 or actualLevel == 12 or actualLevel == 13 then
+					Control.KeyDown(HK_LUS)
+					Control.KeyDown(Spell2)
+					Control.KeyUp(Spell2)
+					Control.KeyUp(HK_LUS)
+				elseif actualLevel == 3 or actualLevel == 14 or actualLevel == 15 or actualLevel == 17 or actualLevel == 18 then				
+					Control.KeyDown(HK_LUS)
+					Control.KeyDown(Spell3)
+					Control.KeyUp(Spell3)
+					Control.KeyUp(HK_LUS)
+				end
+				DelayAction(function()
+					self.levelUP = false
+				end, 0.25)				
+			end, Delay)	
+		end
+	end	
 end
 
 function Urgot:CollisionX(myHeroPos, dangerousPos, unitPos, radius)
@@ -1103,7 +1165,6 @@ end
 
 function OnLoad()
     Urgot()
-    AutoLvL()
 end
 
 class "HPred"
@@ -2092,85 +2153,4 @@ function HPred:GetDistance(p1, p2)
         return _huge
     end
     return _sqrt(self:GetDistanceSqr(p1, p2))
-end
-
-class "AutoLvL"
-
-function AutoLvL:__init()
-	self.levelUP = false	
-	self:LoadLvLMenu()
-	Callback.Add("Tick", function() self:Tick() end)	
-end
-
-function AutoLvL:LoadLvLMenu()	
-    self.UrgotMenu:MenuElement({type = MENU, id = myHero.charName.."AutoLevel", name = "AutoLevel Spells"})
-        self.UrgotMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
-        self.UrgotMenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 2, min = 1, max = 6, step = 1})
-        self.UrgotMenu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
-        self.UrgotMenu.AutoLevel:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
-end
-	
-function AutoLvL:Tick()	
-	if Game.IsOnTop() then
-		self:AutoLevelStart()
-	end	
-end
-
-function AutoLvL:GetSkillOrder()
-	local Spell1, Spell2, Spell3 = HK_Q, HK_W, HK_E
-	if self.Menu.Order:Value() == 1 then
-		Spell1, Spell2, Spell3 = HK_Q, HK_W, HK_E
-	elseif self.Menu.Order:Value() == 2 then
-		Spell1, Spell2, Spell3 = HK_W, HK_E, HK_Q
-	elseif self.Menu.Order:Value() == 3 then
-		Spell1, Spell2, Spell3 = HK_E, HK_Q, HK_W
-	elseif self.Menu.Order:Value() == 4 then
-		Spell1, Spell2, Spell3 = HK_E, HK_W, HK_Q
-	elseif self.Menu.Order:Value() == 5 then
-		Spell1, Spell2, Spell3 = HK_W, HK_Q, HK_E
-	elseif self.Menu.Order:Value() == 6 then
-		Spell1, Spell2, Spell3 = HK_Q, HK_E, HK_W
-	end
-	return Spell1, Spell2, Spell3
-end
-
-function AutoLvL:AutoLevelStart()
-	if self.Menu.on:Value() and not self.levelUP then
-		local actualLevel = myHero.levelData.lvl
-		local levelPoints = myHero.levelData.lvlPts
-		local Spell1, Spell2, Spell3 = self:GetSkillOrder() 
-
-		if (actualLevel == 18 and levelPoints == 0) or self.Menu.LvL:Value() > actualLevel then return end
-	
-		if levelPoints > 0 then
-			self.levelUP = true
-			local Delay = self.Menu.delay:Value()
-			DelayAction(function()
-				if actualLevel == 6 or actualLevel == 11 or actualLevel == 16 then
-					Control.KeyDown(HK_LUS)
-					Control.KeyDown(HK_R)
-					Control.KeyUp(HK_R)
-					Control.KeyUp(HK_LUS)
-				elseif actualLevel == 1 or actualLevel == 4 or actualLevel == 5 or actualLevel == 7 or actualLevel == 9 then
-					Control.KeyDown(HK_LUS)
-					Control.KeyDown(Spell1)
-					Control.KeyUp(Spell1)
-					Control.KeyUp(HK_LUS)
-				elseif actualLevel == 2 or actualLevel == 8 or actualLevel == 10 or actualLevel == 12 or actualLevel == 13 then
-					Control.KeyDown(HK_LUS)
-					Control.KeyDown(Spell2)
-					Control.KeyUp(Spell2)
-					Control.KeyUp(HK_LUS)
-				elseif actualLevel == 3 or actualLevel == 14 or actualLevel == 15 or actualLevel == 17 or actualLevel == 18 then				
-					Control.KeyDown(HK_LUS)
-					Control.KeyDown(Spell3)
-					Control.KeyUp(Spell3)
-					Control.KeyUp(HK_LUS)
-				end
-				DelayAction(function()
-					self.levelUP = false
-				end, 0.25)				
-			end, Delay)	
-		end
-	end	
 end
