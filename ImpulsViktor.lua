@@ -646,7 +646,7 @@ function Viktor:LoadMenu()
 	    self.ViktorMenu.Drawings:MenuElement({id = "DrawE", name = "E: Draw Range", value = true, leftIcon = EIcon})
 	    self.ViktorMenu.Drawings:MenuElement({id = "DrawR", name = "R: Draw Range", value = true, leftIcon = RIcon})
 
-	self.ViktorMenu:MenuElement({type = MENU, id = "AutoLevel", name =  myHero.charName.." AutoLevel Spells"})
+	self.ViktorMenu:MenuElement({type = MENU, id = "AutoLevel", name = myHero.charName.." AutoLevel Spells"})
         self.ViktorMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
         self.ViktorMenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 5, min = 1, max = 6, step = 1})
         self.ViktorMenu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
@@ -701,10 +701,10 @@ function Viktor:Tick()
 	end	
     if not PredLoaded then
 		DelayAction(function()
-			if self.UrgotMenu.Pred.Change:Value() == 1 then
+			if self.ViktorMenu.Pred.Change:Value() == 1 then
 				require('GamsteronPrediction')
 				PredLoaded = true
-			elseif self.UrgotMenu.Pred.Change:Value() == 2 then
+			elseif self.ViktorMenu.Pred.Change:Value() == 2 then
 				require('PremiumPrediction')
 				PredLoaded = true
 			else 
@@ -806,43 +806,43 @@ function Viktor:CanUse(spell, mode)
     end
     --PrintChat(Mode())
     if spell == _Q then
-        if mode == "Combo" and IsReady(spell) and self.Viktormenu.ComboMode.UseQ:Value() then
+        if mode == "Combo" and IsReady(spell) and self.ViktorMenu.ComboMode.UseQ:Value() then
             return true
         end
-        if mode == "Harass" and IsReady(spell) and self.Viktormenu.HarassMode.UseQ:Value() then
+        if mode == "Harass" and IsReady(spell) and self.ViktorMenu.HarassMode.UseQ:Value() then
             return true
         end
-        if mode == "Flee" and IsReady(spell) and self.Viktormenu.FleeMode.UseQ:Value() then
+        if mode == "Flee" and IsReady(spell) and self.ViktorMenu.FleeMode.UseQ:Value() then
             return true
         end
-        if mode == "KS" and IsReady(spell) and self.Viktormenu.KSMode.UseQ:Value() then
+        if mode == "KS" and IsReady(spell) and self.ViktorMenu.KSMode.UseQ:Value() then
             return true
         end
     elseif spell == _R then
-        if mode == "Combo" and IsReady(spell) and self.Viktormenu.ComboMode.UseR:Value() then
+        if mode == "Combo" and IsReady(spell) and self.ViktorMenu.ComboMode.UseR:Value() then
             return true
         end
-        if mode == "Harass" and IsReady(spell) and self.Viktormenu.HarassMode.UseR:Value() then
+        if mode == "Harass" and IsReady(spell) and self.ViktorMenu.HarassMode.UseR:Value() then
             return true
         end
-        if mode == "KS" and IsReady(spell) and self.Viktormenu.KSMode.UseR:Value() then
+        if mode == "KS" and IsReady(spell) and self.ViktorMenu.KSMode.UseR:Value() then
             return true
         end
     elseif spell == _W then
-        if mode == "Combo" and IsReady(spell) and self.Viktormenu.ComboMode.UseW:Value() then
+        if mode == "Combo" and IsReady(spell) and self.ViktorMenu.ComboMode.UseW:Value() then
             return true
         end
-        if mode == "Harass" and IsReady(spell) and self.Viktormenu.HarassMode.UseW:Value() then
+        if mode == "Harass" and IsReady(spell) and self.ViktorMenu.HarassMode.UseW:Value() then
             return true
         end
     elseif spell == _E then
-        if mode == "Combo" and IsReady(spell) and self.Viktormenu.ComboMode.UseE:Value() then
+        if mode == "Combo" and IsReady(spell) and self.ViktorMenu.ComboMode.UseE:Value() then
             return true
         end
-        if mode == "Harass" and IsReady(spell) and self.Viktormenu.HarassMode.UseE:Value() then
+        if mode == "Harass" and IsReady(spell) and self.ViktorMenu.HarassMode.UseE:Value() then
             return true
         end
-        if mode == "Flee" and IsReady(spell) and self.Viktormenu.FleeMode.UseE:Value() then
+        if mode == "Flee" and IsReady(spell) and self.ViktorMenu.FleeMode.UseE:Value() then
             return true
         end
     end
@@ -877,12 +877,12 @@ function Viktor:Logic()
         end
 
         if self:CanUse(_W, Mode()) and ValidTarget(target, WRange) and Edown == false and not CastingQ and not CastingW then
-            if target.pathing.isDashing and TargetAttacking and self.Viktormenu.ComboMode.UseEDef:Value() then
+            if target.pathing.isDashing and TargetAttacking and self.ViktorMenu.ComboMode.UseEDef:Value() then
                 Control.CastSpell(HK_W, myHero)
-            elseif GetDistance(myHero.pos, target.pos) < 300 and self.Viktormenu.ComboMode.UseEDef:Value() then
+            elseif GetDistance(myHero.pos, target.pos) < 300 and self.ViktorMenu.ComboMode.UseEDef:Value() then
                 Control.CastSpell(HK_W, myHero)
-            elseif self.Viktormenu.ComboMode.UseEAtt:Value() then
-                self:UseW(target, self.Viktormenu.ComboMode.UseEAttHits:Value(), TargetAttacking)
+            elseif self.ViktorMenu.ComboMode.UseEAtt:Value() then
+                self:UseW(target, self.ViktorMenu.ComboMode.UseEAttHits:Value(), TargetAttacking)
             end
         end
         if self:CanUse(_E, Mode()) and ValidTarget(target, ERange) and not CastingQ and not CastingW and not CastingR then
@@ -1103,17 +1103,17 @@ function Annie:Menu()
         self.Anniemenu.Draw:MenuElement({id = "DrawW", name = "Draw W range", value = false, leftIcon = WIcon})
         self.Anniemenu.Draw:MenuElement({id = "DrawR", name = "Draw R range", value = false})
         self.Anniemenu.Draw:MenuElement({id = "DrawBurstDamage", name = "Burst Damage", value = false})
-    self.AnnieMenu:MenuElement({type = MENU, id = "AutoLevel", name =  myHero.charName.." AutoLevel Spells"})
-        self.AnnieMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
-        self.AnnieMenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 3, min = 1, max = 6, step = 1})
-        self.AnnieMenu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
-        self.AnnieMenu.AutoLevel:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
-    self.AnnieMenu:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
-        self.AnnieMenu.Pred:MenuElement({name = " ", drop = {"After change Prediction Type press 2xF6"}})	
-        self.AnnieMenu.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 4, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction", "InternalPrediction"}})	
-        self.AnnieMenu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})
-        self.AnnieMenu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
-        self.AnnieMenu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})
+    self.Anniemenu:MenuElement({type = MENU, id = "AutoLevel", name = myHero.charName.." AutoLevel Spells"})
+        self.Anniemenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
+        self.Anniemenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 3, min = 1, max = 6, step = 1})
+        self.Anniemenu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
+        self.Anniemenu.AutoLevel:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
+    self.Anniemenu:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
+        self.Anniemenu.Pred:MenuElement({name = " ", drop = {"After change Prediction Type press 2xF6"}})	
+        self.Anniemenu.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 4, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction", "InternalPrediction"}})	
+        self.Anniemenu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})
+        self.Anniemenu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
+        self.Anniemenu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})
 end
 
 function Annie:Spells()
@@ -1128,33 +1128,33 @@ end
 
 function Annie:GetSkillOrder()
 	local Spell1, Spell2, Spell3 = HK_Q, HK_W, HK_E
-	if self.AnnieMenu.AutoLevel.Order:Value() == 1 then
+	if self.Anniemenu.AutoLevel.Order:Value() == 1 then
 		Spell1, Spell2, Spell3 = HK_Q, HK_W, HK_E
-	elseif self.AnnieMenu.AutoLevel.Order:Value() == 2 then
+	elseif self.Anniemenu.AutoLevel.Order:Value() == 2 then
 		Spell1, Spell2, Spell3 = HK_W, HK_E, HK_Q
-	elseif self.AnnieMenu.AutoLevel.Order:Value() == 3 then
+	elseif self.Anniemenu.AutoLevel.Order:Value() == 3 then
 		Spell1, Spell2, Spell3 = HK_E, HK_Q, HK_W
-	elseif self.AnnieMenu.AutoLevel.Order:Value() == 4 then
+	elseif self.Anniemenu.AutoLevel.Order:Value() == 4 then
 		Spell1, Spell2, Spell3 = HK_E, HK_W, HK_Q
-	elseif self.AnnieMenu.AutoLevel.Order:Value() == 5 then
+	elseif self.Anniemenu.AutoLevel.Order:Value() == 5 then
 		Spell1, Spell2, Spell3 = HK_W, HK_Q, HK_E
-	elseif self.AnnieMenu.AutoLevel.Order:Value() == 6 then
+	elseif self.Anniemenu.AutoLevel.Order:Value() == 6 then
 		Spell1, Spell2, Spell3 = HK_Q, HK_E, HK_W
 	end
 	return Spell1, Spell2, Spell3
 end
 
 function Annie:AutoLevelStart()
-	if self.AnnieMenu.AutoLevel.on:Value() and not self.levelUP then
+	if self.Anniemenu.AutoLevel.on:Value() and not self.levelUP then
 		local actualLevel = myHero.levelData.lvl
 		local levelPoints = myHero.levelData.lvlPts
 		local Spell1, Spell2, Spell3 = self:GetSkillOrder() 
 
-		if (actualLevel == 18 and levelPoints == 0) or self.AnnieMenu.AutoLevel.LvL:Value() > actualLevel then return end
+		if (actualLevel == 18 and levelPoints == 0) or self.Anniemenu.AutoLevel.LvL:Value() > actualLevel then return end
 	
 		if levelPoints > 0 then
 			self.levelUP = true
-			local Delay = self.AnnieMenu.AutoLevel.delay:Value()
+			local Delay = self.Anniemenu.AutoLevel.delay:Value()
 			DelayAction(function()
 				if actualLevel == 6 or actualLevel == 11 or actualLevel == 16 then
 					Control.KeyDown(HK_LUS)
@@ -1327,10 +1327,10 @@ function Annie:Tick()
 	end	
     if not PredLoaded then
 		DelayAction(function()
-			if self.UrgotMenu.Pred.Change:Value() == 1 then
+			if self.Anniemenu.Pred.Change:Value() == 1 then
 				require('GamsteronPrediction')
 				PredLoaded = true
-			elseif self.UrgotMenu.Pred.Change:Value() == 2 then
+			elseif self.Anniemenu.Pred.Change:Value() == 2 then
 				require('PremiumPrediction')
 				PredLoaded = true
 			else 
