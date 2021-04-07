@@ -987,20 +987,20 @@ function Urgot:Tick()
 	end
 	DelayAction(function()
 		if self.UrgotMenu.Pred.Change:Value() == 1 then
-			self.QData = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 210, Range = 800, Speed = math.huge, Collision = false, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
-			self.WData = {Type = _G.SPELLTYPE_LINE, Delay = 0.00, Radius = 490, Range = 490, Speed = 2000, Collision = false, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
+			self.QData = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 210, Range = 800, Speed = math.huge, Collision = false, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
+			self.WData = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0.00, Radius = 490, Range = 490, Speed = 2000, Collision = false, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
 			self.EData = {Type = _G.SPELLTYPE_LINE, Delay = 0.45, Radius = 80, Range = 450, Speed = 1200, Collision = false, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
 			self.RData = {Type = _G.SPELLTYPE_LINE, Delay = 0.50, Radius = 160, Range = 1150, Speed =  3200, Collision = true, MaxCollision = 1, CollisionTypes = {_G.COLLISION_ENEMYHERO}}
         end
 		if self.UrgotMenu.Pred.Change:Value() == 2 then
 			self.QspellData = {speed = math.huge, range = 1025, delay = 0.25, radius = 210, type = "circular"}
-            self.WspellData = {speed = 2000, range = 1025, delay = 0.00, radius = 490, type = "conic"}
+            self.WspellData = {speed = 2000, range = 1025, delay = 0.00, radius = 490, type = "circular"}
             self.EspellData = {speed = 1200, range = 1025, delay = 0.45, radius = 80, collision = {"minion"}, type = "linear"}
             self.RspellData = {speed = 3200, range = 1025, delay = 0.50, radius = 160, type = "linear"}
 		end
 		if self.UrgotMenu.Pred.Change:Value() == 3 then  
             self.QPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 210, Range = 800, Speed = MathHuge, Collision = false, Type = GGPrediction.SPELLTYPE_CIRCLE})
-            self.WPrediction = GGPrediction:SpellPrediction({Delay = 0.00, Radius = 490, Range = 490, Speed = 2000, Collision = false, Type = GGPrediction.SPELLTYPE_CONE})
+            self.WPrediction = GGPrediction:SpellPrediction({Delay = 0.00, Radius = 490, Range = 490, Speed = 2000, Collision = false, Type = GGPrediction.SPELLTYPE_CIRCLE})
             self.EPrediction = GGPrediction:SpellPrediction({Delay = 0.45, Radius = 80,  Range = 450, Speed = 1200, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
             self.RPrediction = GGPrediction:SpellPrediction({Delay = 0.50, Radius = 160, Range = 1150, Speed = 3200, Collision = true, CollisionTypes = {GGPrediction.COLLISION_ENEMYHERO}, Type = GGPrediction.SPELLTYPE_LINE})
         end
