@@ -925,8 +925,8 @@ end
 function Urgot:LoadSpells()
     UrgotQ = {delay = 0.25, speed = math.huge, radius = 210, range = 800}
     UrgotW = {radius = 490, range = 490}
-    UrgotE = {delay = 0.45, speed = 1200, radius = 80, range = 450}
-    UrgotR = {delay = 0.5, speed = 3200, range = 2500, radius = 160}
+    UrgotE = {delay = 0.45, speed = 1200, radius = 50, range = 445}
+    UrgotR = {delay = 0.5, speed = 3200, range = 2500, radius = 150}
 
 --["UrgotQ"]={charName="Urgot",slot=_Q,type="circular",speed=math.huge,range=800,delay=0.25,radius=210,hitbox=true,aoe=true,cc=true,collision=false},
 --["UrgotE"]={charName="Urgot",slot=_E,type="linear",speed=1200,range=450,delay=0.45,radius=100,hitbox=true,aoe=true,cc=true,collision=false},
