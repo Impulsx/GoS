@@ -3,7 +3,8 @@ local Heroes = {"Urgot"}
 if not table.contains(Heroes, myHero.charName) then return end
 
 require "DamageLib"
-require('2DGeometry')
+require "2DGeometry"
+require "MapPositionGOS"
 
 --[[
 -- [ update not enabled until proper rank ]
