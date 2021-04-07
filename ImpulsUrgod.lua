@@ -759,7 +759,7 @@ function Urgot:LoadMenu()
     	--Prediction
 	self.UrgotMenu:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
 	self.UrgotMenu.Pred:MenuElement({name = " ", drop = {"After change Prediction Type press 2xF6"}})	
-	self.UrgotMenu.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction", "InternalPrediction"}})	
+	self.UrgotMenu.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 4, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction", "InternalPrediction"}})	
 	self.UrgotMenu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})
 	self.UrgotMenu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
 	self.UrgotMenu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})
