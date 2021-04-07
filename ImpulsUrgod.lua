@@ -175,6 +175,40 @@ local GameObjectCount = Game.ObjectCount
 local GameObject = Game.Object
 local GameIsChatOpen = Game.IsChatOpen
 
+local wClock = 0
+local clock = os.clock
+local Latency = Game.Latency
+local ping = Latency() * 0.001
+local LastDist = 0
+local LockedTarget = nil
+local foundAUnit = false
+local MarkedMinion = nil
+local _movementHistory = {}
+local TEAM_ALLY = myHero.team
+local TEAM_ENEMY = 300 - myHero.team
+local TEAM_JUNGLE = 300
+local wClock = 0
+local _OnVision = {}
+local sqrt = math.sqrt
+local MathHuge = math.huge
+local TableInsert = table.insert
+local TableRemove = table.remove
+local GameTimer = Game.Timer
+local Allies, Enemies, Turrets, Units = {}, {}, {}, {}
+local DrawRect = Draw.Rect
+local DrawCircle = Draw.Circle
+local DrawColor = Draw.Color
+local DrawText = Draw.Text
+local GameCanUseSpell = Game.CanUseSpell
+local GameHeroCount = Game.HeroCount
+local GameHero = Game.Hero
+local GameMinionCount = Game.MinionCount
+local GameMinion = Game.Minion
+local GameTurretCount = Game.TurretCount
+local GameTurret = Game.Turret
+local GameIsChatOpen = Game.IsChatOpen
+local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
+
 local EnemyTraps = {}
 
 function GetGameObjects()
@@ -272,11 +306,11 @@ function ValidTarget(target, range)
     range = range and range or math.huge
     return target ~= nil and target.valid and target.visible and not target.dead and target.distance <= range
 end
-
+--[[
 function GetDistance(p1, p2)
     return _sqrt(_pow((p2.x - p1.x), 2) + _pow((p2.y - p1.y), 2) + _pow((p2.z - p1.z), 2))
 end
-
+]]
 function GetDistance2D(p1, p2)
     return _sqrt(_pow((p2.x - p1.x), 2) + _pow((p2.y - p1.y), 2))
 end
@@ -352,11 +386,15 @@ function GetMinionCollision(StartPos, EndPos, Width, Target)
     return Count
 end
 
-function GetDistanceSqr(Pos1, Pos2)
-    local Pos2 = Pos2 or myHero.pos
-    local dx = Pos1.x - Pos2.x
-    local dz = (Pos1.z or Pos1.y) - (Pos2.z or Pos2.y)
-    return dx ^ 2 + dz ^ 2
+local function GetDistanceSqr(pos1, pos2)
+	local pos2 = pos2 or myHero.pos
+	local dx = pos1.x - pos2.x
+	local dz = (pos1.z or pos1.y) - (pos2.z or pos2.y)
+	return dx * dx + dz * dz
+end
+
+local function GetDistance(pos1, pos2)
+	return sqrt(GetDistanceSqr(pos1, pos2))
 end
 
 function GetEnemyHeroes()
@@ -808,7 +846,7 @@ function Urgot:Tick()
 		if self.UrgotMenu.Pred.Change:Value() == 1 then
 			self.QData = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 210, Range = 800, Speed = math.huge, Collision = false, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
 			self.WData = {Type = _G.SPELLTYPE_LINE, Delay = 0.00, Radius = 490, Range = 490, Speed = 2000, Collision = false, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
-			self.EData = {Type = _G.SPELLTYPE_LINE, Delay = 0.4JUdGzvrMFDWrUUwY3toJATSeNwjn54LkCnKBPRzDuhzi5vSepHfUckJNxRL2gjkNrSqtCoRUrEDAgRwsQvVCjZbRyFTLRNyDmT1a1boZV = {_G.COLLISION_MINION}}
+			self.EData = {Type = _G.SPELLTYPE_LINE, Delay = 0.45, Radius = 80, Range = 450, Speed = 1200, Collision = false, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
 			self.RData = {Type = _G.SPELLTYPE_LINE, Delay = 0.50, Radius = 160, Range = 1150, Speed =  3200, Collision = true, MaxCollision = 1, CollisionTypes = {_G.COLLISION_ENEMYHERO}}
         end
 		if self.UrgotMenu.Pred.Change:Value() == 2 then
@@ -818,7 +856,7 @@ function Urgot:Tick()
             self.RspellData = {speed = 3200, range = 1025, delay = 0.50, radius = 160, type = "linear"}
 		end
 		if self.UrgotMenu.Pred.Change:Value() == 3 then  
-            self.QPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 210, Range = 800, Speed = math_huge, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
+            self.QPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 210, Range = 800, Speed = MathHuge, Collision = false, Type = GGPrediction.SPELLTYPE_CIRCLE})
             self.WPrediction = GGPrediction:SpellPrediction({Delay = 0.00, Radius = 490, Range = 490, Speed = 2000, Collision = false, Type = GGPrediction.SPELLTYPE_CONE})
             self.EPrediction = GGPrediction:SpellPrediction({Delay = 0.45, Radius = 80,  Range = 450, Speed = 1200, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
             self.RPrediction = GGPrediction:SpellPrediction({Delay = 0.50, Radius = 160, Range = 1150, Speed = 3200, Collision = true, CollisionTypes = {GGPrediction.COLLISION_ENEMYHERO}, Type = GGPrediction.SPELLTYPE_LINE})
@@ -1137,12 +1175,12 @@ function Urgot:Harass()
 end
 
 function Urgot:Combo()
-    
+
     local targetQ = GOS:GetTarget(UrgotQ.range, "AD")
     local targetW = GOS:GetTarget(UrgotW.range, "AD")
     local targetE = GOS:GetTarget(UrgotE.range, "AD")
     local targetR = GOS:GetTarget(UrgotR.range, "AD")
-    
+
     if IsReady(_E) and targetE then
         if targetE then
             if not IsImmune(targetE) then
@@ -1296,11 +1334,13 @@ function Urgot:Combo()
 end
 
 function Urgot:CastQ(target, EcastPos)
+
     if LocalGameTimer() - OnWaypoint(target).time > 0.05 and (LocalGameTimer() - OnWaypoint(target).time < 0.125 or LocalGameTimer() - OnWaypoint(target).time > 1.25) then
         if GetDistance(myHero.pos, EcastPos) <= UrgotQ.range then
             LocalControlCastSpell(HK_Q, EcastPos)
         end
     end
+
     --[[
     if Ready(_Q) then
         if self.UrgotMenu.Pred.Change:Value() == 1 then
@@ -1333,11 +1373,13 @@ function Urgot:CastQ(target, EcastPos)
 end
 
 function Urgot:CastR(target, EcastPos)
+
     if LocalGameTimer() - OnWaypoint(target).time > 0.05 and (LocalGameTimer() - OnWaypoint(target).time < 0.125 or LocalGameTimer() - OnWaypoint(target).time > 1.25) then
         if GetDistance(myHero.pos, EcastPos) <= UrgotR.range then
             LocalControlCastSpell(HK_R, EcastPos)
         end
     end
+
     --[[
     if Ready(_R) then
         if self.UrgotMenu.Pred.Change:Value() == 1 then
