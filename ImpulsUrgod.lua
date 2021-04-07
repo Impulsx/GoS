@@ -893,7 +893,7 @@ function Urgot:LoadMenu()
         --AutoLevel
     self.UrgotMenu:MenuElement({type = MENU, id = "AutoLevel", name =  myHero.charName.." AutoLevel Spells"})
         self.UrgotMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
-        self.UrgotMenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 2, min = 1, max = 6, step = 1})
+        self.UrgotMenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 3, min = 1, max = 6, step = 1})
         self.UrgotMenu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
         self.UrgotMenu.AutoLevel:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
         --Escape
