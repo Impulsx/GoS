@@ -315,6 +315,17 @@ function GetDistance2D(p1, p2)
     return _sqrt(_pow((p2.x - p1.x), 2) + _pow((p2.y - p1.y), 2))
 end
 
+local function GetDistanceSqr(pos1, pos2)
+	local pos2 = pos2 or myHero.pos
+	local dx = pos1.x - pos2.x
+	local dz = (pos1.z or pos1.y) - (pos2.z or pos2.y)
+	return dx * dx + dz * dz
+end
+
+local function GetDistance(pos1, pos2)
+	return sqrt(GetDistanceSqr(pos1, pos2))
+end
+
 function GetTarget(range) 
 	if _G.SDK then
 		if myHero.ap > myHero.totalDamage then
@@ -384,17 +395,6 @@ function GetMinionCollision(StartPos, EndPos, Width, Target)
         end
     end
     return Count
-end
-
-local function GetDistanceSqr(pos1, pos2)
-	local pos2 = pos2 or myHero.pos
-	local dx = pos1.x - pos2.x
-	local dz = (pos1.z or pos1.y) - (pos2.z or pos2.y)
-	return dx * dx + dz * dz
-end
-
-local function GetDistance(pos1, pos2)
-	return sqrt(GetDistanceSqr(pos1, pos2))
 end
 
 function GetEnemyHeroes()
