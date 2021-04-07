@@ -1,7 +1,7 @@
-local Champions = {
-	["Viktor"] = function() return Manager:__init() end,
-	}
-	if not table.contains(Heroes, myHero.charName) then return end
+local Heroes = {"Viktor"}
+
+if not table.contains(Heroes, myHero.charName) then return end
+
 local EnemyHeroes = {}
 local AllyHeroes = {}
 
@@ -466,27 +466,6 @@ local function ValidTarget(unit, range)
     return false;
 end
 
-class "Manager"
-
-function Manager:__init()
-	if myHero.charName == "Viktor" then
-		DelayAction(function() self:LoadViktor() end, 1.05)
-    end
-end
-
-function Manager:LoadViktor()
-    Viktor:Spells()
-    Viktor:Menu()
-    --
-    --GetEnemyHeroes()
-    Callback.Add("Tick", function() Viktor:Tick() end)
-    Callback.Add("Draw", function() Viktor:Draw() end)
-    if _G.SDK then
-        _G.SDK.Orbwalker:OnPreAttack(function(...) Viktor:OnPreAttack(...) end)
-        _G.SDK.Orbwalker:OnPostAttackTick(function(...) Viktor:OnPostAttackTick(...) end)
-    end
-end
-
 class "Viktor"
 
 local EnemyLoaded = false
@@ -508,6 +487,25 @@ local R = 1
 local WasInRange = false
 local OneTick
 local attacked = 0
+
+function Viktor:__init()
+	if myHero.charName == "Viktor" then
+		DelayAction(function() self:LoadViktor() end, 1.05)
+    end
+end
+
+function Viktor:LoadViktor()
+    Viktor:Spells()
+    Viktor:Menu()
+    --
+    --GetEnemyHeroes()
+    Callback.Add("Tick", function() Viktor:Tick() end)
+    Callback.Add("Draw", function() Viktor:Draw() end)
+    if _G.SDK then
+        _G.SDK.Orbwalker:OnPreAttack(function(...) Viktor:OnPreAttack(...) end)
+        _G.SDK.Orbwalker:OnPostAttackTick(function(...) Viktor:OnPostAttackTick(...) end)
+    end
+end
 
 function Viktor:Menu()
     self.ViktorMenu = MenuElement({type = MENU, id = "Viktor", name = "Impuls Viktor", leftIcon = HeroIcon})
