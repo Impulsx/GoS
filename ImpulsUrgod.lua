@@ -586,12 +586,12 @@ function Urgot:OnProcessSpell()
 end
 
 local HeroIcon = "https://www.mobafire.com/images/champion/icon/urgot.png"
-local IgniteIcon = "http://pm1.narvii.com/5792/0ce6cda7883a814a1a1e93efa05184543982a1e4_hq.jpg"
-local QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/0f/Corrosive_Charge.png"
-local WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/aa/Purge.png"
-local EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/5/53/Disdain.png"
-local RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/6/60/Fear_Beyond_Death.png"
-local R2Icon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/4/44/Fear_Beyond_Death_2.png"
+local IgniteIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/f/f4/Ignite.png"
+local QIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/0/0f/Corrosive_Charge.png"
+local WIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/a/aa/Purge.png"
+local EIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/5/53/Disdain.png"
+local RIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/6/60/Fear_Beyond_Death.png"
+local R2Icon = "https://static.wikia.nocookie.net/leagueoflegends/images/4/44/Fear_Beyond_Death_2.png"
 local IS = {}
 local Spells = {
     ["Aatrox"] = {"AatroxE"},
