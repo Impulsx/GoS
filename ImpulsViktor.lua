@@ -765,7 +765,7 @@ function Viktor:OnTick()
 		if self.ViktorMenu.Pred.Change:Value() == 1 then
 			self.QData = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 210, Range = 800, Speed = math.huge, Collision = false, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
 			self.WData = {Type = _G.SPELLTYPE_LINE, Delay = 0.00, Radius = 490, Range = 490, Speed = 2000, Collision = false, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
-			self.EData = {Type = _G.SPELLTYPE_LINE, Delay = 0.4JUdGzvrMFDWrUUwY3toJATSeNwjn54LkCnKBPRzDuhzi5vSepHfUckJNxRL2gjkNrSqtCoRUrEDAgRwsQvVCjZbRyFTLRNyDmT1a1boZV = {_G.COLLISION_MINION}}
+			self.EData = {Type = _G.SPELLTYPE_LINE, Delay = 0.45, Radius = 80, Range = 450, Speed = 1200, Collision = false, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
 			self.RData = {Type = _G.SPELLTYPE_LINE, Delay = 0.50, Radius = 160, Range = 1150, Speed =  3200, Collision = true, MaxCollision = 1, CollisionTypes = {_G.COLLISION_ENEMYHERO}}
         end
 		if self.ViktorMenu.Pred.Change:Value() == 2 then
