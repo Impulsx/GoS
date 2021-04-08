@@ -314,6 +314,17 @@ function GetEnemyHeroes()
     --PrintChat("Got Enemy Heroes")
 end
 
+function GetAllyHeroes()
+    for i = 1, Game.HeroCount() do
+        local Hero = Game.Hero(i)
+        if Hero.isAlly and not Hero.isMe then
+            table.insert(AllyHeroes, Hero)
+            PrintChat(Hero.name)
+        end
+    end
+    --PrintChat("Got Ally Heroes")
+end
+
 function GetEnemyBase()
     for i = 1, Game.ObjectCount() do
         local object = Game.Object(i)
@@ -334,17 +345,6 @@ function GetAllyBase()
             break
         end
     end
-end
-
-function GetAllyHeroes()
-    for i = 1, Game.HeroCount() do
-        local Hero = Game.Hero(i)
-        if Hero.isAlly and not Hero.isMe then
-            table.insert(AllyHeroes, Hero)
-            PrintChat(Hero.name)
-        end
-    end
-    --PrintChat("Got Ally Heroes")
 end
 
 function GetBuffStart(unit, buffname)
@@ -1115,8 +1115,8 @@ function Annie:Menu()
         self.AnnieMenu.AutoEAlly:MenuElement({id = "UseEAlly", name = "[E] Use E on Ally", value = true, leftIcon = EIcon})	
         self.AnnieMenu.AutoEAlly:MenuElement({id = "Mana", name = "Min Mana", value = 20, min = 0, max = 100, identifier = "%"})
         for i, Hero in pairs(AllyHeroes) do
-                self.AnnieMenu.AutoEAlly:MenuElement({id = Hero.charName, name = "Use [E] on "..Hero.charName, value = false})		
-            end
+            self.AnnieMenu.AutoEAlly:MenuElement({id = Hero.charName, name = "Use [E] on "..Hero.charName, value = false})		
+        end
         self.AnnieMenu:MenuElement({id = "Draw", name = "Draw", type = MENU})
         self.AnnieMenu.Draw:MenuElement({id = "UseDraws", name = "Enable Draws", value = false})
         self.AnnieMenu.Draw:MenuElement({id = "DrawAA", name = "Draw AA range", value = false})
@@ -1903,6 +1903,7 @@ function Annie:AllyE()
     if myHero.pos:DistanceTo(Ally.pos) < 800 and IsValid(Ally) and IsReady(_E) then 
         if self.AnnieMenu.AutoEAlly[Ally.charName]:Value() and IsValid(Ally) and myHero.mana/myHero.maxMana >= self.AnnieMenu.AutoEAlly.Mana:Value()/100 then
             Control.CastSpell(HK_E, Ally)
+            end	
         end	
-    end	
+    end
 end
