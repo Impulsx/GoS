@@ -339,12 +339,12 @@ end
 function GetAllyHeroes()
     for i = 1, Game.HeroCount() do
         local Hero = Game.Hero(i)
-        if Hero.isAlly then
+        if Hero.isAlly and not Hero.isMe then
             table.insert(AllyHeroes, Hero)
             PrintChat(Hero.name)
         end
     end
-    --PrintChat("Got Enemy Heroes")
+    --PrintChat("Got Ally Heroes")
 end
 
 function GetBuffStart(unit, buffname)
@@ -588,6 +588,7 @@ class "Viktor"
 
 local PredLoaded = false
 local EnemyLoaded = false
+local AllyLoaded = false
 local casted = 0
 local LastCalledTime = 0
 local LastESpot = myHero.pos
@@ -694,6 +695,18 @@ function Viktor:Tick()
         else
             EnemyLoaded = true
             PrintChat("Enemy Loaded")
+        end
+    end
+    if AllyLoaded == false then
+        local CountAlly = 0
+        for i, Ally in pairs(AllyHeroes) do
+            CountAlly = CountAlly + 1
+        end
+        if CountAlly < 1 then
+            GetAllyHeroes()
+        else
+            AllyLoaded = true
+            PrintChat("Ally Loaded")
         end
     end
 	if Game.IsOnTop() then
@@ -997,6 +1010,8 @@ end
 class "Annie"
 
 local EnemyLoaded = false
+local AllyLoaded = false
+
 local TargetTime = 0
 
 local CastingQ = false
@@ -1067,40 +1082,41 @@ local R2Icon = "https://static.wikia.nocookie.net/leagueoflegends/images/4/46/Co
 function Annie:Menu()
     self.AnnieMenu = MenuElement({type = MENU, id = "Annie", name = "Impuls Annie", leftIcon = HeroIcon})
     self.AnnieMenu:MenuElement({id = "ComboMode", name = "Combo", type = MENU})
-        self.AnnieMenu.ComboMode:MenuElement({id = "UseQ", name = "(Q) Use Q", value = true, leftIcon = QIcon})
-        self.AnnieMenu.ComboMode:MenuElement({id = "UseW", name = "(W) Use W", value = true, leftIcon = WIcon})
-        self.AnnieMenu.ComboMode:MenuElement({id = "UseE", name = "(E) Use E For Stuns", value = true, leftIcon = EIcon})
-        self.AnnieMenu.ComboMode:MenuElement({id = "UseEAttacked", name = "(E) Use E When Attacked", value = true})
-        self.AnnieMenu.ComboMode:MenuElement({id = "UseETibbers", name = "(E) Use E Tibbers Is Active", value = true})
-        self.AnnieMenu.ComboMode:MenuElement({id = "UseR", name = "(R) Enabled", value = true, leftIcon = RIcon})
-        self.AnnieMenu.ComboMode:MenuElement({id = "UseRNum", name = "(R) To Damage Number Of Targets", value = 4, min = 0, max = 5, step = 1})
-        self.AnnieMenu.ComboMode:MenuElement({id = "UseRNumStun", name = "(R) To Stun Number Of Targets", value = 2, min = 0, max = 5, step = 1})
-        self.AnnieMenu.ComboMode:MenuElement({id = "UseRComboFinish", name = "(R) In Combo When Killable", value = true})
-        self.AnnieMenu.ComboMode:MenuElement({id = "UseRFinish", name = "(R) To KS A Single Target", value = true})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseQ", name = "[Q] Use Q", value = true, leftIcon = QIcon})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseW", name = "[W] Use W", value = true, leftIcon = WIcon})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseE", name = "[E] Use E For Stuns", value = true, leftIcon = EIcon})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseEAttacked", name = "[E] Use E When Attacked", value = true})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseETibbers", name = "[E] Use E Tibbers Is Active", value = true})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseR", name = "[R] Enabled", value = true, leftIcon = RIcon})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseRNum", name = "[R] To Damage Number Of Targets", value = 4, min = 0, max = 5, step = 1})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseRNumStun", name = "[R] To Stun Number Of Targets", value = 2, min = 0, max = 5, step = 1})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseRComboFinish", name = "[R] In Combo When Killable", value = true})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseRFinish", name = "[R] To KS A Single Target", value = true})
     self.AnnieMenu:MenuElement({id = "LastHitMode", name = "Last Hit", type = MENU})
-        self.AnnieMenu.LastHitMode:MenuElement({id = "UseQ", name = "(Q) use Q", value = false, leftIcon = QIcon})
-        self.AnnieMenu.LastHitMode:MenuElement({id = "StopQFarmStun", name = "(Q) Stop LastHit When Stun Ready", value = true})
-        self.AnnieMenu.LastHitMode:MenuElement({id = "UseQHarass", name = "(Q) Last Hit In Harass Mode", value = true})
-        self.AnnieMenu.LastHitMode:MenuElement({id = "UseQLastHit", name = "(Q) Last Hit In LastHit Mode", value = true})
-        self.AnnieMenu.LastHitMode:MenuElement({id = "UseQLaneClear", name = "(Q) Last Hit In Lane Clear Mode", value = true})
+        self.AnnieMenu.LastHitMode:MenuElement({id = "UseQ", name = "[Q] use Q", value = false, leftIcon = QIcon})
+        self.AnnieMenu.LastHitMode:MenuElement({id = "StopQFarmStun", name = "[Q] Stop LastHit When Stun Ready", value = true})
+        self.AnnieMenu.LastHitMode:MenuElement({id = "UseQHarass", name = "[Q] Last Hit In Harass Mode", value = true})
+        self.AnnieMenu.LastHitMode:MenuElement({id = "UseQLastHit", name = "[Q] Last Hit In LastHit Mode", value = true})
+        self.AnnieMenu.LastHitMode:MenuElement({id = "UseQLaneClear", name = "[Q] Last Hit In Lane Clear Mode", value = true})
     self.AnnieMenu:MenuElement({id = "HarassMode", name = "Harass", type = MENU})
-        self.AnnieMenu.HarassMode:MenuElement({id = "UseQ", name = "(Q) use Q", value = false, leftIcon = QIcon})
-        self.AnnieMenu.HarassMode:MenuElement({id = "UseW", name = "(W) use W", value = false, leftIcon = WIcon})
+        self.AnnieMenu.HarassMode:MenuElement({id = "UseQ", name = "[Q] use Q", value = false, leftIcon = QIcon})
+        self.AnnieMenu.HarassMode:MenuElement({id = "UseW", name = "[W] use W", value = false, leftIcon = WIcon})
     self.AnnieMenu:MenuElement({id = "AutoMode", name = "Auto", type = MENU})
-        self.AnnieMenu.AutoMode:MenuElement({id = "UseQ", name = "(Q) Use Q to Poke (No Stun)", value = false, leftIcon = QIcon})
-    --self.AnnieMenu.AutoMode:MenuElement({id = "UseQFarm", name = "(Q) Use Q to Last Hit", value = false})
-    --self.AnnieMenu.AutoMode:MenuElement({id = "StopQFarmStun", name = "(Q) Stop LastHit When Stun Ready", value = true})
-        self.AnnieMenu.AutoMode:MenuElement({id = "UseEAlly", name = "(E1) Use E on ally", value = true, leftIcon = EIcon})	
-        --[[for i, Hero in pairs(GetAllyHeroes()) do
-            self.AnnieMenu.AutoMode:MenuElement({id = Hero.charName, name = Hero.charName, value = false})		
-        end]]	
-        self.AnnieMenu.AutoMode:MenuElement({id = "UseQFinish", name = "(Q) To KS A Single Target", value = true, leftIcon = QIcon})
-        self.AnnieMenu.AutoMode:MenuElement({id = "UseWFinish", name = "(W) To KS A Single Target", value = true, leftIcon = WIcon})
-        self.AnnieMenu.AutoMode:MenuElement({id = "UseRFinish", name = "(R) To KS A Single Target", value = true, leftIcon = RIcon})
-        self.AnnieMenu.AutoMode:MenuElement({id = "UseRNumStun", name = "(R) Auto Stun Number Of Targets", value = 3, min = 0, max = 5, step = 1, leftIcon = RIcon})
-        self.AnnieMenu.AutoMode:MenuElement({id = "UseWNumStun", name = "(W) Auto Stun Number Of Targets", value = 2, min = 0, max = 5, step = 1, leftIcon = WIcon})
-        self.AnnieMenu.AutoMode:MenuElement({id = "UseE", name = "(E1) Use E When Attacked", value = true, leftIcon = EIcon})
-
+        self.AnnieMenu.AutoMode:MenuElement({id = "UseQ", name = "[Q] Use Q to Poke (No Stun)", value = false, leftIcon = QIcon})
+    --self.AnnieMenu.AutoMode:MenuElement({id = "UseQFarm", name = "[Q] Use Q to Last Hit", value = false})
+    --self.AnnieMenu.AutoMode:MenuElement({id = "StopQFarmStun", name = "Q[] Stop LastHit When Stun Ready", value = true})
+        self.AnnieMenu.AutoMode:MenuElement({id = "UseQFinish", name = "[Q] To KS A Single Target", value = true, leftIcon = QIcon})
+        self.AnnieMenu.AutoMode:MenuElement({id = "UseWFinish", name = "[W] To KS A Single Target", value = true, leftIcon = WIcon})
+        self.AnnieMenu.AutoMode:MenuElement({id = "UseRFinish", name = "[R] To KS A Single Target", value = true, leftIcon = RIcon})
+        self.AnnieMenu.AutoMode:MenuElement({id = "UseRNumStun", name = "[R] Auto Stun Number Of Targets", value = 3, min = 0, max = 5, step = 1, leftIcon = RIcon})
+        self.AnnieMenu.AutoMode:MenuElement({id = "UseWNumStun", name = "[W] Auto Stun Number Of Targets", value = 2, min = 0, max = 5, step = 1, leftIcon = WIcon})
+        self.AnnieMenu.AutoMode:MenuElement({id = "UseE", name = "[E] Use E When Attacked", value = true, leftIcon = EIcon})
+        self.AnnieMenu:MenuElement({type = MENU, id = "AutoEAlly", name = "Auto Use [E] on Ally", leftIcon = EIcon})
+        self.AnnieMenu.AutoEAlly:MenuElement({id = "UseEAlly", name = "[E] Use E on Ally", value = true, leftIcon = EIcon})	
+        self.AnnieMenu.AutoEAlly:MenuElement({id = "Mana", name = "Min Mana", value = 20, min = 0, max = 100, identifier = "%"})
+        for i, Hero in pairs(AllyHeroes) do
+                self.AnnieMenu.AutoEAlly:MenuElement({id = Hero.charName, name = "Use [E] on "..Hero.charName, value = false})		
+            end
         self.AnnieMenu:MenuElement({id = "Draw", name = "Draw", type = MENU})
         self.AnnieMenu.Draw:MenuElement({id = "UseDraws", name = "Enable Draws", value = false})
         self.AnnieMenu.Draw:MenuElement({id = "DrawAA", name = "Draw AA range", value = false})
@@ -1108,7 +1124,7 @@ function Annie:Menu()
         self.AnnieMenu.Draw:MenuElement({id = "DrawW", name = "Draw W range", value = false, leftIcon = WIcon})
         self.AnnieMenu.Draw:MenuElement({id = "DrawR", name = "Draw R range", value = false})
         self.AnnieMenu.Draw:MenuElement({id = "DrawBurstDamage", name = "Burst Damage", value = false})
-    self.AnnieMenu:MenuElement({type = MENU, id = "AutoLevel", name =  myHero.charName.." AutoLevel Spells"})
+    self.AnnieMenu:MenuElement({type = MENU, id = "AutoLevel", name =  myHero.charName.." AutoLevel Spells", leftIcon = HeroIcon})
         self.AnnieMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
         self.AnnieMenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 3, min = 1, max = 6, step = 1})
         self.AnnieMenu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
@@ -1325,6 +1341,18 @@ function Annie:Tick()
         else
             EnemyLoaded = true
             PrintChat("Enemy Loaded")
+        end
+    end
+    if AllyLoaded == false then
+        local CountAlly = 0
+        for i, Ally in pairs(AllyHeroes) do
+            CountAlly = CountAlly + 1
+        end
+        if CountAlly < 1 then
+            GetAllyHeroes()
+        else
+            AllyLoaded = true
+            PrintChat("Ally Loaded")
         end
     end
     if Game.IsOnTop() then
@@ -1558,9 +1586,11 @@ function Annie:Auto()
                         self:UseE()
                     end
                 end	
-                if enemy.activeSpell and enemy.activeSpell.target == ally.charName and enemy.activeSpell.isChanneling == false then
-                    if self:CanUse(_E, "Auto") or (self:CanUse(_E, "Force") and self.AnnieMenu.AutoMode.UseEAlly:Value()) then
-                        self:AllyE()
+                for i, Ally in pairs(AllyHeroes) do
+                    if enemy.activeSpell and enemy.activeSpell.target == Ally.handle and enemy.activeSpell.isChanneling == false then
+                        if self:CanUse(_E, "Auto") or (self:CanUse(_E, "Force") and self.AnnieMenu.AutoEAlly:Value() and self.AnnieMenu.AutoEAlly[ally.charName] and self.AnnieMenu.AutoEAlly[ally.charName]:Value()) then
+                            self:AllyE()
+                        end
                     end
                 end
                 if ValidTarget(enemy) and self:CastingChecks() and not (myHero.pathing and myHero.pathing.isDashing) and not _G.SDK.Attack:IsActive() then
@@ -1677,7 +1707,7 @@ function Annie:CanUse(spell, mode)
         if mode == "TibbersCombo" and IsReady(spell) and self.AnnieMenu.ComboMode.UseETibbers:Value() then
             return true
         end
-        if mode == "Auto" and IsReady(spell) and self.AnnieMenu.AutoMode.UseE:Value() then
+        if mode == "Auto" and IsReady(spell) and self.AnnieMenu.AutoMode.UseE:Value() or self.AnnieMenu.AutoEAlly.UseEAlly:Value() then
             return true
         end
         if mode == "Force" and IsReady(spell) then
@@ -1866,14 +1896,14 @@ function Annie:UseE(unit)
 end
 
 function Annie:AllyE()
-    local target = GetTarget(2000)     	
+    local target = GetTarget(1200)     	
     if target == nil then return end
-    for i, ally in pairs(GetAllyHeroes()) do     	
-        if ally == nil then return end	
-            if myHero.pos:DistanceTo(ally.pos) <= 800 and IsValid(ally) and Ready(_E) then 
-                if self.AnnieMenu.AutoMode[ally.charName]:Value() and IsValid(ally) then
-                    Control.CastSpell(HK_E, ally)
+    for i, Ally in pairs(AllyHeroes) do     	
+        if Ally == nil then return end	
+            if myHero.pos:DistanceTo(Ally.pos) < 800 and IsValid(Ally) and IsReady(_E) then 
+                if self.AnnieMenu.AutoEAlly[Ally.charName]:Value() and IsValid(Ally) and myHero.mana/myHero.maxMana >= self.AnnieMenu.AutoEAlly.Mana:Value()/100 then
+                    Control.CastSpell(HK_E, Ally)
                 end	
             end	
-     end
+    end
 end
