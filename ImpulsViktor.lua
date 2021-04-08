@@ -1091,9 +1091,9 @@ function Annie:Menu()
     --self.AnnieMenu.AutoMode:MenuElement({id = "UseQFarm", name = "(Q) Use Q to Last Hit", value = false})
     --self.AnnieMenu.AutoMode:MenuElement({id = "StopQFarmStun", name = "(Q) Stop LastHit When Stun Ready", value = true})
         self.AnnieMenu.AutoMode:MenuElement({id = "UseEAlly", name = "(E1) Use E on ally", value = true, leftIcon = EIcon})	
-        for i, Hero in pairs(GetAllyHeroes()) do
+        --[[for i, Hero in pairs(GetAllyHeroes()) do
             self.AnnieMenu.AutoMode:MenuElement({id = Hero.charName, name = Hero.charName, value = false})		
-        end	
+        end]]	
         self.AnnieMenu.AutoMode:MenuElement({id = "UseQFinish", name = "(Q) To KS A Single Target", value = true, leftIcon = QIcon})
         self.AnnieMenu.AutoMode:MenuElement({id = "UseWFinish", name = "(W) To KS A Single Target", value = true, leftIcon = WIcon})
         self.AnnieMenu.AutoMode:MenuElement({id = "UseRFinish", name = "(R) To KS A Single Target", value = true, leftIcon = RIcon})
