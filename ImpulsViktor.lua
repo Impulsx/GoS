@@ -1120,55 +1120,55 @@ function Annie:Menu()
         self.AnnieMenu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
         self.AnnieMenu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})
 
-    self.Anniemenu = MenuElement({type = MENU, id = "Annie", name = "Impuls Annie", leftIcon = HeroIcon})
-    self.Anniemenu:MenuElement({id = "ComboMode", name = "Combo", type = MENU})
-        self.Anniemenu.ComboMode:MenuElement({id = "UseQ", name = "(Q) Use Q", value = true, leftIcon = QIcon})
-        self.Anniemenu.ComboMode:MenuElement({id = "UseW", name = "(W) Use W", value = true, leftIcon = WIcon})
-        self.Anniemenu.ComboMode:MenuElement({id = "UseE", name = "(E) Use E For Stuns", value = true, leftIcon = EIcon})
-        self.Anniemenu.ComboMode:MenuElement({id = "UseEAttacked", name = "(E) Use E When Attacked", value = true})
-        self.Anniemenu.ComboMode:MenuElement({id = "UseETibbers", name = "(E) Use E Tibbers Is Active", value = true})
-        self.Anniemenu.ComboMode:MenuElement({id = "UseR", name = "(R) Enabled", value = true, leftIcon = RIcon})
-        self.Anniemenu.ComboMode:MenuElement({id = "UseRNum", name = "(R) To Damage Number Of Targets", value = 4, min = 0, max = 5, step = 1})
-        self.Anniemenu.ComboMode:MenuElement({id = "UseRNumStun", name = "(R) To Stun Number Of Targets", value = 2, min = 0, max = 5, step = 1})
-        self.Anniemenu.ComboMode:MenuElement({id = "UseRComboFinish", name = "(R) In Combo When Killable", value = true})
-        self.Anniemenu.ComboMode:MenuElement({id = "UseRFinish", name = "(R) To KS A Single Target", value = true})
-    self.Anniemenu:MenuElement({id = "LastHitMode", name = "Last Hit", type = MENU})
-        self.Anniemenu.LastHitMode:MenuElement({id = "UseQ", name = "(Q) use Q", value = false, leftIcon = QIcon})
-        self.Anniemenu.LastHitMode:MenuElement({id = "StopQFarmStun", name = "(Q) Stop LastHit When Stun Ready", value = true})
-        self.Anniemenu.LastHitMode:MenuElement({id = "UseQHarass", name = "(Q) Last Hit In Harass Mode", value = true})
-        self.Anniemenu.LastHitMode:MenuElement({id = "UseQLastHit", name = "(Q) Last Hit In LastHit Mode", value = true})
-        self.Anniemenu.LastHitMode:MenuElement({id = "UseQLaneClear", name = "(Q) Last Hit In Lane Clear Mode", value = true})
-    self.Anniemenu:MenuElement({id = "HarassMode", name = "Harass", type = MENU})
-        self.Anniemenu.HarassMode:MenuElement({id = "UseQ", name = "(Q) use Q", value = false, leftIcon = QIcon})
-        self.Anniemenu.HarassMode:MenuElement({id = "UseW", name = "(W) use W", value = false, leftIcon = WIcon})
-    self.Anniemenu:MenuElement({id = "AutoMode", name = "Auto", type = MENU})
-        self.Anniemenu.AutoMode:MenuElement({id = "UseQ", name = "(Q) Use Q to Poke (No Stun)", value = false, leftIcon = QIcon})
-    --self.Anniemenu.AutoMode:MenuElement({id = "UseQFarm", name = "(Q) Use Q to Last Hit", value = false})
-    --self.Anniemenu.AutoMode:MenuElement({id = "StopQFarmStun", name = "(Q) Stop LastHit When Stun Ready", value = true})
-        self.Anniemenu.AutoMode:MenuElement({id = "UseE", name = "(E1) Use E When Attacked", value = true, leftIcon = EIcon})
-        self.Anniemenu.AutoMode:MenuElement({id = "UseQFinish", name = "(Q) To KS A Single Target", value = true, leftIcon = QIcon})
-        self.Anniemenu.AutoMode:MenuElement({id = "UseWFinish", name = "(W) To KS A Single Target", value = true, leftIcon = WIcon})
-        self.Anniemenu.AutoMode:MenuElement({id = "UseRFinish", name = "(R) To KS A Single Target", value = true, leftIcon = RIcon})
-        self.Anniemenu.AutoMode:MenuElement({id = "UseRNumStun", name = "(R) Auto Stun Number Of Targets", value = 3, min = 0, max = 5, step = 1, leftIcon = RIcon})
-        self.Anniemenu.AutoMode:MenuElement({id = "UseWNumStun", name = "(W) Auto Stun Number Of Targets", value = 2, min = 0, max = 5, step = 1, leftIcon = WIcon})
-    self.Anniemenu:MenuElement({id = "Draw", name = "Draw", type = MENU})
-        self.Anniemenu.Draw:MenuElement({id = "UseDraws", name = "Enable Draws", value = false})
-        self.Anniemenu.Draw:MenuElement({id = "DrawAA", name = "Draw AA range", value = false})
-        self.Anniemenu.Draw:MenuElement({id = "DrawQ", name = "Draw Q range", value = false, leftIcon = QIcon})
-        self.Anniemenu.Draw:MenuElement({id = "DrawW", name = "Draw W range", value = false, leftIcon = WIcon})
-        self.Anniemenu.Draw:MenuElement({id = "DrawR", name = "Draw R range", value = false})
-        self.Anniemenu.Draw:MenuElement({id = "DrawBurstDamage", name = "Burst Damage", value = false})
-    self.Anniemenu:MenuElement({type = MENU, id = "AutoLevel", name = myHero.charName.." AutoLevel Spells"})
-        self.Anniemenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
-        self.Anniemenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 3, min = 1, max = 6, step = 1})
-        self.Anniemenu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
-        self.Anniemenu.AutoLevel:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
-    self.Anniemenu:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
-        self.Anniemenu.Pred:MenuElement({name = " ", drop = {"After change Prediction Type press 2xF6"}})	
-        self.Anniemenu.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 4, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction", "InternalPrediction"}})	
-        self.Anniemenu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})
-        self.Anniemenu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
-        self.Anniemenu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})
+    self.AnnieMenu = MenuElement({type = MENU, id = "Annie", name = "Impuls Annie", leftIcon = HeroIcon})
+    self.AnnieMenu:MenuElement({id = "ComboMode", name = "Combo", type = MENU})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseQ", name = "(Q) Use Q", value = true, leftIcon = QIcon})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseW", name = "(W) Use W", value = true, leftIcon = WIcon})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseE", name = "(E) Use E For Stuns", value = true, leftIcon = EIcon})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseEAttacked", name = "(E) Use E When Attacked", value = true})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseETibbers", name = "(E) Use E Tibbers Is Active", value = true})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseR", name = "(R) Enabled", value = true, leftIcon = RIcon})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseRNum", name = "(R) To Damage Number Of Targets", value = 4, min = 0, max = 5, step = 1})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseRNumStun", name = "(R) To Stun Number Of Targets", value = 2, min = 0, max = 5, step = 1})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseRComboFinish", name = "(R) In Combo When Killable", value = true})
+        self.AnnieMenu.ComboMode:MenuElement({id = "UseRFinish", name = "(R) To KS A Single Target", value = true})
+    self.AnnieMenu:MenuElement({id = "LastHitMode", name = "Last Hit", type = MENU})
+        self.AnnieMenu.LastHitMode:MenuElement({id = "UseQ", name = "(Q) use Q", value = false, leftIcon = QIcon})
+        self.AnnieMenu.LastHitMode:MenuElement({id = "StopQFarmStun", name = "(Q) Stop LastHit When Stun Ready", value = true})
+        self.AnnieMenu.LastHitMode:MenuElement({id = "UseQHarass", name = "(Q) Last Hit In Harass Mode", value = true})
+        self.AnnieMenu.LastHitMode:MenuElement({id = "UseQLastHit", name = "(Q) Last Hit In LastHit Mode", value = true})
+        self.AnnieMenu.LastHitMode:MenuElement({id = "UseQLaneClear", name = "(Q) Last Hit In Lane Clear Mode", value = true})
+    self.AnnieMenu:MenuElement({id = "HarassMode", name = "Harass", type = MENU})
+        self.AnnieMenu.HarassMode:MenuElement({id = "UseQ", name = "(Q) use Q", value = false, leftIcon = QIcon})
+        self.AnnieMenu.HarassMode:MenuElement({id = "UseW", name = "(W) use W", value = false, leftIcon = WIcon})
+    self.AnnieMenu:MenuElement({id = "AutoMode", name = "Auto", type = MENU})
+        self.AnnieMenu.AutoMode:MenuElement({id = "UseQ", name = "(Q) Use Q to Poke (No Stun)", value = false, leftIcon = QIcon})
+    --self.AnnieMenu.AutoMode:MenuElement({id = "UseQFarm", name = "(Q) Use Q to Last Hit", value = false})
+    --self.AnnieMenu.AutoMode:MenuElement({id = "StopQFarmStun", name = "(Q) Stop LastHit When Stun Ready", value = true})
+        self.AnnieMenu.AutoMode:MenuElement({id = "UseE", name = "(E1) Use E When Attacked", value = true, leftIcon = EIcon})
+        self.AnnieMenu.AutoMode:MenuElement({id = "UseQFinish", name = "(Q) To KS A Single Target", value = true, leftIcon = QIcon})
+        self.AnnieMenu.AutoMode:MenuElement({id = "UseWFinish", name = "(W) To KS A Single Target", value = true, leftIcon = WIcon})
+        self.AnnieMenu.AutoMode:MenuElement({id = "UseRFinish", name = "(R) To KS A Single Target", value = true, leftIcon = RIcon})
+        self.AnnieMenu.AutoMode:MenuElement({id = "UseRNumStun", name = "(R) Auto Stun Number Of Targets", value = 3, min = 0, max = 5, step = 1, leftIcon = RIcon})
+        self.AnnieMenu.AutoMode:MenuElement({id = "UseWNumStun", name = "(W) Auto Stun Number Of Targets", value = 2, min = 0, max = 5, step = 1, leftIcon = WIcon})
+    self.AnnieMenu:MenuElement({id = "Draw", name = "Draw", type = MENU})
+        self.AnnieMenu.Draw:MenuElement({id = "UseDraws", name = "Enable Draws", value = false})
+        self.AnnieMenu.Draw:MenuElement({id = "DrawAA", name = "Draw AA range", value = false})
+        self.AnnieMenu.Draw:MenuElement({id = "DrawQ", name = "Draw Q range", value = false, leftIcon = QIcon})
+        self.AnnieMenu.Draw:MenuElement({id = "DrawW", name = "Draw W range", value = false, leftIcon = WIcon})
+        self.AnnieMenu.Draw:MenuElement({id = "DrawR", name = "Draw R range", value = false})
+        self.AnnieMenu.Draw:MenuElement({id = "DrawBurstDamage", name = "Burst Damage", value = false})
+    self.AnnieMenu:MenuElement({type = MENU, id = "AutoLevel", name = myHero.charName.." AutoLevel Spells"})
+        self.AnnieMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
+        self.AnnieMenu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 3, min = 1, max = 6, step = 1})
+        self.AnnieMenu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
+        self.AnnieMenu.AutoLevel:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
+    self.AnnieMenu:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
+        self.AnnieMenu.Pred:MenuElement({name = " ", drop = {"After change Prediction Type press 2xF6"}})	
+        self.AnnieMenu.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 4, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction", "InternalPrediction"}})	
+        self.AnnieMenu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})
+        self.AnnieMenu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
+        self.AnnieMenu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})
 end
 
 function Annie:Spells()
@@ -1183,33 +1183,33 @@ end
 
 function Annie:GetSkillOrder()
 	local Spell1, Spell2, Spell3 = HK_Q, HK_W, HK_E
-	if self.Anniemenu.AutoLevel.Order:Value() == 1 then
+	if self.AnnieMenu.AutoLevel.Order:Value() == 1 then
 		Spell1, Spell2, Spell3 = HK_Q, HK_W, HK_E
-	elseif self.Anniemenu.AutoLevel.Order:Value() == 2 then
+	elseif self.AnnieMenu.AutoLevel.Order:Value() == 2 then
 		Spell1, Spell2, Spell3 = HK_W, HK_E, HK_Q
-	elseif self.Anniemenu.AutoLevel.Order:Value() == 3 then
+	elseif self.AnnieMenu.AutoLevel.Order:Value() == 3 then
 		Spell1, Spell2, Spell3 = HK_E, HK_Q, HK_W
-	elseif self.Anniemenu.AutoLevel.Order:Value() == 4 then
+	elseif self.AnnieMenu.AutoLevel.Order:Value() == 4 then
 		Spell1, Spell2, Spell3 = HK_E, HK_W, HK_Q
-	elseif self.Anniemenu.AutoLevel.Order:Value() == 5 then
+	elseif self.AnnieMenu.AutoLevel.Order:Value() == 5 then
 		Spell1, Spell2, Spell3 = HK_W, HK_Q, HK_E
-	elseif self.Anniemenu.AutoLevel.Order:Value() == 6 then
+	elseif self.AnnieMenu.AutoLevel.Order:Value() == 6 then
 		Spell1, Spell2, Spell3 = HK_Q, HK_E, HK_W
 	end
 	return Spell1, Spell2, Spell3
 end
 
 function Annie:AutoLevelStart()
-	if self.Anniemenu.AutoLevel.on:Value() and not self.levelUP then
+	if self.AnnieMenu.AutoLevel.on:Value() and not self.levelUP then
 		local actualLevel = myHero.levelData.lvl
 		local levelPoints = myHero.levelData.lvlPts
 		local Spell1, Spell2, Spell3 = self:GetSkillOrder() 
 
-		if (actualLevel == 18 and levelPoints == 0) or self.Anniemenu.AutoLevel.LvL:Value() > actualLevel then return end
+		if (actualLevel == 18 and levelPoints == 0) or self.AnnieMenu.AutoLevel.LvL:Value() > actualLevel then return end
 	
 		if levelPoints > 0 then
 			self.levelUP = true
-			local Delay = self.Anniemenu.AutoLevel.delay:Value()
+			local Delay = self.AnnieMenu.AutoLevel.delay:Value()
 			DelayAction(function()
 				if actualLevel == 6 or actualLevel == 11 or actualLevel == 16 then
 					Control.KeyDown(HK_LUS)
@@ -1382,10 +1382,10 @@ function Annie:Tick()
 	end	
     if not PredLoaded then
 		DelayAction(function()
-			if self.Anniemenu.Pred.Change:Value() == 1 then
+			if self.AnnieMenu.Pred.Change:Value() == 1 then
 				require('GamsteronPrediction')
 				PredLoaded = true
-			elseif self.Anniemenu.Pred.Change:Value() == 2 then
+			elseif self.AnnieMenu.Pred.Change:Value() == 2 then
 				require('PremiumPrediction')
 				PredLoaded = true
 			else 
