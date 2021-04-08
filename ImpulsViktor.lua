@@ -1899,11 +1899,10 @@ function Annie:AllyE()
     local target = GetTarget(1200)     	
     if target == nil then return end
     for i, Ally in pairs(AllyHeroes) do     	
-        if Ally == nil then return end	
-            if myHero.pos:DistanceTo(Ally.pos) < 800 and IsValid(Ally) and IsReady(_E) then 
-                if self.AnnieMenu.AutoEAlly[Ally.charName]:Value() and IsValid(Ally) and myHero.mana/myHero.maxMana >= self.AnnieMenu.AutoEAlly.Mana:Value()/100 then
-                    Control.CastSpell(HK_E, Ally)
-                end	
-            end	
-    end
+    if Ally == nil then return end	
+    if myHero.pos:DistanceTo(Ally.pos) < 800 and IsValid(Ally) and IsReady(_E) then 
+        if self.AnnieMenu.AutoEAlly[Ally.charName]:Value() and IsValid(Ally) and myHero.mana/myHero.maxMana >= self.AnnieMenu.AutoEAlly.Mana:Value()/100 then
+            Control.CastSpell(HK_E, Ally)
+        end	
+    end	
 end
