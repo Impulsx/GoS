@@ -10,6 +10,12 @@ require "GGPrediction"
 local EnemySpawnPos = nil
 local AllySpawnPos = nil
 
+local MathAbs, MathAtan, MathAtan2, MathAcos, MathCeil, MathCos, MathDeg, MathFloor, MathHuge, MathMax, MathMin, MathPi, MathRad, MathRandom, MathSin, MathSqrt =
+	math.abs, math.atan, math.atan2, math.acos, math.ceil, math.cos, math.deg, math.floor, math.huge, math.max, math.min, math.pi, math.rad, math.random, math.sin, math.sqrt
+local ControlIsKeyDown, ControlKeyDown, ControlKeyUp, ControlSetCursorPos, DrawCircle, DrawLine, DrawRect, DrawText, GameCanUseSpell, GameLatency, GameTimer, GameHero, GameMinion, GameTurret =
+	Control.IsKeyDown, Control.KeyDown, Control.KeyUp, Control.SetCursorPos, Draw.Circle, Draw.Line, Draw.Rect, Draw.Text, Game.CanUseSpell, Game.Latency, Game.Timer, Game.Hero, Game.Minion, Game.Turret
+local TableInsert, TableRemove, TableSort = table.insert, table.remove, table.sort
+
 --[[
 --[ update not enabled until proper rank ]
 do
@@ -550,6 +556,265 @@ local function ValidTarget(unit, range)
     return false;
 end
 
+local function IsPoint(p)
+	return p and p.x and type(p.x) == "number" and p.y and type(p.y) == "number"
+end
+
+class "PPoint"
+
+function PPoint:__init(x, y)
+	if not x then self.x, self.y = 0, 0
+	elseif not y then self.x, self.y = x.x, x.y
+	else self.x = x; if y and type(y) == "number" then self.y = y end end
+end
+
+function PPoint:__type()
+	return "PPoint"
+end
+
+function PPoint:__eq(p)
+	return self.x == p.x and self.y == p.y
+end
+
+function PPoint:__add(p)
+	return PPoint(self.x + p.x, (p.y and self.y) and self.y + p.y)
+end
+
+function PPoint:__sub(p)
+	return PPoint(self.x - p.x, (p.y and self.y) and self.y - p.y)
+end
+
+function PPoint.__mul(a, b)
+	if type(a) == "number" and IsPoint(b) then
+		return PPoint(b.x * a, b.y * a)
+	elseif type(b) == "number" and IsPoint(a) then
+		return PPoint(a.x * b, a.y * b)
+	end
+end
+
+function PPoint.__div(a, b)
+	if type(a) == "number" and IsPoint(b) then
+		return PPoint(a / b.x, a / b.y)
+	else
+		return PPoint(a.x / b, a.y / b)
+	end
+end
+
+function PPoint:__tostring()
+	return "("..self.x..", "..self.y..")"
+end
+
+function PPoint:Appended(to, distance)
+	return to + (to - self):Normalized() * distance
+end
+
+function PPoint:Clone()
+	return PPoint(self)
+end
+
+function PPoint:Extended(to, distance)
+	return self + (PPoint(to) - self):Normalized() * distance
+end
+
+function PPoint:Magnitude()
+	return MathSqrt(self:MagnitudeSquared())
+end
+
+function PPoint:MagnitudeSquared(p)
+	local p = p and PPoint(p) or self
+	return p.x * p.x + p.y * p.y
+end
+
+function PPoint:Normalize()
+	local dist = self:Magnitude()
+	self.x, self.y = self.x / dist, self.y / dist
+end
+
+function PPoint:Normalized()
+	local p = self:Clone()
+	p:Normalize(); return p
+end
+
+function PPoint:Perpendicular()
+	return PPoint(-self.y, self.x)
+end
+
+function PPoint:Perpendicular2()
+	return PPoint(self.y, -self.x)
+end
+
+function PPoint:Rotate(phi)
+	local c, s = MathCos(phi), MathSin(phi)
+	self.x, self.y = self.x * c + self.y * s, self.y * c - self.x * s
+end
+
+function PPoint:Rotated(phi)
+	local p = self:Clone()
+	p:Rotate(phi); return p
+end
+
+function PPoint:Round()
+	local p = self:Clone()
+	p.x, p.y = Round(p.x), Round(p.y)
+	return p
+end
+
+class "Geometry"
+
+function Geometry:__init()
+end
+
+function Geometry:AngleBetween(p1, p2)
+	local angle = MathAbs(MathDeg(MathAtan2(p3.y - p1.y,
+		p3.x - p1.x) - MathAtan2(p2.y - p1.y, p2.x - p1.x)))
+	if angle < 0 then angle = angle + 360 end
+	return angle > 180 and 360 - angle or angle
+end
+
+function Geometry:CalcSkillshotPosition(data, time)
+	local t = MathMax(0, GameTimer() + time - data.startTime - data.delay)
+	t = MathMax(0, MathMin(self:Distance(data.startPos, data.endPos), data.speed * t))
+	return PPoint(data.startPos):Extended(data.endPos, t)
+end
+
+function Geometry:ClosestPointOnSegment(s1, s2, pt)
+	local ab = PPoint(s2 - s1)
+	local t = ((pt.x - s1.x) * ab.x + (pt.y - s1.y) * ab.y) / (ab.x * ab.x + ab.y * ab.y)
+	return t < 0 and PPoint(s1) or (t > 1 and PPoint(s2) or PPoint(s1 + t * ab))
+end
+
+function Geometry:CrossProduct(p1, p2)
+	return p1.x * p2.y - p1.y * p2.x
+end
+
+function Geometry:Distance(p1, p2)
+	return MathSqrt(self:DistanceSquared(p1, p2))
+end
+
+function Geometry:DistanceSquared(p1, p2)
+	local dx, dy = p2.x - p1.x, p2.y - p1.y
+	return dx * dx + dy * dy
+end
+
+function Geometry:DotProduct(p1, p2)
+	return p1.x * p2.x + p1.y * p2.y
+end
+
+function Geometry:GetCircularAOEPos(points, radius)
+	local bestPos, count = PPoint(0, 0), #points
+	if count == 0 then return nil, 0 end
+	if count == 1 then return points[1], 1 end
+	local inside, furthest, id = 0, 0, 0
+	for i, point in ipairs(points) do
+		bestPos = bestPos + point
+	end
+	bestPos = bestPos / count
+	for i, point in ipairs(points) do
+		local distSqr = self:DistanceSquared(bestPos, point)
+		if distSqr < radius * radius then inside = inside + 1 end
+		if distSqr > furthest then furthest = distSqr; id = i end
+	end
+	if inside == count then
+		return bestPos, count
+	else
+		TableRemove(points, id)
+		return self:GetCircularAOEPos(points, radius)
+	end
+end
+
+function Geometry:GetDynamicLinearAOEPos(points, minRange, maxRange, radius)
+	local count = #points
+	if count == 0 then return nil, nil, 0 end
+	if count == 1 then return points[1], points[1], 1 end
+	local myPos, bestStartPos, bestEndPos, bestCount, candidates =
+		self:To2D(myHero.pos), PPoint(0, 0), PPoint(0, 0), 0, {}
+	for i, p1 in ipairs(points) do
+		TableInsert(candidates, p1)
+		for j, p2 in ipairs(points) do
+			if i ~= j then TableInsert(candidates,
+				PPoint(p1 + p2) / 2) end
+		end
+	end
+	local diffRange = maxRange - minRange
+	for i, point in ipairs(points) do
+		if Geometry:DistanceSquared(myPos, point) <= minRange * minRange then
+			for j, candidate in ipairs(candidates) do
+				if Geometry:DistanceSquared(candidate, point) <= diffRange * diffRange then
+					local endPos, hitCount = PPoint(point):Extended(candidate, diffRange), 0
+					for k, testPoint in ipairs(points) do
+						if self:DistanceSquared(testPoint, self:ClosestPointOnSegment(myPos,
+							endPos, testPoint)) < radius * radius then hitCount = hitCount + 1
+						end
+					end
+					if hitCount > bestCount then
+						bestStartPos, bestEndPos, bestCount = point, endPos, hitCount
+					end
+				end
+			end
+		end
+	end
+	return bestStartPos, bestEndPos, bestCount
+end
+
+function Geometry:GetStaticLinearAOEPos(points, range, radius)
+	local count = #points
+	if count == 0 then return nil, 0 end
+	if count == 1 then return points[1], 1 end
+	local myPos, bestPos, bestCount, candidates =
+		self:To2D(myHero.pos), PPoint(0, 0), 0, {}
+	for i, p1 in ipairs(points) do
+		TableInsert(candidates, p1)
+		for j, p2 in ipairs(points) do
+			if i ~= j then TableInsert(candidates,
+				PPoint(p1 + p2) / 2) end
+		end
+	end
+	for i, candidate in ipairs(candidates) do
+		local endPos, hitCount =
+			PPoint(myPos):Extended(candidate, range), 0
+		for j, point in ipairs(points) do
+			if self:DistanceSquared(point, self:ClosestPointOnSegment(myPos,
+				endPos, point)) < radius * radius then hitCount = hitCount + 1
+			end
+		end
+		if hitCount > bestCount then
+			bestPos, bestCount = endPos, hitCount
+		end
+	end
+	return bestPos, bestCount
+end
+
+function Geometry:LineCircleIntersection(p1, p2, circle, radius)
+	local d1, d2 = PPoint(p2 - p1), PPoint(p1 - circle)
+	local a = d1:MagnitudeSquared()
+	local b = 2 * self:DotProduct(d1, d2)
+	local c = d2:MagnitudeSquared() - (radius * radius)
+	local delta = b * b - 4 * a * c
+	if delta >= 0 then
+		local sqr = MathSqrt(delta)
+		local t1, t2 = (-b + sqr) / (2 * a), (-b - sqr) / (2 * a)
+		return PPoint(p1 + d1 * t1), PPoint(p1 + d1 * t2)
+	end
+	return nil, nil
+end
+
+function Geometry:RotateAroundPoint(p1, p2, theta)
+	local p, s, c = PPoint(p2 - p1), MathSin(theta), MathCos(theta)
+	return PPoint(c * p.x - s * p.y + p1.x, s * p.x + c * p.y + p1.y)
+end
+
+function Geometry:To2D(pos)
+	return PPoint(pos.x, pos.z or pos.y)
+end
+
+function Geometry:To3D(pos, y)
+	return Vector(pos.x, y or myHero.pos.y, pos.y)
+end
+
+function Geometry:ToScreen(pos, y)
+	return Vector(self:To3D(pos, y)):To2D()
+end
+
 class "Manager"
 
 function Manager:__init()
@@ -620,7 +885,7 @@ local EIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/5/5d/Aug
 local RIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/9/9f/Augment-_Perfect_Storm.png"
 local R2Icon = "https://static.wikia.nocookie.net/leagueoflegends/images/1/1e/Chaos_Storm_2.png"
 
-function Viktor:LoadMenu()
+function Viktor:Menu()
     self.ViktorMenu = MenuElement({type = MENU, id = "Viktor", name = "Impuls Viktor", leftIcon = HeroIcon})
     self.ViktorMenu:MenuElement({id = "FleeKey", name = "Disengage Key", key = string.byte("A"), value = false})
     self.ViktorMenu:MenuElement({id = "ComboMode", name = "Combo", type = MENU})
@@ -669,6 +934,10 @@ function Viktor:Spells()
     ESpellData = {speed = 1350, range = 600, delay = 0.25, radius = 70, collision = {}, type = "linear"}
     WSpellData = {speed = 3000, range = 800, delay = 0.5, radius = 300, collision = {}, type = "circular"}
     RSpellData = {speed = 1050, range = 700, delay = 0.25, radius = 300, collision = {}, type = "circular"}
+    self.Q = {speed = 2000, range = 600}
+	self.W = {speed = MathHuge, range = 800, delay = 1.75, radius = 270, windup = 0.25, collision = nil, type = "circular"}
+	self.E = {speed = 1050, minRange = 525, range = 700, maxRange = 1225, delay = 0, radius = 80, collision = nil, type = "linear"}
+	self.R = {speed = MathHuge, range = 700, delay = 0.25, radius = 325, windup = 0.25, collision = nil, type = "circular"}
 end
 
 function Viktor:Tick()
