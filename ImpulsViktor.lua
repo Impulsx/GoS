@@ -5,8 +5,8 @@ require "2DGeometry"
 require "MapPositionGOS"
 require "GGPrediction"
 
-local EnemyHeroes = {}
-local AllyHeroes = {}
+--local EnemyHeroes = {}
+--local AllyHeroes = {}
 local EnemySpawnPos = nil
 local AllySpawnPos = nil
 
@@ -304,28 +304,28 @@ function IsImmobile(unit)
 end
 
 function GetEnemyHeroes()
-    --local EnemyHeroes = {}
+    local EnemyHeroes = {}
     for i = 1, Game.HeroCount() do
         local Hero = Game.Hero(i)
         if Hero.isEnemy then
             table.insert(EnemyHeroes, Hero)
-            PrintChat(Hero.name)
+            --PrintChat(Hero.name)
         end
     end
-    --return EnemyHeroes
+    return EnemyHeroes
     --PrintChat("Got Enemy Heroes")
 end
 
 function GetAllyHeroes()
-    --local AllyHeroes = {}
+    local AllyHeroes = {}
     for i = 1, Game.HeroCount() do
         local Hero = Game.Hero(i)
         if Hero.isAlly and not Hero.isMe then
             table.insert(AllyHeroes, Hero)
-            PrintChat(Hero.name)
+            --PrintChat(Hero.name)
         end
     end
-    --return AllyHeroes
+    return AllyHeroes
     --PrintChat("Got Ally Heroes")
 end
 
@@ -691,7 +691,7 @@ function Viktor:Tick()
     end
     if EnemyLoaded == false then
         local CountEnemy = 0
-        for i, enemy in pairs(EnemyHeroes) do
+        for i, enemy in pairs(GetEnemyHeroes()) do
             CountEnemy = CountEnemy + 1
         end
         if CountEnemy < 1 then
@@ -703,7 +703,7 @@ function Viktor:Tick()
     end
     if AllyLoaded == false then
         local CountAlly = 0
-        for i, Ally in pairs(AllyHeroes) do
+        for i, Ally in pairs(GetAllyHeroes()) do
             CountAlly = CountAlly + 1
         end
         if CountAlly < 1 then
@@ -811,7 +811,7 @@ end
 
 function Viktor:KS()
     --PrintChat("ksing")
-    for i, enemy in pairs(EnemyHeroes) do
+    for i, enemy in pairs(GetEnemyHeroes()) do
         if enemy and not enemy.dead and ValidTarget(enemy) then
         end
     end
@@ -1118,7 +1118,7 @@ function Annie:Menu()
         self.AnnieMenu:MenuElement({type = MENU, id = "AutoEAlly", name = "Auto Use [E] on Ally", leftIcon = EIcon})
         self.AnnieMenu.AutoEAlly:MenuElement({id = "UseEAlly", name = "[E] Use E on Ally", value = true, leftIcon = EIcon})	
         self.AnnieMenu.AutoEAlly:MenuElement({id = "Mana", name = "Min Mana", value = 20, min = 0, max = 100, identifier = "%"})
-        for i, Hero in pairs(AllyHeroes) do
+        for i, Hero in pairs(GetAllyHeroes()) do
             self.AnnieMenu.AutoEAlly:MenuElement({id = Hero.charName, name = "Use [E] on "..Hero.charName, value = false})		
         end
         self.AnnieMenu:MenuElement({id = "Draw", name = "Draw", type = MENU})
@@ -1337,7 +1337,7 @@ function Annie:Tick()
     self:ProcessSpells()
     if EnemyLoaded == false then
         local CountEnemy = 0
-        for i, enemy in pairs(EnemyHeroes) do
+        for i, enemy in pairs(GetEnemyHeroes()) do
             CountEnemy = CountEnemy + 1
         end
         if CountEnemy < 1 then
@@ -1349,7 +1349,7 @@ function Annie:Tick()
     end
     if AllyLoaded == false then
         local CountAlly = 0
-        for i, Ally in pairs(AllyHeroes) do
+        for i, Ally in pairs(GetAllyHeroes()) do
             CountAlly = CountAlly + 1
         end
         if CountAlly < 1 then
@@ -1575,7 +1575,7 @@ end
 
 function Annie:Auto()
     --if Mode() ~= "Combo" then
-        for i, enemy in pairs(EnemyHeroes) do
+        for i, enemy in pairs(GetEnemyHeroes()) do
             if enemy and not enemy.dead and ValidTarget(enemy) then
                 local Qdmg = getdmg("Q", enemy, myHero)
                 local Wdmg = getdmg("W", enemy, myHero)
@@ -1590,7 +1590,7 @@ function Annie:Auto()
                         self:UseE()
                     end
                 end	
-                for i, Ally in pairs(AllyHeroes) do
+                for i, Ally in pairs(GetAllyHeroes()) do
                     if enemy.activeSpell and enemy.activeSpell.target == Ally.handle and enemy.activeSpell.isChanneling == false then
                         if self:CanUse(_E, "Auto") or (self:CanUse(_E, "Force") and self.AnnieMenu.AutoEAlly:Value() and self.AnnieMenu.AutoEAlly[ally.charName] and self.AnnieMenu.AutoEAlly[ally.charName]:Value()) then
                             self:AllyE()
@@ -1902,7 +1902,7 @@ end
 function Annie:AllyE()
     local target = GetTarget(1200)     	
     if target == nil then return end
-    for i, Ally in pairs(AllyHeroes) do     	
+    for i, Ally in pairs(GetAllyHeroes()) do     	
     if Ally == nil then return end	
     if myHero.pos:DistanceTo(Ally.pos) < 800 and IsValid(Ally) and IsReady(_E) then 
         if self.AnnieMenu.AutoEAlly[Ally.charName]:Value() and IsValid(Ally) and myHero.mana/myHero.maxMana >= self.AnnieMenu.AutoEAlly.Mana:Value()/100 then
