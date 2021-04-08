@@ -304,6 +304,7 @@ function IsImmobile(unit)
 end
 
 function GetEnemyHeroes()
+    --local EnemyHeroes = {}
     for i = 1, Game.HeroCount() do
         local Hero = Game.Hero(i)
         if Hero.isEnemy then
@@ -311,10 +312,12 @@ function GetEnemyHeroes()
             PrintChat(Hero.name)
         end
     end
+    --return EnemyHeroes
     --PrintChat("Got Enemy Heroes")
 end
 
 function GetAllyHeroes()
+    --local AllyHeroes = {}
     for i = 1, Game.HeroCount() do
         local Hero = Game.Hero(i)
         if Hero.isAlly and not Hero.isMe then
@@ -322,6 +325,7 @@ function GetAllyHeroes()
             PrintChat(Hero.name)
         end
     end
+    --return AllyHeroes
     --PrintChat("Got Ally Heroes")
 end
 
