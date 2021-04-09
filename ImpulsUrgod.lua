@@ -1125,7 +1125,7 @@ function Urgot:KillSteal()
     if self.UrgotMenu.KillSteal.UseR:Value() then
         if IsReady(_R) then
             for i, enemy in pairs(GetEnemyHeroes()) do
-                if ValidTarget(enemy, UrgotR.range) and ((enemy.health - RDmg()) / enemy.maxHealth <= 24 / 100)) then
+                if ValidTarget(enemy, UrgotR.range) and (enemy.health - RDmg()) / enemy.maxHealth <= 24 / 100 then
                     --LocalControlCastSpell(HK_R, enemy)
                     local hitChance, aimPosition = HPred:GetHitchance(myHero.pos, enemy, UrgotR.range, UrgotR.delay, UrgotR.speed, UrgotR.radius, false)
                     if hitChance and hitChance >= 2 then
