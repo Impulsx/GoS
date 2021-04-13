@@ -539,7 +539,7 @@ function LoadScript()
 	QspellData = {speed = 1300, range = 1050, delay = (0.25+ping), radius = 35, collision = {"minion"}, type = "linear"}
 
 	QNoColData = {Type = _G.SPELLTYPE_LINE, Delay = (0.25+ping), Radius = 35, Range = 1100, Speed = 2100, Collision = false}	
-	QNoColspellData = {speed = 1300, range = 1500, delay = (0.25+ping), radius = 35, collision = {nil}, type = "linear"}	
+	QNoColspellData = {speed = 2100, range = 1100, delay = (0.25+ping), radius = 35, collision = {nil}, type = "linear"}	
 	
 	WData = {Type = _G.SPELLTYPE_LINE, Delay = (0.25+ping), Radius = 87, Range = 1050, Speed = 1700, Collision = false}	
 	WspellData = {speed = 1700, range = 1050, delay = (0.25+ping), radius = 87, collision = {nil}, type = "linear"}
