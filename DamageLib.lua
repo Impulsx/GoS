@@ -474,7 +474,7 @@ local DamageLibTable = {
   },
 
   ["Gwen"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({48, 64.5, 81, 97.5, 114})[level] + 0.3 * source.ap end}, --both snips but not additional
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({54, 72, 90, 108, 126})[level] + 0.3 * source.ap end}, --both snips but not additional
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({10, 15, 20, 25, 30})[level] + 0.08 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({30, 55, 80})[level] + 0.08 * source.ap + ((1 / 100) + (0.008 * source.ap / 100)) * target.maxHealth end}, --one needle
     {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({90, 165, 240})[level] + 0.24 * source.ap + ((3 / 100) + (0.024 * source.ap / 100)) * target.maxHealth end}, --three needles
