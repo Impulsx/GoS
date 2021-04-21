@@ -4,11 +4,6 @@
 
 _G.LATENCY = 0.05
 
-
-local function MyHeroNotReady()
-    return myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero)
-end
-
 ----------------------------------------------------
 --|                Managment               		|--
 ----------------------------------------------------
@@ -20,17 +15,17 @@ local HeroIcon = "http://gamingonsteroids.com/uploads/profile/photo-194827.jpg"
 
 function Dev:__init()
 	self:Menu()
-    self:Spells()
+    --self:Spells()
 
     --GetEnemyHeroes()
     Callback.Add("Tick", function() self:Tick() end)
-    Callback.Add("Draw", function() self:Draw() end)
+    --Callback.Add("Draw", function() self:Draw() end)
 --[[
 	if _G.SDK then
         _G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
         _G.SDK.Orbwalker:OnPostAttackTick(function(...) self:OnPostAttackTick(...) end)
         _G.SDK.Orbwalker:OnPostAttack(function(...) self:OnPostAttack(...) end)
-    end
+    ende
 ]]
 end
 
@@ -160,11 +155,18 @@ function Dev:Spells()
 end
 
 function Dev:Tick()
-	DelayAction(function() self:Spells() end, 1.00)
 
 	if myHero.dead or Game.IsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) then
         return
     end
+	--DelayAction(function() self:Spells() end, 1.00)
+	PrintChat(myHero.activeSpell.name)
+	--for i = 1, myHero.buffCount do
+		--local buff = myHero:GetBuff(i)
+		--if buff.count ~= 0 then
+			PrintChat(myHero:GetBuff(i).name)
+		--end
+	--end
 end
 
 function Dev:Draw()
