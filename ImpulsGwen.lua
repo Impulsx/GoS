@@ -27,7 +27,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.04
+    local Version = 0.01
     
     local Files = {
         Lua = {
@@ -769,6 +769,7 @@ DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0
         self.Menu.Draw:MenuElement({id = "DrawE", name = "Draw E range", value = false, leftIcon = EIcon})
 		self.Menu.Draw:MenuElement({id = "DrawR", name = "Draw R range", value = false, leftIcon = RIcon})
         self.Menu.Draw:MenuElement({id = "DrawBurstDamage", name = "Burst Damage", value = false})
+        self.Menu.Drawings:MenuElement({id = "DrawJng", name = "Draw Jungler Info", value = true})
     self.Menu:MenuElement({type = MENU, id = "AutoLevel", name =  myHero.charName.." AutoLevel Spells", leftIcon = HeroIcon})
         self.Menu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
         self.Menu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 3, min = 1, max = 6, step = 1})
@@ -980,6 +981,30 @@ function Gwen:Draw()
                 Draw.Text("Total Dmg:" .. TotalDamage .. "/" .. EnemyHealth, 15, target.pos:To2D().x-15, target.pos:To2D().y-125, Draw.Color(255, 255, 150, 150))
             else
                 Draw.Text("Total Dmg:" .. TotalDamage .. "/" .. EnemyHealth, 15, target.pos:To2D().x-15, target.pos:To2D().y-125, Draw.Color(255, 255, 0, 0))
+            end
+        end
+        for i, enemy in pairs(GetEnemyHeroes()) do
+            if self.Menu.Drawings.DrawJng:Value() then
+                if enemy:GetSpellData(SUMMONER_1).name == "SummonerSmite" or enemy:GetSpellData(SUMMONER_2).name == "SummonerSmite" then
+                    Smite = true
+                else
+                    Smite = false
+                end
+                if Smite then
+                    if enemy.alive then
+                        if ValidTarget(enemy) then
+                            if GetDistance(myHero.pos, enemy.pos) > 3000 then
+                                Draw.Text("Jungler: Visible", 17, myHero.pos2D.x - 45, myHero.pos2D.y + 10, Draw.Color(0xFF32CD32))
+                            else
+                                Draw.Text("Jungler: Near", 17, myHero.pos2D.x - 43, myHero.pos2D.y + 10, Draw.Color(0xFFFF0000))
+                            end
+                        else
+                            Draw.Text("Jungler: Invisible", 17, myHero.pos2D.x - 55, myHero.pos2D.y + 10, Draw.Color(0xFFFFD700))
+                        end
+                    else
+                        Draw.Text("Jungler: Dead", 17, myHero.pos2D.x - 45, myHero.pos2D.y + 10, Draw.Color(0xFF32CD32))
+                    end
+                end
             end
         end
 	end
