@@ -718,7 +718,7 @@ local RIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/d/d1/Nee
 local R2Icon = "https://static.wikia.nocookie.net/leagueoflegends/images/0/09/Needlework_3.png"
 
 function Gwen:Menu()
-DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	
+local DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	
     self.Menu = MenuElement({type = MENU, id = "Impuls Gwen", name = "Impuls Gwen", leftIcon = HeroIcon})
     self.Menu:MenuElement({id = "ComboMode", name = "Combo", type = MENU, leftIcon = PIcon})
         self.Menu.ComboMode:MenuElement({id = "UseQ", name = "[Q] Use Q", value = true, leftIcon = QIcon})
@@ -769,7 +769,7 @@ DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0
         self.Menu.Draw:MenuElement({id = "DrawE", name = "Draw E range", value = false, leftIcon = EIcon})
 		self.Menu.Draw:MenuElement({id = "DrawR", name = "Draw R range", value = false, leftIcon = RIcon})
         self.Menu.Draw:MenuElement({id = "DrawBurstDamage", name = "Burst Damage", value = false})
-        self.Menu.Drawings:MenuElement({id = "DrawJng", name = "Draw Jungler Info", value = true})
+        self.Menu.Draw:MenuElement({id = "DrawJng", name = "Draw Jungler Info", value = true})
     self.Menu:MenuElement({type = MENU, id = "AutoLevel", name =  myHero.charName.." AutoLevel Spells", leftIcon = HeroIcon})
         self.Menu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
         self.Menu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 3, min = 1, max = 6, step = 1})
@@ -984,7 +984,7 @@ function Gwen:Draw()
             end
         end
         for i, enemy in pairs(GetEnemyHeroes()) do
-            if self.Menu.Drawings.DrawJng:Value() then
+            if self.Menu.Draw.DrawJng:Value() then
                 if enemy:GetSpellData(SUMMONER_1).name == "SummonerSmite" or enemy:GetSpellData(SUMMONER_2).name == "SummonerSmite" then
                     Smite = true
                 else
@@ -1362,10 +1362,10 @@ end
 function Gwen:MenuEvadeE()
     for i, enemy in pairs(GetEnemyHeroes()) do
         self.Menu.ComboMode.UseEDodgeChamps:MenuElement({id = enemy.charName, name = enemy.charName, type = MENU})
-        self.Menu.ComboMode.UseEDodgeChamps[enemy.charName]:MenuElement({id = enemy:GetSpellData(_Q).name, name = enemy.charName .. "[Q]".. enemy:GetSpellData(_Q).name, value = false})
-        self.Menu.ComboMode.UseEDodgeChamps[enemy.charName]:MenuElement({id = enemy:GetSpellData(_W).name, name = enemy.charName .. "[W]" .. enemy:GetSpellData(_W).name, value = false})
-        self.Menu.ComboMode.UseEDodgeChamps[enemy.charName]:MenuElement({id = enemy:GetSpellData(_E).name, name = enemy.charName .. "[E]" .. enemy:GetSpellData(_E).name, value = false})
-        self.Menu.ComboMode.UseEDodgeChamps[enemy.charName]:MenuElement({id = enemy:GetSpellData(_R).name, name = enemy.charName .. "[R]" .. enemy:GetSpellData(_R).name, value = false})
+        self.Menu.ComboMode.UseEDodgeChamps[enemy.charName]:MenuElement({id = enemy:GetSpellData(_Q).name, name = enemy.charName .. "[Q]".. enemy:GetSpellData(_Q).name, value = true})
+        self.Menu.ComboMode.UseEDodgeChamps[enemy.charName]:MenuElement({id = enemy:GetSpellData(_W).name, name = enemy.charName .. "[W]" .. enemy:GetSpellData(_W).name, value = true})
+        self.Menu.ComboMode.UseEDodgeChamps[enemy.charName]:MenuElement({id = enemy:GetSpellData(_E).name, name = enemy.charName .. "[E]" .. enemy:GetSpellData(_E).name, value = true})
+        self.Menu.ComboMode.UseEDodgeChamps[enemy.charName]:MenuElement({id = enemy:GetSpellData(_R).name, name = enemy.charName .. "[R]" .. enemy:GetSpellData(_R).name, value = true})
     end
 end
 
