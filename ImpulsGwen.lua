@@ -1600,14 +1600,14 @@ if target == nil then return end
 			else
 				if GetEnemyCount(1500, myHero.pos) > 1 then
 					if self.Menu.ComboMode.UseE:Value() and IsReady(_E) then
-						if myHero.pos:DistanceTo(target.pos) <= ERange and GetEnemyCount(600, target.pos) >= 1 and not not self:IsDashPosTurret(target) then
+						if myHero.pos:DistanceTo(target.pos) <= ERange and GetEnemyCount(ERange, target.pos) >= 1 and not not self:IsDashPosTurret(target) then
 							if Control.CastSpell(HK_E, target) then
 								--Control.CastSpell(HK_R, target.pos)
                                 self.CastR(target)
 							end	
 						end
 					else
-						if myHero.pos:DistanceTo(target.pos) <= RRange and GetEnemyCount(600, myHero.pos) >= 2 then
+						if myHero.pos:DistanceTo(target.pos) <= RRange and GetEnemyCount(RRange, myHero.pos) >= 2 then
 							--Control.CastSpell(HK_R, target.pos)
                             self.CastR(target)
 						end	
