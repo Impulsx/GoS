@@ -617,7 +617,7 @@ local AARange = 150
 local EAARange = 250
 
 local ActiveQRange = 450
-local QMaxRange = 450
+local QMaxRange = 850
 
 local QStarted = Game.Timer()
 local RStarted = Game.Timer()
@@ -641,9 +641,9 @@ local Flash = nil
 local FlashSpell = nil
 
 local QRange = 450
-local WRange = 400
+local WRange = 425
 local ERange = 400
-local RRange = 1200
+local RRange = 1300
 
 local EMouseSpot = nil
 
@@ -830,7 +830,8 @@ function Gwen:ProcessSpell()
 		local Detected = CCSpells[spell.name]
 		local type = Detected.type
 		if type == "targeted" then
-			if spell.target == myHero.handle then 
+			if spell.target == myHero.handle then
+                PrintChat("Using W to block CC spell") 
 				Control.CastSpell(HK_W)
 				TableRemove(DetectedSpells, i)				
 			end
@@ -933,20 +934,20 @@ function Gwen:Spells()
     end
     DelayAction(function()
         if self.Menu.Pred.Change:Value() == 1 then
-            self.QspellData = {speed = 500, range = 450, delay = 0.50, radius = 60, collision = {""}, type = "linear"}
-            self.WspellData = {speed = 500, range = 400, delay = 0.00, radius = 60, collision = {""}, type = "circle"}
-            self.EspellData = {speed = 700, range = 400, delay = 0.00, radius = 60, collision = {""}, type = "linear"}
-            self.RspellData = {speed = 1500, range = 1200, delay = 0.25, radius = 45, collision = {""}, type = "linear"}
+            self.QspellData = {speed = 500, range = QRange, delay = 0.50, radius = 60, collision = {""}, type = "linear"}
+            self.WspellData = {speed = 500, range = WRange, delay = 0.00, radius = 60, collision = {""}, type = "circle"}
+            self.EspellData = {speed = 700, range = ERange, delay = 0.00, radius = 160, collision = {""}, type = "linear"}
+            self.RspellData = {speed = 500, range = Range, delay = 0.25, radius = 45, collision = {""}, type = "linear"}
         end
         if self.Menu.Pred.Change:Value() == 2 then
             self.QPrediction = GGPrediction:SpellPrediction({Delay = 0.50, Radius = 60, Range = 450, Speed = 500, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
-            self.WPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 60, Range = 400, Speed = 500, Collision = false, Type = GGPrediction.SPELLTYPE_CIRCLE})
+            self.WPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 60, Range = 425, Speed = 500, Collision = false, Type = GGPrediction.SPELLTYPE_CIRCLE})
             self.EPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 60, Range = 400, Speed = 700, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
             self.RPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 45, Range = 1200, Speed = 1500, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
         end
         if self.Menu.Pred.Change:Value() == 3 then  
             self.QspellData = {speed = 500, range = 450, delay = 0.50, radius = 60, collision = {""}, type = "linear"}
-            self.WspellData = {speed = 500, range = 400, delay = 0.00, radius = 60, collision = {""}, type = "circle"}
+            self.WspellData = {speed = 500, range = 425, delay = 0.00, radius = 60, collision = {""}, type = "circle"}
             self.EspellData = {speed = 700, range = 400, delay = 0.00, radius = 60, collision = {""}, type = "linear"}
             self.RspellData = {speed = 1500, range = 1200, delay = 0.25, radius = 45, collision = {""}, type = "linear"}				
         end
@@ -1121,6 +1122,14 @@ function Gwen:Tick()
             PrintChat("Enemy Loaded")
         end
     end
+    if heroes == false then 
+		local EnemyCount = CheckLoadedEnemyies()			
+		if EnemyCount < 1 then
+			LoadUnits()
+		else
+			heroes = true
+		end
+	end	
 	if MyHeroNotReady() then return end
 
 	local Mode = GetMode()
@@ -1272,9 +1281,10 @@ end
 function Gwen:ProcessSpells()
     CastingQ = myHero.activeSpell.name == "GwenQ" 
     CastingW = myHero.activeSpell.name == "GwenW"
-    CastingE = myHero.activeSpell.name == "GwenR"
-    CastingR = myHero.activeSpell.name == "GwenR" 
-
+    CastingE = myHero.activeSpell.name == "GwenE"
+    CastingR = myHero.activeSpell.name == "GwenR"
+    
+    
     EActive = BuffActive(myHero, "GwenEAttackBuff")
     Kraken = BuffActive(myHero, "6672buff")
 
@@ -1805,11 +1815,12 @@ function Gwen:CastQ(unit)
 end	
 
 function CastW(i, s)
+    --PrintChat("Using W to block CC spell")
 	local startPos = s.startPos; local endPos = s.endPos; local travelTime = 0
 	if s.speed == MathHuge then travelTime = s.delay else travelTime = s.range / s.speed + s.delay end
 	if s.type == "rectangular" then
-		local StartPosition = endPos-Vector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
-		local EndPosition = endPos+Vector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 400)
+		local StartPosition = endPos-Vector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 425)
+		local EndPosition = endPos+Vector(endPos-startPos):Normalized():Perpendicular()*(s.radius2 or 425)
 		startPos = StartPosition; endPos = EndPosition
 	end
 	if s.startTime + travelTime > GameTimer() then
