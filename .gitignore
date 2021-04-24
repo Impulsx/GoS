@@ -1,5 +1,8 @@
+# Compiled Lua sources
+luac.out
+
 # Executables
 *.exe
 
-# Compiled Dynamic libraries
+# Compiled Dynamic libraries / Shared objects (inc. Windows DLLs)
 *.dll
