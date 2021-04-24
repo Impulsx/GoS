@@ -633,6 +633,7 @@ local ReturnMouse = mousePos
 local Kraken = false
 local KrakenStacks = 0
 local EActive = false
+local RActive = false
 
 local PrimedFlashE = nil
 local PrimedFlashETime = Game.Timer()
@@ -728,9 +729,8 @@ local DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0
         self.Menu.ComboMode:MenuElement({id = "UseEDodgeCalc", name = "(E) Sometimes Dodge Away From mouse", value = true})
         self.Menu.ComboMode:MenuElement({id = "UseEDodgeChamps", name = "Enemies Spells To Dodge", type = MENU})
         self.Menu.ComboMode:MenuElement({id = "UseR", name = "[R] Enabled", value = true, leftIcon = RIcon})
-        self.Menu.ComboMode:MenuElement({id = "UseRNum", name = "[R] To Damage Number Of Targets", value = 3, min = 0, max = 5, step = 1})
-        self.Menu.ComboMode:MenuElement({id = "UseRComboFinish", name = "[R] In Combo When Killable", value = true})
-        self.Menu.ComboMode:MenuElement({id = "UseRFinish", name = "[R] To KS A Single Target", value = true})
+        --self.Menu.ComboMode:MenuElement({id = "UseRNum", name = "[R] To Damage Number Of Targets", value = 3, min = 0, max = 5, step = 1})
+        self.Menu.ComboMode:MenuElement({id = "UseRComboFinish", name = "[R] In Combo Only After Manual Cast", value = true, leftIcon = R2Icon})
     self.Menu:MenuElement({id = "LastHitMode", name = "Last Hit", type = MENU})
         self.Menu.LastHitMode:MenuElement({id = "UseQ", name = "[Q] use Q", value = false, leftIcon = QIcon})
         self.Menu.LastHitMode:MenuElement({id = "UseQLastHit", name = "[Q] Max stack only to Last Hit", value = true, leftIcon = PIcon})
@@ -756,7 +756,7 @@ local DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0
         self.Menu.AutoMode:MenuElement({id = "UseQFinish", name = "[Q] To KS A Single Target", value = true, leftIcon = QIcon})
         self.Menu.AutoMode:MenuElement({id = "UseEFinish", name = "[E]+ AA To KS A Single Target", value = true, leftIcon = WIcon})
         self.Menu.AutoMode:MenuElement({id = "UseRFinish", name = "[R] To KS A Single Target", value = true, leftIcon = RIcon})
-        self.Menu.AutoMode:MenuElement({id = "UseRNum", name = "[R] Auto Number Of Targets", value = 3, min = 0, max = 5, step = 1, leftIcon = RIcon})
+        --self.Menu.AutoMode:MenuElement({id = "UseRNum", name = "[R] Auto Number Of Targets", value = 3, min = 0, max = 5, step = 1, leftIcon = RIcon})
     self.Menu:MenuElement({type = MENU, id = "WSet", name = "AutoW Incomming CC Spells"})
 	    self.Menu.WSet:MenuElement({name = "WSetSpace", name = "After 30sec CCSpells are loaded", type = SPACE})	
 	    self.Menu.WSet:MenuElement({id = "UseW", name = "UseW Anti CC", value = true, leftIcon = WIcon})	
@@ -1102,13 +1102,12 @@ function Gwen:Tick()
         _G.SDK.Orbwalker.ForceMovement = nil
     end
 
-    EBuff = HasBuff(myHero, "GwenEAttackBuff")
     --PrintChat(myHero.activeSpell.name)
     self:UpdateItems()
     self:Logic()
     self:Auto()
     self:ItemsCC()
-    self:ProcessSpell()
+    self:ProcessSpells()
     if EnemyLoaded == false then
         local CountEnemy = 0
         for i, enemy in pairs(GetEnemyHeroes()) do
@@ -1283,10 +1282,12 @@ function Gwen:ProcessSpells()
     CastingW = myHero.activeSpell.name == "GwenW"
     CastingE = myHero.activeSpell.name == "GwenE"
     CastingR = myHero.activeSpell.name == "GwenR"
-    
-    
-    EActive = BuffActive(myHero, "GwenEAttackBuff")
-    Kraken = BuffActive(myHero, "6672buff")
+
+    EBuff = HasBuff(myHero, "GwenEAttackBuff")
+    EActive = HasBuff(myHero, "GwenEAttackBuff")
+    RActive = HasBuff(myHero, "GwenRRecast")
+
+    Kraken = HasBuff(myHero, "6672buff")
 
 
     if myHero:GetSpellData(SUMMONER_1).name:find("Flash") then
@@ -1580,17 +1581,15 @@ function Gwen:Combo()
 local target = GetTarget(2000)     	
 if target == nil then return end
 	if IsValid(target) then
-		
-		if IsReady(_R) and self.Menu.ComboMode.UseR:Value() then					
-			
+		if IsReady(_R) and self.Menu.ComboMode.UseRComboFinish:Value() then
 			if GetEnemyCount(1500, myHero.pos) == 1 then
-				if myHero.pos:DistanceTo(target.pos) <= RRange then
+				if myHero.pos:DistanceTo(target.pos) <= RRange and RActive == true then
 					--Control.CastSpell(HK_R, target.pos)
                     self.CastR(target)
 				else
 					if self.Menu.ComboMode.UseE:Value() and IsReady(_E) then
 						if myHero.pos:DistanceTo(target.pos) <= ERange and not self:IsDashPosTurret(target) then
-							if Control.CastSpell(HK_E, target) then
+							if Control.CastSpell(HK_E, target) and RActive == true then
 								--Control.CastSpell(HK_R, target.pos)
                                 self.CastR(target)
 							end									
@@ -1600,22 +1599,56 @@ if target == nil then return end
 			else
 				if GetEnemyCount(1500, myHero.pos) > 1 then
 					if self.Menu.ComboMode.UseE:Value() and IsReady(_E) then
-						if myHero.pos:DistanceTo(target.pos) <= ERange and GetEnemyCount(ERange, target.pos) >= 1 and not not self:IsDashPosTurret(target) then
-							if Control.CastSpell(HK_E, target) then
+						if myHero.pos:DistanceTo(target.pos) <= ERange and GetEnemyCount(ERange, target.pos) >= 1 and not self:IsDashPosTurret(target) then
+							if Control.CastSpell(HK_E, target) and RActive == true then
 								--Control.CastSpell(HK_R, target.pos)
                                 self.CastR(target)
-							end	
+							end
 						end
 					else
-						if myHero.pos:DistanceTo(target.pos) <= RRange and GetEnemyCount(RRange, myHero.pos) >= 2 then
+						if myHero.pos:DistanceTo(target.pos) <= RRange and GetEnemyCount(RRange, myHero.pos) >= 2 and RActive == true then
 							--Control.CastSpell(HK_R, target.pos)
                             self.CastR(target)
-						end	
+						end
 					end
-				end	
+				end
 			end
-		end			
-		
+		else
+            if IsReady(_R) and self.Menu.ComboMode.UseR:Value() then
+                if GetEnemyCount(1500, myHero.pos) == 1 then
+                    if myHero.pos:DistanceTo(target.pos) <= RRange then
+                        --Control.CastSpell(HK_R, target.pos)
+                        self.CastR(target)
+                    else
+                        if self.Menu.ComboMode.UseE:Value() and IsReady(_E) then
+                            if myHero.pos:DistanceTo(target.pos) <= ERange and not self:IsDashPosTurret(target) then
+                                if Control.CastSpell(HK_E, target) then
+                                    --Control.CastSpell(HK_R, target.pos)
+                                    self.CastR(target)
+                                end									
+                            end
+                        end	
+                    end
+                else
+                    if GetEnemyCount(1500, myHero.pos) > 1 then
+                        if self.Menu.ComboMode.UseE:Value() and IsReady(_E) then
+                            if myHero.pos:DistanceTo(target.pos) <= ERange and GetEnemyCount(ERange, target.pos) >= 1 and not self:IsDashPosTurret(target) then
+                                if Control.CastSpell(HK_E, target) then
+                                    --Control.CastSpell(HK_R, target.pos)
+                                    self.CastR(target)
+                                end
+                            end
+                        else
+                            if myHero.pos:DistanceTo(target.pos) <= RRange and GetEnemyCount(RRange, myHero.pos) >= 2 then
+                                --Control.CastSpell(HK_R, target.pos)
+                                self.CastR(target)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
 		if self.Menu.ComboMode.UseE:Value() and IsReady(_E) then
 			if myHero.pos:DistanceTo(target.pos) <= QRange and not self:IsDashPosTurret(target) then					
 				if self.Menu.ComboMode.UseQ:Value() and IsReady(_Q) then
@@ -1626,10 +1659,10 @@ if target == nil then return end
 				else
 					--Control.CastSpell(HK_E, target)
                     self.CastE(target)
-				end	
+				end
 			end
-		end		
-		
+		end
+
 		if self.Menu.ComboMode.UseQ:Value() and IsReady(_Q) then 				 
 			if self.Menu.ComboMode.UseE:Value() and IsReady(_E) and myHero.pos:DistanceTo(target.pos) <= ERange and not self:IsDashPosTurret(target) then return end
 			if myHero.pos:DistanceTo(target.pos) <= QRange and myHero.pos:DistanceTo(target.pos) > ERange and myHero.hudAmmo == 4 then
@@ -1639,9 +1672,9 @@ if target == nil then return end
 			if myHero.pos:DistanceTo(target.pos) < QRange and myHero.hudAmmo == 4 then
 				--Control.CastSpell(HK_Q, target.pos)
                 self.CastQ(target)		
-			end				
+			end
 		end
-	end	
+	end
 end
 
 function Gwen:Harass()
