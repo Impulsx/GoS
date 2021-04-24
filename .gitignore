@@ -1,2 +1,5 @@
+# Executables
 *.exe
+
+# Compiled Dynamic libraries
 *.dll
