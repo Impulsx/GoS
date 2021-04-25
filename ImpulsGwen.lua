@@ -6,7 +6,7 @@ require "DamageLib"
 require "2DGeometry"
 require "MapPositionGOS"
 
-
+local DrawInfo = false
 ----------------------------------------------------
 --|                    Checks                    |--
 ----------------------------------------------------
@@ -64,6 +64,7 @@ do
             print("New Impuls Gwen Version Press 2x F6")
         else
             print("Impuls Gwen loaded")
+            DrawInfo = true
         end
     
     end
@@ -72,6 +73,12 @@ do
 
 end 
 ]]
+
+Callback.Add("Draw", function() 
+	if DrawInfo then	
+		Draw.Text("Impuls scripts will after 30sec in-game", 18, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 255, 0, 0))
+	end	
+end)	
 ----------------------------------------------------
 --|                    Utils                     |--
 ----------------------------------------------------
@@ -555,16 +562,19 @@ end
 class "Manager"
 
 function Manager:__init()
-    if myHero.charName == "Gwen" then
-        DelayAction(function() self:LoadGwen() end, 1.05)
-    --[[elseif myHero.charName == "Urgot" then
-        DelayAction(function() self:LoadUrgot() end, 1.05)
-    elseif myHero.charName == "Gnar" then
-        DelayAction(function() self:LoadGnar() end, 1.05)]]
-    end
+    DelayAction(function()
+        if myHero.charName == "Gwen" then
+            DelayAction(function() self:LoadGwen() end, 1.05)
+        --[[elseif myHero.charName == "Urgot" then
+            DelayAction(function() self:LoadUrgot() end, 1.05)
+        elseif myHero.charName == "Gnar" then
+            DelayAction(function() self:LoadGnar() end, 1.05)]]
+        end	
+    end, math.max(0.07, 30 - Game.Timer()))
 end
 
 function Manager:LoadGwen()
+    if DrawInfo then DrawInfo = false end
     Gwen:Menu()
     Gwen:Spells()
 
@@ -772,7 +782,7 @@ local DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0
         self.Menu.Draw:MenuElement({id = "DrawJng", name = "Draw Jungler Info", value = true})
     self.Menu:MenuElement({type = MENU, id = "AutoLevel", name =  myHero.charName.." AutoLevel Spells", leftIcon = HeroIcon})
         self.Menu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
-        self.Menu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 3, min = 1, max = 6, step = 1})
+        self.Menu.AutoLevel:MenuElement({id = "LvL", name = "AutoLevel start -->", value = 4, min = 1, max = 6, step = 1})
         self.Menu.AutoLevel:MenuElement({id = "delay", name = "Delay for Level up", value = 2, min = 0 , max = 10, step = 0.5, identifier = "sec"})
         self.Menu.AutoLevel:MenuElement({id = "Order", name = "Skill Order", value = 6, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
 	self.Menu:MenuElement({id = "GwenOrbMode", name = "Orbwalker", type = MENU})
@@ -818,7 +828,7 @@ local DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0
 				end
 			end				
 		end, 0.02)
-    PrintChat("Enemy Spells Loaded")
+    --PrintChat("Enemy Spells Loaded")
 	end	
 end
 
@@ -831,7 +841,7 @@ function Gwen:ProcessSpell()
 		local type = Detected.type
 		if type == "targeted" then
 			if spell.target == myHero.handle then
-                PrintChat("Using W to block CC spell") 
+                --PrintChat("Using W to block CC spell") 
 				Control.CastSpell(HK_W)
 				TableRemove(DetectedSpells, i)				
 			end
@@ -1914,4 +1924,5 @@ end
 
 function OnLoad()
     Manager()
+    DrawInfo = true
 end
