@@ -1,9 +1,9 @@
 # GoS :shipit:
 ## I'm trying :trollface:
 
-Started me just wanting to keep scripts I was using. :finnadie:
+:finnadie: Started me just wanting to keep scripts I was using. 
 
-Turned into making my own. :godmode:
+:godmode: Turned into making my own. 
 
 - [x] Took over hosting PussyScripts
 - [x] Impuls Scripts
