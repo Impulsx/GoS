@@ -9,4 +9,4 @@ Turned into making my own. :godmode:
 - [x] Impuls Scripts
 - [ ] Updating DamageLib.lua, never ends.
 
-> I'm trying
+> Achieved Trail-Dev for Gos
