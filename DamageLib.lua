@@ -920,9 +920,9 @@ local DamageLibTable = {
   },
 
   ["Ryze"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 100, 125, 150, 175})[level] + (0.45 * source.ap) + (0.03 * source.maxMana) + (GotBuff(target, "RyzeE") and (1 + ({40, 70, 100})[source:GetSpellData(_R).level] / 100)) or 1 end}, -- Added R passive E+Q bonus damage , needs GameObject.bonusMana 
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + (0.6 * source.ap) + (0.04 * source.maxMana) end}, -- needs GameObject.bonusMana 
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 80, 100, 120, 140})[level] + (0.3 * source.ap) + (0.02 * source.maxMana) end}, -- needs GameObject.bonusMana 
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 100, 125, 150, 175})[level] + (0.45 * source.ap) + (0.03 * source.maxMana) + 0.03 * (source.maxMana - (300 + (70 * (myHero.levelData.lvl - 1)))) + (GotBuff(target, "RyzeE") and (1 + ({40, 70, 100})[source:GetSpellData(_R).level] / 100)) or 1 end}, -- Added R passive E+Q bonus damage , needs GameObject.bonusMana 
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + (0.6 * source.ap) + (0.04 * source.maxMana) + 0.04 * (source.maxMana - (300 + (70 * (myHero.levelData.lvl - 1)))) end}, -- needs GameObject.bonusMana 
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 80, 100, 120, 140})[level] + (0.3 * source.ap) + (0.02 * source.maxMana) + 0.02 * (source.maxMana - (300 + (70 * (myHero.levelData.lvl - 1)))) end}, -- needs GameObject.bonusMana 
   },
   
   ["Samira"] = {
@@ -971,7 +971,7 @@ local DamageLibTable = {
   ["Shen"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) local dmg = ({2, 2.5, 3, 3.5, 4})[level] + (0.015 * source.ap / 100) * target.maxHealth / 100; if target.type == Obj_AI_Hero then return dmg end; return math.min(({30, 50, 70, 90, 110})[level]+dmg, ({75, 100, 125, 150, 175})[level]) end}, -- baseDamage
     {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) local dmg = ({5, 5.5, 6, 6.5, 7})[level] + (0.02 * source.ap / 100) * target.maxHealth / 100; if target.type == Obj_AI_Hero then return dmg end; return math.min(({30, 50, 70, 90, 110})[level]+dmg, ({75, 100, 125, 150, 175})[level]) end}, -- enhanced if collided with champion
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + 0.15 * (540 + (85 * (myHero.levelData.lvl - 1))) end},
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + 0.15 * (source.maxHealth - (540 + (85 * (myHero.levelData.lvl - 1)))) end},
   },
 --
   ["Shyvana"] = {
