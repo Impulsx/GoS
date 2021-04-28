@@ -1,5 +1,5 @@
 --[[
-Version: 11.8
+Version: 11.9
 
 Usage:
 
@@ -13,7 +13,7 @@ params:
 getdmg("SKILL",target,source,stagedmg,spelllvl)
 ]]
 
-print("DamageLib Loaded for 11.8")
+print("DamageLib Loaded for 11.9")
 
 local DamageReductionTable = {
   ["Braum"] = {buff = "BraumShieldRaise", amount = function(target) return 1 - ({0.3, 0.325, 0.35, 0.375, 0.4})[target:GetSpellData(_E).level] end},
@@ -463,7 +463,7 @@ local DamageLibTable = {
   ["Gragas"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 120, 160, 200, 240})[level] + 0.7 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({20, 50, 80, 110, 140})[level] + (0.6 * source.ap) + (0.07 * target.maxHealth) end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 130, 180, 230, 280})[level] + 0.6 * source.ap end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 125, 170, 215, 260})[level] + 0.6 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({200, 300, 400})[level] + 0.8 * source.ap end},
   },
 
@@ -486,12 +486,12 @@ local DamageLibTable = {
   ["Hecarim"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 97, 134, 171, 208})[level] + 0.7 * source.bonusDamage end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({20, 30, 40, 50, 60})[level] + 0.2 * source.ap end},
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({35, 65, 95, 125, 155})[level] + 0.5 * source.bonusDamage end},
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 50, 70, 90, 110})[level] + 0.5 * source.bonusDamage end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + source.ap end},
   },
 
   ["Heimerdinger"] = {
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({50, 80, 110, 140, 170})[level] + 0.45 * source.ap end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({50, 75, 100, 125, 150})[level] + 0.45 * source.ap end},
     {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({135, 180, 225})[source:GetSpellData(_R).level] + 0.45 * source.ap end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 100, 140, 180, 220})[level] + 0.6 * source.ap end},
     {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({100, 200, 300})[source:GetSpellData(_R).level] + 0.6 * source.ap end},
@@ -556,8 +556,8 @@ local DamageLibTable = {
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 120, 170, 220, 270})[level] + source.ap end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({25, 40, 55})[level] + ({25, 30, 35})[level] / 100 * (target.maxHealth - target.health) + 0.15 * source.bonusDamage end}, --minimum damage
     {Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({250, 400, 550})[level] + ({25, 30, 35})[level] / 100 * (target.maxHealth - target.health) + 1.5 * source.bonusDamage end}, --maximum damage
-    --{Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (((1 + (0.6 * (target.distance / 100 ))) * ({25, 40, 55})[level]) + (({25, 30, 35})[level] / 100 * (target.maxHealth - target.health)) + 1.5 * source.bonusDamage) end}, -- initial damage internal jinx ult calculation with distance from target
-    --{Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return (((1 + (0.6 * (target.distance / 100 ))) * ({20, 32, 44})[level]) + (({20, 24, 28})[level] / 100 * (target.maxHealth - target.health)) + 1.2 * source.bonusDamage) end}, -- secondary damage internal jinx ult calculation with distance from target
+    --{Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (((1 + (0.6 * (target.distance / 100 ))) * ({25, 40, 55})[level]) + (({25, 30, 35})[level] / 100 * (target.maxHealth - target.health)) + 1.5 * source.bonusDamage) end}, -- initial damage internal jinx ult calculation with distance from target | better handled with champ script function
+    --{Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return (((1 + (0.6 * (target.distance / 100 ))) * ({20, 32, 44})[level]) + (({20, 24, 28})[level] / 100 * (target.maxHealth - target.health)) + 1.2 * source.bonusDamage) end}, -- secondary damage internal jinx ult calculation with distance from target | better handled with champ script function
   },
   
   ["Kaisa"] = {
@@ -637,7 +637,7 @@ local DamageLibTable = {
   },  
 
   ["Kindred"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 80, 100, 120, 140})[level] + source.bonusDamage * 0.75 end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + source.bonusDamage * 0.75 end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({25, 30, 35, 40, 45})[level] + 0.2 * source.bonusDamage + 0.015 * (target.maxHealth - target.health) + (GetBuffData(source, "kindredmarkofthekindredstackcounter").stacks/100) * (target.maxHealth - target.health) end},
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.8 * source.bonusDamage + 0.08 * (target.maxHealth - target.health) + (GetBuffData(source, "kindredmarkofthekindredstackcounter").stacks/200) * (target.maxHealth - target.health) end},
   },
@@ -941,10 +941,13 @@ local DamageLibTable = {
   },
 
   ["Sett"] = {
-    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.1 * source.bonusDamage end}, -- without expended Grit
-    {Slot = "W", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.1 * source.bonusDamage end}, -- True Damage without expended Grit
+    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + (25 + (0.20 / 100 * source.bonusDamage) * source.maxMana / 100) end}, -- with expended Grit
+    --{Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.1 * source.bonusDamage end}, -- without expended Grit
+    {Slot = "W", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + (25 + (0.20 / 100 * source.bonusDamage) * source.maxMana / 100) end}, -- True Damage with expended Grit
+    --{Slot = "W", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.1 * source.bonusDamage end}, -- True Damage without expended Grit
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 70, 90, 110, 130})[level] + 0.6 * source.totalDamage end},
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({200, 300, 400})[level] + source.bonusDamage end}, -- without Target BonusHealth
+    --{Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({200, 300, 400})[level] + (1.2 * source.bonusDamage) + ({40, 50, 60})[level] / 100 * source.bonusHealth end}, -- with Target BonusHealth when GameObject.bonusHealth becomes a thing
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({200, 300, 400})[level] + (1.2 * source.bonusDamage) end}, -- without Target BonusHealth
   },  
 
   ["Shaco"] = {
@@ -1263,8 +1266,9 @@ local DamageLibTable = {
   },  
 
   ["Xerath"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 120, 160, 200, 240})[level] + 0.75 * source.ap end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 90, 120, 150, 180})[level] + 0.6 * source.ap end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 110, 150, 190, 230})[level] + 0.85 * source.ap end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 95, 130, 165, 200})[level] + 0.6 * source.ap end}, -- Base damage
+    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({100, 158.4, 216.7, 275, 333.3})[level] + 1.02 * source.ap end}, --Center blast
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + 0.45 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({200, 250, 300})[level] + 0.43 * source.ap end},
   },
