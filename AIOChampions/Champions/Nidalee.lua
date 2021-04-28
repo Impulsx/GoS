@@ -12,7 +12,7 @@ end
 function LoadScript()
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})
 	
 	Menu:MenuElement({type = MENU, id = "Qset", name = "Q Setting"})	
 	Menu.Qset:MenuElement({id = "Qmin", name = "Min range use Q Human", value = 600, min = 400, max = 1500,step = 1})	
@@ -86,8 +86,8 @@ function LoadScript()
 				local barPos = target.hpBar
 				if not target.dead and target.pos2D.onScreen and barPos.onScreen and target.visible then
 					local QDamage = (Ready(_Q) and Qdmg(target) or 0)
-					local WDamage = (Ready(_W) and getdmg("W", target, myHero) or 0)
-					local EDamage = (Ready(_E) and getdmg("E", target, myHero) or 0)
+					local WDamage = (Ready(_W) and getdmg("WM", target, myHero) or 0)
+					local EDamage = (Ready(_E) and getdmg("EW", target, myHero) or 0)
 					local damage = QDamage + WDamage + EDamage
 					if damage > target.health then
 						DrawText("killable", 24, target.pos2D.x, target.pos2D.y,DrawColor(0xFF00FF00))
