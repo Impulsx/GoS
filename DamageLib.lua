@@ -1,5 +1,5 @@
 --[[
-Version: 11.9
+Version: 11.10
 
 Usage:
 
@@ -13,7 +13,7 @@ params:
 getdmg("SKILL",target,source,stagedmg,spelllvl)
 ]]
 
-print("DamageLib Loaded for 11.9")
+print("DamageLib Loaded for 11.10")
 
 local DamageReductionTable = {
   ["Braum"] = {buff = "BraumShieldRaise", amount = function(target) return 1 - ({0.3, 0.325, 0.35, 0.375, 0.4})[target:GetSpellData(_E).level] end},
@@ -692,7 +692,7 @@ local DamageLibTable = {
 
   ["Lux"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 125, 170, 215, 260})[level] + 0.6 * source.ap end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 105, 150, 195, 240})[level] + 0.6 * source.ap end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 110, 160, 210, 260})[level] + 0.65 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({300, 400, 500})[level] + source.ap end},
   },
 
@@ -1130,7 +1130,7 @@ local DamageLibTable = {
   },
 
   ["Talon"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({65, 90, 115, 140, 165})[level] + 1.1 * source.bonusDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({65, 90, 115, 140, 165})[level] * source.bonusDamage end},
     {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({45, 60, 75, 90, 105})[level] + 0.55 * source.bonusDamage end},--INITIAL DAMAGE
     {Slot = "W", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({45, 70, 95, 120, 145})[level] + 0.7 * source.bonusDamage end},--RETURN DAMAGE
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({90, 135, 180})[level] + source.bonusDamage end},
@@ -1322,8 +1322,8 @@ local DamageLibTable = {
   },
   
   ["Yuumi"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 70, 100, 130, 160, 190})[level] + 0.3 * source.ap end}, --Normal
-    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({42, 85, 125, 165, 205, 245})[level] + 0.4 * source.ap + ((({2, 3.2, 4.4, 5.6, 6.8, 8})[level] / 100) * target.health) end}, --empowered damage
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({50, 80, 110, 140, 170, 200})[level] + 0.3 * source.ap end}, --Normal
+    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({60, 100, 140, 180, 220, 260})[level] + 0.4 * source.ap + ((({2, 3.2, 4.4, 5.6, 6.8, 8})[level] / 100) * target.health) end}, --empowered damage
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({240, 320, 400})[level] + 0.8 * source.ap end},
     {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({60, 80, 100})[level] + 0.2 * source.ap end}, --per wave
   },  
@@ -1415,20 +1415,48 @@ function getdmg(spell,target,source,stage,level)
           return 20+8*source.levelData.lvl
         end
         if source:GetSpellData(Smite).name == "s5_summonersmiteduel" then
-          return 54+6*source.levelData.lvl
+          return 48+77/17*(source.levelData.lvl-1)
         end
       end
-      return ({390, 410, 430, 450, 480, 510, 540, 570, 600, 640, 680, 720, 760, 800, 850, 900, 950, 1000})[source.levelData.lvl]
+      if target.type == Obj_AI_Camp or Obj_AI_Minion then
+        if source:GetSpellData(Smite).name == "s5_summonersmiteplayerganker" then
+          return 900
+        end
+        if source:GetSpellData(Smite).name == "s5_summonersmiteduel" then
+          return 900
+        end
+      end
+      return 450
     end
   end
+--[[
   if spell == "BILGEWATER" then
     return CalcMagicalDamage(source, target, 100)
   end
   if spell == "BOTRK" then
     return CalcMagicalDamage(source, target, 100)
   end
+  ]] 
   if spell == "HEXTECH" then
-    return CalcMagicalDamage(source, target, 150+0.4*source.ap)
+    return CalcMagicalDamage(source, target, 125+0.15*source.ap)
+  end
+  if spell == "EVERFROST" then
+    return CalcMagicalDamage(source, target, 100+0.3*source.ap) --850 range 28deg cone
+  end
+  if spell == "GALEFORCE" then
+    return CalcMagicalDamage(source, target, (({60, 60, 60, 60, 60, 60, 60, 60, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105})[source.levelData.lvl]+0.15*source.bonusDamage*3)*math.max(0.05*math.min(100-GetPercentHP(target),50),7)) --750 range radius to most wounded enemy + 3 arrows dmg and missing hp
+  end
+  if spell == "GOREDRINKER" then
+    return CalcPhysicalDamage(source, target, source.totalDamage) --450 AOE
+  end
+  if spell == "STRIDEBREAKER" then
+    return CalcPhysicalDamage(source, target, 0.75*source.totalDamage) --450 AOE in front of you at your attack range [max 250] but with dash up to 300units
+  end
+  if spell == "IRONSPIKE" then
+    return CalcPhysicalDamage(source, target, 0.75*source.totalDamage) --450 AOE
+  end
+  if spell == "PROWLER" then
+    return CalcPhysicalDamage(source, target, 65+0.25*source.bonusDamage) --450 AOE
   end
   return 0
 end
