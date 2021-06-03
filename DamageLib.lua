@@ -207,14 +207,23 @@ end
 
 local function GetBaseHealth(unit)
   if unit.charName == "Sylas" then
-      return 525 + 115 * myHero.levelData.lvl
+      return 525 + (115 * (myHero.levelData.lvl - 1))
   
   elseif unit.charName == "Chogath" then
-      return 574 + 80 * myHero.levelData.lvl
+      return 574 + (80 * (myHero.levelData.lvl - 1))
   
   elseif unit.charName == "Volibear" then
-      return 580 + 90 * myHero.levelData.lvl		
+      return 580 + (90 * (myHero.levelData.lvl - 1))
   end	
+end
+
+local function GetBaseMana(unit)
+  if unit.charName == "Kassadin" then
+    return 300 + (70 * (myHero.levelData.lvl - 1))
+  
+  elseif unit.charName == "Ryze" then
+    return 400 + (87 * (myHero.levelData.lvl - 1))
+  end
 end
 
 local DamageLibTable = {
@@ -921,9 +930,9 @@ local DamageLibTable = {
   },
 
   ["Ryze"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 100, 125, 150, 175})[level] + (0.45 * source.ap) + (0.03 * source.maxMana) + 0.03 * (source.maxMana - (300 + (70 * (myHero.levelData.lvl - 1)))) + (GotBuff(target, "RyzeE") and (1 + ({40, 70, 100})[source:GetSpellData(_R).level] / 100)) or 1 end}, -- Added R passive E+Q bonus damage , needs GameObject.bonusMana 
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + (0.6 * source.ap) + (0.04 * source.maxMana) + 0.04 * (source.maxMana - (300 + (70 * (myHero.levelData.lvl - 1)))) end}, -- needs GameObject.bonusMana 
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 80, 100, 120, 140})[level] + (0.3 * source.ap) + (0.02 * source.maxMana) + 0.02 * (source.maxMana - (300 + (70 * (myHero.levelData.lvl - 1)))) end}, -- needs GameObject.bonusMana 
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) local dmg = (({75, 100, 125, 150, 175})[source:GetSpellData(_Q).level] + 0.45 * source.ap + 0.03 * (myHero.maxMana - GetBaseMana(source))) dmg = dmg * (GotBuff(target, "RyzeE") > 0 and (({40, 70, 100})[source:GetSpellData(_R).level] + 100) / 100 or 1) return dmg end},           
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + (0.6 * source.ap) + 0.04 * (myHero.maxMana - GetBaseMana(source)) end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 80, 100, 120, 140})[level] + (0.3 * source.ap) + 0.02 * (myHero.maxMana - GetBaseMana(source)) end},
   },
   
   ["Samira"] = {
