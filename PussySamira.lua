@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.04
+    local Version = 0.05
     
     local Files = {
         Lua = {
@@ -321,6 +321,16 @@ function GetTarget(range)
 	end
 end
 
+function IsFacing(unit)
+    local V = Vector((unit.pos - myHero.pos))
+    local D = Vector(unit.dir)
+    local Angle = 180 - math.deg(math.acos(V*D/(V:Len()*D:Len())))
+    if math.abs(Angle) < 80 then 
+        return true  
+    end
+    return false
+end
+
 function GetMode()   
     if _G.SDK then
         return 
@@ -353,7 +363,6 @@ local function SetAttack(bool)
 	else
 		GOS.BlockAttack = not bool
 	end
-
 end
 
 local function SetMovement(bool)
@@ -367,6 +376,19 @@ local function SetMovement(bool)
 		GOS.BlockMovement = not bool
 	end
 end
+--[[
+local function ForceMovement(bool)
+	if _G.EOWLoaded then
+		EOW:ForceMovements(bool)
+	elseif _G.SDK then
+		_G.SDK.Orbwalker:ForceMovement(bool)
+	elseif _G.PremiumOrbwalker then
+		_G.PremiumOrbwalker:ForceMovement(bool)	
+	else
+		GOS.ForceMovement = not bool
+	end
+end
+]]
 
 local function GetEnemyHeroes()
 	local _EnemyHeroes = {}
@@ -392,6 +414,18 @@ end
 
 local function GetEnemyTurrets()
 	return Turrets
+end
+
+local function IsUnderEnemyTurret(pos)
+    --PrintChat("Checking Turrets")
+    local turrets = _G.SDK.ObjectManager:GetTurrets(GetDistance(pos) + 1000)
+    for i = 1, #turrets do
+        local turret = turrets[i]
+        if turret and GetDistance(turret.pos, pos) <= 915 and turret.team == 300-myHero.team then
+            --PrintChat("turret")
+            return turret
+        end
+    end
 end
 
 local function GetEnemyCount(range, unit)
@@ -424,6 +458,16 @@ local function IsRecalling(unit)
 		return true, GameTimer() - buff.startTime
 	end
     return false
+end
+
+local function HasBuff(unit, buffname)
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff.name == buffname and buff.count > 0 then 
+			return true
+		end
+	end
+	return false
 end
 
 local function VectorPointProjectionOnLineSegment(v1, v2, v)
@@ -489,9 +533,29 @@ end
 
 class "Samira"
 
+local UltAlly = false		
+local CastedR = false
+local lastSpell = GetTickCount()
+local lastW = GameTimer()
+
+local CastingQ = myHero.activeSpell.name == "SamiraQ" 
+local CastingW = myHero.activeSpell.name == "SamiraW"
+local CastingE = myHero.activeSpell.name == "SamiraE"
+local CastingR = myHero.activeSpell.name == "SamiraR"
+
+local EBuff = GetBuffData(myHero, "SamiraRBuff")
+local WActive = GetBuffData(myHero, "SamiraW")
+local RReady = GetBuffData(myHero, "samirarreadybuff")
+
+local Kraken = GetBuffData(myHero, "6672buff")
+local KrakenStacks = 0
 
 local QspellData = {speed = 2600, range = 950, delay = 0.25, radius = 60, collision = {"minion"}, type = "linear"}
 local PredLoaded = false
+
+if Kraken == false then
+	KrakenStacks = 0
+end
 
 function Samira:__init()
 	self:LoadMenu()
@@ -601,24 +665,64 @@ self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 	end	
 end
 
-local UltAlly = false		
-local CastedR = false
-function Samira:Tick()		
+function Samira:Tick()
+	--[[
+    target = GetTarget(myHero.range + myHero.boundingRadius)
+    if target and ValidTarget(target) then
+        --PrintChat(target.pos:To2D())
+        --PrintChat(mousePos:To2D())
+        ForceMovementSpot = ForceMovement(target)
+    else
+        _G.SDK.Orbwalker.ForceMovement = nil
+    end
+	if target and ValidTarget(target) then
+		ForceMovementSpot = ForceMovement(target)
+	else
+		_G.SDK.Orbwalker.ForceMovement = nil
+	end
+	]]
+	
 	local currSpell = myHero.activeSpell
-	if currSpell and currSpell.name == "SamiraW" and currSpell.isChanneling then
+	target = GetTarget(myHero.range + myHero.boundingRadius)
+	if currSpell and currSpell.name == "SamiraW" and currSpell.isChanneling or lastW + 0.76 < Game.Timer() then
 		SetAttack(false)
+		--ForceMovementSpot = self:ForceMovement(target)
 	else
 		SetAttack(true)
+		--_G.SDK.Orbwalker.ForceMovement = nil
 	end	
-	
-	if myHero:GetSpellData(_R).currentCd > 5.75 then
+	--[[
+		if myHero:GetSpellData(_R).currentCd > 5.75 then
+			SetAttack(false)
+		else
+			UltAlly = false
+			CastedR = false
+			SetAttack(true)
+		end	
+	]]
+	if currSpell and currSpell.name == "SamiraR" and currSpell.isChanneling or myHero:GetSpellData(_R).currentCd > 5.75 then
+		--UltAlly = true
+		--CastedR = true
 		SetAttack(false)
+		--ForceMovementSpot = self:ForceMovement(target)
 	else
 		UltAlly = false
 		CastedR = false
 		SetAttack(true)
+		--_G.SDK.Orbwalker.ForceMovement = nil
 	end	
 
+	local EPostAttack = false
+	if _G.SDK.Attack:IsActive() then
+        WasAttacking = true
+
+    else
+        if WasAttacking == true then
+            EPostAttack = true
+            KrakenStacks = KrakenStacks + 1
+        end
+        WasAttacking = false
+    end
 	
 	if heroes == false then 
 		local EnemyCount = CheckLoadedEnemyies()			
@@ -653,6 +757,58 @@ local Mode = GetMode()
 	end	
 end
 
+function Samira:CastingChecks()
+    if not CastingQ or not CastingW or not CastingE or not CastingR then
+        return true
+    else
+        return false
+    end
+end
+
+function Samira:ForceMovement(unit)
+    local EAARangel = unit.range + unit.boundingRadius
+    local AARange = myHero.range + myHero.boundingRadius
+    local MoveSpot = nil
+    local RangeDif = AARange - EAARangel
+    local ExtraRangeDist = RangeDif
+    local ExtraRangeChaseDist = RangeDif - 100
+
+    local ScanDirection = Vector((myHero.pos-mousePos):Normalized())
+    local ScanDistance = GetDistance(myHero.pos, unit.pos) * 0.8
+    local ScanSpot = myHero.pos - ScanDirection * ScanDistance
+    
+
+    local MouseDirection = Vector((unit.pos-ScanSpot):Normalized())
+    local MouseSpotDistance = EAARangel + ExtraRangeDist
+    if not IsFacing(unit) then
+        MouseSpotDistance = EAARangel + ExtraRangeChaseDist
+    end
+    if MouseSpotDistance > AARange then
+        MouseSpotDistance = AARange
+    end
+
+    local MouseSpot = unit.pos - MouseDirection * (MouseSpotDistance)
+    local MouseDistance = GetDistance(unit.pos, mousePos)
+    local ForceMovementSpotDirection = Vector((myHero.pos-MouseSpot):Normalized())
+    local ForceMovementSpotDistance = GetDistance(myHero.pos, MouseSpot)
+    if ForceMovementSpotDistance > 300 then
+        ForceMovementSpotDistance = 300
+    end
+    local ForceMovementSpoty = myHero.pos - ForceMovementSpotDirection * ForceMovementSpotDistance
+    MoveSpot = MouseSpot
+
+    if MoveSpot then
+        if GetDistance(myHero.pos, MoveSpot) < 50 or IsUnderEnemyTurret(MoveSpot) then
+            _G.SDK.Orbwalker.ForceMovement = nil
+        elseif GetDistance(myHero.pos, unit.pos) <= AARange-50 and (GetMode() == "Combo" or GetMode() == "Harass") and self:CastingChecks() and MouseDistance < 750 then
+            _G.SDK.Orbwalker.ForceMovement = MoveSpot
+        else
+            _G.SDK.Orbwalker.ForceMovement = nil
+        end
+    end
+    return ForceMovementSpoty
+end
+
 function Samira:IsDashPosTurret(unit)
     local myPos = Vector(myHero.pos.x, myHero.pos.y, myHero.pos.z)
     local endPos = Vector(unit.pos.x, myHero.pos.y, unit.pos.z)
@@ -678,6 +834,7 @@ function Samira:ProcessSpell()
 		if type == "targeted" then
 			if spell.target == myHero.handle then 
 				Control.CastSpell(HK_W)
+				lastW = Game.Timer()
 				TableRemove(DetectedSpells, i)				
 			end
 		else
@@ -704,6 +861,7 @@ function UseW(i, s)
 				local t = s.speed ~= MathHuge and CalculateCollisionTime(startPos, endPos, myHero.pos, s.startTime, s.speed, s.delay) or 0.29
 				if t < 0.7 then
 					Control.CastSpell(HK_W)
+					lastW = Game.Timer()
 				
 				end				
 			end
@@ -717,10 +875,10 @@ function Samira:Combo()
 			if Ally and myHero.pos:DistanceTo(Ally.pos) <= 600 and IsValid(Ally) then
 				if GetEnemyCount(600, myHero.pos) == 0 and GetEnemyCount(600, Ally.pos) >= 1 then
 					if Game.Timer() - ReadyTimer <= 5.2 then
-						if Control.CastSpell(HK_E, Ally) then
+						if Control.CastSpell(HK_E, Ally) and RReady then
 							UltAlly = true
-							CastedR = true
 							Control.CastSpell(HK_R)
+							CastedR = true
 						end	
 					end
 				end
@@ -735,13 +893,13 @@ if target == nil or UltAlly then return end
 		if Ready(_R) and self.Menu.ComboSet.Combo.UseR:Value() then					
 			
 			if GetEnemyCount(1500, myHero.pos) == 1 then
-				if myHero.pos:DistanceTo(target.pos) <= 500 then
+				if myHero.pos:DistanceTo(target.pos) <= 500 and RReady then
 					CastedR = true
 					Control.CastSpell(HK_R)
 				else
 					if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) then
 						if myHero.pos:DistanceTo(target.pos) <= 600 and not self:IsDashPosTurret(target) then
-							if Control.CastSpell(HK_E, target) then
+							if Control.CastSpell(HK_E, target) and RReady then
 								CastedR = true
 								Control.CastSpell(HK_R)	
 							end									
@@ -752,13 +910,13 @@ if target == nil or UltAlly then return end
 				if GetEnemyCount(1500, myHero.pos) > 1 then
 					if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) then
 						if myHero.pos:DistanceTo(target.pos) <= 600 and GetEnemyCount(600, target.pos) >= 1 and not not self:IsDashPosTurret(target) then
-							if Control.CastSpell(HK_E, target) then
+							if Control.CastSpell(HK_E, target) and RReady then
 								CastedR = true
 								Control.CastSpell(HK_R)
 							end	
 						end
 					else
-						if myHero.pos:DistanceTo(target.pos) <= 500 and GetEnemyCount(600, myHero.pos) >= 2 then
+						if myHero.pos:DistanceTo(target.pos) <= 500 and GetEnemyCount(600, myHero.pos) >= 2 and RReady then
 							CastedR = true
 							Control.CastSpell(HK_R)	
 						end	
@@ -772,7 +930,7 @@ if target == nil or UltAlly then return end
 		if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) then
 			if myHero.pos:DistanceTo(target.pos) <= 600 and not self:IsDashPosTurret(target) then					
 				if self.Menu.ComboSet.Combo.UseQ:Value() and Ready(_Q) then
-					if Control.CastSpell(HK_E, target) then
+					if Control.CastSpell(HK_E, target) and lastW + 0.76 < Game.Timer() and not CastingW or CastingR then
 						Control.CastSpell(HK_Q)
 					end
 				else
@@ -781,13 +939,14 @@ if target == nil or UltAlly then return end
 			end
 		end	
 		
-		if self.Menu.ComboSet.Combo.UseW:Value() and Ready(_W) then
+		if self.Menu.ComboSet.Combo.UseW:Value() and Ready(_W) and not CastingR then
 			if myHero.pos:DistanceTo(target.pos) <= 325 then					
 				Control.CastSpell(HK_W)
+				lastW = Game.Timer()
 			end
 		end			
 		
-		if self.Menu.ComboSet.Combo.UseQ:Value() and Ready(_Q) then 				 
+		if self.Menu.ComboSet.Combo.UseQ:Value() and Ready(_Q) and lastW + 0.76 < Game.Timer() and not CastingW or CastingR then 				 
 			if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 600 and not self:IsDashPosTurret(target) then return end
 			if myHero.pos:DistanceTo(target.pos) <= 950 and myHero.pos:DistanceTo(target.pos) > 325 then
 				self:CastQ(target)		
@@ -804,7 +963,7 @@ local target = GetTarget(1000)
 if target == nil then return end 
 	if IsValid(target) then
 		
-		if self.Menu.Harass.UseQ:Value() and Ready(_Q) then
+		if self.Menu.Harass.UseQ:Value() and Ready(_Q) and lastW + 0.76 < Game.Timer() and not CastingW or CastingR then
 			if myHero.pos:DistanceTo(target.pos) <= 950 and myHero.pos:DistanceTo(target.pos) > 325 then
 				self:CastQ(target)		
 			end
@@ -823,9 +982,14 @@ function Samira:KillSteal()
 		if target and myHero.pos:DistanceTo(target.pos) <= 1000 and IsValid(target) then
 			local QDmg = getdmg("Q", target, myHero)
 			local EDmg = getdmg("E", target, myHero)
+			local AAdmg = getdmg("AA", target, myHero)
+			if Kraken and KrakenStacks == 2 then
+				AAdmg = AAdmg + 60 + (0.45*myHero.bonusDamage)
+				--PrintChat(60 + (0.45*myHero.bonusDamage))
+			end
 			
 			if CastEQ then
-				if Control.CastSpell(HK_E, target) then
+				if Control.CastSpell(HK_E, target) and lastW + 0.76 < Game.Timer() and not CastingW or CastingR then
 					Control.CastSpell(HK_Q)
 				end	
 			end	
@@ -838,7 +1002,7 @@ function Samira:KillSteal()
 				end
 			end
 									
-			if Ready(_Q) and self.Menu.ks.UseQ:Value() then	 
+			if Ready(_Q) and self.Menu.ks.UseQ:Value()  and lastW + 0.76 < Game.Timer() and not CastingW or CastingR then	 
 				if myHero.pos:DistanceTo(target.pos) <= 950 and myHero.pos:DistanceTo(target.pos) > 325 and QDmg > target.health then
 					self:CastQ(target)	
 				end	
@@ -863,14 +1027,15 @@ function Samira:JungleClear()
 		if minion.team == TEAM_JUNGLE and IsValid(minion) and myHero.pos:DistanceTo(minion.pos) < 950 then
  			
 			if myHero.pos:DistanceTo(minion.pos) < 325 and self.Menu.ClearSet.JClear.UseW:Value() and Ready(_W) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 then
-				Control.CastSpell(HK_W)                  
+				Control.CastSpell(HK_W)
+				lastW = Game.Timer()               
             end           			
 			
-			if myHero.pos:DistanceTo(minion.pos) < 950 and myHero.pos:DistanceTo(minion.pos) > 325 and self.Menu.ClearSet.JClear.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 and Ready(_Q) then
+			if myHero.pos:DistanceTo(minion.pos) < 950 and myHero.pos:DistanceTo(minion.pos) > 325 and self.Menu.ClearSet.JClear.UseQ:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 and Ready(_Q) and lastW + 0.76 < Game.Timer() and not CastingW or CastingR then
 				Control.CastSpell(HK_Q, minion.pos)
 			end	
 			
-			if myHero.pos:DistanceTo(minion.pos) < 325 and self.Menu.ClearSet.JClear.UseQ2:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 and Ready(_Q) then
+			if myHero.pos:DistanceTo(minion.pos) < 325 and self.Menu.ClearSet.JClear.UseQ2:Value() and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 and Ready(_Q) and lastW + 0.76 < Game.Timer() and not CastingW or CastingR then
 				Control.CastSpell(HK_Q, minion.pos)
 			end			
         end
@@ -884,7 +1049,7 @@ function Samira:Clear()
 
 			if minion.team == TEAM_ENEMY and IsValid(minion) and myHero.pos:DistanceTo(minion.pos) < 325 then				
 				local Count = GetMinionCount(300, minion)
-				if Count >= self.Menu.ClearSet.Clear.QCount:Value() then
+				if Count >= self.Menu.ClearSet.Clear.QCount:Value() and lastW + 0.76 < Game.Timer() and not CastingW or CastingR then
 					Control.CastSpell(HK_Q, minion.pos)
 				end				
 			end
@@ -893,7 +1058,7 @@ function Samira:Clear()
 end
 
 function Samira:CastQ(unit)
-	if self.Menu.MiscSet.Pred.Change:Value() == 1 then
+	if self.Menu.MiscSet.Pred.Change:Value() == 1 and not CastingW or CastingR then
 		local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, QspellData)
 		if pred.CastPos and ConvertToHitChance(self.Menu.MiscSet.Pred.PredQ:Value(), pred.HitChance) then
 			Control.CastSpell(HK_Q, pred.CastPos)
