@@ -214,6 +214,9 @@ local function GetBaseHealth(unit)
   
   elseif unit.charName == "Volibear" then
       return 580 + (90 * (myHero.levelData.lvl - 1))
+        
+  elseif unit.charName == "DrMundo" then
+    return 583 + (89 * (myHero.levelData.lvl - 1))
   end	
 end
 
@@ -281,16 +284,16 @@ local DamageLibTable = {
   },
   
   ["Aphelios"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 60, 76.67, 76.67, 93.33, 93.33, 110, 110, 126.67, 126.67, 143.33, 143.33, 160, 160, 160, 160, 160, 160})[myHero.levelData.lvl] + source.ap + ({0.42, 0.42, 0.45, 0.45, 0.48, 0.48, 0.51, 0.51, 0.54, 0.54, 0.57, 0.57, 0.60, 0.60, 0.60, 0.60, 0.60, 0.60})[myHero.levelData.lvl] * source.bonusDamage end},
-    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({10, 10, 13.33, 13.33, 16.67, 16.67, 20, 20, 23.33, 23.33, 26.67, 26.67, 30, 30, 30, 30, 30, 30})[myHero.levelData.lvl] + ({0.21, 0.21, 0.225, 0.225, 0.255, 0.255, 0.27, 0.27, 0.285, 0.285, 0.57, 0.57, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3})[myHero.levelData.lvl] * source.bonusDamage end},
-    {Slot = "Q", Stage = 3, DamageType = 2, Damage = function(source, target, level) return ({50, 50, 60, 60, 70, 70, 80, 80, 90, 90, 100, 100, 110, 110, 110, 110, 110, 110})[myHero.levelData.lvl] + 0.7 * source.ap + ({0.26, 0.26, 0.275, 0.275, 0.29, 0.29, 0.305, 0.305, 0.32, 0.32, 0.335, 0.335, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35})[myHero.levelData.lvl] * source.bonusDamage end},
-    {Slot = "Q", Stage = 4, DamageType = 1, Damage = function(source, target, level) return ({25, 25, 31.67, 31.67, 38.33, 38.33, 45, 45, 51.67, 51.67, 58.33, 58.33, 65, 65, 65, 65, 65, 65})[myHero.levelData.lvl] + 0.7 * source.ap + ({0.56, 0.56, 0.6, 0.6, 0.64, 0.64, 0.68, 0.68, 0.72, 0.72, 0.76, 0.76, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8})[myHero.levelData.lvl] * source.bonusDamage end},
-    {Slot = "Q", Stage = 5, DamageType = 1, Damage = function(source, target, level) return ({25, 25, 35, 35, 45, 45, 55, 55, 65, 65, 75, 75, 85, 85, 85, 85, 85, 85})[myHero.levelData.lvl] + 0.5 * source.ap + ({0.35, 0.35, 0.375, 0.375, 0.4, 0.4, 0.425, 0.425, 0.45, 0.45, 0.475, 0.475, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5})[myHero.levelData.lvl] * source.bonusDamage end},
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({125, 175, 225})[level] + source.ap + 0.2 * source.bonusDamage + (GotSpell(_Q, "ApheliosCalibrumQ") * (({40, 70, 100})[level] * source.bonusDamage)) end},
-    {Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({125, 175, 225})[level] + source.ap + 0.2 * source.bonusDamage end},
-    {Slot = "R", Stage = 3, DamageType = 1, Damage = function(source, target, level) return ({125, 175, 225})[level] + source.ap + 0.2 * source.bonusDamage end},
-    {Slot = "R", Stage = 4, DamageType = 1, Damage = function(source, target, level) return ({125, 175, 225})[level] + source.ap + 0.2 * source.bonusDamage + (GotSpell(_Q, "ApheliosInfernumQ") * (({50, 100, 150})[level] + 0.25 * source.bonusDamage)) end},
-    {Slot = "R", Stage = 5, DamageType = 1, Damage = function(source, target, level) return ({125, 175, 225})[level] + source.ap + 0.2 * source.bonusDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 60, 76.67, 76.67, 93.33, 93.33, 110, 110, 126.67, 126.67, 143.33, 143.33, 160, 160, 160, 160, 160, 160})[myHero.levelData.lvl] + source.ap + ({0.42, 0.42, 0.45, 0.45, 0.48, 0.48, 0.51, 0.51, 0.54, 0.54, 0.57, 0.57, 0.60, 0.60, 0.60, 0.60, 0.60, 0.60})[myHero.levelData.lvl] * source.bonusDamage end}, --Calibrum
+    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({10, 10, 15, 15, 20, 20, 25, 25, 30, 30, 35, 35, 40, 40, 40, 40, 40, 40})[myHero.levelData.lvl] + ({0.20, 0.20, 0.225, 0.225, 0.255, 0.255, 0.275, 0.275, 0.30, 0.30, 0.325, 0.325, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35})[myHero.levelData.lvl] * source.bonusDamage end}, --Severum
+    {Slot = "Q", Stage = 3, DamageType = 2, Damage = function(source, target, level) return ({50, 50, 60, 60, 70, 70, 80, 80, 90, 90, 100, 100, 110, 110, 110, 110, 110, 110})[myHero.levelData.lvl] + 0.7 * source.ap + ({0.26, 0.26, 0.275, 0.275, 0.29, 0.29, 0.305, 0.305, 0.32, 0.32, 0.335, 0.335, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35})[myHero.levelData.lvl] * source.bonusDamage end}, --Gravitum
+    {Slot = "Q", Stage = 4, DamageType = 1, Damage = function(source, target, level) return ({25, 25, 31.67, 31.67, 38.33, 38.33, 45, 45, 51.67, 51.67, 58.33, 58.33, 65, 65, 65, 65, 65, 65})[myHero.levelData.lvl] + 0.7 * source.ap + ({0.56, 0.56, 0.6, 0.6, 0.64, 0.64, 0.68, 0.68, 0.72, 0.72, 0.76, 0.76, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8})[myHero.levelData.lvl] * source.bonusDamage end}, --Infernum
+    {Slot = "Q", Stage = 5, DamageType = 1, Damage = function(source, target, level) return ({31, 31, 42.5, 42.5, 54, 54, 65.5, 65.5, 77, 77, 88.5, 88.5, 100, 100, 100, 100, 100, 100})[myHero.levelData.lvl] + 0.5 * source.ap + ({0.40, 0.40, 0.4333, 0.4333, 0.4667, 0.4667, 0.5, 0.5, 0.5333, 0.5333, 0.5667, 0.5667, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6})[myHero.levelData.lvl] * source.bonusDamage end}, --Crescendum
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({125, 175, 225})[level] + source.ap + 0.2 * source.bonusDamage + (GotSpell(_Q, "ApheliosCalibrumQ") * (({40, 70, 100})[level] * source.bonusDamage)) end}, --Calibrum
+    {Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({125, 175, 225})[level] + source.ap + 0.2 * source.bonusDamage end}, --Severum
+    {Slot = "R", Stage = 3, DamageType = 1, Damage = function(source, target, level) return ({125, 175, 225})[level] + source.ap + 0.2 * source.bonusDamage end}, --Gravitum
+    {Slot = "R", Stage = 4, DamageType = 1, Damage = function(source, target, level) return ({125, 175, 225})[level] + source.ap + 0.2 * source.bonusDamage + (GotSpell(_Q, "ApheliosInfernumQ") * (({50, 100, 150})[level] + 0.25 * source.bonusDamage)) end}, --Infernum
+    {Slot = "R", Stage = 5, DamageType = 1, Damage = function(source, target, level) return ({125, 175, 225})[level] + source.ap + 0.2 * source.bonusDamage end}, --Crescendum
   }, 
 
   ["Ashe"] = {
@@ -385,12 +388,15 @@ local DamageLibTable = {
   },
 
   ["DrMundo"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) if target.type == Obj_AI_Minion then return math.min(({100, 200, 300, 400, 500})[level],math.max(({80, 130, 180, 230, 280})[level], ({20, 22.5, 25, 27.5, 30})[level] / 100 * target.health)) end; return math.max(({80, 130, 180, 230, 280})[level],({20, 22.5, 25, 27.5, 30})[level] / 100 * target.health) end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({10, 13.75, 17.5, 21.25, 25})[level] + 0.5 * source.ap end}
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) if target.type == Obj_AI_Minion then return math.max(({150, 225, 300, 375, 450})[level],math.min(({80, 135, 190, 245, 300})[level], ({20, 22.5, 25, 27.5, 30})[level] / 100 * target.health)) end; return math.max(({80, 135, 190, 245, 300})[level], (({20, 22.5, 25, 27.5, 30})[level] / 100 * target.health)) end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({5, 8.75, 12.5, 16.25, 20})[level] + 0.5 * source.ap end}, --per tick/activation
+    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({20, 35, 50, 65, 80})[level] + 0.07 * (myHero.maxHealth - GetBaseHealth(source)) end}, --recast/detonation
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({15, 20, 25, 30, 35})[level] * (myHero.maxHealth - GetBaseHealth(source)) end}, --Passive
+    {Slot = "E", Stage = 2, DamageType = 1, Damage = function(source, target, level) if target.type == Obj_AI_Minion then return math.max(({8, 24, 40, 56, 72})[level] + 0.112 * (myHero.maxHealth - GetBaseHealth(source))),math.min(({7, 21, 35, 49, 63})[level] + 0.098 * (myHero.maxHealth - GetBaseHealth(source))) end; return math.min(({11.2, 33.6, 56, 78.4, 100.8})[level] + 0.1568 * (myHero.maxHealth - GetBaseHealth(source)),math.max(({8, 24, 40, 56, 72})[level] + 0.112 * (myHero.maxHealth - GetBaseHealth(source)))) end}, --Active
   },
 
   ["Draven"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({35, 40, 45, 50, 55})[level] + (({0.65, 0.75, 0.85, 0.95, 1.05})[level] * source.bonusDamage) end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({40, 45, 50, 55, 60})[level] + (({0.70, 0.80, 0.90, 1.00, 1.10})[level] * source.bonusDamage) end},
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({75, 110, 145, 180, 215})[level] + 0.5 * source.bonusDamage end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({175, 275, 375})[level] + ({1.1, 1.3, 1.5})[level] * source.bonusDamage end},
   },
@@ -493,7 +499,7 @@ local DamageLibTable = {
   },
 
   ["Hecarim"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 97, 134, 171, 208})[level] + 0.75 * source.bonusDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 97, 134, 171, 208})[level] + 0.85 * source.bonusDamage end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({20, 30, 40, 50, 60})[level] + 0.2 * source.ap end}, -- per tick
     {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({80, 120, 160, 200, 240})[level] + 0.8 * source.ap end}, -- totalDamage
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 50, 70, 90, 110})[level] + 0.55 * source.bonusDamage end}, --happens twice
@@ -741,7 +747,7 @@ local DamageLibTable = {
   },
 
   ["MonkeyKing"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 45, 70, 95, 120})[level] + 0.5 * source.bonusDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 45, 70, 95, 120})[level] + 0.45 * source.bonusDamage end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + 0.8 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({0.01, 0.15, 0.02})[level] * target.maxHealth + 0.275 * source.totalDamage end}, --Per Tick
   },
@@ -1140,8 +1146,8 @@ local DamageLibTable = {
 
   ["Talon"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({65, 90, 115, 140, 165})[level] * source.bonusDamage end},
-    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({45, 60, 75, 90, 105})[level] + 0.55 * source.bonusDamage end},--INITIAL DAMAGE
-    {Slot = "W", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({45, 70, 95, 120, 145})[level] + 0.7 * source.bonusDamage end},--RETURN DAMAGE
+    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({40, 50, 60, 70, 80})[level] + 0.40 * source.bonusDamage end},--INITIAL DAMAGE
+    {Slot = "W", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({50, 80, 110, 140, 170})[level] + 0.8 * source.bonusDamage end},--RETURN DAMAGE
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({90, 135, 180})[level] + source.bonusDamage end},
   },
 
@@ -1207,7 +1213,7 @@ local DamageLibTable = {
 
   ["Udyr"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 60, 90, 120, 150, 180})[level] + ((({110, 125, 140, 155, 170, 185})[level] / 100) * source.totalDamage) end},
-    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 80, 120, 160, 200, 240})[level] + source.ap end},
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 80, 120, 160, 200, 240})[level] + source.ap end}, --non-cone damage
 
   },
 
@@ -1219,10 +1225,10 @@ local DamageLibTable = {
   },
 
   ["Varus"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({10, 47.67, 83.33, 120, 156.67})[level] + ((({83.33, 86.67, 90, 93.33, 96.67})[level] / 100) * source.totalDamage) end}, --min
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({10, 46.67, 83.33, 120, 156.67})[level] + ((({83.33, 86.67, 90, 93.33, 96.67})[level] / 100) * source.totalDamage) end}, --min
     {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({15, 70, 125, 180, 235})[level] + ((({125, 130, 135, 140, 145})[level] / 100) * source.totalDamage) end}, --max
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({7, 8, 9, 10, 11})[level] + 0.25 * source.ap end},
-    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ((({3, 3.5, 4, 4.5, 5})[level] / 100) + 0.02 * source.ap / 100) * target.maxHealth end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({7, 8, 9, 10, 11})[level] + 0.25 * source.ap end}, --non per stack
+    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ((({3, 3.5, 4, 4.5, 5})[level] / 100) + 0.02 * source.ap / 100) * target.maxHealth end}, -- per stack
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 100, 140, 180, 220})[level] + (0.6 * source.bonusDamage) end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 200, 250})[level] + source.ap end},
   },
@@ -1354,7 +1360,7 @@ local DamageLibTable = {
   },
 
   ["Ziggs"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({85, 130, 175, 220, 265})[level] + 0.65 * source.ap end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({85, 135, 185, 235, 285})[level] + 0.65 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 105, 140, 175, 210})[level] + 0.5 * source.ap end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 75, 110, 145, 180})[level] + 0.3 * source.ap end}, --per mine
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({300, 450, 600})[level] + 1.1 * source.ap end}, --center damage
