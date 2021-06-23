@@ -1,5 +1,5 @@
 --[[
-Version: 11.11
+Version: 11.13
 
 Usage:
 
@@ -13,7 +13,7 @@ params:
 getdmg("SKILL",target,source,stagedmg,spelllvl)
 ]]
 
-print("DamageLib Loaded for 11.11")
+print("DamageLib Loaded")
 
 local DamageReductionTable = {
   ["Braum"] = {buff = "BraumShieldRaise", amount = function(target) return 1 - ({0.3, 0.325, 0.35, 0.375, 0.4})[target:GetSpellData(_E).level] end},
@@ -676,7 +676,7 @@ local DamageLibTable = {
   ["LeeSin"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({55, 80, 105, 130, 155})[level] + source.bonusDamage end},
     {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({55, 80, 105, 130, 155})[level] + source.bonusDamage + 0.01 * (target.maxHealth - target.health) end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({100, 140, 180, 220, 260})[level] + source.bonusDamage end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({100, 130, 160, 190, 220})[level] + source.bonusDamage end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({175, 400, 625})[level] + 2 * source.bonusDamage end},
   },
 
@@ -1165,8 +1165,9 @@ local DamageLibTable = {
 
   ["TahmKench"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 130, 180, 230, 280})[level] + 0.7 * source.ap end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return target.type == Obj_AI_Minion and ({400, 450, 500, 550, 600})[level] or (({0.11, 0.11, 0.11, 0.11, 0.11})[level] + (0.02 * source.ap / 100)) * target.maxHealth end},
-    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({60, 105, 150, 195, 240})[level] + 0.6 * source.ap end},--PROJECTILE DAMAGE
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({100, 135, 170, 205, 240})[level] + source.ap end},
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({100, 250, 400})[level] + (0.15 + (0.01 / 100 * source.ap) * target.maxHealth) end}, --2nd cast damage "Regurgitate"
+
   },
 
   ["Teemo"] = {
@@ -1296,7 +1297,7 @@ local DamageLibTable = {
   },
   
   ["Xayah"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({45, 65, 85, 105, 125})[level] + 0.5 * source.bonusDamage end}, --per blade
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 75, 100, 125, 150})[level] + 0.5 * source.bonusDamage end}, --per blade
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({55, 65, 75, 85, 95})[level] + 0.6 * source.bonusDamage end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({125, 250, 375})[level] + source.bonusDamage end},
   },  
@@ -1466,7 +1467,7 @@ function getdmg(spell,target,source,stage,level)
     return CalcPhysicalDamage(source, target, source.totalDamage) --450 AOE
   end
   if spell == "STRIDEBREAKER" then
-    return CalcPhysicalDamage(source, target, 0.75*source.totalDamage) --450 AOE in front of you at your attack range [max 250] but with dash up to 300units
+    return CalcPhysicalDamage(source, target, source.totalDamage) --450 AOE in front of you at your attack range [max 250] but with dash up to 300units
   end
   if spell == "IRONSPIKE" then
     return CalcPhysicalDamage(source, target, 0.75*source.totalDamage) --450 AOE
