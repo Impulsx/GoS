@@ -298,7 +298,7 @@ function IsImmobile(unit)
         local buff = unit:GetBuff(i)
         if buff and buff.count > 0 then
             local BuffType = buff.type
-            if BuffType == 5 or BuffType == 11 or BuffType == 21 or BuffType == 22 or BuffType == 24 or BuffType == 29 or buff.name == "recall" then
+            if BuffType == 5 or BuffType == 12 or BuffType == 22 or BuffType == 23 or BuffType == 25 or BuffType == 30 or buff.name == "recall" then
                 local BuffDuration = buff.duration
                 if BuffDuration > MaxDuration then
                     MaxDuration = BuffDuration
