@@ -76,7 +76,7 @@ end
 local function HasPoison(unit)
 	for i = 0, unit.buffCount do 
 	local buff = unit:GetBuff(i)
-		if buff.type == 23 and Game.Timer() < buff.expireTime - 0.141  then
+		if buff.type == 24 and Game.Timer() < buff.expireTime - 0.141  then
 			return true
 		end
 	end
@@ -1437,10 +1437,10 @@ function getdmg(spell,target,source,stage,level)
       end
       if target.type == Obj_AI_Camp or Obj_AI_Minion then
         if source:GetSpellData(Smite).name == "s5_summonersmiteplayerganker" then
-          return 900
+          return 500+(0.10*target.maxHealth)
         end
         if source:GetSpellData(Smite).name == "s5_summonersmiteduel" then
-          return 900
+          return 500+(0.10*target.maxHealth)
         end
       end
       return 450
