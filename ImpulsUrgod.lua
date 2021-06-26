@@ -2148,7 +2148,7 @@ function HPred:GetImmobileTime(unit)
     local duration = 0
     for i = 0, unit.buffCount do
         local buff = unit:GetBuff(i);
-        if buff.count > 0 and buff.duration > duration and (buff.type == 5 or buff.type == 8 or buff.type == 21 or buff.type == 22 or buff.type == 24 or buff.type == 11 or buff.type == 29 or buff.type == 30 or buff.type == 39) then
+        if buff.count > 0 and buff.duration > duration and (buff.type == 5 or buff.type == 8  or buff.type == 11 or buff.type == 21 or buff.type == 22 or buff.type == 24 or buff.type == 29 or buff.type == 30 or buff.type == 39) then
             duration = buff.duration
         end
     end

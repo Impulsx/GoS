@@ -233,7 +233,7 @@ local function GetImmobileTime(unit)
 	local duration = 0
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i);
-		if buff.count > 0 and buff.duration > duration and (buff.type == 5 or buff.type == 8 or buff.type == 21 or buff.type == 22 or buff.type == 24 or buff.type == 11) then
+		if buff.count > 0 and buff.duration > duration and (buff.type == 5 or buff.type == 8 or buff.type == 12 or buff.type == 22 or buff.type == 23 or buff.type == 25 or buff.type == 30 or buff.type == 35 or buff.name == "recall") then
 			duration = buff.duration
 		end
 	end
@@ -255,7 +255,7 @@ local function GetSlowedTime(unit)
 	local duration = 0
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i);
-		if buff.count > 0 and buff.duration > duration and buff.type == 10 then
+		if buff.count > 0 and buff.duration > duration and buff.type == 11 then
 			duration = buff.duration			
 			return duration
 		end
@@ -338,7 +338,7 @@ local function GetImmobileTarget(source, range, minimumCCTime)
 			for i = 0, enemy.buffCount do
 				local buff = enemy:GetBuff(i)
 				
-				if (buff.type == 5 or buff.type == 8 or buff.type == 21 or buff.type == 22 or buff.type == 24 or buff.type == 11) then					
+				if (buff.type == 5 or buff.type == 8 or buff.type == 12 or buff.type == 22 or buff.type == 23 or buff.type == 25 or buff.type == 30 or buff.type == 35 or buff.name == "recall") then					
 					if (buff.duration > minimumCCTime and buff.duration > bestCCTime) then
 						bestTarget = enemy
 						bestCCTime = buff.duration

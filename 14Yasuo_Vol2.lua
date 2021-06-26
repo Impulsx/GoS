@@ -1646,7 +1646,7 @@ function Yasuo:IsKnock(unit)
         local buff = unit:GetBuff(i)
         if buff and buff.count > 0 then
             local bType = buff.type
-            if bType == 29 or bType == 30 then
+            if bType == 30 or bType == 31 then
                 return true--, buff.duration
             end
         end

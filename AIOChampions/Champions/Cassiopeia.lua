@@ -2,7 +2,7 @@
 local function HasPoison(unit)
 	for i = 0, unit.buffCount do 
 	local buff = unit:GetBuff(i)
-		if buff.type == 23 and GameTimer() < buff.expireTime - 0.141  then
+		if buff.type == 24 and GameTimer() < buff.expireTime - 0.141  then
 			return true
 		end
 	end
