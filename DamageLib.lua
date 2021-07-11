@@ -1427,23 +1427,20 @@ function getdmg(spell,target,source,stage,level)
   end
   if spell == "SMITE" then
     if Smite then
-      if target.type == Obj_AI_Hero then
-        if source:GetSpellData(Smite).name == "s5_summonersmiteplayerganker" then
-          return 20+8*source.levelData.lvl
-        end
-        if source:GetSpellData(Smite).name == "s5_summonersmiteduel" then
-          return 48+77/17*(source.levelData.lvl-1)
-        end
+      if source:GetSpellData(Smite).name == "SummonerSmite" then
+          return 450
+      elseif source:GetSpellData(Smite).name == "S5_SummonerSmiteDuel" then
+          return 900
+      elseif source:GetSpellData(Smite).name == "S5_SummonerSmitePlayerGanker" then
+          return 900
+      elseif unit.type == Obj_AI_Hero then
+      if source:GetSpellData(Smite).name == "s5_summonersmiteplayerganker" then
+        return 20+8*source.levelData.lvl
+      elseif source:GetSpellData(Smite).name == "s5_summonersmiteduel" then
+        return 48+77/17*(source.levelData.lvl-1)
       end
-      if target.type == Obj_AI_Camp or Obj_AI_Minion then
-        if source:GetSpellData(Smite).name == "s5_summonersmiteplayerganker" then
-          return 500+(0.10*target.maxHealth)
-        end
-        if source:GetSpellData(Smite).name == "s5_summonersmiteduel" then
-          return 500+(0.10*target.maxHealth)
-        end
+        return 0 --return 500+(0.10*target.maxHealth) 
       end
-      return 450
     end
   end
 --[[
