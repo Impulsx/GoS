@@ -782,8 +782,8 @@ local DamageLibTable = {
 
   ["Morgana"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 135, 190, 245, 300})[level] + 0.9 * source.ap end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({6, 11, 16, 21, 26})[level] + 0.07 * source.ap ((0.017) + (0.01 * (target.maxHealth - target.health))) end}, -- per tick
-    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({60, 110, 160, 210, 260})[level] + 0.07 * source.ap ((0.017) + (0.01 * (target.maxHealth - target.health))) end}, -- minimum fullDmg
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({6, 11, 16, 21, 26})[level] + 0.07 * source.ap + (0.017) + (0.01 * (target.maxHealth - target.health)) end}, -- per tick
+    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({60, 110, 160, 210, 260})[level] + 0.07 * source.ap + (0.017) + (0.01 * (target.maxHealth - target.health)) end}, -- minimum fullDmg
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 225, 300})[level] + 0.7 * source.ap end},
   },
 
