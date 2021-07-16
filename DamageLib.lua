@@ -532,7 +532,7 @@ local DamageLibTable = {
   },  
 
   ["Irelia"] = {
-    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({5, 25, 45, 65, 85})[level] + (43 + (12 * myHero.levelData.lvl)) + 0.6 * source.totalDamage end}, --Minion Damage
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({5, 25, 45, 65, 85})[level] + 0.6 * source.totalDamage end},
     {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({5, 25, 45, 65, 85})[level] + (43 + (12 * ({1})[myHero.levelData.lvl])) + 0.6 * source.totalDamage end}, --Minion Damage
     {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({10, 25, 40, 55, 70})[level] + (0.5 * source.totalDamage) + (0.4 * source.ap) end}, --Min damage
     {Slot = "W", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({30, 75, 120, 165, 210})[level] + (1.5 * source.totalDamage) + (1.2 * source.ap) end}, --Max damage
