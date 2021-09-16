@@ -76,7 +76,7 @@ end
 
 Callback.Add("Draw", function() 
 	if DrawInfo then	
-		Draw.Text("Impuls scripts will after 30sec in-game", 18, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 255, 0, 0))
+		Draw.Text("[ Impuls ] scripts will after ~[30-40]s in-game time", 18, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 0, 128, 128))
 	end	
 end)	
 ----------------------------------------------------
@@ -1839,23 +1839,27 @@ function Gwen:OnPreAttack(args)
 end
 
 function Gwen:CastQ(unit)
-    if IsReady(_Q) then
-		if Gwen.Menu.Pred.Change:Value() == 1 then
-			local pred = _G.PremiumPrediction:GetPrediction(myHero, target, Gwen.QspellData)
-			if pred.CastPos and ConvertToHitChance(Gwen.Menu.Pred.PredQ:Value(), pred.HitChance) then
-				Control.CastSpell(HK_Q, pred.CastPos)
-			end
-		end	
-		if Gwen.Menu.Pred.Change:Value() == 2 then
-			Gwen.QPrediction:GetPrediction(target, myHero)			
-			if Gwen.QPrediction:CanHit(Gwen.Menu.Pred.PredQ:Value() + 1) then
-				Control.CastSpell(HK_Q, Gwen.QPrediction.CastPosition)
-			end	
-		end
-        if Gwen.Menu.Pred.Change:Value() == 3 then
-            Control.CastSpell(HK_Q, target.pos)
-		end
-	end	
+    local target = GetTarget(2000)     	
+    if target == nil then return end
+        if IsValid(target) then   
+        if IsReady(_Q) then
+	     	if Gwen.Menu.Pred.Change:Value() == 1 then
+	     		local pred = _G.PremiumPrediction:GetPrediction(myHero, target, Gwen.QspellData)
+	     		if pred.CastPos and ConvertToHitChance(Gwen.Menu.Pred.PredQ:Value(), pred.HitChance) then
+	     			Control.CastSpell(HK_Q, pred.CastPos)
+	     		end
+	     	end	
+	     	if Gwen.Menu.Pred.Change:Value() == 2 then
+	     		Gwen.QPrediction:GetPrediction(target, myHero)			
+	     		if Gwen.QPrediction:CanHit(Gwen.Menu.Pred.PredQ:Value() + 1) then
+	     			Control.CastSpell(HK_Q, Gwen.QPrediction.CastPosition)
+	     		end	
+	     	end
+             if Gwen.Menu.Pred.Change:Value() == 3 then
+                 Control.CastSpell(HK_Q, target.pos)
+	     	end
+	    end	
+    end
 end	
 
 function CastW(i, s)
@@ -1882,44 +1886,52 @@ function CastW(i, s)
 end
 
 function Gwen:CastE(unit)
-    if IsReady(_E) then
-		if Gwen.Menu.Pred.Change:Value() == 1 then
-			local pred = _G.PremiumPrediction:GetPrediction(myHero, target, Gwen.RspellData)
-			if pred.CastPos and ConvertToHitChance(Gwen.Menu.Pred.PredE:Value(), pred.HitChance) then
-				Control.CastSpell(HK_E, pred.CastPos)
-			end
-		end	
-		if Gwen.Menu.Pred.Change:Value() == 2 then
-			Gwen.RPrediction:GetPrediction(target, myHero)			
-			if Gwen.RPrediction:CanHit(Gwen.Menu.Pred.PredR:Value() + 1) then
-				Control.CastSpell(HK_E, Gwen.EPrediction.CastPosition)
-			end	
-		end
-        if Gwen.Menu.Pred.Change:Value() == 3 then
-            Control.CastSpell(HK_E, target.pos)
-		end
-	end	
-    --Control.CastSpell(HK_E, unit)
+    local target = GetTarget(2000)     	
+    if target == nil then return end
+        if IsValid(target) then 
+        if IsReady(_E) then
+		    if Gwen.Menu.Pred.Change:Value() == 1 then
+		    	local pred = _G.PremiumPrediction:GetPrediction(myHero, target, Gwen.RspellData)
+		    	if pred.CastPos and ConvertToHitChance(Gwen.Menu.Pred.PredE:Value(), pred.HitChance) then
+		    		Control.CastSpell(HK_E, pred.CastPos)
+		    	end
+		    end	
+		    if Gwen.Menu.Pred.Change:Value() == 2 then
+		    	Gwen.RPrediction:GetPrediction(target, myHero)			
+		    	if Gwen.RPrediction:CanHit(Gwen.Menu.Pred.PredR:Value() + 1) then
+		    		Control.CastSpell(HK_E, Gwen.EPrediction.CastPosition)
+		    	end	
+		    end
+            if Gwen.Menu.Pred.Change:Value() == 3 then
+                Control.CastSpell(HK_E, target.pos)
+		    end
+            --Control.CastSpell(HK_E, unit)
+	    end	
+    end
 end
 
 function Gwen:CastR(unit)
-    if IsReady(_R) then
-		if Gwen.Menu.Pred.Change:Value() == 1 then
-			local pred = _G.PremiumPrediction:GetPrediction(myHero, target, Gwen.RspellData)
-			if pred.CastPos and ConvertToHitChance(Gwen.Menu.Pred.PredR:Value(), pred.HitChance) then
-				Control.CastSpell(HK_R, pred.CastPos)
-			end
-		end	
-		if Gwen.Menu.Pred.Change:Value() == 2 then
-			Gwen.RPrediction:GetPrediction(target, myHero)			
-			if Gwen.RPrediction:CanHit(Gwen.Menu.Pred.PredR:Value() + 1) then
-				Control.CastSpell(HK_R, Gwen.RPrediction.CastPosition)
-			end	
-		end
-        if Gwen.Menu.Pred.Change:Value() == 3 then
-            Control.CastSpell(HK_R, target.pos)
-		end
-	end	
+    local target = GetTarget(2000)     	
+    if target == nil then return end
+        if IsValid(target) then 
+        if IsReady(_R) then
+	    	if Gwen.Menu.Pred.Change:Value() == 1 then
+	    		local pred = _G.PremiumPrediction:GetPrediction(myHero, target, Gwen.RspellData)
+	    		if pred.CastPos and ConvertToHitChance(Gwen.Menu.Pred.PredR:Value(), pred.HitChance) then
+	    			Control.CastSpell(HK_R, pred.CastPos)
+	    		end
+	    	end	
+	    	if Gwen.Menu.Pred.Change:Value() == 2 then
+	    		Gwen.RPrediction:GetPrediction(target, myHero)			
+	    		if Gwen.RPrediction:CanHit(Gwen.Menu.Pred.PredR:Value() + 1) then
+	    			Control.CastSpell(HK_R, Gwen.RPrediction.CastPosition)
+	    		end	
+	    	end
+            if Gwen.Menu.Pred.Change:Value() == 3 then
+                Control.CastSpell(HK_R, target.pos)
+	    	end
+	    end	
+    end
 end
 
 
