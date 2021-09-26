@@ -721,12 +721,12 @@ end
 
 local HeroIcon = "https://www.mobafire.com/images/champion/icon/gwen.png"
 local IgniteIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/f/f4/Ignite.png"
-local PIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/3/34/Thousand_Cuts.png"
-local QIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/7/7b/Snip_Snip%21.png"
-local WIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/d/d2/Hallowed_Mist.png"
-local EIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/2/2a/Skip_%27n_Slash.png"
-local RIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/d/d1/Needlework.png"
-local R2Icon = "https://static.wikia.nocookie.net/leagueoflegends/images/0/09/Needlework_3.png"
+local PIcon = "https://raw.communitydragon.org/11.9/game/assets/characters/gwen/hud/icons2d/gwen_passive.gwen.png"
+local QIcon = "https://raw.communitydragon.org/11.9/game/assets/characters/gwen/hud/icons2d/gwen_q.gwen.png"
+local WIcon = "https://raw.communitydragon.org/11.9/game/assets/characters/gwen/hud/icons2d/gwen_w.gwen.png"
+local EIcon = "https://raw.communitydragon.org/11.9/game/assets/characters/gwen/hud/icons2d/gwen_e.gwen.png"
+local RIcon = "https://raw.communitydragon.org/11.9/game/assets/characters/gwen/hud/icons2d/gwen_r.gwen.png"
+local R2Icon = "https://raw.communitydragon.org/11.9/game/assets/characters/gwen/hud/icons2d/gwen_r3.gwen.png"
 
 function Gwen:Menu()
 local DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	
