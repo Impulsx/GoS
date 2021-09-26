@@ -1346,11 +1346,11 @@ local ALastTickTarget = myHero
 
 local HeroIcon = "https://www.mobafire.com/images/champion/icon/annie.png"
 local IgniteIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/f/f4/Ignite.png"
-local QIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/2/25/Disintegrate.png"
-local WIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/2/21/Incinerate.png"
-local EIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/9/90/Molten_Shield.png"
-local RIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/e/e7/Summon-_Tibbers.png"
-local R2Icon = "https://static.wikia.nocookie.net/leagueoflegends/images/4/46/Command-_Tibbers.png"
+local QIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/annie/hud/icons2d/annie_q.png"
+local WIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/annie/hud/icons2d/annie_w.png"
+local EIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/annie/hud/icons2d/annie_e.png"
+local RIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/annie/hud/icons2d/annie_r1.png"
+local R2Icon = "https://raw.communitydragon.org/11.19/game/assets/characters/annie/hud/icons2d/annie_r2.png"
 
 function Annie:Menu()
     self.AnnieMenu = MenuElement({type = MENU, id = "Annie", name = "Impuls Annie", leftIcon = HeroIcon})
