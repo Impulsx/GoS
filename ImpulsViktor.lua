@@ -879,11 +879,11 @@ local attacked = 0
 
 local HeroIcon = "https://www.mobafire.com/images/champion/icon/viktor.png"
 local IgniteIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/f/f4/Ignite.png"
-local QIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/3/30/Augment-_Turbocharge.png"
-local WIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/b/bf/Augment-_Magnetize.png"
-local EIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/5/5d/Augment-_Aftershock.png"
-local RIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/9/9f/Augment-_Perfect_Storm.png"
-local R2Icon = "https://static.wikia.nocookie.net/leagueoflegends/images/1/1e/Chaos_Storm_2.png"
+local QIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/viktor/hud/icons2d/viktor_q2.png"
+local WIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/viktor/hud/icons2d/viktor_w2.png"
+local EIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/viktor/hud/icons2d/viktor_e2.png"
+local RIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/viktor/hud/icons2d/viktor_r2.png"
+local R2Icon = "https://raw.communitydragon.org/11.19/game/assets/characters/viktor/hud/icons2d/viktor_r_guide.png"
 
 function Viktor:Menu()
     self.ViktorMenu = MenuElement({type = MENU, id = "Viktor", name = "Impuls Viktor", leftIcon = HeroIcon})
