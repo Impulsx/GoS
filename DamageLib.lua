@@ -1,5 +1,5 @@
 --[[
-Version: 11.15
+Version: 11.24
 
 Usage:
 
@@ -270,10 +270,10 @@ local DamageLibTable = {
   },
   ["Akshan"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({5, 25, 45, 65, 85})[level] + 0.8 * source.totalDamage end}, 
-    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({10, 50, 90, 130, 170})[level] + 1.6 * source.totalDamage end}, --total physical damage
-	  {Slot = "E", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({30, 55, 80, 105, 130})[level] + 0.1 * source.bonusDamage + 0.3 * source.attackSpeed end}, --per shot > suppose to be BONUS attack speed
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (({20, 25, 30})[level] + (0.1 * source.totalDamage)) * (0.3 * (0.01 * (target.maxHealth - target.health))) end}, -- min per bullet stored
-    {Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return (({80, 100, 120})[level] + (0.4 * source.totalDamage)) * (0.3 * (0.01 * (target.maxHealth - target.health))) end}, -- max per bullet stored
+    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({10, 50, 90, 130, 170})[level] + 1.6 * source.totalDamage end}, --total return damage
+	  {Slot = "E", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({30, 55, 80, 105, 130})[level] + 0.175 * source.bonusDamage + (1 + 0.3 * source.attackSpeed) end}, --per shot > suppose to be BONUS attack speed
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 25, 30})[level] + (0.1 * source.totalDamage) + (1 + (0.50 * source.critChance)) * (0.3 * (0.01 * (target.maxHealth - target.health))) end}, -- min per bullet stored
+    {Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({80, 100, 120})[level] + (0.4 * source.totalDamage) + (1 + (0.50 * source.critChance)) * (0.3 * (0.01 * (target.maxHealth - target.health))) end}, -- max per bullet stored
   },
   ["Alistar"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 100, 140, 180, 220})[level] + 0.5 * source.ap end},
@@ -680,8 +680,8 @@ local DamageLibTable = {
   
   ["Kled"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({90, 165, 240, 315, 390})[level] + source.bonusDamage * 1.8 end}, --totalDamage
-    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 30, 40, 50, 60})[level] + (({0.045, 0.05, 0.055, 0.06, 0.065})[level] + (0.05 * source.bonusDamage)) * target.maxHealth end},
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({35, 60, 85, 110, 135})[level] + source.bonusDamage * 0.6 end},
+    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 30, 40, 50, 60})[level] + (({0.045, 0.05, 0.055, 0.06, 0.065})[level] + (0.05 * source.bonusDamage)) * target.maxHealth end}, --needs to be (+ 5% per 100 bonus AD)
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({35, 60, 85, 110, 135})[level] + source.bonusDamage * 0.65 end},
   },
 
   ["Leblanc"] = {
@@ -965,7 +965,7 @@ local DamageLibTable = {
   },
 
   ["Ryze"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) local dmg = (({75, 100, 125, 150, 175})[source:GetSpellData(_Q).level] + 0.45 * source.ap + 0.03 * (myHero.maxMana - GetBaseMana(source))) dmg = dmg * (GotBuff(target, "RyzeE") > 0 and (({40, 70, 100})[source:GetSpellData(_R).level] + 100) / 100 or 1) return dmg end},           
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 100, 125, 150, 175})[level] + (0.45 * source.ap) + (0.03 * (myHero.maxMana - GetBaseMana(source))) * GotBuff(target, "RyzeE") and (10 + ((30) * (source:GetSpellData(_R).level) + 100) / 100) or 1 end},           
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + (0.6 * source.ap) + 0.04 * (myHero.maxMana - GetBaseMana(source)) end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 80, 100, 120, 140})[level] + (0.3 * source.ap) + 0.02 * (myHero.maxMana - GetBaseMana(source)) end},
   },
@@ -1285,6 +1285,14 @@ local DamageLibTable = {
     {Slot = "R", Stage = 1, DamageType = 3, Damage = function(source, target, level) return (GotBuff(target, "velkozresearchedstack") > 0 and ({450, 625, 800})[level] + (1.25 * source.ap) or CalcMagicalDamage(source, target, ({450, 625, 800})[level] + (1.25 * source.ap))) end},
   },
   
+  ["Vex"] = {
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 105, 150, 195, 240})[level] + (0.6 * source.ap) end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 120, 160, 140, 170})[level] + (0.3 * source.ap) end}, 
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({50, 70, 90, 110, 130})[level] + ({0.40, 0.45, 0.5, 0.55, 0.60})[level] * source.ap) end},
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 125, 175})[level] + (0.20 * source.ap) end}, -- initial hit
+    {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + (0.50 * source.ap) end}, -- recast impact
+  },
+
   ["Viego"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ((0.075 * source.critChance) * ({15, 30, 45, 60, 75})[level] + (0.6 * source.totalDamage)) end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 135, 190, 245, 300})[level] + source.ap end},
