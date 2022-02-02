@@ -119,7 +119,7 @@ Data = {
         },
          Kalista = {
             Changelog = "Kalista Changelog Here",
-            Version = 0.11,
+            Version = 0.12,
         },
          Akali = {
             Changelog = "Akali Changelog Here",

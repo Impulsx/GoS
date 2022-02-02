@@ -63,7 +63,7 @@ local BoundAlly = nil
 function LoadScript() 
 	HPred()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.11"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.12"}})	
 	
 	--AutoQ	
 	Menu:MenuElement({type = MENU, id = "AutoQ2", name = "AutoQ"})
@@ -335,6 +335,8 @@ local function EpicMonster(unit)
 		or unit.charName == "SRU_Dragon_Fire" 
 		or unit.charName == "SRU_Dragon_Earth" 
 		or unit.charName == "SRU_Dragon_Air" 
+		or unit.charName ==	"SRU_Dragon_Chemtech"
+		or unit.charName ==	"SRU_Dragon_Hextech"
 		or unit.charName ==	"SRU_Dragon_Elder" then
 		return true
 	else
