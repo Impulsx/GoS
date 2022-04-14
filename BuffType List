@@ -9,7 +9,7 @@ BuffType {
     Invisibility = 6,
     Silence = 7,
     Taunt = 8, Immobile
-        [Berserk = 9,] v
+    Berserk = 9, 
     Polymorph = 10,
     Slow = 11,
     Snare = 12, Immobile
@@ -21,13 +21,13 @@ BuffType {
     Invulnerability = 18,
     AttackSpeedSlow = 19,
     NearSight = 20,
+    Currency = 21,
     Fear = 22, Immobile
     Charm = 23, Immobile
     Poison = 24,
     Suppression = 25, Immobile
     Blind = 26,
     Counter = 27,
-    Currency = 21,
     Shred = 28,
     Flee = 29,
     Knockup = 30, Immobile
