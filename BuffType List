@@ -25,7 +25,7 @@ BuffType {
     Fear = 22, Immobile
     Charm = 23, Immobile
     Poison = 24,
-    Suppression = 25, Immobile
+    Suppression = 25,
     Blind = 26,
     Counter = 27,
     Shred = 28,
