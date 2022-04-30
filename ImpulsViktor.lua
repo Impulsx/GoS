@@ -877,13 +877,13 @@ local WasInRange = false
 local OneTick
 local attacked = 0
 
-local HeroIcon = "https://www.mobafire.com/images/champion/icon/viktor.png"
-local IgniteIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/f/f4/Ignite.png"
-local QIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/viktor/hud/icons2d/viktor_q2.png"
-local WIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/viktor/hud/icons2d/viktor_w2.png"
-local EIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/viktor/hud/icons2d/viktor_e2.png"
-local RIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/viktor/hud/icons2d/viktor_r2.png"
-local R2Icon = "https://raw.communitydragon.org/11.19/game/assets/characters/viktor/hud/icons2d/viktor_r_guide.png"
+local HeroIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/viktor.png"
+local IgniteIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/Ignite.png"
+local QIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/viktor_q2.png"
+local WIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/viktor_w2.png"
+local EIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/viktor_e2.png"
+local RIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/viktor_r2.png"
+local R2Icon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/viktor_r_guide.png"
 
 function Viktor:Menu()
     self.ViktorMenu = MenuElement({type = MENU, id = "Viktor", name = "Impuls Viktor", leftIcon = HeroIcon})
@@ -1344,13 +1344,13 @@ local ARStackTime = Game.Timer()
 local ALastRstacks = 0
 local ALastTickTarget = myHero
 
-local HeroIcon = "https://www.mobafire.com/images/champion/icon/annie.png"
-local IgniteIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/f/f4/Ignite.png"
-local QIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/annie/hud/icons2d/annie_q.png"
-local WIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/annie/hud/icons2d/annie_w.png"
-local EIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/annie/hud/icons2d/annie_e.png"
-local RIcon = "https://raw.communitydragon.org/11.19/game/assets/characters/annie/hud/icons2d/annie_r1.png"
-local R2Icon = "https://raw.communitydragon.org/11.19/game/assets/characters/annie/hud/icons2d/annie_r2.png"
+local HeroIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/annie.png"
+local IgniteIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/Ignite.png"
+local QIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/annie_q.png"
+local WIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/annie_w.png"
+local EIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/annie_e.png"
+local RIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/annie_r1.png"
+local R2Icon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/annie_r2.png"
 
 function Annie:Menu()
     self.AnnieMenu = MenuElement({type = MENU, id = "Annie", name = "Impuls Annie", leftIcon = HeroIcon})

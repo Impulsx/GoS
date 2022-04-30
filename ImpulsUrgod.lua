@@ -623,13 +623,13 @@ function Urgot:OnProcessSpell()
 --return nil, nil
 end
 
-local HeroIcon = "https://www.mobafire.com/images/champion/icon/urgot.png"
-local IgniteIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/f/f4/Ignite.png"
-local QIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/0/0f/Corrosive_Charge.png"
-local WIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/a/aa/Purge.png"
-local EIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/5/53/Disdain.png"
-local RIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/6/60/Fear_Beyond_Death.png"
-local R2Icon = "https://static.wikia.nocookie.net/leagueoflegends/images/4/44/Fear_Beyond_Death_2.png"
+local HeroIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/Urgot.png"
+local IgniteIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/Ignite.png"
+local QIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/Corrosive_Charge.png"
+local WIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/Purge.png"
+local EIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/Disdain.png"
+local RIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/Fear_Beyond_Death.png"
+local R2Icon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/Fear_Beyond_Death_2.png"
 local IS = {}
 local Spells = {
     ["Aatrox"] = {"AatroxE"},
@@ -784,7 +784,7 @@ function Urgot:LoadMenu()
         self.UrgotMenu.KillSteal:MenuElement({id = "UseQ", name = "Use Q", value = true, leftIcon = QIcon})
         self.UrgotMenu.KillSteal:MenuElement({id = "UseW", name = "Use W", value = true, leftIcon = WIcon})
         self.UrgotMenu.KillSteal:MenuElement({id = "UseE", name = "Use E", value = true, leftIcon = EIcon})
-        self.UrgotMenu.KillSteal:MenuElement({id = "UseR", name = "Use R", value = true, leftIcon = EIcon})
+        self.UrgotMenu.KillSteal:MenuElement({id = "UseR", name = "Use R", value = true, leftIcon = RIcon})
         --AutoLevel
     self.UrgotMenu:MenuElement({type = MENU, id = "AutoLevel", name =  myHero.charName.." AutoLevel Spells"})
         self.UrgotMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})

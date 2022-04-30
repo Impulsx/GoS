@@ -719,14 +719,14 @@ function Gwen:__init()
 end
 ]]
 
-local HeroIcon = "https://www.mobafire.com/images/champion/icon/gwen.png"
-local IgniteIcon = "https://static.wikia.nocookie.net/leagueoflegends/images/f/f4/Ignite.png"
-local PIcon = "https://raw.communitydragon.org/11.9/game/assets/characters/gwen/hud/icons2d/gwen_passive.gwen.png"
-local QIcon = "https://raw.communitydragon.org/11.9/game/assets/characters/gwen/hud/icons2d/gwen_q.gwen.png"
-local WIcon = "https://raw.communitydragon.org/11.9/game/assets/characters/gwen/hud/icons2d/gwen_w.gwen.png"
-local EIcon = "https://raw.communitydragon.org/11.9/game/assets/characters/gwen/hud/icons2d/gwen_e.gwen.png"
-local RIcon = "https://raw.communitydragon.org/11.9/game/assets/characters/gwen/hud/icons2d/gwen_r.gwen.png"
-local R2Icon = "https://raw.communitydragon.org/11.9/game/assets/characters/gwen/hud/icons2d/gwen_r3.gwen.png"
+local HeroIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/gwen.png"
+local IgniteIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/Ignite.png"
+local PIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/gwen_passive.gwen.png"
+local QIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/gwen_q.gwen.png"
+local WIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/gwen_w.gwen.png"
+local EIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/gwen_e.gwen.png"
+local RIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/gwen_r.gwen.png"
+local R2Icon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/gwen_r3.gwen.png"
 
 function Gwen:Menu()
 local DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	
