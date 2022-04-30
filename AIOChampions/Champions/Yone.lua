@@ -540,10 +540,10 @@ if target == nil then return end
 		end			
 
 		local QReady = Ready(_Q) and Menu.ComboSet.Q.UseQ1:Value()
-		if QReady and CastingChecks() and not Attacking then			
+		if QReady and CastingChecks() --[[and not Attacking]] then			
 			if myHero:GetSpellData(_Q).name == "YoneQ" then
 				if (myHero.mana == 0 or not Ready(_R) or target.health > FullDmg.CurrentDamage) then
-					if myHero.pos:DistanceTo(target.pos) <= 450 then
+					if myHero.pos:DistanceTo(target.pos) <= 750 then
 						CastQShort(target)
 					else
 						if Menu.ComboSet.Q.UseQ2:Value() then
