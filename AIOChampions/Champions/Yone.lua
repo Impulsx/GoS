@@ -204,7 +204,7 @@ end
 function LoadMenu()                     	
 									 -- MainMenu --
 	Menu = MenuElement({type = MENU, id = "PussySeries".. myHero.charName, name = "Yone"})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
 	
 	
 									  -- Combo --
@@ -543,7 +543,7 @@ if target == nil then return end
 		if QReady and CastingChecks() --[[and not Attacking]] then			
 			if myHero:GetSpellData(_Q).name == "YoneQ" then
 				if (myHero.mana == 0 or not Ready(_R) or target.health > FullDmg.CurrentDamage) then
-					if myHero.pos:DistanceTo(target.pos) <= 750 then
+					if myHero.pos:DistanceTo(target.pos) <= 450 then
 						CastQShort(target)
 					else
 						if Menu.ComboSet.Q.UseQ2:Value() then
@@ -565,7 +565,7 @@ if target == nil then return end
 			end
 		end	
 
-		if Menu.ComboSet.W.UseW1:Value() and Ready(_W) and CastingChecks() and not Attacking then			
+		if Menu.ComboSet.W.UseW1:Value() and Ready(_W) and CastingChecks() --[[and not Attacking]] then			
 			local CheckCount = GetEnemyCount(600, myHero)
 			local CheckTargetCount = GetEnemyCount(250, target)
 			local RPrimed = (myHero.mana > 0 and Ready(_R) and target.health < FullDmg.CurrentDamage)
