@@ -1,5 +1,5 @@
 --[[
-Version: 12.9
+Version: 12.10
 
 Usage:
 
@@ -223,16 +223,16 @@ end
 
 local function GetBaseHealth(unit)
   if unit.charName == "Sylas" then
-      return 525 + (115 * (myHero.levelData.lvl - 1))
+      return 595 + (129 * (myHero.levelData.lvl - 1))
   
   elseif unit.charName == "Chogath" then
-      return 574 + (80 * (myHero.levelData.lvl - 1))
+      return 644 + (94 * (myHero.levelData.lvl - 1))
   
   elseif unit.charName == "Volibear" then
-      return 580 + (90 * (myHero.levelData.lvl - 1))
+      return 650 + (104 * (myHero.levelData.lvl - 1))
         
   elseif unit.charName == "DrMundo" then
-    return 583 + (89 * (myHero.levelData.lvl - 1))
+    return 653 + (103 * (myHero.levelData.lvl - 1))
   end	
 end
 
@@ -271,6 +271,7 @@ local DamageLibTable = {
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 130, 200})[level] + 0.5 * source.bonusDamage + 0.30 * source.ap end},
     {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({60, 130, 200})[level] + 0.5 * source.bonusDamage + 0.30 * source.ap + 0.02 * (target.maxHealth - target.health) end},
   },
+
   ["Akshan"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({5, 25, 45, 65, 85})[level] + 0.8 * source.totalDamage end}, 
     {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({10, 50, 90, 130, 170})[level] + 1.6 * source.totalDamage end}, --total return damage
@@ -278,6 +279,7 @@ local DamageLibTable = {
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 25, 30})[level] + (0.1 * source.totalDamage) + (1 + (0.50 * source.critChance)) * (0.3 * (0.01 * (target.maxHealth - target.health))) end}, -- min per bullet stored
     {Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({80, 100, 120})[level] + (0.4 * source.totalDamage) + (1 + (0.50 * source.critChance)) * (0.3 * (0.01 * (target.maxHealth - target.health))) end}, -- max per bullet stored
   },
+  
   ["Alistar"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 100, 140, 180, 220})[level] + 0.5 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({55, 110, 165, 220, 275})[level] + 0.7 * source.ap end},
