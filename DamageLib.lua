@@ -1,5 +1,5 @@
 --[[
-Version: 12.5
+Version: 12.4
 
 Usage:
 
@@ -256,7 +256,7 @@ local DamageLibTable = {
   ["Ahri"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + 0.30 * source.ap end},
     {Slot = "Q", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({40, 65, 90, 115, 140})[level] + 0.35 * source.ap end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({50, 75, 100, 125, 150})[level] + 0.3 * source.ap end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 65, 90, 115, 140})[level] + 0.3 * source.ap end},
     {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({12, 19.5, 27, 34.5, 42})[level] + 0.09 * source.ap end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + 0.6 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 90, 120})[level] + 0.35 * source.ap end},
@@ -767,8 +767,8 @@ local DamageLibTable = {
   },
 
   ["MasterYi"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 60, 90, 120, 150})[level] + 0.6 * source.totalDamage end},
-    {Slot = "E", Stage = 1, DamageType = 3, Damage = function(source, target, level) return ({30, 38, 46, 54, 62})[level] + 0.35 * source.bonusDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({25, 60, 95, 130, 165})[level] + 0.9 * source.totalDamage end},
+    {Slot = "E", Stage = 1, DamageType = 3, Damage = function(source, target, level) return ({20, 30, 40, 50, 60})[level] + 0.35 * source.bonusDamage end},
   },
 
   ["MissFortune"] = {
@@ -932,11 +932,6 @@ local DamageLibTable = {
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 120, 160, 200, 240})[level] + 0.3 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({120, 200, 280})[level] + 1.1 * source.ap end}, --totalDamage per target
   },  
-
-["Renata"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 125, 170, 215, 260})[level] + 0.8 * source.ap end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({65, 95, 125, 155, 185})[level] + 0.55 * source.ap end},
-  }, 
 
   ["Renekton"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({65, 100, 135, 170, 205})[level] + 0.8 * source.bonusDamage end},
