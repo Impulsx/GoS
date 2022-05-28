@@ -7,6 +7,8 @@
 
 - [x] Took over hosting PussyScripts
 - [x] Impuls Scripts
+- [x] JustEvade Hosted
+- [ ] WRAIO update
 - [ ] Updating DamageLib.lua, never ends.
 
 > Achieved Trail-Dev for Gos
