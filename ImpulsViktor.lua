@@ -135,7 +135,6 @@ local CCSpells = {
 	["IreliaR"] = {charName = "Irelia", displayName = "Vanguard's Edge", slot = _R, type = "linear", speed = 2000, range = 950, delay = 0.4, radius = 160, collision = false},
 	["IvernQ"] = {charName = "Ivern", displayName = "Rootcaller", slot = _Q, type = "linear", speed = 1300, range = 1075, delay = 0.25, radius = 80, collision = true},
 	["IllaoiE"] = {charName = "Illaoi", displayName = "Test of Spirit", slot = _E, type = "linear", speed = 1900, range = 900, delay = 0.25, radius = 50, collision = true},	
-	["IvernQ"] = {charName = "Ivern", displayName = "Rootcaller", slot = _Q, type = "linear", speed = 1300, range = 1075, delay = 0.25, radius = 80, collision = true},		
 	["HowlingGaleSpell"] = {charName = "Janna", displayName = "Howling Gale", slot = _Q, type = "linear", speed = 667, range = 1750, delay = 0, radius = 100, collision = false},			
 	["JarvanIVDragonStrike"] = {charName = "JarvanIV", displayName = "Dragon Strike", slot = _Q, type = "linear", speed = MathHuge, range = 770, delay = 0.4, radius = 70, collision = false},
 	["JhinW"] = {charName = "Jhin", displayName = "Deadly Flourish", slot = _W, type = "linear", speed = 5000, range = 2550, delay = 0.75, radius = 40, collision = false},
@@ -1583,15 +1582,16 @@ function Annie:Tick()
     CastingR = myHero.activeSpell.name == "AnnieR"
     if TickR == true then
         if Tibbers == nil then
-            PrintChat("Getting Tibbers")
+            --PrintChat("Getting Tibbers")
             self:GetTibbers()
         else
-            PrintChat("Found Tibbers")
+            --PrintChat("Found Tibbers")
             TickR = false
         end
     end
     if Tibbers then
         if Tibbers.dead or Tibbers.health <= 0 then
+            TickR = false
             Tibbers = nil
         end
     end
@@ -1792,12 +1792,12 @@ function Annie:LastHit4()
     end
     local QFarmLastHit = self.AnnieMenu.AutoMode.UseQ:Value() and (not StunBuff or not self.AnnieMenu.AutoMode.StopQFarmStun:Value())
     if LastHitTarget and QFarmLastHit and IsReady(_Q) then
-        PrintChat("Ready Q")
+        --PrintChat("Ready Q")
         local Qdmg = getdmg("Q", LastHitTarget, myHero)
         local AAdmg = getdmg("AA", LastHitTarget, myHero)
         local TargetHealth = CheckHPPred(LastHitTarget, 1500)
-        PrintChat(myHero.activeSpell.name)
-        PrintChat(myHero.activeSpell.speed)
+        --PrintChat(myHero.activeSpell.name)
+        --PrintChat(myHero.activeSpell.speed)
         local ActiveAttack = myHero.activeSpell.name == "AnnieBasicAttack" or myHero.activeSpell.name == "AnnieBasicAttack2"
         if ActiveAttack then
             local speed = myHero.activeSpell.speed
@@ -2105,7 +2105,7 @@ function Annie:ProcessSpells()
         CastedR = false
     else
         if CastedR == false then
-            PrintChat("Ticked R")
+            --PrintChat("Ticked R")
             TickR = true
         end
         CastedR = true
@@ -2156,7 +2156,7 @@ function Annie:UseTibbers(unit)
     if TibbersNextClick < Game.Timer() then
         Control.CastSpell(HK_R, unit)
         PrintChat("Moved Tibbers")
-        TibbersNextClick = Game.Timer() + 0.3
+        TibbersNextClick = Game.Timer() + 0.45
     end
 end
 
