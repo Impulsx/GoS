@@ -9,7 +9,7 @@ menu:MenuElement({ id = "missileData", name = "missileData", value = false });
 menu:MenuElement({ id = "spellData", name = "spellData", value = false });
 menu:MenuElement({ id = "buff", name = "buff", value = false });
 menu:MenuElement({ id = "particles", name = "particles", value = false });
-menu:MenuElement({ id = "API", name = "Click to dump API documentation to 'api.lua'", type = SPACE, tooltip = "Click to dump API documentation to 'api.lua'", onclick = function() DumpDocumentation("api.lua") end});
+menu:MenuElement({ id = "API", name = "[ Click to dump API Documentation and hide ]", type = SPACE, tooltip = "Dump to 'api.lua' in \\LOLEXT\\Scripts\\", onclick = function() DumpDocumentation("api.lua")  menu.API:Hide() end});
 
 
 local function isObj_AI_Base(obj)
