@@ -886,7 +886,7 @@ local R2Icon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/v
 
 function Viktor:Menu()
     self.ViktorMenu = MenuElement({type = MENU, id = "Viktor", name = "Impuls Viktor", leftIcon = HeroIcon})
-    self.ViktorMenu:MenuElement({id = "FleeKey", name = "Disengage Key", key = string.byte("A"), value = false})
+    self.ViktorMenu:MenuElement({id = "FleeKey", name = "Flee Key", key = string.byte("A"), value = false})
     self.ViktorMenu:MenuElement({id = "ComboMode", name = "Combo", type = MENU})
         self.ViktorMenu.ComboMode:MenuElement({id = "UseQ", name = "Use Q [Siphon Power] in Combo", value = true, leftIcon = QIcon})
         self.ViktorMenu.ComboMode:MenuElement({id = "UseW", name = "Use W [Gravity Field] in Combo", value = true, leftIcon = WIcon})
@@ -930,12 +930,12 @@ function Viktor:Menu()
 end
 
 function Viktor:Spells()
-    ESpellData = {speed = 1350, range = 600, delay = 0.25, radius = 70, collision = {}, type = "linear"}
-    WSpellData = {speed = 3000, range = 800, delay = 0.5, radius = 300, collision = {}, type = "circular"}
-    RSpellData = {speed = 1050, range = 700, delay = 0.25, radius = 300, collision = {}, type = "circular"}
+    WSpellData = {speed = MathHuge, range = 800, delay = 0.5, radius = 300, collision = {}, type = "circular"}
+    ESpellData = {speed = 2000, range = 525, delay = 0.25, radius = 90, collision = {}, type = "linear"}
+    RSpellData = {speed = MathHuge, range = 700, delay = 0.25, radius = 300, collision = {}, type = "circular"}
     self.Q = {speed = 2000, range = 600}
 	self.W = {speed = MathHuge, range = 800, delay = 1.75, radius = 270, windup = 0.25, collision = nil, type = "circular"}
-	self.E = {speed = 1050, minRange = 525, range = 700, maxRange = 1225, delay = 0, radius = 80, collision = nil, type = "linear"}
+	self.E = {speed = 1050, minRange = 525, range = 700, maxRange = 1225, delay = 0, radius = 90, collision = nil, type = "linear"}
 	self.R = {speed = MathHuge, range = 700, delay = 0.25, radius = 325, windup = 0.25, collision = nil, type = "circular"}
 end
 
@@ -1150,7 +1150,7 @@ function Viktor:Logic()
         if GetDistance(target.pos) < AARange then
             WasInRange = true
         end
-        local ERange = 1025
+        local ERange = 1225
         local QRange = 600
         local WRange = 800
         local RRange = 700
@@ -1159,6 +1159,14 @@ function Viktor:Logic()
             TargetAttacking = GetDistance(myHero.pos, target.pos) > GetDistance(myHero.pos, TargetNextSpot)
         else
             TargetAttacking = false
+        end
+
+        if self:CanUse(_E, Mode()) and ValidTarget(target, ERange) and not CastingQ and not CastingW and not CastingR then
+            self:UseE(target)
+        end
+
+        if self:CanUse(_Q, Mode()) and ValidTarget(target, QRange) and Edown == false and not CastingQ and not CastingW and not CastingR then
+            Control.CastSpell(HK_Q, target)
         end
 
         if self:CanUse(_W, Mode()) and ValidTarget(target, WRange) and Edown == false and not CastingQ and not CastingW then
@@ -1170,12 +1178,7 @@ function Viktor:Logic()
                 self:UseW(target, self.ViktorMenu.ComboMode.UseEAttHits:Value(), TargetAttacking)
             end
         end
-        if self:CanUse(_E, Mode()) and ValidTarget(target, ERange) and not CastingQ and not CastingW and not CastingR then
-            self:UseE(target)
-        end
-        if self:CanUse(_Q, Mode()) and ValidTarget(target, QRange) and Edown == false and not CastingQ and not CastingW and not CastingR then
-            Control.CastSpell(HK_Q, target)
-        end
+
         local RDmg = getdmg("R", target, myHero, 1, myHero:GetSpellData(_R).level)
         local RDmgTick = getdmg("R", target, myHero, 2, myHero:GetSpellData(_R).level)
         local RDmgTotal = RDmg + RDmgTick*2
@@ -1189,22 +1192,6 @@ function Viktor:Logic()
     else
         WasInRange = false
     end     
-end
-
-function Viktor:DirectR(spot)
-    if LastDirect - Game.Timer() < 0 then
-        Control.CastSpell(HK_R, target)
-        LastDirect = Game.Timer() + 1
-    end
-end
-
-function Viktor:UseE2(ECastPos, unit, pred)
-    if Control.IsKeyDown(HK_E) then
-        Control.SetCursorPos(pred.CastPos)
-        Control.KeyUp(HK_E)
-        DelayAction(function() Control.SetCursorPos(ReturnMouse) end, 0.01)
-        DelayAction(function() Edown = false end, 0.50)   
-    end
 end
 
 function Viktor:OnPostAttackTick(args)
@@ -1229,6 +1216,13 @@ function Viktor:UseR1(unit, hits)
     end 
 end
 
+function Viktor:DirectR(spot)
+    if LastDirect - Game.Timer() < 0 then
+        Control.CastSpell(HK_R, target)
+        LastDirect = Game.Timer() + 1
+    end
+end
+
 function Viktor:UseW(unit, hits, attacking)
     local pred = _G.PremiumPrediction:GetAOEPrediction(myHero, unit, WSpellData)
     --PrintChat("trying E")
@@ -1251,17 +1245,17 @@ function Viktor:UseW(unit, hits, attacking)
 end
 
 function Viktor:UseE(unit)
-    if GetDistance(unit.pos, myHero.pos) < 1025 then
+    if GetDistance(unit.pos, myHero.pos) < 1225 then
         --PrintChat("Using E")
         local Direction = Vector((myHero.pos-unit.pos):Normalized())
-        local Espot = myHero.pos - Direction*480
-        if GetDistance(myHero.pos, unit.pos) < 480 then
+        local Espot = myHero.pos - Direction*520
+        if GetDistance(myHero.pos, unit.pos) < 520 then
             Espot = unit.pos
         end
         --Control.SetCursorPos(Espot)
         --Control.CastSpell(HK_E, unit)
         local pred = _G.PremiumPrediction:GetPrediction(Espot, unit, ESpellData)
-        if pred.CastPos and _G.PremiumPrediction.HitChance.Low(pred.HitChance) and Espot:DistanceTo(pred.CastPos) < 501 then
+        if pred.CastPos and _G.PremiumPrediction.HitChance.Low(pred.HitChance) and Espot:DistanceTo(pred.CastPos) < 520 then
             if Control.IsKeyDown(HK_E) and Edown == true then
                 --_G.SDK.Orbwalker:SetMovement(false)
                 --PrintChat("E down")
@@ -1275,6 +1269,16 @@ function Viktor:UseE(unit)
                 Edown = true
             end
         end
+    end
+end
+
+
+function Viktor:UseE2(ECastPos, unit, pred)
+    if Control.IsKeyDown(HK_E) then
+        Control.SetCursorPos(pred.CastPos)
+        Control.KeyUp(HK_E)
+        DelayAction(function() Control.SetCursorPos(ReturnMouse) end, 0.01)
+        DelayAction(function() Edown = false end, 0.50)   
     end
 end
 
@@ -1571,7 +1575,7 @@ end
 function Annie:Tick()
     if _G.JustEvade and _G.JustEvade:Evading() or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or Game.IsChatOpen() or myHero.dead then return end
 
-    target = GetTarget(2000)
+    target = GetTarget(1500)
     if target and ValidTarget(target) then
         DamageValues = self:GetAllDamage(target, true)
     end
