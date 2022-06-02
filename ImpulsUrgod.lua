@@ -6,6 +6,13 @@ require "DamageLib"
 require "2DGeometry"
 require "MapPositionGOS"
 
+local DrawInfo = false
+
+Callback.Add("Draw", function() 
+	if DrawInfo then	
+		Draw.Text("[ Impuls ] scripts will after ~[30-40]s in-game time", 18, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 0, 128, 128))
+	end	
+end)	
 --[[
 -- [ update not enabled until proper rank ]
 do
@@ -757,7 +764,7 @@ function VectorPointProjectionOnLineSegment(v1, v2, v)
     return pointSegment, pointLine, isOnSegment
 end
 
-local Version, Author, LVersion = "v1", "Impuls", "0.01"
+local Version, Author = "0.02", "Impuls"
 
 function Urgot:LoadMenu()
     
@@ -781,10 +788,10 @@ function Urgot:LoadMenu()
         --KillSteal
     self.UrgotMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
         self.UrgotMenu.KillSteal:MenuElement({id = "UseIgnite", name = "Use Ignite", value = true, leftIcon = IgniteIcon})
-        self.UrgotMenu.KillSteal:MenuElement({id = "UseQ", name = "Use Q", value = true, leftIcon = QIcon})
-        self.UrgotMenu.KillSteal:MenuElement({id = "UseW", name = "Use W", value = true, leftIcon = WIcon})
-        self.UrgotMenu.KillSteal:MenuElement({id = "UseE", name = "Use E", value = true, leftIcon = EIcon})
-        self.UrgotMenu.KillSteal:MenuElement({id = "UseR", name = "Use R", value = true, leftIcon = RIcon})
+        self.UrgotMenu.KillSteal:MenuElement({id = "UseQ", name = "Use Q", value = false, leftIcon = QIcon})
+        self.UrgotMenu.KillSteal:MenuElement({id = "UseW", name = "Use W", value = false, leftIcon = WIcon})
+        self.UrgotMenu.KillSteal:MenuElement({id = "UseE", name = "Use E", value = false, leftIcon = EIcon})
+        self.UrgotMenu.KillSteal:MenuElement({id = "UseR", name = "Use R", value = false, leftIcon = RIcon})
         --AutoLevel
     self.UrgotMenu:MenuElement({type = MENU, id = "AutoLevel", name =  myHero.charName.." AutoLevel Spells"})
         self.UrgotMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
@@ -812,8 +819,7 @@ function Urgot:LoadMenu()
         self.UrgotMenu.Drawings:MenuElement({id = "DrawJng", name = "Draw Jungler Info", value = true})
         --Version
     self.UrgotMenu:MenuElement({id = "blank", type = SPACE, name = ""})
-    self.UrgotMenu:MenuElement({id = "blank", type = SPACE, name = "Script Ver: " .. Version .. " - LoL Ver: " .. LVersion .. ""})
-    self.UrgotMenu:MenuElement({id = "blank", type = SPACE, name = "by " .. Author .. ""})
+    self.UrgotMenu:MenuElement({id = "blank", type = SPACE, name = "Script Ver: " .. Version .. " by " .. Author .. ""})
 end
 
 function Urgot:LoadSpells()
@@ -828,19 +834,22 @@ function Urgot:LoadSpells()
 end
 
 function Urgot:__init()
-    Item_HK = {}
-    self:LoadMenu()
-    self:LoadSpells()
-    self.SpellsE = {
-        ["ThreshRPenta"] = {charName = "Thresh", range = 30, delay = 5.00, radius = 450, collision = false},
-        ["VeigarEventHorizon"] = {charName = "Veigar", range = 725, delay = 3.50, radius = 390, collision = false},
-        ["YasuoWMovingWall"] = {charName = "Yasuo", range = 400, delay = 3.75, radius = 100, collision = false},
-    }
-    self.Detected = {}
-    self.levelUP = false		
-    Callback.Add("Tick", function()self:Tick() end)
-    Callback.Add("Draw", function()self:Draw() end)
---Callback.Add("Tick", OnProcessSpell)
+    DelayAction(function()
+        Item_HK = {}
+        self:LoadMenu()
+        self:LoadSpells()
+        self.SpellsE = {
+            ["ThreshRPenta"] = {charName = "Thresh", range = 30, delay = 5.00, radius = 450, collision = false},
+            ["VeigarEventHorizon"] = {charName = "Veigar", range = 725, delay = 3.50, radius = 390, collision = false},
+            ["YasuoWMovingWall"] = {charName = "Yasuo", range = 400, delay = 3.75, radius = 100, collision = false},
+        }
+        self.Detected = {}
+        self.levelUP = false		
+        Callback.Add("Tick", function()self:Tick() end)
+        Callback.Add("Draw", function()self:Draw() end)
+        --Callback.Add("Tick", OnProcessSpell)
+        if DrawInfo then DrawInfo = false end
+    end, math.max(0.07, 30 - Game.Timer()))
 end
 
 function Urgot:Tick()
@@ -1454,6 +1463,7 @@ end
 
 function OnLoad()
     Urgot()
+    DrawInfo = true
 end
 
 class "HPred"
