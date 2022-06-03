@@ -8,21 +8,9 @@
                                                            Powered by GoS!
 
 	Author: Ark223
-	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu
+	Credits: Gamsteron, Maxxxel, Mad & Noddy
 
 	Changelog:
-
-	v1.1.7 // if you noticed any bugs write to Zbysiu#1192
-	+ Added Gwen's spells (NOT TESTED!)
-	+ Added Viego's spells (NOT TESTED!)
-	+ Added Zeri's spells (NOT TESTED!)
-	+ Added Zeri's E to evading spells
-	+ Fixed the usage of flash by script. From now on, for a script to use flash from an undodgeable skill, the skill's danger level must be set to 5.
-	+ Thresh Q detection has been fixed (EXPERIMENTAL!)
-	+ Dr Mundo's Q detection has been fixed (Turn on "Force To Dodge" if you want the best results.)
-	+ Dr Mundo's Q hitbox corrected
-	+ Slightly improved optimization
-	- Removed AutoUpdate because the script is no longer updated by the author
 
 	v1.1.6
 	+ Added Rell, Samira, Seraphine and Yone spells
@@ -98,22 +86,21 @@ local function ReadFile(file)
 	txt:close(); return result
 end
 
-local Version, IntVer = 1.17, "1.1.7"
+local Version, IntVer = 1.16, "1.1.6"
 local function AutoUpdate()
-	DownloadFile("https://raw.githubusercontent.com/Impulsx/GoS/master/JustEvade.version", SCRIPT_PATH .. "JustEvade.version")
+	DownloadFile("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/JustEvade.version", SCRIPT_PATH .. "JustEvade.version")
 	if tonumber(ReadFile(SCRIPT_PATH .. "JustEvade.version")) > Version then
 		print("JustEvade: Found update! Downloading...")
-		DownloadFile("https://raw.githubusercontent.com/Impulsx/GoS/master/JustEvade.lua", SCRIPT_PATH .. "JustEvade.lua")
+		DownloadFile("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/JustEvade.lua", SCRIPT_PATH .. "JustEvade.lua")
 		print("JustEvade: Successfully updated. Use 2x F6!")
 	end
 end
-
 
 local MathAbs, MathAtan, MathAtan2, MathAcos, MathCeil, MathCos, MathDeg, MathFloor, MathHuge, MathMax, MathMin, MathPi, MathRad, MathSin, MathSqrt = math.abs, math.atan, math.atan2, math.acos, math.ceil, math.cos, math.deg, math.floor, math.huge, math.max, math.min, math.pi, math.rad, math.sin, math.sqrt
 local GameCanUseSpell, GameLatency, GameTimer, GameHeroCount, GameHero, GameMinionCount, GameMinion, GameMissileCount, GameMissile = Game.CanUseSpell, Game.Latency, Game.Timer, Game.HeroCount, Game.Hero, Game.MinionCount, Game.Minion, Game.MissileCount, Game.Missile
 local DrawCircle, DrawColor, DrawLine, DrawText, ControlKeyUp, ControlKeyDown, ControlMouseEvent, ControlSetCursorPos = Draw.Circle, Draw.Color, Draw.Line, Draw.Text, Control.KeyUp, Control.KeyDown, Control.mouse_event, Control.SetCursorPos
 local TableInsert, TableRemove, TableSort = table.insert, table.remove, table.sort
-local Icons, Png = "https://raw.githubusercontent.com/Impuls/LoL-Icons/master/", ".png"
+local Icons, Png = "https://raw.githubusercontent.com/Ark223/LoL-Icons/master/", ".png"
 local FlashIcon = Icons.."Flash"..Png
 
 require "2DGeometry"
@@ -213,7 +200,7 @@ local SpellDatabase = {
 		["DravenRCast"] = {icon = Icons.."DravenR"..Png, displayName = "Whirling Death", slot = _R, type = "linear", speed = 2000, range = 12500, delay = 0.25, radius = 160, danger = 4, cc = false, collision = false, windwall = true, hitbox = true, fow = false, exception = false, extend = true},
 	},
 	["DrMundo"] = {
-		["DrMundoQ"] = {icon = Icons.."DrMundoQ"..Png, displayName = "Infected Bonesaw", missileName = "InfectedBonesawMissile", slot = _Q, type = "linear", speed = 2000, range = 925, delay = 0.25, radius = 130, danger = 2, cc = true, collision = true, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
+		["InfectedCleaverMissile"] = {icon = Icons.."DrMundoQ"..Png, displayName = "Infected Cleaver", missileName = "InfectedCleaverMissile", slot = _Q, type = "linear", speed = 2000, range = 975, delay = 0.25, radius = 60, danger = 2, cc = true, collision = true, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
 	},
 	["Ekko"] = {
 		["EkkoQ"] = {icon = Icons.."EkkoQ"..Png, displayName = "Timewinder", missileName = "EkkoQMis", slot = _Q, type = "linear", speed = 1650, range = 1175, delay = 0.25, radius = 60, danger = 1, cc = true, collision = false, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
@@ -258,10 +245,6 @@ local SpellDatabase = {
 		["GravesQLineSpell"] = {icon = Icons.."GravesQ"..Png, displayName = "End of the Line", slot = _Q, type = "polygon", speed = MathHuge, range = 800, delay = 1.4, radius = 20, danger = 1, cc = false, collision = false, windwall = true, hitbox = true, fow = false, exception = false, extend = true},
 		["GravesSmokeGrenade"] = {icon = Icons.."GravesW"..Png, displayName = "Smoke Grenade", missileName = "GravesSmokeGrenadeBoom", slot = _W, type = "circular", speed = 1500, range = 950, delay = 0.15, radius = 250, danger = 2, cc = true, collision = false, windwall = true, hitbox = false, fow = true, exception = false, extend = false},
 		["GravesChargeShot"] = {icon = Icons.."GravesR"..Png, displayName = "Charge Shot", missileName = "GravesChargeShotShot", slot = _R, type = "polygon", speed = 2100, range = 1000, delay = 0.25, radius = 100, danger = 5, cc = false, collision = false, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
-	},
-	["Gwen"] = {
-		["GwenQ"] = {icon = Icons.."GwenQ", displayName = "Snip Snip!", slot = _Q, type = "circular", speed = 1500, range = 450, delay = 0, radius = 275, danger = 2, cc = false, collision = false, windwall = true, hitbox = false, fow = true, exception = false, extend = true},
-		["GwenR"] = {icon = Icons.."GwenR", displayName = "Needlework", missileName = "GwenRMissile", slot = _R, type = "linear", speed = 1800, range = 1230, delay = 0.25, radius = 250, danger = 3, cc = true, collision = false, windwall = true, hitbox = false, fow = true, exception = false, extend = true},
 	},
 	["Hecarim"] = {
 		["HecarimUlt"] = {icon = Icons.."HecarimR"..Png, displayName = "Onslaught of Shadows", missileName = "HecarimUltMissile", slot = _R, type = "linear", speed = 1100, range = 1650, delay = 0.2, radius = 280, danger = 4, cc = true, collision = false, windwall = false, hitbox = false, fow = true, exception = false, extend = true},
@@ -550,7 +533,7 @@ local SpellDatabase = {
 		["TalonW"] = {icon = Icons.."TalonW"..Png, displayName = "Rake", missileName = "TalonWMissileOne", slot = _W, type = "conic", speed = 2500, range = 650, delay = 0.25, radius = 75, angle = 26, danger = 2, cc = true, collision = false, windwall = true, hitbox = false, fow = true, exception = false, extend = true},
 	},
 	["Thresh"] = {
-		["ThreshQ"] = {icon = Icons.."ThreshQ"..Png, displayName = "Death Sentence", missileName = "ThreshQMissile", slot = _Q, type = "linear", speed = 1900, range = 1100, delay = 0.5, radius = 70, danger = 1, cc = true, collision = true, windwall = true, hitbox = false, fow = true, exception = true, extend = true},
+		["ThreshQMissile"] = {icon = Icons.."ThreshQ"..Png, displayName = "Death Sentence", missileName = "ThreshQMissile", slot = _Q, type = "linear", speed = 1900, range = 1100, delay = 0.5, radius = 70, danger = 1, cc = true, collision = true, windwall = true, hitbox = false, fow = true, exception = true, extend = true},
 		["ThreshEFlay"] = {icon = Icons.."ThreshE"..Png, displayName = "Flay", slot = _E, type = "polygon", speed = MathHuge, range = 500, delay = 0.389, radius = 110, danger = 3, cc = true, collision = true, windwall = false, hitbox = false, fow = false, exception = false, extend = true},
 	},
 	["Tristana"] = {
@@ -585,9 +568,6 @@ local SpellDatabase = {
 	["Vi"] = {
 		["ViQ"] = {icon = Icons.."ViQ"..Png, displayName = "Vault Breaker", slot = _Q, type = "linear", speed = 1500, range = 725, delay = 0, radius = 90, danger = 2, cc = true, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = true},
 	},
-	["Viego"] = {
-		["ViegoW"] = {icon = Icons.."ViegoW", displayName = "Spectral Maw", missileName = "ViegoWMissile", slot = _W, type = "linear", speed = 1300, range = 760, delay = 0, radius = 90, danger = 3, cc = true, collision = true, windwall = true, hitbox = false, fow = true, exception = false, extend = true},
-	},
 	["Viktor"] = {
 		["ViktorGravitonField"] = {icon = Icons.."ViktorW"..Png, displayName = "Graviton Field", slot = _W, type = "circular", speed = MathHuge, range = 800, delay = 1.75, radius = 270, danger = 1, cc = true, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = false},
 		["ViktorDeathRayMissile"] = {icon = Icons.."ViktorE"..Png, displayName = "Death Ray", missileName = "ViktorDeathRayMissile", slot = _E, type = "linear", speed = 1050, range = 700, radius = 80, danger = 2, cc = false, collision = false, windwall = true, fow = true, exception = true, extend = true},
@@ -613,7 +593,7 @@ local SpellDatabase = {
 	["Yasuo"] = {
 		["YasuoQ1"] = {icon = Icons.."YasuoQ1"..Png, displayName = "Steel Tempest", slot = _Q, type = "linear", speed = MathHuge, range = 450, delay = 0.25, radius = 40, danger = 1, cc = false, collision = false, windwall = false, hitbox = true, fow = false, exception = false, extend = true},
 		["YasuoQ2"] = {icon = Icons.."YasuoQ2"..Png, displayName = "Steel Wind Rising", slot = _Q, type = "linear", speed = MathHuge, range = 450, delay = 0.25, radius = 40, danger = 1, cc = false, collision = false, windwall = false, hitbox = true, fow = false, exception = false, extend = true},
-		["YasuoQ3"] = {icon = Icons.."YasuoQ3"..Png, displayName = "Gathering Storm", missileName = "YasuoQ3Mis", slot = _Q, type = "linear", speed = 1200, range = 1100, delay = 0.03, radius = 90, danger = 2, cc = true, collision = false, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
+		["YasuoQ3"] = {icon = Icons.."YasuoQ3"..Png, displayName = "Gathering Storm", missileName = "YasuoQ3Mis", slot = _Q, type = "linear", speed = 1200, range = 1000, delay = 0.25, radius = 90, danger = 2, cc = true, collision = false, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
 	},
 	["Yone"] = {
 		["YoneQ"] = {icon = Icons.."YoneQ"..Png, displayName = "Mortal Steel [Sword]", slot = _Q, type = "linear", speed = MathHuge, range = 450, delay = 0.25, radius = 40, danger = 1, cc = false, collision = false, windwall = false, hitbox = true, fow = false, exception = false, extend = true},
@@ -627,9 +607,6 @@ local SpellDatabase = {
 	},
 	["Zed"] = {
 		["ZedQ"] = {icon = Icons.."ZedQ"..Png, displayName = "Razor Shuriken", missileName = "ZedQMissile", slot = _Q, type = "linear", speed = 1700, range = 900, delay = 0.25, radius = 50, danger = 1, cc = false, collision = false, windwall = true, hitbox = true, fow = true, exception = true, extend = true},
-	},
-	["Zeri"] = {
-		["ZeriQ"] = {icon = Icons.."ZeriQ", displayName = "Burst Fire", missileName = "ZeriQMissile", slot = _Q, type = "linear", speed = 1500, range = 840, delay = 0.25, radius = 80, danger = 2, cc = false, collision = true, windwall = true, hitbox = true, fow = true, exception = true, extend = true},
 	},
 	["Ziggs"] = {
 		["ZiggsQ"] = {icon = Icons.."ZiggsQ"..Png, displayName = "Bouncing Bomb", missileName = "ZiggsQSpell", slot = _Q, type = "polygon", speed = 1750, range = 850, delay = 0.25, radius = 150, danger = 1, cc = false, collision = true, windwall = true, hitbox = false, fow = true, exception = false, extend = false},
@@ -797,9 +774,6 @@ local EvadeSpells = {
 	},
 	["Zed"] = {
 		[3] = {icon = Icons.."ZedR"..Png, type = 4, displayName = "Death Mark", name = "ZedR-", range = 625, danger = 4, slot = _R, slot2 = HK_R},
-	},
-	["Zeri"] = {
-		[2] = {icon = Icons.."ZeriE", type = 1, displayName = "Spark Surge", name = "ZeriE-", range = 300, danger = 2, slot = _E, slot2 = HK_E},
 	},
 	["Zilean"] = {
 		[2] = {icon = Icons.."ZileanE"..Png, type = 2, displayName = "Time Warp", name = "ZileanE-", danger = 3, slot = _E, slot2 = HK_E},
@@ -1243,7 +1217,7 @@ function JEvade:__init()
 						self.JEMenu.Spells:MenuElement({id = j, name = ""..enemy.." "..self.SpellSlot[spell.slot].." - "..spell.displayName, leftIcon = spell.icon, type = MENU})
 						self.JEMenu.Spells[j]:MenuElement({id = "Dodge"..j, name = "Dodge Spell", value = true})
 						self.JEMenu.Spells[j]:MenuElement({id = "Draw"..j, name = "Draw Spell", value = true})
-						self.JEMenu.Spells[j]:MenuElement({id = "Force"..j, name = "Force To Dodge", value = spell.danger >= 2})
+						self.JEMenu.Spells[j]:MenuElement({id = "Force"..j, name = "Force To Dodge", value = spell.danger >= 4})
 						if spell.fow then self.JEMenu.Spells[j]:MenuElement({id = "FOW"..j, name = "FOW Detection", value = true}) end
 						self.JEMenu.Spells[j]:MenuElement({id = "HP"..j, name = "%HP To Dodge Spell", value = 100, min = 0, max = 100, step = 5})
 						self.JEMenu.Spells[j]:MenuElement({id = "ER"..j, name = "Extra Radius", value = 0, min = 0, max = 100, step = 5})
@@ -1935,8 +1909,7 @@ function JEvade:CoreManager(s)
 				if result == 0 then
 					local dodgePos = self:GetBestEvadePos(self.DodgeableSpells, s.radius, 1, true, true)
 					if dodgePos then
-						
-						if flashUsage then result = 1; Control.CastSpell(HK_SUMMONER_1,self:To3D(dodgePos))
+						if flashUsage then result = 1; self:CastSpell(self.Flash, self:To3D(dodgePos))
 						elseif self.JEMenu.Spells[s.name]["Force"..s.name]:Value() then
 							self.ExtendedPos = self:GetExtendedSafePos(dodgePos)
 							self.SafePos, self.Evading = dodgePos, true
@@ -2120,7 +2093,7 @@ function OnLoad()
 	DelayAction(function()
 		JEvade:__init()
 		print("JustEvade successfully loaded!")
-		ReleaseEvadeAPI();
+		ReleaseEvadeAPI(); AutoUpdate()
 	end, MathMax(0.07, 30 - GameTimer()))
 end
 
