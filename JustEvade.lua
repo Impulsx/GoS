@@ -2126,7 +2126,7 @@ function OnLoad()
 	DelayAction(function()
 		JEvade:__init()
 		print("JustEvade successfully loaded!")
-		ReleaseEvadeAPI(); AutoUpdate()
+		ReleaseEvadeAPI(); --AutoUpdate()
 	end, MathMax(0.07, 30 - GameTimer()))
 end
 
