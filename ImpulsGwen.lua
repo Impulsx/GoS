@@ -166,7 +166,6 @@ local CCSpells = {
 	["IreliaR"] = {charName = "Irelia", displayName = "Vanguard's Edge", slot = _R, type = "linear", speed = 2000, range = 950, delay = 0.4, radius = 160, collision = false},
 	["IvernQ"] = {charName = "Ivern", displayName = "Rootcaller", slot = _Q, type = "linear", speed = 1300, range = 1075, delay = 0.25, radius = 80, collision = true},
 	["IllaoiE"] = {charName = "Illaoi", displayName = "Test of Spirit", slot = _E, type = "linear", speed = 1900, range = 900, delay = 0.25, radius = 50, collision = true},	
-	["IvernQ"] = {charName = "Ivern", displayName = "Rootcaller", slot = _Q, type = "linear", speed = 1300, range = 1075, delay = 0.25, radius = 80, collision = true},		
 	["HowlingGaleSpell"] = {charName = "Janna", displayName = "Howling Gale", slot = _Q, type = "linear", speed = 667, range = 1750, delay = 0, radius = 100, collision = false},			
 	["JarvanIVDragonStrike"] = {charName = "JarvanIV", displayName = "Dragon Strike", slot = _Q, type = "linear", speed = MathHuge, range = 770, delay = 0.4, radius = 70, collision = false},
 	["JhinW"] = {charName = "Jhin", displayName = "Deadly Flourish", slot = _W, type = "linear", speed = 5000, range = 2550, delay = 0.75, radius = 40, collision = false},
@@ -575,8 +574,8 @@ end
 
 function Manager:LoadGwen()
     if DrawInfo then DrawInfo = false end
-    Gwen:Menu()
     Gwen:Spells()
+    Gwen:Menu()
 
     --GetEnemyHeroes()
     Callback.Add("Tick", function() Gwen:Tick() end)
@@ -795,9 +794,9 @@ local DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0
     	self.Menu.GwenOrbMode:MenuElement({id = "KiteHelperRangeInfo", name = "Adjust the Kiting Distance By This Much", type = SPACE})
     	self.Menu.GwenOrbMode:MenuElement({id = "KiteHelperRangeFacing", name = "Kite Distance Adjustment (Fleeing)", value = -120, min = -500, max = 500, step = 10})
     	self.Menu.GwenOrbMode:MenuElement({id = "KiteHelperRangeFacingInfo", name = "Adjust the Kiting Distance Against A Fleeing Target", type = SPACE})
-    	self.Menu.GwenOrbMode:MenuElement({id = "KiteHelperRangeE1Info", name = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", type = SPACE})
+    	self.Menu.GwenOrbMode:MenuElement({id = "KiteHelperRangeE1Info", name = "--------------------------------------------", type = SPACE})
     	self.Menu.GwenOrbMode:MenuElement({id = "KiteHelperRangeE2Info", name = "Kiting Range Effects E's Location In Combo", type = SPACE, leftIcon = EIcon})
-    	self.Menu.GwenOrbMode:MenuElement({id = "KiteHelperRangeE3Info", name = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", type = SPACE})
+    	self.Menu.GwenOrbMode:MenuElement({id = "KiteHelperRangeE3Info", name = "--------------------------------------------", type = SPACE})
     self.Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
         self.Menu.Pred:MenuElement({name = " ", name = "After change Prediction Type press 2xF6", type = SPACE})
         self.Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 2, drop = {"Premium Prediction", "GGPrediction", "NoPred/Internal"}})
@@ -948,19 +947,19 @@ function Gwen:Spells()
             self.QspellData = {speed = 500, range = QRange, delay = 0.50, radius = 60, collision = {""}, type = "linear"}
             self.WspellData = {speed = 500, range = WRange, delay = 0.00, radius = 60, collision = {""}, type = "circle"}
             self.EspellData = {speed = 700, range = ERange, delay = 0.00, radius = 160, collision = {""}, type = "linear"}
-            self.RspellData = {speed = 500, range = Range, delay = 0.25, radius = 45, collision = {""}, type = "linear"}
+            self.RspellData = {speed = 500, range = RRange, delay = 0.25, radius = 45, collision = {""}, type = "linear"}
         end
         if self.Menu.Pred.Change:Value() == 2 then
-            self.QPrediction = GGPrediction:SpellPrediction({Delay = 0.50, Radius = 60, Range = 450, Speed = 500, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
-            self.WPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 60, Range = 425, Speed = 500, Collision = false, Type = GGPrediction.SPELLTYPE_CIRCLE})
-            self.EPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 60, Range = 400, Speed = 700, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
-            self.RPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 45, Range = 1200, Speed = 1500, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
+            self.QPrediction = GGPrediction:SpellPrediction({Delay = 0.50, Radius = 60, Range = QRange, Speed = 500, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
+            self.WPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 60, Range = WRange, Speed = 500, Collision = false, Type = GGPrediction.SPELLTYPE_CIRCLE})
+            self.EPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 60, Range = ERange, Speed = 700, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
+            self.RPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 45, Range = RRange, Speed = 1500, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
         end
         if self.Menu.Pred.Change:Value() == 3 then  
-            self.QspellData = {speed = 500, range = 450, delay = 0.50, radius = 60, collision = {""}, type = "linear"}
-            self.WspellData = {speed = 500, range = 425, delay = 0.00, radius = 60, collision = {""}, type = "circle"}
-            self.EspellData = {speed = 700, range = 400, delay = 0.00, radius = 60, collision = {""}, type = "linear"}
-            self.RspellData = {speed = 1500, range = 1200, delay = 0.25, radius = 45, collision = {""}, type = "linear"}				
+            self.QspellData = {speed = 500, range = QRange, delay = 0.50, radius = 60, collision = {""}, type = "linear"}
+            self.WspellData = {speed = 500, range = WRange, delay = 0.00, radius = 60, collision = {""}, type = "circle"}
+            self.EspellData = {speed = 700, range = ERange, delay = 0.00, radius = 60, collision = {""}, type = "linear"}
+            self.RspellData = {speed = 1500, range = RRange, delay = 0.25, radius = 45, collision = {""}, type = "linear"}				
         end
     end, 1.2)	
 end
@@ -1167,7 +1166,7 @@ function Gwen:Tick()
 	if self.Menu.WSet.UseW:Value() and IsReady(_W) then
 		self:ProcessSpell()
 		for i, spell in pairs(DetectedSpells) do
-			CastW(i, spell)
+			Gwen:CastW(i, spell)
 		end
 	end		
 end
@@ -1862,7 +1861,7 @@ function Gwen:CastQ(unit)
     end
 end	
 
-function CastW(i, s)
+function Gwen:CastW(i, s)
     --PrintChat("Using W to block CC spell")
 	local startPos = s.startPos; local endPos = s.endPos; local travelTime = 0
 	if s.speed == MathHuge then travelTime = s.delay else travelTime = s.range / s.speed + s.delay end
