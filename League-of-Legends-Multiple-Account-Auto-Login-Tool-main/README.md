@@ -1,7 +1,7 @@
 # League of Legends Multiple Account Auto Login Tool
 ![GitHub](https://img.shields.io/badge/license-MIT-green) ![GitHub](https://img.shields.io/badge/language-VBScript-blue) [![ytlink](https://img.shields.io/youtube/views/EcbEzoVseSI?label=Tutorial%20Video&style=social)](https://www.youtube.com/watch?v=EcbEzoVseSI&ab_channel=Austin56)
 
-Forked from ![Github](https://github.com/austinyen56/League-of-Legends-Multiple-Account-Auto-Login-Tool)
+Forked from ![austinyen56](https://github.com/austinyen56/League-of-Legends-Multiple-Account-Auto-Login-Tool)
 
 Allows you to quickly login using multiple accounts in League of Legends
 
