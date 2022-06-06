@@ -30,7 +30,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.38
+    local Version = 0.39
     
     local Files = {
         Lua = {
@@ -1312,7 +1312,7 @@ function Irelia:CheckCastW(unit)
 	if GetDistance(unit.pos, myHero.pos) < 600 and Ready(_Q) then
 		local WDmg = WDamage(unit)
 		local QDmg = getdmg("Q", unit, myHero, 1) + CalcExtraDmg(unit, 2)
-		local BuffedTarget = ISMarked(600, unit)
+		local BuffedTarget = ISMarked(600)
 		if BuffedTarget then
 			if (WDmg+QDmg*2) > unit.health and CheckHPPred(unit) >= 1 then
 				self:CastW(unit)

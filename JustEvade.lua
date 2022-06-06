@@ -1328,10 +1328,10 @@ function JEvade:__init()
 			local p2 = self:CircleToPolygon(eP, 135, self.JEMenu.Core.CQ:Value())
 			local path = XPolygon:ClipPolygons(p1, p2, "union")
 			return XPolygon:OffsetPolygon(path, self.BoundingRadius), path end,
-		["RellW"] = function(sP, eP, data)
+		--[[["RellW"] = function(sP, eP, data)
 			local sPos = Point2D(sP):Extended(eP, -data.range)
 			return self:RectangleToPolygon(sPos, eP, data.radius, self.BoundingRadius),
-				self:RectangleToPolygon(sPos, eP, data.radius) end,
+				self:RectangleToPolygon(sPos, eP, data.radius) end,]]
 		["SettW"] = function(sP, eP, data)
 			local sPos = self:AppendVector(eP, sP, -40)
 			local ePos = Point2D(sPos):Extended(eP, data.range)

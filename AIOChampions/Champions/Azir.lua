@@ -415,7 +415,7 @@ function LoadScript()
 	
 --MainMenu
 Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
 		
 --Combo 
 Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
@@ -1045,7 +1045,7 @@ function GetAllyCount(range, pos)
 end
 
 function BestAllyTarget()
-	local Target, Target2, Count, UltPos = nil, 0, nil
+	local Target, Target2, Count, UltPos = nil, nil, 0, nil
 	local RRadius = 280 + (50 * myHero:GetSpellData(_R).level)
 	for i, unit in ipairs(EnemyHeroes()) do
 		if Target == nil then

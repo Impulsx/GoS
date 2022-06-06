@@ -67,7 +67,7 @@ Data = {
         },
         Kassadin = {
             Changelog = "Kassadin Changelog Here",
-            Version = 0.11,
+            Version = 0.12,
         },
         Qiyana = {
             Changelog = "Qiyana Changelog Here",
@@ -139,7 +139,7 @@ Data = {
         },
           Fiora = {
             Changelog = "Fiora Changelog Here",
-            Version = 0.11,
+            Version = 0.12,
         },
           Nocturne = {
             Changelog = "Nocturne Changelog Here",
@@ -251,7 +251,7 @@ Data = {
         },
            Azir = {
             Changelog = "Azir Changelog Here",
-           Version = 0.03,
+           Version = 0.04,
         },
            Janna = {
             Changelog = "Janna Changelog Here",

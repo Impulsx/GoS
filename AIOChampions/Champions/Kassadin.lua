@@ -34,7 +34,7 @@ end
 function LoadScript() 	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.11"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.12"}})
 	
 	--ComboMenu  
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -99,7 +99,7 @@ function LoadScript()
 	
 	EData =
 	{
-	Type = _G.SPELLTYPE_CONE, Collision = false, Delay = 0.25, Radius = 200, Range = 600, Speed = 1000, Type = 2
+	Type = _G.SPELLTYPE_CONE, Collision = false, Delay = 0.25, Radius = 200, Range = 600, Speed = 1000
 	}
 	
 	EspellData = {speed = 1000, range = 600, delay = 0.25, radius = 0, angle = 80, collision = {nil}, type = "conic"}
