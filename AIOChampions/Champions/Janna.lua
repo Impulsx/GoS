@@ -69,14 +69,14 @@ function LoadScript()
 	
 --MainMenu
 Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
-		
+Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+
 --Combo 
 Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.Combo:MenuElement({id = "QRange", name = "[Q] Only if range bigger than -->", value = 400, min = 0, max = 1000, step = 5})	
-	Menu.Combo:MenuElement({name = " ", drop = {"[Q] CastTime = 1000range +(125range per 0.5sec)"}})	
-	Menu.Combo:MenuElement({id = "QDelay", name = "[Q] CastTime -->", value = 2, min = 0, max = 3, step = 0.5, identifier = "sec"})	
+	Menu.Combo:MenuElement({name = " ", drop = {"[Q] Range = 1100r +(22r / 0.1sec Cast)", "[Q] Speed = 666.67s +( 16.67s / 0.1sec Cast)"}})	
+	Menu.Combo:MenuElement({id = "QDelay", name = "[Q] CastTime -->", value = 2, min = 0, max = 3, step = 0.1, identifier = "sec"})	
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	
 	Menu.Combo:MenuElement({type = MENU, id = "ComboE", name = "[E] Settings"})	
@@ -147,8 +147,8 @@ Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings Mode"})
 		end		
 	end)
 	
-	QRange = 1000 + (250 * Menu.Combo.QDelay:Value())
-	QSpeed = 666.7 + (166.6 * Menu.Combo.QDelay:Value())
+	QRange = 1100 + (220 * Menu.Combo.QDelay:Value())
+	QSpeed = 666.67 + (166.67 * Menu.Combo.QDelay:Value())
 	QDelay = Menu.Combo.QDelay:Value()
 
 

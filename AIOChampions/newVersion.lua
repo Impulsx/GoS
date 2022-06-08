@@ -255,7 +255,7 @@ Data = {
         },
            Janna = {
             Changelog = "Janna Changelog Here",
-           Version = 0.02,
+           Version = 0.03,
         },
            Hecarim = {
             Changelog = "Hecarim Changelog Here",
