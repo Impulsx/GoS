@@ -348,7 +348,7 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.13"}})	
+	Menu:MenuElement({name = " ", drop = {"Version 0.14"}})	
 	
 	Menu:MenuElement({type = MENU, id = "RSet", name = "AutoR+E Incomming CC Spells"})	
 	Menu.RSet:MenuElement({id = "UseR", name = "Use AutoR + E Stun", value = true})	

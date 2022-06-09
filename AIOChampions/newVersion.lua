@@ -63,7 +63,7 @@ Data = {
         }, 
         Morgana = {
             Changelog = "Morgana Changelog Here",
-            Version = 0.10,
+            Version = 0.11,
         },
         Kassadin = {
             Changelog = "Kassadin Changelog Here",
@@ -103,7 +103,7 @@ Data = {
         }, 
          Zoe = {
             Changelog = "Zoe Changelog Here",
-            Version = 0.13,
+            Version = 0.14,
         },
          Caitlyn = {
             Changelog = "Caitlyn Changelog Here",
@@ -159,7 +159,7 @@ Data = {
         },
           MonkeyKing = {
             Changelog = "MonkeyKing Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
           Blitzcrank = {
             Changelog = "Blitzcrank Changelog Here",
@@ -175,7 +175,7 @@ Data = {
         },
            Volibear = {
             Changelog = "Volibear Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         }, 
            Leona = {
             Changelog = "Leona Changelog Here",

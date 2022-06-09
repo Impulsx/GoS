@@ -265,7 +265,7 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0	 
 	
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.10"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.11"}})
 	
 	--AutoE
 	Menu:MenuElement({id = "AutoE", name = "AutoE if Ground Controled", type = MENU})
