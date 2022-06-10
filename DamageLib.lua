@@ -33,6 +33,7 @@ local DamageReductionTable = {
   ["Urgot"] = {buff = "urgotswapdef", amount = function(target) return 1 - ({0.3, 0.4, 0.5})[target:GetSpellData(_R).level] end},
   ["Alistar"] = {buff = "FerociousHowl", amount = function(target) return ({0.55, 0.65, 0.75})[target:GetSpellData(_R).level] end},
   ["Amumu"] = {buff = "Tantrum", amount = function(target) return ({2, 4, 6, 8, 10})[target:GetSpellData(_E).level] + 0.03*target.bonusMagicResist + 0.03*target.bonusArmor end, damageType = 1},
+  ["Belveth"] = {buff = "BelvethE", amount = function(target) return 0.7 end},
   --["Galio"] = {buff = "GalioIdolOfDurand", amount = function(target) return 0.5 end},
   ["Galio"] = {buff = "galiowpassivedefense", amount = function(target) return ({0.2, 0.25, 0.30, 0.35, 0.40})[target:GetSpellData(_W).level] + (0.05 * target.ap / 100) + (0.8 * target.bonusMagicResist / 100) end, damageType = 2},
   ["Galio"] = {buff = "galiowpassivedefense", amount = function(target) return ({0.1, 0.125, 0.15, 0.175, 0.20})[target:GetSpellData(_W).level] + (0.025 * target.ap / 100) + (0.4 * target.bonusMagicResist / 100) end, damageType = 1},
