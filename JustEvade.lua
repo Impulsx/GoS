@@ -12,10 +12,6 @@
 
 	Changelog:
 
-	v1.1.8
-	+ Added Belveth
-	+ Fixed the usage of flash by script for both sum keys.
-
 	v1.1.7 // if you noticed any bugs write to Zbysiu#1192
 	+ Added Gwen's spells (NOT TESTED!)
 	+ Added Viego's spells (NOT TESTED!)
@@ -169,12 +165,6 @@ local SpellDatabase = {
 	},
 	["Azir"] = {
 		["AzirR"] = {icon = Icons.."AzirR"..Png, displayName = "Emperor's Divide", slot = _R, type = "linear", speed = 1400, range = 500, delay = 0.3, radius = 250, danger = 5, cc = true, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = true},
-	},
-	["BelVeth"] = {
-		["BelVethQ"] = {icon = Icons.."BelVethQ"..Png, displayName = "Void Surge", slot = _Q, type = "linear", speed = 800, range = 400, delay = 0.0, radius = 100, danger = 1, cc = false, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = false},
-		["BelVethW"] = {icon = Icons.."BelVethW"..Png, displayName = "Above and Below", slot = _W, type = "linear", speed = 800, range = 660, delay = 0.5, radius = 200, danger = 3, cc = true, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = true},
-		["BelVethE"] = {icon = Icons.."BelVethE"..Png, displayName = "Royal Maelstrom", slot = _E, type = "circular", speed = MathHuge, range = 500, delay = 0, radius = 500, danger = 2, cc = false, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = false},
-		["BelVethR"] = {icon = Icons.."BelVethR"..Png, displayName = "Endless Banquet", slot = _R, type = "circular", speed = MathHuge, range = 500, delay = 1, radius = 500, danger = 4, cc = true, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = false},
 	},
 	["Bard"] = {
 		["BardQ"] = {icon = Icons.."BardQ"..Png, displayName = "Cosmic Binding", missileName = "BardQMissile", slot = _Q, type = "linear", speed = 1500, range = 950, delay = 0.25, radius = 60, danger = 2, cc = true, collision = true, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
