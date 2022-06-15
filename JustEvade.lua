@@ -12,6 +12,21 @@
 
 	Changelog:
 
+	v1.1.8 // Impuls here o/ with a [WIP]
+	+ Edited to my github fork for Icons / Versioning
+	+ Adding Belveth (TESTING, Belveth W should work)
+	+ Fixing Rell (TESTING and Adjustment/recode possibly needed)
+	+ Fixed usage of Flash and added Danger Level: added some logic for Flash Range
+		If it uses flash it'll try at max flash disance for less sus smol flashes (TESTED, walls may still cause smol flash but still dodge spell just "/all worth" ? ^^ )
+	+ Updated and added support for evade skill movementspeed modifiers (TESTING)
+		[ AnnieE, AkaliW, AhriW, BlitzcrankW, DravenW, GarenQ, KaisaE, KayleW, KatarinaW, RumbleW, ShyvanaW, SkarnerW, SonaE, TeemoW, UdyrE, VolibearQ ] 
+	+ Updated and added support for channelbuffs: not to dodge while in example = Xerath R, Katarina R, Vladimir W
+		[ Warwick R	,MissFortune R, Beveth E]
+		Testing or info needed for 
+		[ Caitlyn R, , FiddleSticks W and R (DISABLED), VelkozR, Vladimir W]
+	 Buff names and champ skills getting reworked or updated // A lib for this would be nice.
+	+ Forced Dodge sets skill.Danger >= 2 (you wont use flash even is set to >=4 in my testing, just ensures you try to dodge)
+
 	v1.1.7 // if you noticed any bugs write to Zbysiu#1192
 	+ Added Gwen's spells (NOT TESTED!)
 	+ Added Viego's spells (NOT TESTED!)
@@ -21,7 +36,7 @@
 	+ Thresh Q detection has been fixed (EXPERIMENTAL!)
 	+ Dr Mundo's Q detection has been fixed (Turn on "Force To Dodge" if you want the best results.)
 	+ Dr Mundo's Q hitbox corrected
-	+ Slightly improved optimization
+	- "Slightly improved optimization"
 	- Removed AutoUpdate because the script is no longer updated by the author
 
 	v1.1.6
@@ -98,7 +113,7 @@ local function ReadFile(file)
 	txt:close(); return result
 end
 
-local Version, IntVer = 1.17, "1.1.7"
+local Version, IntVer = 1.18, "1.1.8"
 local function AutoUpdate()
 	DownloadFile("https://raw.githubusercontent.com/Impulsx/GoS/master/JustEvade.version", SCRIPT_PATH .. "JustEvade.version")
 	if tonumber(ReadFile(SCRIPT_PATH .. "JustEvade.version")) > Version then
@@ -113,7 +128,7 @@ local MathAbs, MathAtan, MathAtan2, MathAcos, MathCeil, MathCos, MathDeg, MathFl
 local GameCanUseSpell, GameLatency, GameTimer, GameHeroCount, GameHero, GameMinionCount, GameMinion, GameMissileCount, GameMissile = Game.CanUseSpell, Game.Latency, Game.Timer, Game.HeroCount, Game.Hero, Game.MinionCount, Game.Minion, Game.MissileCount, Game.Missile
 local DrawCircle, DrawColor, DrawLine, DrawText, ControlKeyUp, ControlKeyDown, ControlMouseEvent, ControlSetCursorPos = Draw.Circle, Draw.Color, Draw.Line, Draw.Text, Control.KeyUp, Control.KeyDown, Control.mouse_event, Control.SetCursorPos
 local TableInsert, TableRemove, TableSort = table.insert, table.remove, table.sort
-local Icons, Png = "https://raw.githubusercontent.com/Impuls/LoL-Icons/master/", ".png"
+local Icons, Png = "https://raw.githubusercontent.com/Impulsx/LoL-Icons/master/", ".png"
 local FlashIcon = Icons.."Flash"..Png
 
 require "2DGeometry"
@@ -165,6 +180,12 @@ local SpellDatabase = {
 	},
 	["Azir"] = {
 		["AzirR"] = {icon = Icons.."AzirR"..Png, displayName = "Emperor's Divide", slot = _R, type = "linear", speed = 1400, range = 500, delay = 0.3, radius = 250, danger = 5, cc = true, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = true},
+	},
+	["BelVeth"] = {
+		["BelvethQ"] = {icon = Icons.."BelVethQ"..Png, displayName = "Void Surge", slot = _Q, type = "linear", speed = 1200, range = 450, delay = 0.0, radius = 100, danger = 1, cc = false, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = false},
+		["BelvethW"] = {icon = Icons.."BelVethW"..Png, displayName = "Above and Below", slot = _W, type = "linear", speed = 500, range = 715, delay = 0.5, radius = 200, danger = 3, cc = true, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = true},
+		["BelvethE"] = {icon = Icons.."BelVethE"..Png, displayName = "Royal Maelstrom", slot = _E, type = "circular", speed = MathHuge, range = 0.0, delay = 1.5, radius = 500, danger = 2, cc = false, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = false},
+		["BelvethR"] = {icon = Icons.."BelVethR"..Png, displayName = "Endless Banquet", slot = _R, type = "circular", speed = MathHuge, range = 275, delay = 1.0, radius = 500, danger = 4, cc = true, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = false},
 	},
 	["Bard"] = {
 		["BardQ"] = {icon = Icons.."BardQ"..Png, displayName = "Cosmic Binding", missileName = "BardQMissile", slot = _Q, type = "linear", speed = 1500, range = 950, delay = 0.25, radius = 60, danger = 2, cc = true, collision = true, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
@@ -809,10 +830,54 @@ local EvadeSpells = {
 }
 
 local Buffs = {
+	["Caitlyn"] = "CaitlynAceintheHole",
+	["Belveth"] = "BevethE",
+	--["FiddleSticks"] = "DrainChannel", "Crowstorm",
 	["Katarina"] = "katarinarsound",
+	["MissFortune"] = "missfortunebulletsound",
+	["VelKoz"] = "VelkozR",
 	["Xerath"] = "XerathLocusOfPower2",
-	["Vladimir"] = "VladimirW"
+	["Vladimir"] = "VladimirW",
+	["Warwick"] = "warwickrsound"
 }
+
+--[[ ["CaitlynAceintheHole"] = {Name = "Caitlyn", displayname = "R | Ace in the Hole", spellname = "CaitlynAceintheHole"},
+["Crowstorm"] = {Name = "FiddleSticks", displayname = "R | Crowstorm", spellname = "Crowstorm"},
+["DrainChannel"] = {Name = "FiddleSticks", displayname = "W | Drain", spellname = "DrainChannel"},
+["GalioIdolOfDurand"] = {Name = "Galio", displayname = "R | Idol of Durand", spellname = "GalioIdolOfDurand"},
+["ReapTheWhirlwind"] = {Name = "Janna", displayname = "R | Monsoon", spellname = "ReapTheWhirlwind"},
+["KarthusFallenOne"] = {Name = "Karthus", displayname = "R | Requiem", spellname = "KarthusFallenOne"},
+["KatarinaR"] = {Name = "Katarina", displayname = "R | Death Lotus", spellname = "KatarinaR"},
+["LucianR"] = {Name = "Lucian", displayname = "R | The Culling", spellname = "LucianR"},
+["AlZaharNetherGrasp"] = {Name = "Malzahar", displayname = "R | Nether Grasp", spellname = "AlZaharNetherGrasp"},
+["Meditate"] = {Name = "MasterYi", displayname = "W | Meditate", spellname = "Meditate"},
+["MissFortuneBulletTime"] = {Name = "MissFortune", displayname = "R | Bullet Time", spellname = "MissFortuneBulletTime"},
+["AbsoluteZero"] = {Name = "Nunu", displayname = "R | Absoulte Zero", spellname = "AbsoluteZero"},
+["PantheonRJump"] = {Name = "Pantheon", displayname = "R | Jump", spellname = "PantheonRJump"},
+["PantheonRFall"] = {Name = "Pantheon", displayname = "R | Fall", spellname = "PantheonRFall"},
+["ShenStandUnited"] = {Name = "Shen", displayname = "R | Stand United", spellname = "ShenStandUnited"},
+["Destiny"] = {Name = "TwistedFate", displayname = "R | Destiny", spellname = "Destiny"},
+["UrgotSwap2"] = {Name = "Urgot", displayname = "R | Hyper-Kinetic Position Reverser", spellname = "UrgotSwap2"},
+["VarusQ"] = {Name = "Varus", displayname = "Q | Piercing Arrow", spellname = "VarusQ"},
+["VelkozR"] = {Name = "Velkoz", displayname = "R | Lifeform Disintegration Ray", spellname = "VelkozR"},
+["InfiniteDuress"] = {Name = "Warwick", displayname = "R | Infinite Duress", spellname = "InfiniteDuress"},
+
+["CaitlynAceintheHole"] 	= {charName = "Caitlyn", 		slot = _R, 	 	displayName = "Ace in the Hole"},
+["Crowstorm"] 				= {charName = "Fiddlesticks", 	slot = _R, 	 	displayName = "Crowstorm"},
+["GalioR"] 					= {charName = "Galio", 			slot = _R, 	 	displayName = "Hero's Entrance"},
+["KarthusFallenOne"]	 	= {charName = "Karthus", 		slot = _R, 		displayName = "Requiem"},
+["KatarinaR"] 				= {charName = "Katarina", 		slot = _R,  	displayName = "Death Lotus"},
+["LucianR"] 				= {charName = "Lucian", 		slot = _R, 		displayName = "The Culling"},
+["AlZaharNetherGrasp"] 		= {charName = "Malzahar", 		slot = _R, 		displayName = "Nether Grasp"},
+["MissFortuneBulletTime"] 	= {charName = "MissFortune", 	slot = _R, 		displayName = "Bullet Time"},
+["AbsoluteZero"] 			= {charName = "Nunu", 			slot = _R, 		displayName = "Absolute Zero"},
+["PantheonRFall"] 			= {charName = "Pantheon", 		slot = _R, 		displayName = "Grand Skyfall [Fall]"},
+["PantheonRJump"] 			= {charName = "Pantheon", 		slot = _R, 	 	displayName = "Grand Skyfall [Jump]"},
+["ShenR"] 					= {charName = "Shen", 			slot = _R, 		displayName = "Stand United"},
+["Destiny"] 				= {charName = "TwistedFate", 	slot = _R, 	 	displayName = "Destiny"},
+["VelKozR"] 				= {charName = "VelKoz", 		slot = _R,  	displayName = "Life Form Disintegration Ray"},
+["XerathLocusOfPower2"] 	= {charName = "Xerath", 		slot = _R, 	 	displayName = "Rite of the Arcane"},
+["ZacR"] 					= {charName = "Zac", 			slot = _R,  	displayName = "Let's Bounce!"} ]]
 
 local Minions = {
 	["SRU_ChaosMinionSuper"] = true,
@@ -1245,10 +1310,10 @@ function JEvade:__init()
 						self.JEMenu.Spells:MenuElement({id = j, name = ""..enemy.." "..self.SpellSlot[spell.slot].." - "..spell.displayName, leftIcon = spell.icon, type = MENU})
 						self.JEMenu.Spells[j]:MenuElement({id = "Dodge"..j, name = "Dodge Spell", value = true})
 						self.JEMenu.Spells[j]:MenuElement({id = "Draw"..j, name = "Draw Spell", value = true})
-						self.JEMenu.Spells[j]:MenuElement({id = "Force"..j, name = "Force To Dodge", value = spell.danger >= 4})
+						self.JEMenu.Spells[j]:MenuElement({id = "Force"..j, name = "Force To Dodge", value = spell.danger >= 2})
 						if spell.fow then self.JEMenu.Spells[j]:MenuElement({id = "FOW"..j, name = "FOW Detection", value = true}) end
 						self.JEMenu.Spells[j]:MenuElement({id = "HP"..j, name = "%HP To Dodge Spell", value = 100, min = 0, max = 100, step = 5})
-						self.JEMenu.Spells[j]:MenuElement({id = "ER"..j, name = "Extra Radius", value = 0, min = 0, max = 100, step = 5})
+						self.JEMenu.Spells[j]:MenuElement({id = "ER"..j, name = "Extra Radius", value = 5, min = 0, max = 100, step = 5})
 						self.JEMenu.Spells[j]:MenuElement({id = "Danger"..j, name = "Danger Level", value = (spell.danger or 1), min = 1, max = 5, step = 1})
 					end
 				end
@@ -1261,11 +1326,11 @@ function JEvade:__init()
 				if eS[i] then
 					self.JEMenu.Spells:MenuElement({id = eS[i].name, name = ""..myHero.charName.." "..self.SpellSlot[eS[i].slot].." - "..eS[i].displayName, leftIcon = eS[i].icon, type = MENU})
 					self.JEMenu.Spells[eS[i].name]:MenuElement({id = "US"..eS[i].name, name = "Use Spell", value = true})
-					self.JEMenu.Spells[eS[i].name]:MenuElement({id = "Danger"..eS[i].name, name = "Danger Level", value = (eS[i].danger or 1), min = 1, max = 5, step = 1})
+					self.JEMenu.Spells[eS[i].name]:MenuElement({id = "Danger"..eS[i].name, name = "Danger Level > ", value = (eS[i].danger or 1), min = 1, max = 5, step = 1})
 				end
 			end
 		end
-	end, 0.01)
+	end, 0.04)
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
 	self.SpecialSpells = {
@@ -1328,10 +1393,10 @@ function JEvade:__init()
 			local p2 = self:CircleToPolygon(eP, 135, self.JEMenu.Core.CQ:Value())
 			local path = XPolygon:ClipPolygons(p1, p2, "union")
 			return XPolygon:OffsetPolygon(path, self.BoundingRadius), path end,
-		--[[["RellW"] = function(sP, eP, data)
-			local sPos = Point2D(sP):Extended(eP, -data.range)
-			return self:RectangleToPolygon(sPos, eP, data.radius, self.BoundingRadius),
-				self:RectangleToPolygon(sPos, eP, data.radius) end,]]
+		["RellW"] = function(sP, eP, data)
+			local sP2, eP2 = Point2D(eP):Extended(sP, 500), self:AppendVector(sP, eP, 200)
+			return self:RectangleToPolygon(sP2, eP2, data.radius, self.BoundingRadius),
+				self:RectangleToPolygon(sP2, eP2, data.radius) end,
 		["SettW"] = function(sP, eP, data)
 			local sPos = self:AppendVector(eP, sP, -40)
 			local ePos = Point2D(sPos):Extended(eP, data.range)
@@ -1401,9 +1466,10 @@ function JEvade:__init()
 		if self.Flash then
 			self.JEMenu.Spells:MenuElement({id = "Flash", name = myHero.charName.." - Summoner Flash", leftIcon = FlashIcon, type = MENU})
 			self.JEMenu.Spells.Flash:MenuElement({id = "US", name = "Use Flash", value = true})
+			self.JEMenu.Spells.Flash:MenuElement({id = "Danger", name = "Danger Level > ", value = 4, min = 1, max = 5, step = 1})
 		end
 		self.Loaded = true
-	end, 0.01)
+	end, 0.05)
 end
 
 --[[
@@ -1762,20 +1828,23 @@ function JEvade:GetMovementSpeed(extra, evadeSpell)
 	if not extra then return moveSpeed end; if not evadeSpell then return 9999 end
 	local lvl, name = myHero:GetSpellData(evadeSpell.slot).level or 1, evadeSpell.name
 	if lvl == nil or lvl == 0 then return moveSpeed end
-	if name == "AnnieE-" then return (1.2824 + (0.0176 * myHero.levelData.lvl)) * moveSpeed
-	elseif name == "BlitzcrankW-" then return ({1.7, 1.75, 1.8, 1.85, 1.9})[lvl] * moveSpeed
-	elseif name == "DravenW-" then return ({1.4, 1.45, 1.5, 1.55, 1.6})[lvl] * moveSpeed
-	elseif name == "GarenQ-" then return 1.3 * moveSpeed
-	elseif name == "KaisaE-" then return ({1.55, 1.6, 1.65, 1.7, 1.75})[lvl] * 2 * MathMin(1, myHero.attackSpeed) * moveSpeed
-	elseif name == "KatarinaW-" then return ({1.5, 1.6, 1.7, 1.8, 1.9})[lvl] * moveSpeed
+	if name == "AnnieE-" then return (1.20 + 0.30 / 17 * (myHero.levelData.lvl - 1)) * moveSpeed
+	elseif name == "AkaliW-" then return ({1.30, 1.35, 1.40, 1.45, 1.50})[lvl] * moveSpeed
+	elseif name == "AhriW-" then return 1.40 * moveSpeed
+	elseif name == "BlitzcrankW-" then return ({1.7, 1.75, 1.80, 1.85, 1.90})[lvl] * moveSpeed
+	elseif name == "DravenW-" then return ({1.5, 1.55, 1.60, 1.65, 1.70})[lvl] * moveSpeed
+	elseif name == "GarenQ-" then return 1.35 * moveSpeed
+	elseif name == "KaisaE-" then return ({1.55, 1.60, 1.65, 1.70, 1.75})[lvl] * moveSpeed  -- need myHero.bonusattackSpeed for +1% per 1% Bonus attack speed
+	elseif name == "KayleW-" then return ({1.24, 1.28, 1.32, 1.36, 1.40})[lvl] + (0.08 * MathFloor(myHero.ap / 100)) * moveSpeed
+	elseif name == "KatarinaW-" then return ({1.50, 1.60, 1.70, 1.80, 1.90})[lvl] * moveSpeed
 	elseif name == "KennenE-" then return 2 * moveSpeed
-	elseif name == "RumbleW-" then return ({1.2, 1.25, 1.3, 1.35, 1.4})[lvl] * moveSpeed
-	elseif name == "ShyvanaW-" then return ({1.3, 1.35, 1.4, 1.45, 1.5})[lvl] * moveSpeed
-	elseif name == "SkarnerW-" then return ({1.08, 1.1, 1.12, 1.14, 1.16})[lvl] * moveSpeed
-	elseif name == "SonaE-" then return (({1.1, 1.11, 1.12, 1.13, 1.14})[lvl] + myHero.ap / 100 * 0.03) * moveSpeed
-	elseif name == "TeemoW-" then return ({1.1, 1.14, 1.18, 1.22, 1.26})[lvl] * moveSpeed
-	elseif name == "UdyrE-" then return ({1.15, 1.2, 1.25, 1.3, 1.35, 1.4})[lvl] * moveSpeed
-	elseif name == "VolibearQ-" then return ({1.15, 1.175, 1.2, 1.225, 1.25})[lvl] * moveSpeed end
+	elseif name == "RumbleW-" then return ({1.10, 1.15, 1.20, 1.25, 1.30})[lvl] * moveSpeed
+	elseif name == "ShyvanaW-" then return ({1.30, 1.35, 1.40, 1.45, 1.50})[lvl] + (0.08 * MathFloor(myHero.ap / 100)) * moveSpeed -- +8% per 100 AP
+	elseif name == "SkarnerW-" then return ({1.08, 1.10, 1.12, 1.14, 1.16})[lvl] * moveSpeed
+	elseif name == "SonaE-" then return 1.20 + (0.02 * MathFloor(myHero.ap / 100)) * moveSpeed  -- Aura bonus to allies would be ({1.1, 1.11, 1.12, 1.13, 1.14})[lvl] + (0.02 * MathFloor(myHero.ap / 100)) * moveSpeed
+	elseif name == "TeemoW-" then return ({1.20, 1.28, 1.26, 1.44, 1.52})[lvl] * moveSpeed
+	elseif name == "UdyrE-" then return ({1.15, 1.20, 1.25, 1.30, 1.35, 1.40})[lvl] * moveSpeed
+	elseif name == "VolibearQ-" then return ({1.10, 1.14, 1.18, 1.22, 1.26})[lvl] * moveSpeed end
 	return moveSpeed
 end
 
@@ -1836,6 +1905,7 @@ end
 function JEvade:LoadEvadeSpells()
 	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then self.Flash, self.Flash2 = HK_SUMMONER_1, SUMMONER_1
 	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then self.Flash, self.Flash2 = HK_SUMMONER_2, SUMMONER_2 end
+	flashRange = 400
 	for i = 0, 3 do
 		local eS = EvadeSpells[myHero.charName]
 		if eS and eS[i] then TableInsert(self.EvadeSpellData, {name = eS[i].name, slot = eS[i].slot, slot2 = eS[i].slot2, range = eS[i].range, type = eS[i].type}) end
@@ -1920,7 +1990,7 @@ function JEvade:CoreManager(s)
 		if self.OldTimer ~= self.NewTimer then
 			local evadeSpells = self.EvadeSpellData
 			local flashUsage = self.Flash2 and self.JEMenu.Spells.Flash.US:Value()
-				and self:IsReady(self.Flash2) and s.danger == 5
+				and self:IsReady(self.Flash2) and s.danger >= self.JEMenu.Spells.Flash.Danger:Value()
 			local safePos = self:GetBestEvadePos(self.DodgeableSpells, s.radius, 2, nil, false)
 			if safePos then
 				self.ExtendedPos = self:GetExtendedSafePos(safePos)
@@ -1941,8 +2011,8 @@ function JEvade:CoreManager(s)
 				if result == 0 then
 					local dodgePos = self:GetBestEvadePos(self.DodgeableSpells, s.radius, 1, true, true)
 					if dodgePos then
-						
-						if flashUsage then result = 1; self:CastSpell(self.Flash, self:To3D(dodgePos))
+						local flashPos = Point2D(self.MyHeroPos):Extended(dodgePos, flashRange)
+						if flashUsage then result = 1; _G.Control.CastSpell(self.Flash, self:To3D(flashPos))
 						elseif self.JEMenu.Spells[s.name]["Force"..s.name]:Value() then
 							self.ExtendedPos = self:GetExtendedSafePos(dodgePos)
 							self.SafePos, self.Evading = dodgePos, true
