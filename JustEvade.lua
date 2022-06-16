@@ -1463,11 +1463,13 @@ function JEvade:__init()
 	}
 	DelayAction(function()
 		self:LoadEvadeSpells()
-		if self.Flash then
+		DelayAction(function()
+			if self.Flash then
 			self.JEMenu.Spells:MenuElement({id = "Flash", name = myHero.charName.." - Summoner Flash", leftIcon = FlashIcon, type = MENU})
 			self.JEMenu.Spells.Flash:MenuElement({id = "US", name = "Use Flash", value = true})
 			self.JEMenu.Spells.Flash:MenuElement({id = "Danger", name = "Danger Level > ", value = 4, min = 1, max = 5, step = 1})
-		end
+			end
+		end, 0.05)
 		self.Loaded = true
 	end, 0.05)
 end
