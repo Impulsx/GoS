@@ -17,7 +17,8 @@
 	+ Adding Belveth (TESTING, Belveth W should work)
 	+ Fixing Rell (TESTING and Adjustment/recode possibly needed)
 	+ Fixed usage of Flash and added Danger Level: added some logic for Flash Range
-		If it uses flash it'll try at max flash disance for less sus smol flashes (TESTED, walls may still cause smol flash but still dodge spell just "/all worth" ? ^^ )
+		If it uses flash it'll try at max flash distance for less sus smol flashes (TESTED, walls may still cause smol flash but still dodge spell just "/all worth" ? ^^ )
+		Edited up some of the flash coding, now fits in more with JustEvade and gets Flash.range data 
 	+ Updated and added support for evade skill movementspeed modifiers (TESTING)
 		[ AnnieE, AkaliW, AhriW, BlitzcrankW, DravenW, GarenQ, KaisaE, KayleW, KatarinaW, RumbleW, ShyvanaW, SkarnerW, SonaE, TeemoW, UdyrE, VolibearQ ] 
 	+ Updated and added support for channelbuffs: not to dodge while in example = Xerath R, Katarina R, Vladimir W
@@ -26,6 +27,7 @@
 		[ Caitlyn R, , FiddleSticks W and R (DISABLED), VelkozR, Vladimir W]
 	 Buff names and champ skills getting reworked or updated // A lib for this would be nice.
 	+ Forced Dodge sets skill.Danger >= 2 (you wont use flash even is set to >=4 in my testing, just ensures you try to dodge)
+	+ Tried playing dodge the Mundo Q - it's a rito hitbot for sure ()
 
 	v1.1.7 // if you noticed any bugs write to Zbysiu#1192
 	+ Added Gwen's spells (NOT TESTED!)
@@ -234,7 +236,7 @@ local SpellDatabase = {
 		["DravenRCast"] = {icon = Icons.."DravenR"..Png, displayName = "Whirling Death", slot = _R, type = "linear", speed = 2000, range = 12500, delay = 0.25, radius = 160, danger = 4, cc = false, collision = false, windwall = true, hitbox = true, fow = false, exception = false, extend = true},
 	},
 	["DrMundo"] = {
-		["DrMundoQ"] = {icon = Icons.."DrMundoQ"..Png, displayName = "Infected Bonesaw", missileName = "InfectedBonesawMissile", slot = _Q, type = "linear", speed = 2000, range = 925, delay = 0.25, radius = 130, danger = 2, cc = true, collision = true, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
+		["DrMundoQ"] = {icon = Icons.."DrMundoQ"..Png, displayName = "Infected Bonesaw", missileName = "DrMundoQ", slot = _Q, type = "linear", speed = 2000, range = 990, delay = 0.25, radius = 120, danger = 2, cc = true, collision = true, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
 	},
 	["Ekko"] = {
 		["EkkoQ"] = {icon = Icons.."EkkoQ"..Png, displayName = "Timewinder", missileName = "EkkoQMis", slot = _Q, type = "linear", speed = 1650, range = 1175, delay = 0.25, radius = 60, danger = 1, cc = true, collision = false, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
@@ -1269,7 +1271,7 @@ local JEvade = Class()
 
 function JEvade:__init()
 	self.DoD, self.Evading, self.InsidePath, self.Loaded = false, false, false, false
-	self.ExtendedPos, self.Flash, self.Flash2, self.MousePos, self.MyHeroPos, self.SafePos = nil, nil, nil, nil, nil, nil
+	self.ExtendedPos, self.Flash, self.Flash2, self.FlashRange, self.MousePos, self.MyHeroPos, self.SafePos = nil, nil, nil, nil, nil, nil, nil
 	self.Debug, self.DodgeableSpells, self.DetectedSpells, self.Enemies, self.EvadeSpellData, self.OnCreateMisCBs, self.OnImpDodgeCBs, self.OnProcSpellCBs = {}, {}, {}, {}, {}, {}, {}, {}
 	self.DDTimer, self.DebugTimer, self.MoveTimer, self.MissileID, self.OldTimer, self.NewTimer = 0, 0, 0, 0, 0, 0
 	self.SpellSlot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
@@ -1905,9 +1907,9 @@ end
 --]]
 
 function JEvade:LoadEvadeSpells()
-	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then self.Flash, self.Flash2 = HK_SUMMONER_1, SUMMONER_1
-	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then self.Flash, self.Flash2 = HK_SUMMONER_2, SUMMONER_2 end
-	flashRange = 400
+	if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" then self.Flash, self.Flash2, self.FlashRange = HK_SUMMONER_1, SUMMONER_1, myHero:GetSpellData(SUMMONER_1).range
+	elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then self.Flash, self.Flash2, self.FlashRange = HK_SUMMONER_2, SUMMONER_2, myHero:GetSpellData(SUMMONER_2).range end
+
 	for i = 0, 3 do
 		local eS = EvadeSpells[myHero.charName]
 		if eS and eS[i] then TableInsert(self.EvadeSpellData, {name = eS[i].name, slot = eS[i].slot, slot2 = eS[i].slot2, range = eS[i].range, type = eS[i].type}) end
@@ -2013,7 +2015,7 @@ function JEvade:CoreManager(s)
 				if result == 0 then
 					local dodgePos = self:GetBestEvadePos(self.DodgeableSpells, s.radius, 1, true, true)
 					if dodgePos then
-						local flashPos = Point2D(self.MyHeroPos):Extended(dodgePos, flashRange)
+						local flashPos = Point2D(self.MyHeroPos):Extended(dodgePos, self.FlashRange)
 						if flashUsage then result = 1; _G.Control.CastSpell(self.Flash, self:To3D(flashPos))
 						elseif self.JEMenu.Spells[s.name]["Force"..s.name]:Value() then
 							self.ExtendedPos = self:GetExtendedSafePos(dodgePos)
