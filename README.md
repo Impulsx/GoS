@@ -1,7 +1,7 @@
 # GoS :shipit:
 ## I'm trying :trollface:
 
-:finnadie: Started me just wanting to keep scripts I was using. 
+:finnadie: Started me just wanting to keep scripts. 
 
 :godmode: Turned into making my own. 
 
@@ -11,4 +11,4 @@
 - [ ] WRAIO update
 - [ ] Updating DamageLib.lua, never ends.
 
-> Achieved Trail-Dev for Gos
+> Trail-Dev for Gos
