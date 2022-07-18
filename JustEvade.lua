@@ -11,6 +11,11 @@
 	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu
 
 	Changelog:
+	v1.1.9 //
+	+ Naliah (TEST)
+	+ Rell spell types (stops error waiting on rework)
+	+ Vanye Q useage set to any danger lvl > 1 from > 2
+		-- Set in menu option?
 
 	v1.1.8 // Impuls here o/ with a [WIP]
 	+ Edited to my github fork for Icons / Versioning
@@ -115,7 +120,7 @@ local function ReadFile(file)
 	txt:close(); return result
 end
 
-local Version, IntVer = 1.18, "1.1.8"
+local Version, IntVer = 1.19, "1.1.9"
 local function AutoUpdate()
 	DownloadFile("https://raw.githubusercontent.com/Impulsx/GoS/master/JustEvade.version", SCRIPT_PATH .. "JustEvade.version")
 	if tonumber(ReadFile(SCRIPT_PATH .. "JustEvade.version")) > Version then
@@ -433,6 +438,11 @@ local SpellDatabase = {
 		["Bushwhack"] = {icon = Icons.."NidaleeW"..Png, displayName = "Bushwhack", slot = _W, type = "circular", speed = MathHuge, range = 900, delay = 1.25, radius = 85, danger = 1, cc = false, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = false},
 		["Swipe"] = {icon = Icons.."NidaleeE"..Png, displayName = "Swipe", slot = _E, type = "conic", speed = MathHuge, range = 350, delay = 0.25, radius = 0, angle = 180, danger = 2, cc = false, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = true},
 	},
+	["Nilah"] = {
+		["NilahQ"] = {icon = Icons.."NilahQ"..Png, displayName = "Formless Blade", slot = _Q, type = "linear", speed = 500, range = 600, delay = 0.25, radius = 150, danger = 2, cc = false, collision = false, windwall = false, hitbox = false, fow = true, exception = false, extend = false},
+		["NilahE"] = {icon = Icons.."NilahE"..Png, displayName = "Slipstream", slot = _E, type = "linear", speed = 2200, range = 550, delay = 0.00, radius = 150, danger = 2, cc = false, collision = false, windwall = false, hitbox = false, fow = true, exception = false, extend = false},
+		["NilahR"] = {icon = Icons.."NilahR"..Png, displayName = "Apotheosis", slot = _R, type = "circular", speed = MathHuge, range = 0, delay = 1.0, radius = 450, danger = 5, cc = true, collision = false, windwall = false, hitbox = false, fow = true, exception = false, extend = false},
+	},
 	["Nocturne"] = {
 		["NocturneDuskbringer"] = {icon = Icons.."NocturneQ"..Png, displayName = "Duskbringer", missileName = "NocturneDuskbringer", slot = _Q, type = "linear", speed = 1600, range = 1200, delay = 0.25, radius = 60, danger = 2, cc = false, collision = false, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
 	},
@@ -483,10 +493,10 @@ local SpellDatabase = {
 		["RekSaiQBurrowed"] = {icon = Icons.."RekSaiQ"..Png, displayName = "Prey Seeker", missileName = "RekSaiQBurrowedMis", slot = _Q, type = "linear", speed = 1950, range = 1625, delay = 0.125, radius = 65, danger = 2, cc = false, collision = true, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
 	},
 	["Rell"] = {
-		["RellQ"] = {icon = Icons.."RellQ"..Png, displayName = "Shattering Strike", slot = _Q, speed = MathHuge, range = 685, delay = 0.35, radius = 80, danger = 2, cc = false, collision = false, windwall = false, hitbox = true, fow = false, exception = false, extend = true},
-		["RellW"] = {icon = Icons.."RellW"..Png, displayName = "Crash Down", slot = _W, speed = MathHuge, range = 500, delay = 0.625, radius = 200, danger = 3, cc = true, collision = false, windwall = false, hitbox = true, fow = false, exception = false, extend = true},
-		["RellE"] = {icon = Icons.."RellE"..Png, displayName = "Attract and Repel", slot = _E, speed = MathHuge, range = 1500, delay = 0.35, radius = 250, danger = 3, cc = true, collision = false, windwall = false, hitbox = true, fow = false, exception = false, extend = true},
-		["RellR"] = {icon = Icons.."RellR"..Png, displayName = "Magnet Storm", slot = _R, speed = MathHuge, range = 0, delay = 0.25, radius = 400, danger = 5, cc = true, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = false},
+		["RellQ"] = {icon = Icons.."RellQ"..Png, displayName = "Shattering Strike", slot = _Q, type = "linear", speed = MathHuge, range = 685, delay = 0.35, radius = 80, danger = 2, cc = false, collision = false, windwall = false, hitbox = true, fow = false, exception = false, extend = true},
+		["RellW"] = {icon = Icons.."RellW"..Png, displayName = "Crash Down", slot = _W, type = "linear", speed = MathHuge, range = 500, delay = 0.625, radius = 200, danger = 3, cc = true, collision = false, windwall = false, hitbox = true, fow = false, exception = false, extend = true},
+		["RellE"] = {icon = Icons.."RellE"..Png, displayName = "Attract and Repel", slot = _E, type = "linear", speed = MathHuge, range = 1500, delay = 0.35, radius = 250, danger = 3, cc = true, collision = false, windwall = false, hitbox = true, fow = false, exception = false, extend = true},
+		["RellR"] = {icon = Icons.."RellR"..Png, displayName = "Magnet Storm", slot = _R,  type = "circular", speed = MathHuge, range = 0, delay = 0.25, radius = 400, danger = 5, cc = true, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = false},
 	},
 	--["Renekton"] = {
 	--	["RenektonSliceAndDice"] = {icon = Icons.."RenektonE"..Png, displayName = "Slice and Dice", slot = _E, type = "linear", speed = 1125, range = 450, delay = 0.25, radius = 65, danger = 2, cc = false, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = true},
@@ -537,6 +547,7 @@ local SpellDatabase = {
 	},
 	["Sivir"] = {
 		["SivirQ"] = {icon = Icons.."SivirQ"..Png, displayName = "Boomerang Blade", missileName = "SivirQMissile", slot = _Q, type = "linear", speed = 1350, range = 1250, delay = 0.25, radius = 90, danger = 2, cc = false, collision = false, windwall = true, hitbox = false, fow = true, exception = false, extend = true},
+		--new siver speed 1450 outward 1200 in/return
 	},
 	["Skarner"] = {
 		["SkarnerFractureMissile"] = {icon = Icons.."SkarnerE"..Png, displayName = "Fracture", missileName = "SkarnerFractureMissile", slot = _E, type = "linear", speed = 1500, range = 1000, delay = 0.25, radius = 70, danger = 1, cc = true, collision = false, windwall = true, hitbox = false, fow = true, exception = false, extend = true},
@@ -803,7 +814,7 @@ local EvadeSpells = {
 		[2] = {icon = Icons.."UdyrE"..Png, type = 2, displayName = "Bear Stance", name = "UdyrE-", danger = 1, slot = _E, slot2 = HK_E},
 	},
 	["Vayne"] = {
-		[0] = {icon = Icons.."VayneQ"..Png, type = 1, displayName = "Tumble", name = "VayneQ-", range = 300, danger = 2, slot = _Q, slot2 = HK_Q},
+		[0] = {icon = Icons.."VayneQ"..Png, type = 1, displayName = "Tumble", name = "VayneQ-", range = 300, danger = 1, slot = _Q, slot2 = HK_Q},
 	},
 	["Vi"] = {
 		[0] = {icon = Icons.."ViQ"..Png, type = 1, displayName = "Vault Breaker", name = "ViQ-", range = 250, danger = 3, slot = _Q, slot2 = HK_Q},
