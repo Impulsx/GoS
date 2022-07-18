@@ -1,4 +1,4 @@
-v12.10
+Patch: 12.13
 1001: Boots
 1004: Faerie Charm
 1006: Rejuvenation Bead
