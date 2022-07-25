@@ -122,6 +122,8 @@ local UltSpells = {
 	["SonaR"] = {charName = "Sona"},
 	["ThreshRPenta"] = {charName = "Thresh"},
 	["YasuoR"] = {charName = "Yasuo"},
+	["NilahR"] = {charName = "Nilah"},
+	["BelvethR"] = {charName = "Belveth"}
 }
 
 function LoadScript()
@@ -1612,6 +1614,13 @@ if target == nil then return end
 		end
 	
 
+--Belveth
+	if (myHero:GetSpellData(_R).name == "BelvethR") and myHero.pos:DistanceTo(target.pos) <= 500 then
+		local count = GetEnemyCount(500, myHero)
+		if count >= Menu.Combo.Set.Hit:Value() then
+			Control.CastSpell(HK_R)
+		end
+	end
 
 --Braum
 
@@ -1829,7 +1838,13 @@ if target == nil then return end
 			end
 		end
 	
-
+--Nilah
+		if (myHero:GetSpellData(_R).name == "NilahR") and myHero.pos:DistanceTo(target.pos) <= 400 then
+			local count = GetEnemyCount(400, myHero)
+			if count >= Menu.Combo.Set.Hit:Value() then
+				Control.CastSpell(HK_R)
+			end
+		end
 
 --Orianna
 		if (myHero:GetSpellData(_R).name == "OrianaDetonateCommand-") then
