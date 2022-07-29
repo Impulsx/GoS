@@ -33,22 +33,22 @@ function CalcRDmg(unit)
 	local Distance = GetDistance(myHero.pos, unit.pos)
 	local MathDist = math.floor(math.floor(Distance)/100)	
 	local level = myHero:GetSpellData(_R).level
-	local BaseQ = ({25, 35, 45})[level] + 0.15 * myHero.bonusDamage
-	local QMissHeal = ({25, 30, 35})[level] / 100 * (unit.maxHealth - unit.health)
+	local BaseR = ({25, 40, 55})[level] + 0.15 * myHero.bonusDamage
+	local RMissHeal = ({25, 30, 35})[level] / 100 * (unit.maxHealth - unit.health)
 	local dist = myHero.pos:DistanceTo(unit.pos)
 	if Distance < 100 then
-		Damage = BaseQ + QMissHeal
+		Damage = BaseR + RMissHeal
 	elseif Distance >= 1500 then
-		Damage = BaseQ * 10	+ QMissHeal		
+		Damage = BaseR * 10	+ RMissHeal		
 	else
-		Damage = ((((MathDist * 6) + 10) / 100) * BaseQ) + BaseQ + QMissHeal
+		Damage = ((((MathDist * 6) + 10) / 100) * BaseR) + BaseR + RMissHeal
 	end
-	return CalcPhysicalDamage(myHero, unit, Damage)
+	return CalcPhysicalDamage(myHero, unit, Damage) or CalcDamage(myHero, unit, 1, Damage)
 end
 
 function LoadScript() 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.06"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})
 	
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
@@ -106,17 +106,17 @@ function LoadScript()
 	
 	WData =
 	{
-	Type = _G.SPELLTYPE_LINE, Delay = 0.6, Radius = 30, Range = 1400, Speed = 3300, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}
+	Type = _G.SPELLTYPE_LINE, Delay = 0.6, Radius = 60, Range = 1450, Speed = 3300, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}
 	}
 	
-	WspellData = {speed = 3300, range = 1400, delay = 0.6, radius = 30, collision = {"minion"}, type = "linear"}	
+	WspellData = {speed = 3300, range = 1450, delay = 0.6, radius = 60, collision = {"minion"}, type = "linear"}	
 	
 	EData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = 1.5, Radius = 120, Range = 900, Speed = 1100, Collision = false
+	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.9, Radius = 115, Range = 925, Speed = 1100, Collision = false
 	}
 	
-	EspellData = {speed = 1100, range = 900, delay = 1.5, radius = 120, collision = {nil}, type = "circular"}	
+	EspellData = {speed = 1100, range = 925, delay = 0.9, radius = 115, collision = {nil}, type = "circular"}	
 
 	Callback.Add("Tick", function() Tick() end)
 	
@@ -471,8 +471,11 @@ end
 
 function Check()
 	--print(myHero.range)
-	QRange = (myHero:GetSpellData(_Q).level*25) + 75 + 600
-	if myHero.range < 599 then
+	QRange = ({80, 110, 140, 170, 200})[myHero:GetSpellData(_Q).level] + (myHero:GetSpellData(_Q).range) --(myHero:GetSpellData(_Q).level*25) + 75 + 600
+	
+	local fishBones = GetBuffData(myHero, "JinxQ")
+	local powPow = GetBuffData(myHero, "jinxqicon")
+	if fishBones then
 		isFishBones = true
 	else
 		isFishBones = false
@@ -480,7 +483,8 @@ function Check()
 	
 	local Buff = GetBuffData(myHero, "jinxqramp")
 	if Buff then
-		FishStacks = Buff.stacks
+		--FishStacks = Buff.stacks
+		FishStacks = Buff.count
 	else
 		FishStacks = 0
 	end	

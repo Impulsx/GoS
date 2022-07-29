@@ -183,7 +183,7 @@ Data = {
         },
            Jinx = {
             Changelog = "Jinx Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         },
            Ashe = {
             Changelog = "Ashe Changelog Here",
