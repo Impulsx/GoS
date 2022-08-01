@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 0.07
+    local Version = 0.08
     
     local Files = {
         Lua = {
@@ -719,14 +719,14 @@ function Samira:Tick()
 		end	
 	]]
 	if currSpell and currSpell.name == "SamiraR" and currSpell.isChanneling or myHero:GetSpellData(_R).currentCd > 5.75 then
-		--UltAlly = true
-		--CastedR = true
-		SetAttack(false)
+		UltAlly = true
+		CastedR = true
+		--SetAttack(false)
 		--ForceMovementSpot = self:ForceMovement(target)
 	else
 		UltAlly = false
 		CastedR = false
-		SetAttack(true)
+		--SetAttack(true)
 		--_G.SDK.Orbwalker.ForceMovement = nil
 	end	
 
