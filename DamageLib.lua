@@ -691,7 +691,7 @@ local GetBaseHealth = function(unit)
     return 537 + (96 * (unit.levelData.lvl - 1))
   elseif unit.charName == "DrMundo" then
     return 653 + (103 * (unit.levelData.lvl - 1))
-  end	
+  end
 end
 
 local GetBaseMana = function(unit)
@@ -2426,17 +2426,17 @@ local SpellDamageTable = {
 
   ["Vladimir"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.6 * source.ap end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({20, 33.75, 47.5, 61.25, 75})[level] + 0.025 * (source.maxHealth - GetBaseHealth(source)) end}, --per tick
-    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({80, 135, 190, 245, 300})[level] + 0.1 * (source.maxHealth - GetBaseHealth(source)) end}, --totalDamage
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({20, 33.75, 47.5, 61.25, 75})[level] + (0.025 * (source.maxHealth - GetBaseHealth(source))) end}, --per tick
+    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({80, 135, 190, 245, 300})[level] + (0.1 * (source.maxHealth - GetBaseHealth(source))) end}, --totalDamage
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({30, 45, 60, 75, 90})[level] + (0.35 * source.ap) + (0.015 * source.maxHealth) end}, --min damage
-    {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({60, 90, 120, 150, 180})[level] + (0.8 * source.ap) + (0.06 * source.maxHealth) end}, --max damage
-    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.7 * source.ap end},
+    {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({60, 90, 120, 150, 180})[level] + (0.80 * source.ap) + (0.06 * source.maxHealth) end}, --max damage
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) local dmg =  ({150, 250, 350})[level] + 0.7 * source.ap; return dmg * 1.10 end}, --increases all dmg +10%
   },
 
   ["Volibear"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({10, 30, 50, 70, 90})[level] + 1.2 * source.bonusDamage end},
-    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (({5, 30, 55, 80, 105})[level]) + 1.00 * source.totalDamage + 0.05 * (source.maxHealth - GetBaseHealth(source)) end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + (0.8 * source.ap) + (({0.11, 0.12, 0.13, 0.14, 0.15})[level] * target.maxHealth) end},
+    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (({5, 30, 55, 80, 105})[level]) + 1.00 * source.totalDamage + (0.05 * (source.maxHealth - GetBaseHealth(source))) end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + (0.80 * source.ap) + (({0.11, 0.12, 0.13, 0.14, 0.15})[level] * target.maxHealth) end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({300, 500, 700})[level] + (1.25 * source.ap) + (2.5 * source.bonusDamage) end},
   },
 
