@@ -83,6 +83,13 @@ Calculations:
     }
 }
 
+API Release:
+_G.DamageLib = {
+  ItemID = ItemID,
+  MeleeHeros = Hero[1],
+}
+
+
 TODO:
 getdmg(spell/Items)
 ItemID table implmentation, global?
@@ -3012,17 +3019,16 @@ Callback.Add("Load", function()
 end)
 
 
---[[
 
 _G.DamageLib = {
   ItemID = ItemID,
   MeleeHeros = Hero[1],
 }
+--[[ 
 function DamageLib:ItemID(ItemID)
   return ItemID:HasItem(ItemID)
 end
 function DamageLib:IsMelee(unit)
   return IsMelee(IsMelee)
-end
-
- ]]
+end 
+]]
