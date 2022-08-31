@@ -334,8 +334,14 @@ local function GetItemSlot(id) --returns Slot, HotKey
     end
     return 0
 end
- 
-local wardItemIDs = {3340, 2049, 2301, 2302, 2303, 3711}
+
+local ItemID = DamageLib.ItemID
+local wardItemIDs = {ItemID.StealthWard, ItemID.ControlWard, ItemID.FarsightAlteration, ItemID.ScarecrowEffigy, ItemID.StirringWardstone, 
+ItemID.VigilantWardstone, ItemID.WatchfulWardstone, 
+ItemID.BlackMistScythe,  ItemID.HarrowingCrescent, ItemID.SpectralSickle, 
+ItemID.PauldronsofWhiterock, ItemID.RunesteelSpaulders, ItemID.SteelShoulderguards, 
+ItemID.BulwarkoftheMountain, ItemID.TargonsBuckler, ItemID.RelicShield, 
+ItemID.ShardofTrueIce, ItemID.Frostfang, ItemID.SpellthiefsEdge, }
 local function GetWardSlot() --returns Slot, HotKey
     for i = 1, #wardItemIDs do
         local ward, key = GetItemSlot(wardItemIDs[i])
@@ -740,7 +746,7 @@ local function CircleCircleIntersection(c1, c2, r1, r2)
     local S2 = PA - H * Direction:Perpendicular()
     return S1, S2
 end
- 
+-- Damage calcs
 function PassivePercentMod(source, target, dmgMod)
     local tarMinion = target.type == Obj_AI_Minion and target
     local newMod = dmgMod
@@ -902,26 +908,7 @@ function Spell:CalcDamage(target, stage)
     local stage = stage or 1
     local rawDmg = self:GetDamage(target, stage)
     if rawDmg <= 0 then return 0 end
-    --
-    local damage = 0
-    if self.DmgType == 'Magical' then
-        damage = CalcMagicalDamage(self.From, target, rawDmg)
-    elseif self.DmgType == 'Physical' then
-        damage = CalcPhysicalDamage(self.From, target, rawDmg);
-    elseif self.DmgType == 'Mixed' then
-        damage = CalcMixedDamage(self.From, target, rawDmg * .5, rawDmg * .5)
-    end
-    
-    if self.DmgType ~= 'True' then
-        if HasBuff(myHero, "summonerexhaustdebuff") then
-            damage = damage * (1 - 0.35)
-        elseif HasBuff(myHero, "itemsmitechallenge") then
-            damage = damage * (1 - 0.10)
-        end
-    else
-        damage = rawDmg
-    end
-    
+    local damage = rawDmg
     return damage
 end
  
@@ -1351,7 +1338,7 @@ end
  
 ChangePred = function(newVal)
     if newVal == 1 then
-        print("Changing to WR Pred")
+        print("Changing to [WR]Internal Pred")
         Prediction.GetBestCastPosition = function(self, unit, spell)
             local range = spell.Range and spell.Range - 15 or huge
             local radius = spell.Radius == 0 and 1 or (spell.Radius + unit.boundingRadius) - 4
@@ -1407,10 +1394,21 @@ ChangePred = function(newVal)
             return Position, CastPosition, HitChance
         end
     elseif newVal == 2 then
-        print("Changing to GGPrediction")
+        print("Changing to GGPred")
         Prediction.GetBestCastPosition = function(self, unit, s)
             local args = {Delay = s.Delay, Radius = s.Radius, Range = s.Range, Speed = s.Speed, Collision = s.Collision, Type = s.Type == "SkillShot" and 0 or s.Type == "AOE" and 1}
             local pred = GGPrediction:GetPrediction(unit, args, s.From)
+            local castPos
+            if pred.CastPosition then
+                castPos = Vector(pred.CastPosition.x, 0, pred.CastPosition.y)
+            end
+            return castPos, castPos, pred.Hitchance - 1
+        end
+    elseif newVal == 3 then
+        print("Changing to PremPred")
+        Prediction.GetBestCastPosition = function(self, unit, s)
+            local args = {Delay = s.Delay, Radius = s.Radius, Range = s.Range, Speed = s.Speed, Collision = s.Collision, Type = s.Type == "SkillShot" and 0 or s.Type == "AOE" and 1}
+            local pred = PremiumPrediction:GetPrediction(unit, args, s.From)
             local castPos
             if pred.CastPosition then
                 castPos = Vector(pred.CastPosition.x, 0, pred.CastPosition.y)
@@ -1422,11 +1420,11 @@ end
  
 print("Impuls[WR] Prediction Loaded")
 
+--Menu
 local charName = myHero.charName
 local url = "https://raw.githubusercontent.com/Impulsx/LoL-Icons/master/"
-local HeroIcon = {url.."Vladimir.png"}
-local HeroSpirites = {url .. charName .. "Q.png", url .. charName .. 'W.png', url .. charName .. 'E.png', url .. charName .. "R.png"}
-
+local HeroIcon = {url..charName..".png"}
+local HeroSpirites = {url.. charName.."Q.png", url..charName..'W.png', url..charName..'E.png', url..charName.."R.png"}
 icons, Menu = {}
 icons.Hero = HeroIcon[1]
 icons.Q = HeroSpirites[1]
@@ -1437,11 +1435,11 @@ icons.R = HeroSpirites[4]
 Menu = MenuElement({id = charName, name = "Impuls[WR] | "..charName, type = MENU, leftIcon = icons.Hero})
 Menu:MenuElement({name = " ", drop = {"Spell Settings"}})
 Menu:MenuElement({id = "Q", name = "Q Settings", type = MENU, leftIcon = icons.Q})
-local lambda = charName == "Lucian" and Menu:MenuElement({id = "Q2", name = "Q2 Settings", type = MENU, leftIcon = icons.Q, tooltip = "Extended Q Settings"})
+--local MenuLucian = charName == "Lucian" and Menu:MenuElement({id = "Q2", name = "Q2 Settings", type = MENU, leftIcon = icons.Q, tooltip = "Extended Q Settings"}) --was local lambda
 Menu:MenuElement({id = "W", name = "W Settings", type = MENU, leftIcon = icons.W})
 Menu:MenuElement({id = "E", name = "E Settings", type = MENU, leftIcon = icons.E})
 Menu:MenuElement({id = "R", name = "R Settings", type = MENU, leftIcon = icons.R})
---
+--Draw
 Menu:MenuElement({name = " ", drop = {"Global Settings"}})
 Menu:MenuElement({id = "Draw", name = "Draw Settings", type = MENU})
 Menu.Draw:MenuElement({id = "ON", name = "Enable Drawings", value = true})
@@ -1451,7 +1449,7 @@ Menu.Draw:MenuElement({id = "Q", name = "Q", value = false, leftIcon = icons.Q})
 Menu.Draw:MenuElement({id = "W", name = "W", value = false, leftIcon = icons.W})
 Menu.Draw:MenuElement({id = "E", name = "E", value = false, leftIcon = icons.E})
 Menu.Draw:MenuElement({id = "R", name = "R", value = false, leftIcon = icons.R})
---
+--Pred
 local ChangePred
 local function CheckPred(newVal)
     if newVal == 1 then
@@ -1722,7 +1720,7 @@ if myHero.charName == "Vladimir" then
     function Vladimir:__init()
         --[[Data Initialization]]
         self.Allies, self.Enemies = {}, {}
-        self.scriptVersion = "0.01"
+        self.scriptVersion = "0.02"
         self:Spells()
         self:Menu()
         --[[Default Callbacks]]
@@ -1754,37 +1752,37 @@ if myHero.charName == "Vladimir" then
             Radius = 175,
             Collision = false,
             From = myHero,
-            Type = "Press" or GGPrediction.SPELLTYPE_CIRCLE
+            Type = "Press" or GGPrediction.SPELLTYPE_CIRCLE or "circular"
         })
-        self.E = Spell({
+        self.E = Spell({ --Missile name = VladimirEMissile
             Slot = 2,
-            Range = 600,
+            Range = 600, --Missile range says 1200?lol
             Delay = 0.25,
-            Speed = 2500,
-            Radius = 100,
-            Collision = true,
+            Speed = 4000, --was 2500
+            Radius = 60,
+            Collision = true or GGPrediction.COLLISION_MINION or GGPrediction.COLLISION_ENEMYHERO or GGPrediction.COLLISION_YASUOWALL,
             From = myHero,
-            Type = "Press" or GGPrediction.SPELLTYPE_CIRCLE
+            Type = "Press" or GGPrediction.SPELLTYPE_CIRCLE or "circular"
         })
         self.R = Spell({
             Slot = 3,
             Range = 625,
             Delay = 0.25,
             Speed = huge,
-            Radius = 350,
+            Radius = 375,
             Collision = false,
             From = myHero,
-            Type = "AOE" or GGPrediction.SPELLTYPE_CIRCLE
+            Type = "AOE" or GGPrediction.SPELLTYPE_CIRCLE or "circular"
         })
         self.Flash = flashData and Spell({
             Slot = flashData,
-            Range = 400,
-            Delay = 0.25,
+            Range = 425,
+            Delay = 0.00,
             Speed = huge,
-            Radius = 200,
+            Radius = 200 or myHero.boundingRadius, --or myHero.boundingRadius
             Collision = false,
             From = myHero,
-            Type = "Press" or GGPrediction.SPELLTYPE_LINE
+            Type = "Press" or GGPrediction.SPELLTYPE_LINE or "linear"
         })
     end
     
@@ -1802,7 +1800,7 @@ if myHero.charName == "Vladimir" then
         Menu.Q:MenuElement({id = "Harass", name = "Use on Harass", value = true})
         Menu.Q:MenuElement({name = " ", drop = {"Farm Settings"}})
         Menu.Q:MenuElement({id = "LastHit", name = "Use to LastHit", value = false}) --add
-        Menu.Q:MenuElement({id = "Unkillable", name = "    Only when Unkillable", value = false}) -- add
+        --Menu.Q:MenuElement({id = "Unkillable", name = "    Only when Unkillable", value = false}) -- add
         Menu.Q:MenuElement({id = "Jungle", name = "Use on JungleClear", value = false})
         Menu.Q:MenuElement({id = "Clear", name = "Use on LaneClear", value = false})
         Menu.Q:MenuElement({name = " ", drop = {"Misc"}})
@@ -2084,18 +2082,24 @@ if myHero.charName == "Vladimir" then
                 SetCursorPos(target.pos)
                 KeyDown(hK)
                 KeyUp(hK)
-                DelayAction(function() SetCursorPos(pos) end, 0.05)
+                DelayAction(function() SetCursorPos(pos) end, 0.03)
             end
             DelayAction(function() self:BurstCombo(target, shouldFlash, 2) end, 0.3)
         elseif step == 2 then
-            Control.CastSpell(HK_R, target, pos)
+            local bestPos = self.R:GetBestCircularCastPos(target, GetEnemyHeroes(self.R.Radius or 1000))
+            Control.CastSpell(HK_R, bestPos or target) --Control.CastSpell(HK_R, target, pos)
             local releaseE = IsKeyDown(HK_E) and KeyUp(HK_E)
             DelayAction(function() self:BurstCombo(target, shouldFlash, 3) end, 0.3)
         elseif step == 3 then
             self.Q:Cast(target)
-            DelayAction(function() self.W:Cast() end, 0.05)
-            bursting = false
+            if self.E:IsReady() and not IsKeyDown(HK_E) then
+                KeyDown(HK_E)
+                DelayAction(function() self.W:Cast() end, 0.3)
+            elseif not self.E:IsReady() then
+                DelayAction(function() self.W:Cast() end, 0.3)
+            end
             DelayAction(function() self:Protobelt(target) end, 0.3)
+            bursting = false
         end
     end
     
