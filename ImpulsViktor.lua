@@ -1,14 +1,21 @@
-require "PremiumPrediction"
-require "GamsteronPrediction"
 require "DamageLib"
 require "2DGeometry"
 require "MapPositionGOS"
-require "GGPrediction"
+--require "GGPrediction"
+--require "PremiumPrediction"
 
 --local EnemyHeroes = {}
 --local AllyHeroes = {}
+local DrawInfo = false
+local EnemyLoaded = false
 local EnemySpawnPos = nil
 local AllySpawnPos = nil
+
+Callback.Add("Draw", function() 
+	if DrawInfo then	
+		Draw.Text("[ Impuls ] scripts will after ~[30-40]s in-game time", 18, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(0xFF008080))
+	end	
+end)	
 
 local MathAbs, MathAtan, MathAtan2, MathAcos, MathCeil, MathCos, MathDeg, MathFloor, MathHuge, MathMax, MathMin, MathPi, MathRad, MathRandom, MathSin, MathSqrt =
 	math.abs, math.atan, math.atan2, math.acos, math.ceil, math.cos, math.deg, math.floor, math.huge, math.max, math.min, math.pi, math.rad, math.random, math.sin, math.sqrt
@@ -71,7 +78,7 @@ end
 --|                    Checks                    |--
 ----------------------------------------------------
 
-if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
+--[[ if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 	DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GOS-EXT/master/Common/GamsteronPrediction.lua", COMMON_PATH .. "GamsteronPrediction.lua", function() end)
 	print("gamsteronPred. installed Press 2x F6")
 	return
@@ -87,44 +94,41 @@ if not FileExist(COMMON_PATH .. "GGPrediction.lua") then
 	DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GG/master/GGPrediction.lua", COMMON_PATH .. "GGPrediction.lua", function() end)
 	print("GGPrediction installed Press 2x F6")
 	return
-end
+end ]]
 
 local CCSpells = {
 	["AatroxW"] = {charName = "Aatrox", displayName = "Infernal Chains", slot = _W, type = "linear", speed = 1800, range = 825, delay = 0.25, radius = 80, collision = true},
 	["AhriSeduce"] = {charName = "Ahri", displayName = "Seduce", slot = _E, type = "linear", speed = 1500, range = 975, delay = 0.25, radius = 60, collision = true},
 	["AkaliR"] = {charName = "Akali", displayName = "Perfect Execution [First]", slot = _R, type = "linear", speed = 1800, range = 525, delay = 0, radius = 65, collision = false},
-	["AkaliE"] = {charName = "Akali", displayName = "Shuriken Flip", slot = _E, type = "linear", speed = 1800, range = 825, delay = 0.25, radius = 70, collision = true},
+	["AkaliE"] = {charName = "Akali", displayName = "Shuriken Flip", slot = _E, type = "linear", speed = 1800, range = 825, delay = 0.25, radius = 70, collision = true},	
 	["Pulverize"] = {charName = "Alistar", displayName = "Pulverize", slot = _Q, type = "circular", speed = MathHuge, range = 0, delay = 0.25, radius = 365, collision = false},
 	["BandageToss"] = {charName = "Amumu", displayName = "Bandage Toss", slot = _Q, type = "linear", speed = 2000, range = 1100, delay = 0.25, radius = 80, collision = true},
 	["CurseoftheSadMummy"] = {charName = "Amumu", displayName = "Curse of the Sad Mummy", slot = _R, type = "circular", speed = MathHuge, range = 0, delay = 0.25, radius = 550, collision = false},
-	["FlashFrostSpell"] = {charName = "Anivia", displayName = "Flash Frost", missileName = "FlashFrostSpell", slot = _Q, type = "linear", speed = 850, range = 1100, delay = 0.25, radius = 110, collision = false},
+	["FlashFrostSpell"] = {charName = "Anivia", displayName = "Flash Frost",missileName = "FlashFrostSpell", slot = _Q, type = "linear", speed = 850, range = 1100, delay = 0.25, radius = 110, collision = false},
 	["EnchantedCrystalArrow"] = {charName = "Ashe", displayName = "Enchanted Crystal Arrow", slot = _R, type = "linear", speed = 1600, range = 25000, delay = 0.25, radius = 130, collision = false},
-	["ApheliosR"] = {charName = "Aphelios", displayName = "Moonlight Vigil", slot = _R, type = "linear", speed = 2050, range = 1600, delay = 0.5, radius = 125, collision = false},
 	["AurelionSolQ"] = {charName = "AurelionSol", displayName = "Starsurge", slot = _Q, type = "linear", speed = 850, range = 25000, delay = 0, radius = 110, collision = false},
 	["AzirR"] = {charName = "Azir", displayName = "Emperor's Divide", slot = _R, type = "linear", speed = 1400, range = 500, delay = 0.3, radius = 250, collision = false},
-	["BardQ"] = {charName = "Bard", displayName = "Cosmic Binding", slot = _Q, type = "linear", speed = 1500, range = 950, delay = 0.25, radius = 60, collision = true},
+	["ApheliosR"] = {charName = "Aphelios", displayName = "Moonlight Vigil", slot = _R, type = "linear", speed = 2050, range = 1600, delay = 0.5, radius = 125, collision = false},	
+	["BardQ"] = {charName = "Bard", displayName = "Cosmic Binding", slot = _Q, type = "linear", speed = 1500, range = 950, delay = 0.25, radius = 60, collision = true},	
 	["BardR"] = {charName = "Bard", displayName = "Tempered Fate", slot = _R, type = "circular", speed = 2100, range = 3400, delay = 0.5, radius = 350, collision = false},
-	["RocketGrab"] = {charName = "Blitzcrank", displayName = "Rocket Grab", slot = _Q, type = "linear", speed = 1800, range = 1150, delay = 0.25, radius = 140, collision = true},
 	["BrandQ"] = {charName = "Brand", displayName = "Sear", slot = _Q, type = "linear", speed = 1600, range = 1050, delay = 0.25, radius = 60, collision = true},	
+	["RocketGrab"] = {charName = "Blitzcrank", displayName = "Rocket Grab", slot = _Q, type = "linear", speed = 1800, range = 1150, delay = 0.25, radius = 140, collision = true},
 	["BraumQ"] = {charName = "Braum", displayName = "Winter's Bite", slot = _Q, type = "linear", speed = 1700, range = 1000, delay = 0.25, radius = 70, collision = true},
 	["BraumR"] = {charName = "Braum", displayName = "Glacial Fissure", slot = _R, type = "linear", speed = 1400, range = 1250, delay = 0.5, radius = 115, collision = false},
-	["CamilleE"] = {charName = "Camille", displayName = "Hookshot [First]", slot = _E, type = "linear", speed = 1900, range = 800, delay = 0, radius = 60, collision = false},
-	["CamilleEDash2"] = {charName = "Camille", displayName = "Hookshot [Second]", slot = _E, type = "linear", speed = 1900, range = 400, delay = 0, radius = 60, collision = false},	
 	["CaitlynYordleTrap"] = {charName = "Caitlyn", displayName = "Yordle Trap", slot = _W, type = "circular", speed = MathHuge, range = 800, delay = 0.25, radius = 75, collision = false},
 	["CaitlynEntrapment"] = {charName = "Caitlyn", displayName = "Entrapment", slot = _E, type = "linear", speed = 1600, range = 750, delay = 0.15, radius = 70, collision = true},
 	["CassiopeiaW"] = {charName = "Cassiopeia", displayName = "Miasma", slot = _W, type = "circular", speed = 2500, range = 800, delay = 0.75, radius = 160, collision = false},
 	["Rupture"] = {charName = "Chogath", displayName = "Rupture", slot = _Q, type = "circular", speed = MathHuge, range = 950, delay = 1.2, radius = 250, collision = false},
 	["InfectedCleaverMissile"] = {charName = "DrMundo", displayName = "Infected Cleaver", slot = _Q, type = "linear", speed = 2000, range = 975, delay = 0.25, radius = 60, collision = true},
-	["DianaQ"] = {charName = "Diana", displayName = "Crescent Strike", slot = _Q, type = "circular", speed = 1900, range = 900, delay = 0.25, radius = 185, collision = true},	
 	["DravenDoubleShot"] = {charName = "Draven", displayName = "Double Shot", slot = _E, type = "linear", speed = 1600, range = 1050, delay = 0.25, radius = 130, collision = false},
-	["DravenRCast"] = {charName = "Draven", displayName = "Whirling Death", slot = _R, type = "linear", speed = 2000, range = 12500, delay = 0.25, radius = 160, collision = false},
+	["DravenRCast"] = {charName = "Draven", displayName = "Whirling Death", slot = _R, type = "linear", speed = 2000, range = 12500, delay = 0.25, radius = 160, collision = false},	
+	["DianaQ"] = {charName = "Diana", displayName = "Crescent Strike", slot = _Q, type = "circular", speed = 1900, range = 900, delay = 0.25, radius = 185, collision = true},	
 	["EkkoQ"] = {charName = "Ekko", displayName = "Timewinder", slot = _Q, type = "linear", speed = 1650, range = 1175, delay = 0.25, radius = 60, collision = false},
 	["EkkoW"] = {charName = "Ekko", displayName = "Parallel Convergence", slot = _W, type = "circular", speed = MathHuge, range = 1600, delay = 3.35, radius = 400, collision = false},
 	["EliseHumanE"] = {charName = "Elise", displayName = "Cocoon", slot = _E, type = "linear", speed = 1600, range = 1075, delay = 0.25, radius = 55, collision = true},
-	["EzrealR"] = {charName = "Ezreal", displayName = "Trueshot Barrage", slot = _R, type = "linear", speed = 2000, range = 12500, delay = 1, radius = 160, collision = true},
+	["EzrealR"] = {charName = "Ezreal", displayName = "Trueshot Barrage", slot = _R, type = "linear", speed = 2000, range = 12500, delay = 1, radius = 160, collision = true},	
 	["FizzR"] = {charName = "Fizz", displayName = "Chum the Waters", slot = _R, type = "linear", speed = 1300, range = 1300, delay = 0.25, radius = 150, collision = false},
 	["GalioE"] = {charName = "Galio", displayName = "Justice Punch", slot = _E, type = "linear", speed = 2300, range = 650, delay = 0.4, radius = 160, collision = false},
-	["GarenQ"] = {charName = "Garen", displayName = "Decisive Strike", slot = _Q, type = "targeted", range = 225},
 	["GnarQMissile"] = {charName = "Gnar", displayName = "Boomerang Throw", slot = _Q, type = "linear", speed = 2500, range = 1125, delay = 0.25, radius = 55, collision = false},
 	["GnarBigQMissile"] = {charName = "Gnar", displayName = "Boulder Toss", slot = _Q, type = "linear", speed = 2100, range = 1125, delay = 0.5, radius = 90, collision = true},
 	["GnarBigW"] = {charName = "Gnar", displayName = "Wallop", slot = _W, type = "linear", speed = MathHuge, range = 575, delay = 0.6, radius = 100, collision = false},
@@ -134,17 +138,16 @@ local CCSpells = {
 	["GravesSmokeGrenade"] = {charName = "Graves", displayName = "Smoke Grenade", slot = _W, type = "circular", speed = 1500, range = 950, delay = 0.15, radius = 250, collision = false},
 	["HeimerdingerE"] = {charName = "Heimerdinger", displayName = "CH-2 Electron Storm Grenade", slot = _E, type = "circular", speed = 1200, range = 970, delay = 0.25, radius = 250, collision = false},
 	["HeimerdingerEUlt"] = {charName = "Heimerdinger", displayName = "CH-2 Electron Storm Grenade", slot = _E, type = "circular", speed = 1200, range = 970, delay = 0.25, radius = 250, collision = false},
-	["HecarimUlt"] = {charName = "Hecarim", displayName = "Onslaught of Shadows", slot = _R, type = "linear", speed = 1100, range = 1650, delay = 0.2, radius = 280, collision = false},	
-	["BlindMonkQOne"] = {charName = "Leesin", displayName = "Sonic Wave", slot = _Q, type = "linear", speed = 1800, range = 1100, delay = 0.25, radius = 60, collision = true},	
-	["IllaoiE"] = {charName = "Illaoi", displayName = "Test of Spirit", slot = _E, type = "linear", speed = 1900, range = 900, delay = 0.25, radius = 50, collision = true},	
 	["IreliaW2"] = {charName = "Irelia", displayName = "Defiant Dance", slot = _W, type = "linear", speed = MathHuge, range = 775, delay = 0.25, radius = 120, collision = false},
 	["IreliaR"] = {charName = "Irelia", displayName = "Vanguard's Edge", slot = _R, type = "linear", speed = 2000, range = 950, delay = 0.4, radius = 160, collision = false},
 	["IvernQ"] = {charName = "Ivern", displayName = "Rootcaller", slot = _Q, type = "linear", speed = 1300, range = 1075, delay = 0.25, radius = 80, collision = true},
+	["IllaoiE"] = {charName = "Illaoi", displayName = "Test of Spirit", slot = _E, type = "linear", speed = 1900, range = 900, delay = 0.25, radius = 50, collision = true},	
+	["IvernQ"] = {charName = "Ivern", displayName = "Rootcaller", slot = _Q, type = "linear", speed = 1300, range = 1075, delay = 0.25, radius = 80, collision = true},		
+	["HowlingGaleSpell"] = {charName = "Janna", displayName = "Howling Gale", slot = _Q, type = "linear", speed = 667, range = 1750, delay = 0, radius = 100, collision = false},			
 	["JarvanIVDragonStrike"] = {charName = "JarvanIV", displayName = "Dragon Strike", slot = _Q, type = "linear", speed = MathHuge, range = 770, delay = 0.4, radius = 70, collision = false},
-	["HowlingGaleSpell"] = {charName = "Janna", displayName = "Howling Gale", slot = _Q, type = "linear", speed = 1167, range = 1750, delay = 0, radius = 120, collision = false},
 	["JhinW"] = {charName = "Jhin", displayName = "Deadly Flourish", slot = _W, type = "linear", speed = 5000, range = 2550, delay = 0.75, radius = 40, collision = false},
-	["JhinE"] = {charName = "Jhin", displayName = "Captive Audience", slot = _E, type = "circular", speed = 1600, range = 750, delay = 0.25, radius = 130, collision = false},
 	["JhinRShot"] = {charName = "Jhin", displayName = "Curtain Call", slot = _R, type = "linear", speed = 5000, range = 3500, delay = 0.25, radius = 80, collision = false},
+	["JhinE"] = {charName = "Jhin", displayName = "Captive Audience", slot = _E, type = "circular", speed = 1600, range = 750, delay = 0.25, radius = 130, collision = false},
 	["JinxWMissile"] = {charName = "Jinx", displayName = "Zap!", slot = _W, type = "linear", speed = 3300, range = 1450, delay = 0.6, radius = 60, collision = true},
 	["KarmaQ"] = {charName = "Karma", displayName = "Inner Flame", slot = _Q, type = "linear", speed = 1700, range = 950, delay = 0.25, radius = 60, collision = true},
 	["KarmaQMantra"] = {charName = "Karma", displayName = "Inner Flame [Mantra]", slot = _Q, origin = "linear", type = "linear", speed = 1700, range = 950, delay = 0.25, radius = 80, collision = true},
@@ -153,21 +156,19 @@ local CCSpells = {
 	["KhazixWLong"] = {charName = "Khazix", displayName = "Void Spike [Threeway]", slot = _W, type = "threeway", speed = 1700, range = 1000, delay = 0.25, radius = 70,angle = 23, collision = true},
 	["KledQ"] = {charName = "Kled", displayName = "Beartrap on a Rope", slot = _Q, type = "linear", speed = 1600, range = 800, delay = 0.25, radius = 45, collision = true},
 	["KogMawVoidOozeMissile"] = {charName = "KogMaw", displayName = "Void Ooze", slot = _E, type = "linear", speed = 1400, range = 1360, delay = 0.25, radius = 120, collision = false},
+	["BlindMonkQOne"] = {charName = "Leesin", displayName = "Sonic Wave", slot = _Q, type = "linear", speed = 1800, range = 1100, delay = 0.25, radius = 60, collision = true},	
 	["LeblancE"] = {charName = "Leblanc", displayName = "Ethereal Chains [Standard]", slot = _E, type = "linear", speed = 1750, range = 925, delay = 0.25, radius = 55, collision = true},
 	["LeblancRE"] = {charName = "Leblanc", displayName = "Ethereal Chains [Ultimate]", slot = _E, type = "linear", speed = 1750, range = 925, delay = 0.25, radius = 55, collision = true},
 	["LeonaZenithBlade"] = {charName = "Leona", displayName = "Zenith Blade", slot = _E, type = "linear", speed = 2000, range = 875, delay = 0.25, radius = 70, collision = false},
 	["LeonaSolarFlare"] = {charName = "Leona", displayName = "Solar Flare", slot = _R, type = "circular", speed = MathHuge, range = 1200, delay = 0.85, radius = 300, collision = false},
-	["LilliaE"] = {charName = "Lillia", displayName = "Lillia E", slot = _E, type = "linear", speed = 1500, range = 750, delay = 0.4, radius = 150, collision = false},
 	["LissandraQMissile"] = {charName = "Lissandra", displayName = "Ice Shard", slot = _Q, type = "linear", speed = 2200, range = 750, delay = 0.25, radius = 75, collision = false},
 	["LuluQ"] = {charName = "Lulu", displayName = "Glitterlance", slot = _Q, type = "linear", speed = 1450, range = 925, delay = 0.25, radius = 60, collision = false},
 	["LuxLightBinding"] = {charName = "Lux", displayName = "Light Binding", slot = _Q, type = "linear", speed = 1200, range = 1175, delay = 0.25, radius = 50, collision = false},
 	["LuxLightStrikeKugel"] = {charName = "Lux", displayName = "Light Strike Kugel", slot = _E, type = "circular", speed = 1200, range = 1100, delay = 0.25, radius = 300, collision = true},
 	["Landslide"] = {charName = "Malphite", displayName = "Ground Slam", slot = _E, type = "circular", speed = MathHuge, range = 0, delay = 0.242, radius = 400, collision = false},
-	["UFSlash"] = {charName = "Malphite", displayName = "Unstoppable Force", slot = _R, type = "circular", speed = 1835, range = 1000, delay = 0, radius = 300, collision = false},	
 	["MalzaharQ"] = {charName = "Malzahar", displayName = "Call of the Void", slot = _Q, type = "rectangular", speed = 1600, range = 900, delay = 0.5, radius = 400, radius2 = 100, collision = false},
 	["MaokaiQ"] = {charName = "Maokai", displayName = "Bramble Smash", slot = _Q, type = "linear", speed = 1600, range = 600, delay = 0.375, radius = 110, collision = false},
 	["MorganaQ"] = {charName = "Morgana", displayName = "Dark Binding", slot = _Q, type = "linear", speed = 1200, range = 1250, delay = 0.25, radius = 70, collision = true},
-	["MordekaiserE"] = {charName = "Mordekaiser", displayName = "Death's Grasp", slot = _E, type = "linear", speed = MathHuge, range = 900, delay = 0.9, radius = 140, collision = false},	
 	["NamiQ"] = {charName = "Nami", displayName = "Aqua Prison", slot = _Q, type = "circular", speed = MathHuge, range = 875, delay = 1, radius = 180, collision = false},
 	["NamiRMissile"] = {charName = "Nami", displayName = "Tidal Wave", slot = _R, type = "linear", speed = 850, range = 2750, delay = 0.5, radius = 250, collision = false},
 	["NautilusAnchorDragMissile"] = {charName = "Nautilus", displayName = "Dredge Line", slot = _Q, type = "linear", speed = 2000, range = 925, delay = 0.25, radius = 90, collision = true},
@@ -187,12 +188,8 @@ local CCSpells = {
 	["RakanW"] = {charName = "Rakan", displayName = "Grand Entrance", slot = _W, type = "circular", speed = MathHuge, range = 650, delay = 0.7, radius = 265, collision = false},
 	["RengarE"] = {charName = "Rengar", displayName = "Bola Strike", slot = _E, type = "linear", speed = 1500, range = 1000, delay = 0.25, radius = 70, collision = true},
 	["RumbleGrenade"] = {charName = "Rumble", displayName = "Electro Harpoon", slot = _E, type = "linear", speed = 2000, range = 850, delay = 0.25, radius = 60, collision = true},
-	["SeraphineE"] = {charName = "Seraphine", displayName = "Beat Drop", slot = _E, type = "linear", speed = 500, range = 1300, delay = 0.25, radius = 35, collision = false},
-	["SettE"] = {charName = "Sett", displayName = "Facebreaker", slot = _E, type = "linear", speed = MathHuge, range = 490, delay = 0.25, radius = 175, collision = false},
-	["SennaW"] = {charName = "Senna", displayName = "Last Embrace", slot = _W, type = "linear", speed = 1150, range = 1300, delay = 0.25, radius = 60, collision = true},	
 	["SejuaniR"] = {charName = "Sejuani", displayName = "Glacial Prison", slot = _R, type = "linear", speed = 1600, range = 1300, delay = 0.25, radius = 120, collision = false},
 	["ShyvanaTransformLeap"] = {charName = "Shyvana", displayName = "Transform Leap", slot = _R, type = "linear", speed = 700, range = 850, delay = 0.25, radius = 150, collision = false},
-	["ShenE"] = {charName = "Shen", displayName = "Shadow Dash", slot = _E, type = "linear", speed = 1200, range = 600, delay = 0, radius = 60, collision = false},	
 	["SionQ"] = {charName = "Sion", displayName = "Decimating Smash", slot = _Q, origin = "", type = "linear", speed = MathHuge, range = 750, delay = 2, radius = 150, collision = false},
 	["SionE"] = {charName = "Sion", displayName = "Roar of the Slayer", slot = _E, type = "linear", speed = 1800, range = 800, delay = 0.25, radius = 80, collision = false},
 	["SkarnerFractureMissile"] = {charName = "Skarner", displayName = "Fracture", slot = _E, type = "linear", speed = 1500, range = 1000, delay = 0.25, radius = 70, collision = false},
@@ -205,7 +202,6 @@ local CCSpells = {
 	["TaliyahWVC"] = {charName = "Taliyah", displayName = "Seismic Shove", slot = _W, type = "circular", speed = MathHuge, range = 900, delay = 0.85, radius = 150, collision = false},
 	["TaliyahR"] = {charName = "Taliyah", displayName = "Weaver's Wall", slot = _R, type = "linear", speed = 1700, range = 3000, delay = 1, radius = 120, collision = false},
 	["ThreshE"] = {charName = "Thresh", displayName = "Flay", slot = _E, type = "linear", speed = MathHuge, range = 500, delay = 0.389, radius = 110, collision = true},
-	["ThreshQ"] = {charName = "Thresh", displayName = "Death Sentence", slot = _Q, type = "linear", speed = 1900, range = 1100, delay = 0.5, radius = 70, collision = true},	
 	["TristanaW"] = {charName = "Tristana", displayName = "Rocket Jump", slot = _W, type = "circular", speed = 1100, range = 900, delay = 0.25, radius = 300, collision = false},
 	["UrgotQ"] = {charName = "Urgot", displayName = "Corrosive Charge", slot = _Q, type = "circular", speed = MathHuge, range = 800, delay = 0.6, radius = 180, collision = false},
 	["UrgotE"] = {charName = "Urgot", displayName = "Disdain", slot = _E, type = "linear", speed = 1540, range = 475, delay = 0.45, radius = 100, collision = false},
@@ -214,13 +210,11 @@ local CCSpells = {
 	["VarusR"] = {charName = "Varus", displayName = "Chain of Corruption", slot = _R, type = "linear", speed = 1950, range = 1200, delay = 0.25, radius = 120, collision = false},
 	["VelkozQ"] = {charName = "Velkoz", displayName = "Plasma Fission", slot = _Q, type = "linear", speed = 1300, range = 1050, delay = 0.25, radius = 50, collision = true},
 	["VelkozE"] = {charName = "Velkoz", displayName = "Tectonic Disruption", slot = _E, type = "circular", speed = MathHuge, range = 800, delay = 0.8, radius = 185, collision = false},
-	["ViQ"] = {charName = "Vi", displayName = "Vault Breaker", slot = _Q, type = "linear", speed = 1500, range = 725, delay = 0, radius = 90, collision = false},	
 	["ViktorGravitonField"] = {charName = "Viktor", displayName = "Graviton Field", slot = _W, type = "circular", speed = MathHuge, range = 800, delay = 1.75, radius = 270, collision = false},
 	["WarwickR"] = {charName = "Warwick", displayName = "Infinite Duress", slot = _R, type = "linear", speed = 1800, range = 3000, delay = 0.1, radius = 55, collision = false},
 	["XerathArcaneBarrage2"] = {charName = "Xerath", displayName = "Arcane Barrage", slot = _W, type = "circular", speed = MathHuge, range = 1000, delay = 0.75, radius = 235, collision = false},
 	["XerathMageSpear"] = {charName = "Xerath", displayName = "Mage Spear", slot = _E, type = "linear", speed = 1400, range = 1050, delay = 0.2, radius = 60, collision = true},
 	["XinZhaoW"] = {charName = "XinZhao", displayName = "Wind Becomes Lightning", slot = _W, type = "linear", speed = 5000, range = 900, delay = 0.5, radius = 40, collision = false},
-	["YasuoQ3Mis"] = {charName = "Yasuo", displayName = "Yasuo Q3", slot = _Q, type = "linear", speed = 1200, range = 1000, delay = 0.339, radius = 90, collision = false},	
 	["ZacQ"] = {charName = "Zac", displayName = "Stretching Strikes", slot = _Q, type = "linear", speed = 2800, range = 800, delay = 0.33, radius = 120, collision = false},
 	["ZiggsW"] = {charName = "Ziggs", displayName = "Satchel Charge", slot = _W, type = "circular", speed = 1750, range = 1000, delay = 0.25, radius = 240, collision = false},
 	["ZiggsE"] = {charName = "Ziggs", displayName = "Hexplosive Minefield", slot = _E, type = "circular", speed = 1800, range = 900, delay = 0.25, radius = 250, collision = false},
@@ -228,12 +222,12 @@ local CCSpells = {
 	["ZoeE"] = {charName = "Zoe", displayName = "Sleepy Trouble Bubble", slot = _E, type = "linear", speed = 1700, range = 800, delay = 0.3, radius = 50, collision = true},
 	["ZyraE"] = {charName = "Zyra", displayName = "Grasping Roots", slot = _E, type = "linear", speed = 1150, range = 1100, delay = 0.25, radius = 70, collision = false},
 	["ZyraR"] = {charName = "Zyra", displayName = "Stranglethorns", slot = _R, type = "circular", speed = MathHuge, range = 700, delay = 2, radius = 500, collision = false},
-	["BrandConflagration"] = {charName = "Brand", slot = _R, type = "targeted", displayName = "Conflagration", range = 625, cc = true},
+	["BrandConflagration"] = {charName = "Brand", slot = _R, type = "targeted", displayName = "Conflagration", range = 625,cc = true},
 	["JarvanIVCataclysm"] = {charName = "JarvanIV", slot = _R, type = "targeted", displayName = "Cataclysm", range = 650},
 	["JayceThunderingBlow"] = {charName = "Jayce", slot = _E, type = "targeted", displayName = "Thundering Blow", range = 240},
 	["BlindMonkRKick"] = {charName = "LeeSin", slot = _R, type = "targeted", displayName = "Dragon's Rage", range = 375},
 	["LissandraR"] = {charName = "Lissandra", slot = _R, type = "targeted", displayName = "Frozen Tomb", range = 550},
-	["SeismicShard"] = {charName = "Malphite", slot = _Q, type = "targeted", displayName = "Seismic Shard", range = 625, cc = true},
+	["SeismicShard"] = {charName = "Malphite", slot = _Q, type = "targeted", displayName = "Seismic Shard", range = 625,cc = true},
 	["AlZaharNetherGrasp"] = {charName = "Malzahar", slot = _R, type = "targeted", displayName = "Nether Grasp", range = 700},
 	["MaokaiW"] = {charName = "Maokai", slot = _W, type = "targeted", displayName = "Twisted Advance", range = 525},
 	["NautilusR"] = {charName = "Nautilus", slot = _R, type = "targeted", displayName = "Depth Charge", range = 825},
@@ -242,12 +236,7 @@ local CCSpells = {
 	["Fling"] = {charName = "Singed", slot = _E, type = "targeted", displayName = "Fling", range = 125},
 	["SkarnerImpale"] = {charName = "Skarner", slot = _R, type = "targeted", displayName = "Impale", range = 350},
 	["TahmKenchW"] = {charName = "TahmKench", slot = _W, type = "targeted", displayName = "Devour", range = 250},
-	["TristanaR"] = {charName = "Tristana", slot = _R, type = "targeted", displayName = "Buster Shot", range = 669},
-	["TeemoQ"] = {charName = "Teemo", slot = _Q, type = "targeted", displayName = "Blinding Dart", range = 680},	
-	["VeigarPrimordialBurst"] = {charName = "Veigar", slot = _R, type = "targeted", displayName = "Primordial Burst", range = 650},
-	["VolibearQ"] = {charName = "Volibear", displayName = "Thundering Smash", slot = _Q, type = "targeted", range = 200},
-	["YoneQ3"] = {charName = "Yone", displayName = "Mortal Steel [Storm]", slot = _Q, type = "linear", speed = 1500, range = 1050, delay = 0.25, radius = 80, collision = false},
-	["YoneR"] = {charName = "Yone", displayName = "Fate Sealed", slot = _R, type = "linear", speed = MathHuge, range = 1000, delay = 0.75, radius = 112.5, collision = false}
+	["TristanaR"] = {charName = "Tristana", slot = _R, type = "targeted", displayName = "Buster Shot", range = 669}
 }
 
 function GetNearestTurret(pos)
@@ -292,6 +281,11 @@ local function IsUnderEnemyTurret(pos)
     end
 end
 
+local function GameMinionCount()
+	local c = Game.MinionCount()
+	return (not c or c < 0 or c > 500) and 0 or c
+end
+
 function GetDifference(a,b)
     local Sa = a^2
     local Sb = b^2
@@ -316,7 +310,7 @@ function IsImmobile(unit)
         local buff = unit:GetBuff(i)
         if buff and buff.count > 0 then
             local BuffType = buff.type
-            if BuffType == 5 or BuffType == 8 or BuffType == 12 or BuffType == 22 or BuffType == 23 or BuffType == 25 or BuffType == 30 or BuffType == 35 or buff.name == "recall" then
+            if BuffType == 5 or BuffType == 11 or BuffType == 21 or BuffType == 22 or BuffType == 24 or BuffType == 29 or buff.name == "recall" then
                 local BuffDuration = buff.duration
                 if BuffDuration > MaxDuration then
                     MaxDuration = BuffDuration
@@ -351,6 +345,19 @@ function GetAllyHeroes()
     end
     return AllyHeroes
     --PrintChat("Got Ally Heroes")
+end
+
+function GetMinionsAround(pos, range, type)
+	local minions = {}
+	for i = 1, GameMinionCount() do
+		local minion = GameMinion(i)
+		if minion and Valid(minion, range, pos) then
+			if type == 2 and minion.isAlly or minion.isEnemy then
+				TableInsert(minions, minion)
+			end
+		end
+	end
+	return minions
 end
 
 function GetEnemyBase()
@@ -405,6 +412,28 @@ function GetBuffStacks(unit, buffname)
     return 0
 end
 
+function GetPercentHealth(unit)
+	return 100 * unit.health / unit.maxHealth
+end
+
+function GetPercentMana()
+	return 100 * myHero.mana / myHero.maxMana
+end
+
+function CalcMagicalDamage(source, target, amount, time)
+	local mr = target.magicResist * source.magicPenPercent - source.magicPen
+	local val = mr < 0 and 2 - 100 / (100 - mr) or 100 / (100 + mr)
+	return MathMax(0, MathFloor(val * amount) - target.hpRegen * (time or 0))
+end
+
+function CalcPhysicalDamage(source, target, amount, time)
+	local ar = target.armor * source.armorPenPercent -
+		(target.bonusArmor * (1 - source.bonusArmorPenPercent)) -
+		(source.armorPen * (0.6 + (0.4 * (target.levelData.lvl / 18))))
+	local val = ar < 0 and 2 - 100 / (100 - ar) or 100 / (100 + ar)
+	return MathMax(0, MathFloor(val * amount) - target.hpRegen * (time or 0))
+end
+
 local function GetWaypoints(unit) -- get unit's waypoints
     local waypoints = {}
     local pathData = unit.pathing
@@ -444,12 +473,16 @@ local function GetUnitPositionAfterTime(unit, time)
     return waypoints[#waypoints] -- all segments have been checked, so the final result is the last waypoint
 end
 
-function GetTarget(range)
-    if _G.SDK then
-        return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
-    else
-        return _G.GOS:GetTarget(range,"AD")
-    end
+function GetTarget(range) 
+	if _G.SDK then
+		if myHero.ap > myHero.totalDamage then
+			return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
+		else
+			return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_PHYSICAL);
+		end
+	elseif _G.PremiumOrbwalker then
+		return _G.PremiumOrbwalker:GetTarget(range)
+	end
 end
 
 function GotBuff(unit, buffname)
@@ -474,10 +507,6 @@ end
 
 function IsReady(spell)
     return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0
-end
-
-function OnLoad()
-    Manager()
 end
 
 function Mode()
@@ -537,6 +566,11 @@ function SetMovement(bool)
     end
 end
 
+function IsAutoAttacking()
+	return _G.SDK and _G.SDK.Orbwalker:IsAutoAttacking() or
+		_G.PremiumOrbwalker and _G.PremiumOrbwalker:IsAutoAttacking() or false
+end
+
 
 local function CheckHPPred(unit, SpellSpeed)
      local speed = SpellSpeed
@@ -560,6 +594,12 @@ local function IsValid(unit)
     return false;
 end
 
+function Valid(unit, range, pos)
+	local range = range or 12500
+	local pos = pos or Geometry:To2D(myHero.pos)
+	return unit and unit.valid and unit.visible and unit.health > 0 and unit.maxHealth > 5
+		and Geometry:DistanceSquared(pos, Geometry:To2D(unit.pos)) <= range * range
+end
 
 local function ValidTarget(unit, range)
     if (unit and unit.valid and unit.isTargetable and unit.alive and unit.visible and unit.networkID and unit.pathing and unit.health > 0) then
@@ -836,45 +876,53 @@ end
 class "Manager"
 
 function Manager:__init()
-    if myHero.charName == "Viktor" then
-        DelayAction(function() self:LoadViktor() end, 1.05)
-    elseif myHero.charName == "Annie" then
-        DelayAction(function() self:LoadAnnie() end, 1.05)
-    end
+    DelayAction(function()
+        if myHero.charName == "Viktor" then
+            self:LoadViktor()
+        elseif myHero.charName == "Annie" then
+            self:LoadAnnie()
+        end
+    if DrawInfo then DrawInfo = false end
+    end, math.max(0.07, 30 - GameTimer()))
 end
 
 function Manager:LoadViktor()
     Viktor:Spells()
     Viktor:Menu()
-    --
+
     --GetEnemyHeroes()
+    DelayAction(function()
     Callback.Add("Tick", function() Viktor:Tick() end)
     Callback.Add("Draw", function() Viktor:Draw() end)
     if _G.SDK then
         _G.SDK.Orbwalker:OnPreAttack(function(...) Viktor:OnPreAttack(...) end)
         _G.SDK.Orbwalker:OnPostAttackTick(function(...) Viktor:OnPostAttackTick(...) end)
+        _G.SDK.Orbwalker:OnPostAttack(function(...) Viktor:OnPostAttack(...) end)
     end
+    end, 0.2)
 end
 
 function Manager:LoadAnnie()
     Annie:Spells()
     Annie:Menu()
-    --
+
     --GetEnemyHeroes()
+    DelayAction(function()
     Callback.Add("Tick", function() Annie:Tick() end)
     Callback.Add("Draw", function() Annie:Draw() end)
+
     if _G.SDK then
         _G.SDK.Orbwalker:OnPreAttack(function(...) Annie:OnPreAttack(...) end)
         _G.SDK.Orbwalker:OnPostAttackTick(function(...) Annie:OnPostAttackTick(...) end)
         _G.SDK.Orbwalker:OnPostAttack(function(...) Annie:OnPostAttack(...) end)
     end
+    end, 0.2)
 end
 
 
 class "Viktor"
 
 local PredLoaded = false
-local EnemyLoaded = false
 local AllyLoaded = false
 local casted = 0
 local LastCalledTime = 0
@@ -882,7 +930,6 @@ local LastESpot = myHero.pos
 local LastE2Spot = myHero.pos
 local PickingCard = false
 local TargetAttacking = false
-local attackedfirst = 0
 local CastingQ = false
 local LastDirect = 0
 local CastingW = false
@@ -893,15 +940,20 @@ local Edown = false
 local R = 1
 local WasInRange = false
 local OneTick
-local attacked = 0
 
-local HeroIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/viktor.png"
-local IgniteIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/Ignite.png"
-local QIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/viktor_q2.png"
-local WIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/viktor_w2.png"
-local EIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/viktor_e2.png"
-local RIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/viktor_r2.png"
-local R2Icon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/viktor_r_guide.png"
+--Menu
+local charName = myHero.charName
+local url = "https://raw.githubusercontent.com/Impulsx/LoL-Icons/master/"
+local CharIcon = {url..charName..".png"}
+local HeroSpirites = {url.. charName.."Q.png", url..charName..'W.png', url..charName..'E.png', url..charName.."R.png", url..charName.."R2.png"}
+
+local HeroIcon = CharIcon[1] --"https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/Viktor.png"
+local IgniteIcon = url.."Ignite.png"
+local QIcon = HeroSpirites[1]
+local WIcon = HeroSpirites[2]
+local EIcon = HeroSpirites[3]
+local RIcon = HeroSpirites[4]
+local R2Icon = HeroSpirites[5]
 
 function Viktor:Menu()
     self.ViktorMenu = MenuElement({type = MENU, id = "Viktor", name = "Impuls Viktor", leftIcon = HeroIcon})
@@ -910,16 +962,38 @@ function Viktor:Menu()
         self.ViktorMenu.ComboMode:MenuElement({id = "UseQ", name = "Use Q [Siphon Power] in Combo", value = true, leftIcon = QIcon})
         self.ViktorMenu.ComboMode:MenuElement({id = "UseW", name = "Use W [Gravity Field] in Combo", value = true, leftIcon = WIcon})
         self.ViktorMenu.ComboMode:MenuElement({id = "UseE", name = "Use E [Death Ray] in Combo", value = true, leftIcon = EIcon})
-        self.ViktorMenu.ComboMode:MenuElement({id = "UseEDef", name = "Use Defensive E in Combo", value = true})
-        self.ViktorMenu.ComboMode:MenuElement({id = "UseEAtt", name = "Use Offensive E in Combo", value = true})
-        self.ViktorMenu.ComboMode:MenuElement({id = "UseEAttHits", name = "Min enemies for Offensive E", value = 1, min = 1, max = 5, step = 1})
         self.ViktorMenu.ComboMode:MenuElement({id = "UseR", name = "Use R [Chaos Storm] in Combo", value = true, leftIcon = RIcon})
+        self.ViktorMenu.ComboMode:MenuElement({id = "MinW", name = "W: Minimum Enemies", value = 2, min = 1, max = 5, step = 1})
+        self.ViktorMenu.ComboMode:MenuElement({id = "MinR", name = "R: Minimum Enemies", value = 2, min = 1, max = 5, step = 1})
+        self.ViktorMenu.ComboMode:MenuElement({id = "MaxHPR", name = "R: Maximum Health [%]", value = 35, min = 1, max = 100, step = 1})
 
     self.ViktorMenu:MenuElement({id = "HarassMode", name = "Harass", type = MENU})
-        self.ViktorMenu.HarassMode:MenuElement({id = "UseQ", name = "Use Q in Harass", value = false, leftIcon = QIcon})
-        self.ViktorMenu.HarassMode:MenuElement({id = "UseE", name = "Use E in Harass", value = false, leftIcon = WIcon})
-        self.ViktorMenu.HarassMode:MenuElement({id = "UseW", name = "Use W in Harass", value = false, leftIcon = EIcon})
-        self.ViktorMenu.HarassMode:MenuElement({id = "UseR", name = "Use R in Harass", value = false, leftIcon = RIcon})
+        self.ViktorMenu.HarassMode:MenuElement({id = "UseQ", name = "Use Q [Siphon Power] in Harass", value = true, leftIcon = QIcon})
+        self.ViktorMenu.HarassMode:MenuElement({id = "UseW", name = "Use W [Gravity Field] in Harass", value = false, leftIcon = WIcon})
+        self.ViktorMenu.HarassMode:MenuElement({id = "UseE", name = "Use E [Death Ray] in Harass", value = true, leftIcon = EIcon})
+        self.ViktorMenu.HarassMode:MenuElement({id = "MinW", name = "W: Minimum Enemies", value = 2, min = 1, max = 5, step = 1})
+
+    self.ViktorMenu:MenuElement({id = "LastHitMode", name = "Last Hit", type = MENU})
+        self.ViktorMenu.LastHitMode:MenuElement({id = "UseQ", name = "[Q] use Q", value = false, leftIcon = QIcon})
+        self.ViktorMenu.LastHitMode:MenuElement({id = "UseE", name = "[E]", value = true, leftIcon = EIcon})	
+        self.ViktorMenu.LastHitMode:MenuElement({id = "ECount", name = "min Minions for [E]", value = 3, min = 1, max = 8, step = 1})
+		self.ViktorMenu.LastHitMode:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
+
+    self.ViktorMenu:MenuElement({id = "HarassMode", name = "Harass", type = MENU})
+        self.ViktorMenu.HarassMode:MenuElement({id = "UseQ", name = "[Q] use Q", value = false, leftIcon = QIcon})
+        self.ViktorMenu.HarassMode:MenuElement({id = "UseW", name = "[W] use W", value = false, leftIcon = WIcon})
+        self.ViktorMenu.HarassMode:MenuElement({id = "UseE", name = "[E] use E", value = false, leftIcon = EIcon})
+
+	self.ViktorMenu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
+	self.ViktorMenu.ClearSet:MenuElement({type = MENU, id = "Clear", name = "Clear Mode"})
+		self.ViktorMenu.ClearSet.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true, leftIcon = QIcon})
+        self.ViktorMenu.ClearSet.Clear:MenuElement({id = "UseE", name = "[E]", value = true, leftIcon = EIcon})
+        self.ViktorMenu.ClearSet.Clear:MenuElement({id = "ECount", name = "Min Minions for [E]", value = 3, min = 1, max = 8, step = 1})
+		self.ViktorMenu.ClearSet.Clear:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
+	self.ViktorMenu.ClearSet:MenuElement({type = MENU, id = "JClear", name = "JungleClear Mode"})
+		self.ViktorMenu.ClearSet.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true, leftIcon = QIcon})	
+		self.ViktorMenu.ClearSet.JClear:MenuElement({id = "UseE", name = "[E]", value = true, leftIcon = EIcon})	
+		self.ViktorMenu.ClearSet.JClear:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})	
 
     self.ViktorMenu:MenuElement({id = "FleeMode", name = "Flee", type = MENU})
         self.ViktorMenu.FleeMode:MenuElement({id = "UseQ", name = "Use Q to Flee", value = true, leftIcon = QIcon})
@@ -933,6 +1007,8 @@ function Viktor:Menu()
 	    self.ViktorMenu.Drawings:MenuElement({id = "DrawW", name = "W: Draw Range", value = true, leftIcon = WIcon})
 	    self.ViktorMenu.Drawings:MenuElement({id = "DrawE", name = "E: Draw Range", value = true, leftIcon = EIcon})
 	    self.ViktorMenu.Drawings:MenuElement({id = "DrawR", name = "R: Draw Range", value = true, leftIcon = RIcon})
+        self.ViktorMenu.Drawings:MenuElement({id = "Track", name = "Track lines to Enemies", value = false})
+        self.ViktorMenu.Drawings:MenuElement({id = "DrawJng", name = "Draw Jungler Info", value = true})
 
 	self.ViktorMenu:MenuElement({type = MENU, id = "AutoLevel", name = myHero.charName.." AutoLevel Spells", leftIcon = HeroIcon})
         self.ViktorMenu.AutoLevel:MenuElement({id = "on", name = "Enabled", value = true})
@@ -942,32 +1018,39 @@ function Viktor:Menu()
 
     self.ViktorMenu:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
 	    self.ViktorMenu.Pred:MenuElement({name = " ", drop = {"After change Prediction Type press 2xF6"}})	
-	    self.ViktorMenu.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 4, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction", "InternalPrediction"}})	
+	    self.ViktorMenu.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 1, drop = {"Premium Prediction", "GGPrediction", "InternalPrediction"}})	
 	    self.ViktorMenu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})
+        self.ViktorMenu.Pred:MenuElement({id = "HCR", name = "R: HitChance", value = 80, min = 0, max = 100, step = 5})
 	    self.ViktorMenu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
+        self.ViktorMenu.Pred:MenuElement({id = "HCW", name = "W: HitChance", value = 70, min = 0, max = 100, step = 5})
 	    self.ViktorMenu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})
 end
 
 function Viktor:Spells()
-    WSpellData = {speed = MathHuge, range = 800, delay = 0.5, radius = 300, collision = {}, type = "circular"}
-    ESpellData = {speed = 2000, range = 525, delay = 0.25, radius = 90, collision = {}, type = "linear"}
-    RSpellData = {speed = MathHuge, range = 700, delay = 0.25, radius = 300, collision = {}, type = "circular"}
+    self.StartPos, self.EndPos, self.MPos = nil, nil, nil
+	self.AttackRange, self.QueueTimer = myHero.range + myHero.boundingRadius + 35, 0
+    self.HasTurboCharge = function(name) return name == "ViktorPowerTransferReturn" end
+
+    --ESpellData = {speed = 1350, range = 600, delay = 0.25, radius = 70, collision = {}, type = "linear"}
+    --WSpellData = {speed = 3000, range = 800, delay = 0.5, radius = 300, collision = {}, type = "circular"}
+    --RSpellData = {speed = 1050, range = 700, delay = 0.25, radius = 300, collision = {}, type = "circular"}
     self.Q = {speed = 2000, range = 600}
 	self.W = {speed = MathHuge, range = 800, delay = 1.75, radius = 270, windup = 0.25, collision = nil, type = "circular"}
-	self.E = {speed = 1050, minRange = 525, range = 700, maxRange = 1225, delay = 0, radius = 90, collision = nil, type = "linear"}
+	self.E = {speed = 1050, minRange = 525, range = 700, maxRange = 1225, delay = 0, radius = 80, collision = nil, type = "linear"}
 	self.R = {speed = MathHuge, range = 700, delay = 0.25, radius = 325, windup = 0.25, collision = nil, type = "circular"}
 end
 
 function Viktor:Tick()
     self.MyPos = Geometry:To2D(myHero.pos)
-    if _G.JustEvade and _G.JustEvade:Evading() or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or Game.IsChatOpen() or myHero.dead then return end
+    if _G.JustEvade and _G.JustEvade:Evading() or (_G.ExtLibEvade and _G.ExtLibEvade.Evading)
+        or IsAutoAttacking() or Game.IsChatOpen() or myHero.dead then return end
     target = GetTarget(1400)
     CastingQ = myHero.activeSpell.name == "ViktorPowerTransfer"
     CastingW = myHero.activeSpell.name == "ViktorGravitonField"
     CastingR = myHero.activeSpell.name == "ViktorChaosStorm"
     --PrintChat(myHero.activeSpell.name)
     --PrintChat(myHero:GetSpellData(_R).name)
-    self:Logic()
+    --self:Logic()
     if not IsReady(_E) then
         Edown = false
     end
@@ -976,6 +1059,33 @@ function Viktor:Tick()
     else
         _G.SDK.Orbwalker:SetMovement(true)
     end
+    if ControlIsKeyDown(HK_E) then
+        if self.EndPos then
+            ControlSetCursorPos(self.EndPos)
+            ControlKeyUp(HK_E)
+            self.EndPos = nil
+            DelayAction(function()
+                ControlSetCursorPos(self.MPos)
+            end, 0.01); return
+        elseif not IsReady(_E) then
+            ControlKeyUp(HK_E)
+        end
+    elseif self.StartPos then
+        ControlSetCursorPos(self.StartPos)
+        ControlKeyDown(HK_E)
+        self.StartPos = nil; return
+    end
+    if self.Ignite then self:Auto() end
+    local mode = Mode()
+    if mode == "LaneClear" then self:Clear(); return end
+    if IsReady(_E) and ((mode == "Combo" and self.ViktorMenu.ComboMode.UseE:Value()) or
+        (mode == "Harass" and self.ViktorMenu.HarassMode.UseE:Value())) then
+            self:GetBestLaserCastPos()
+    end
+    local tQ, tW = GetTarget(self.Q.range), GetTarget(self.W.range)
+    if mode == "Combo" then self:Combo(tQ, tW, GetTarget(self.R.range))
+    elseif mode == "Harass" then self:Harass(tQ, tW) end
+
     if EnemyLoaded == false then
         local CountEnemy = 0
         for i, enemy in pairs(GetEnemyHeroes()) do
@@ -1006,15 +1116,13 @@ function Viktor:Tick()
     if not PredLoaded then
 		DelayAction(function()
 			if self.ViktorMenu.Pred.Change:Value() == 1 then
-				require('GamsteronPrediction')
-				PredLoaded = true
-			elseif self.ViktorMenu.Pred.Change:Value() == 2 then
 				require('PremiumPrediction')
 				PredLoaded = true
-			else 
+			elseif self.ViktorMenu.Pred.Change:Value() == 2 then
 				require('GGPrediction')
 				PredLoaded = true					
-			end
+            else
+            end
 		end, 1)	
 	end
 end
@@ -1035,6 +1143,41 @@ function Viktor:Draw()
 		DrawCircle(myHero.pos, self.R.range, 1, Draw.Color(96, 218, 112, 214))
 	end
 	if not self.MyPos then return end
+    if self.ViktorMenu.Drawings.Track:Value() then
+		for i, enemy in ipairs(GetEnemyHeroes()) do
+			if enemy and enemy.valid and enemy.visible then
+				local dist = Geometry:DistanceSquared(self.MyPos, Geometry:To2D(enemy.pos))
+				DrawLine(myHero.pos:To2D(), enemy.pos:To2D(), 2.5,
+					dist < 4000000 and Draw.Color(128, 220, 20, 60)
+					or dist < 16000000 and Draw.Color(128, 240, 230, 140)
+					or Draw.Color(128, 152, 251, 152))
+			end
+		end
+	end
+    for i, enemy in pairs(GetEnemyHeroes()) do
+        if self.ViktorMenu.Drawings.DrawJng:Value() then
+            if enemy:GetSpellData(SUMMONER_1).name == "SummonerSmite" or enemy:GetSpellData(SUMMONER_2).name == "SummonerSmite" then
+                Smite = true
+            else
+                Smite = false
+            end
+            if Smite then
+                if enemy.alive then
+                    if ValidTarget(enemy) then
+                        if GetDistance(myHero.pos, enemy.pos) > 3000 then
+                            Draw.Text("Jungler: Visible", 17, myHero.pos2D.x - 45, myHero.pos2D.y + 10, Draw.Color(0xFF32CD32))
+                        else
+                            Draw.Text("Jungler: Near", 17, myHero.pos2D.x - 43, myHero.pos2D.y + 10, Draw.Color(0xFFFF0000))
+                        end
+                    else
+                        Draw.Text("Jungler: Invisible", 17, myHero.pos2D.x - 55, myHero.pos2D.y + 10, Draw.Color(0xFFFFD700))
+                    end
+                else
+                    Draw.Text("Jungler: Dead", 17, myHero.pos2D.x - 45, myHero.pos2D.y + 10, Draw.Color(0xFF32CD32))
+                end
+            end
+        end
+    end
 end
 
 function Viktor:GetSkillOrder()
@@ -1096,215 +1239,126 @@ function Viktor:AutoLevelStart()
 	end	
 end
 
-function Viktor:KS()
-    --PrintChat("ksing")
-    for i, enemy in pairs(GetEnemyHeroes()) do
-        if enemy and not enemy.dead and ValidTarget(enemy) then
-        end
-    end
-end 
-
-function Viktor:CanUse(spell, mode)
-    if mode == nil then
-        mode = Mode()
-    end
-    --PrintChat(Mode())
-    if spell == _Q then
-        if mode == "Combo" and IsReady(spell) and self.ViktorMenu.ComboMode.UseQ:Value() then
-            return true
-        end
-        if mode == "Harass" and IsReady(spell) and self.ViktorMenu.HarassMode.UseQ:Value() then
-            return true
-        end
-        if mode == "Flee" and IsReady(spell) and self.ViktorMenu.FleeMode.UseQ:Value() then
-            return true
-        end
-        if mode == "KS" and IsReady(spell) and self.ViktorMenu.KSMode.UseQ:Value() then
-            return true
-        end
-    elseif spell == _R then
-        if mode == "Combo" and IsReady(spell) and self.ViktorMenu.ComboMode.UseR:Value() then
-            return true
-        end
-        if mode == "Harass" and IsReady(spell) and self.ViktorMenu.HarassMode.UseR:Value() then
-            return true
-        end
-        if mode == "KS" and IsReady(spell) and self.ViktorMenu.KSMode.UseR:Value() then
-            return true
-        end
-    elseif spell == _W then
-        if mode == "Combo" and IsReady(spell) and self.ViktorMenu.ComboMode.UseW:Value() then
-            return true
-        end
-        if mode == "Harass" and IsReady(spell) and self.ViktorMenu.HarassMode.UseW:Value() then
-            return true
-        end
-    elseif spell == _E then
-        if mode == "Combo" and IsReady(spell) and self.ViktorMenu.ComboMode.UseE:Value() then
-            return true
-        end
-        if mode == "Harass" and IsReady(spell) and self.ViktorMenu.HarassMode.UseE:Value() then
-            return true
-        end
-        if mode == "Flee" and IsReady(spell) and self.ViktorMenu.FleeMode.UseE:Value() then
-            return true
-        end
-    end
-    return false
+function Viktor:CustomCastSpell(startPos, endPos)
+	self.StartPos, self.EndPos, self.MPos = startPos, endPos, mousePos
 end
 
-
-function Viktor:DelayEscapeClick(delay)
-    if Game.Timer() - LastCalledTime > delay then
-        LastCalledTime = Game.Timer()
-        Control.RightClick(mousePos:To2D())
-    end
+function Viktor:GetBestLaserCastPos()
+	if GameTimer() - self.QueueTimer <= 0.25 or self.EndPos then return end
+	local candidates = GetEnemyHeroes(self.MyPos, self.E.maxRange)
+	if #candidates == 0 then return end
+	TableSort(candidates, function(a, b) return
+		Geometry:DistanceSquared(self.MyPos, Geometry:To2D(a.pos)) <
+		Geometry:DistanceSquared(self.MyPos, Geometry:To2D(b.pos))
+	end)
+	local unitPos, dir = Geometry:To2D(candidates[1].pos), Geometry:To2D(candidates[1].dir)
+	if Geometry:DistanceSquared(self.MyPos, unitPos) > self.E.minRange * self.E.minRange then
+		local startPos = Geometry:To3D(self.MyPos:Extended(unitPos, self.E.minRange))
+		local predPos = _G.PremiumPrediction:GetPrediction(startPos, candidates[1], self.E).CastPos
+		if predPos == nil then return end
+		if Geometry:DistanceSquared(self.MyPos, Geometry:To2D(predPos))
+			> self.E.maxRange * self.E.maxRange then return end
+		if predPos:To2D().onScreen then
+			self:CustomCastSpell(startPos, predPos)
+		else
+			self.QueueTimer = GameTimer()
+			local castPos = self.MyPos:Extended(Geometry:To2D(predPos), self.E.minRange)
+			_G.Control.CastSpell(HK_E, Geometry:To3D(castPos))
+		end
+	else
+		local predPos = #candidates > 1 and
+			_G.PremiumPrediction:GetPrediction(
+			Geometry:To3D(unitPos), candidates[2], self.E).CastPos or
+			(_G.PremiumPrediction:IsMoving(candidates[1]) and
+			_G.PremiumPrediction:GetPositionAfterTime(candidates[1], 1) or
+			Geometry:To3D(PPoint(unitPos + dir * self.E.radius)))
+		if predPos == nil then return end
+		local endPos = Geometry:To3D(unitPos:Extended(
+			Geometry:To2D(predPos), self.E.range))
+		self:CustomCastSpell(candidates[1].pos, endPos)
+	end
 end
 
+-- Events
 
-function Viktor:Logic()
-    if target == nil then return end
-    if Mode() == "Combo" or Mode() == "Harass" and target then
-        local AARange = _G.SDK.Data:GetAutoAttackRange(myHero)
-        if GetDistance(target.pos) < AARange then
-            WasInRange = true
-        end
-        local ERange = 1225
-        local QRange = 600
-        local WRange = 800
-        local RRange = 700
-        local TargetNextSpot = GetUnitPositionNext(target)
-        if TargetNextSpot then
-            TargetAttacking = GetDistance(myHero.pos, target.pos) > GetDistance(myHero.pos, TargetNextSpot)
-        else
-            TargetAttacking = false
-        end
+function Viktor:OnPreAttack(args)
+	if Mode() == "Combo" then
+		local target = GetTarget(self.AttackRange)
+		if target then args.Target = target; return end
+	end
+end
 
-        if self:CanUse(_E, Mode()) and ValidTarget(target, ERange) and not CastingQ and not CastingW and not CastingR then
-            self:UseE(target)
-        end
-
-        if self:CanUse(_Q, Mode()) and ValidTarget(target, QRange) and Edown == false and not CastingQ and not CastingW and not CastingR then
-            Control.CastSpell(HK_Q, target)
-        end
-
-        if self:CanUse(_W, Mode()) and ValidTarget(target, WRange) and Edown == false and not CastingQ and not CastingW then
-            if target.pathing.isDashing and TargetAttacking and self.ViktorMenu.ComboMode.UseEDef:Value() then
-                Control.CastSpell(HK_W, myHero)
-            elseif GetDistance(myHero.pos, target.pos) < 300 and self.ViktorMenu.ComboMode.UseEDef:Value() then
-                Control.CastSpell(HK_W, myHero)
-            elseif self.ViktorMenu.ComboMode.UseEAtt:Value() then
-                self:UseW(target, self.ViktorMenu.ComboMode.UseEAttHits:Value(), TargetAttacking)
-            end
-        end
-
-        local RDmg = getdmg("R", target, myHero, 1, myHero:GetSpellData(_R).level)
-        local RDmgTick = getdmg("R", target, myHero, 2, myHero:GetSpellData(_R).level)
-        local RDmgTotal = RDmg + RDmgTick*2
-        if self:CanUse(_R, Mode()) and ValidTarget(target, RRange) and Edown == false and not CastingQ and not CastingW and not CastingR and target.health < RDmgTotal and myHero:GetSpellData(_R).name == "ViktorChaosStorm"then
-            Control.CastSpell(HK_R, target)
-            --LastDirect = Game.Timer() + 1
-        end
-        if self:CanUse(_R, Mode()) and ValidTarget(target) and Edown == false and not CastingQ and not CastingW and not CastingR and myHero:GetSpellData(_R).name == "ViktorChaosStormGuide" and (myHero.attackData.state == 3 or GetDistance(myHero.pos, target.pos) > AARange) then
-            self:DirectR(target.pos)
-        end
-    else
-        WasInRange = false
-    end     
+function Viktor:OnPostAttack(args)
 end
 
 function Viktor:OnPostAttackTick(args)
-    if target then
-    end
-    attackedfirst = 1
-    attacked = 1
 end
 
-function Viktor:OnPreAttack(args)
-    if self:CanUse(_E, Mode()) and target then
-    end
+function Viktor:Clear()
+	if GameTimer() - self.QueueTimer <= 0.25 or self.EndPos then return end
+	if IsReady(_E) and self.ViktorMenu.ClearSet.Clear.UseE:Value() and
+		GetPercentMana() > self.ViktorMenu.ClearSet.Clear.Mana:Value() then
+		local minions, points = GetMinionsAround(self.MyPos, self.E.maxRange), {}
+		if #minions < 5 then return end
+		for i, minion in ipairs(minions) do
+			local predPos = _G.PremiumPrediction:GetFastPrediction(myHero, minion, self.E)
+			if predPos then TableInsert(points, Geometry:To2D(predPos)) end
+		end
+		local startPos, endPos, count = Geometry:GetDynamicLinearAOEPos(
+			points, self.E.minRange, self.E.maxRange, self.E.radius)
+		if startPos and endPos and count >= 5 then
+			self:CustomCastSpell(Geometry:To3D(startPos), Geometry:To3D(endPos))
+		end
+	end
 end
 
-
-function Viktor:UseR1(unit, hits)
-    local pred = _G.PremiumPrediction:GetAOEPrediction(myHero, unit, RSpellData)
-    --PrintChat("trying E")
-    if pred.CastPos and _G.PremiumPrediction.HitChance.Low(pred.HitChance) and myHero.pos:DistanceTo(pred.CastPos) < 701 and pred.HitCount >= hits then
-            Control.CastSpell(HK_R, pred.CastPos)
-            --Casted = 1
-    end 
+function Viktor:Auto()
 end
 
-function Viktor:DirectR(spot)
-    if LastDirect - Game.Timer() < 0 then
-        Control.CastSpell(HK_R, target)
-        LastDirect = Game.Timer() + 1
-    end
+function Viktor:Combo(targetQ, targetW, targetR)
+	if GameTimer() - self.QueueTimer <= 0.25 or self.EndPos then return end
+	if targetQ and IsReady(_Q) and self.ViktorMenu.ComboMode.UseQ:Value() then
+		self.QueueTimer = GameTimer()
+		_G.Control.CastSpell(HK_Q, targetQ.pos)
+	end
+	if targetW and IsReady(_W) and self.ViktorMenu.ComboMode.UseW:Value() then
+		local pred = _G.PremiumPrediction:GetAOEPrediction(myHero, targetW, self.W)
+		if pred.CastPos and pred.HitChance >= self.ViktorMenu.Pred.HCW:Value() / 1000 and
+			pred.HitCount >= self.ViktorMenu.ComboMode.MinW:Value() then
+				self.QueueTimer = GameTimer()
+				_G.Control.CastSpell(HK_W, pred.CastPos)
+		end
+	end
+	if targetR and IsReady(_R) and self.ViktorMenu.ComboMode.UseR:Value() and
+		GetPercentHealth(targetR) <= self.ViktorMenu.ComboMode.MaxHPR:Value() then
+		local pred = _G.PremiumPrediction:GetAOEPrediction(myHero, targetR, self.R)
+		if pred.CastPos and pred.HitChance >= self.ViktorMenu.Pred.HCR:Value() / 1000 and
+			pred.HitCount >= self.ViktorMenu.ComboMode.MinR:Value() then
+				self.QueueTimer = GameTimer()
+				_G.Control.CastSpell(HK_R, pred.CastPos)
+		end
+	end
 end
 
-function Viktor:UseW(unit, hits, attacking)
-    local pred = _G.PremiumPrediction:GetAOEPrediction(myHero, unit, WSpellData)
-    --PrintChat("trying E")
-    if pred.CastPos and _G.PremiumPrediction.HitChance.Medium(pred.HitChance) and myHero.pos:DistanceTo(pred.CastPos) < 801 and pred.HitCount >= hits then
-        if attacking == true then
-            local Direction = Vector((pred.CastPos-myHero.pos):Normalized())
-            local Wspot = pred.CastPos - Direction*100
-            Control.CastSpell(HK_W, Wspot)
-        else
-            local Direction = Vector((pred.CastPos-myHero.pos):Normalized())
-            local Wspot = pred.CastPos + Direction*100
-            if GetDistance(myHero.pos, Wspot) > 800 then
-                Control.CastSpell(HK_W, pred.CastPos)
-            else
-                Control.CastSpell(HK_W, Wspot)
-            end
-        end
-            --Casted = 1
-    end 
-end
-
-function Viktor:UseE(unit)
-    if GetDistance(unit.pos, myHero.pos) < 1225 then
-        --PrintChat("Using E")
-        local Direction = Vector((myHero.pos-unit.pos):Normalized())
-        local Espot = myHero.pos - Direction*520
-        if GetDistance(myHero.pos, unit.pos) < 520 then
-            Espot = unit.pos
-        end
-        --Control.SetCursorPos(Espot)
-        --Control.CastSpell(HK_E, unit)
-        local pred = _G.PremiumPrediction:GetPrediction(Espot, unit, ESpellData)
-        if pred.CastPos and _G.PremiumPrediction.HitChance.Low(pred.HitChance) and Espot:DistanceTo(pred.CastPos) < 520 then
-            if Control.IsKeyDown(HK_E) and Edown == true then
-                --_G.SDK.Orbwalker:SetMovement(false)
-                --PrintChat("E down")
-                self:UseE2(Espot, unit, pred)
-            elseif Edown == false then
-                --_G.SDK.Orbwalker:SetMovement(true)
-                ReturnMouse = mousePos
-                --PrintChat("Pressing E")
-                Control.SetCursorPos(Espot)
-                Control.KeyDown(HK_E)
-                Edown = true
-            end
-        end
-    end
-end
-
-
-function Viktor:UseE2(ECastPos, unit, pred)
-    if Control.IsKeyDown(HK_E) then
-        Control.SetCursorPos(pred.CastPos)
-        Control.KeyUp(HK_E)
-        DelayAction(function() Control.SetCursorPos(ReturnMouse) end, 0.01)
-        DelayAction(function() Edown = false end, 0.50)   
-    end
+function Viktor:Harass(targetQ, targetW)
+	if GameTimer() - self.QueueTimer <= 0.25 or self.EndPos then return end
+	if targetQ and IsReady(_Q) and self.ViktorMenu.HarassMode.UseQ:Value() then
+		self.QueueTimer = GameTimer()
+		_G.Control.CastSpell(HK_Q, targetQ.pos)
+	end
+	if targetW and IsReady(_W) and self.ViktorMenu.HarassMode.UseW:Value() then
+		local pred = _G.PremiumPrediction:GetAOEPrediction(myHero, targetW, self.W)
+		if pred.CastPos and pred.HitChance >= self.ViktorMenu.Pred.HCW:Value() / 1000 and
+			pred.HitCount >= self.ViktorMenu.HarassMode.MinW:Value() then
+				self.QueueTimer = GameTimer()
+				_G.Control.CastSpell(HK_W, pred.CastPos)
+		end
+	end
 end
 
 
 class "Annie"
 
-local EnemyLoaded = false
 local AllyLoaded = false
 
 local TargetTime = 0
@@ -1366,13 +1420,18 @@ local ARStackTime = Game.Timer()
 local ALastRstacks = 0
 local ALastTickTarget = myHero
 
-local HeroIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/annie.png"
-local IgniteIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/Ignite.png"
-local QIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/annie_q.png"
-local WIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/annie_w.png"
-local EIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/annie_e.png"
-local RIcon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/annie_r1.png"
-local R2Icon = "https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/annie_r2.png"
+local charName = myHero.charName
+local url = "https://raw.githubusercontent.com/Impulsx/LoL-Icons/master/"
+local CharIcon = {url..charName..".png"}
+local HeroSpirites = {url.. charName.."Q.png", url..charName..'W.png', url..charName..'E.png', url..charName.."R.png", url..charName.."R2.png"}
+
+local HeroIcon = CharIcon[1] --"https://raw.githubusercontent.com/Impulsx/GoS/master/PageImage/Annie.png"
+local IgniteIcon = url.."Ignite.png"
+local QIcon = HeroSpirites[1]
+local WIcon = HeroSpirites[2]
+local EIcon = HeroSpirites[3]
+local RIcon = HeroSpirites[4]
+local R2Icon = HeroSpirites[5]
 
 function Annie:Menu()
     self.AnnieMenu = MenuElement({type = MENU, id = "Annie", name = "Impuls Annie", leftIcon = HeroIcon})
@@ -1426,7 +1485,7 @@ function Annie:Menu()
         self.AnnieMenu.AutoLevel:MenuElement({id = "Order", name = "Skill Order", value = 1, drop = {"QWE", "WEQ", "EQW", "EWQ", "WQE", "QEW"}})
     self.AnnieMenu:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
         self.AnnieMenu.Pred:MenuElement({name = " ", drop = {"After change Prediction Type press 2xF6"}})	
-        self.AnnieMenu.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 4, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction", "InternalPrediction"}})	
+        self.AnnieMenu.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 1, drop = {"Premium Prediction", "GGPrediction", "InternalPrediction"}})	
         self.AnnieMenu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})
         self.AnnieMenu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
         self.AnnieMenu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})
@@ -1594,7 +1653,7 @@ end
 function Annie:Tick()
     if _G.JustEvade and _G.JustEvade:Evading() or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or Game.IsChatOpen() or myHero.dead then return end
 
-    target = GetTarget(1500)
+    target = GetTarget(2000)
     if target and ValidTarget(target) then
         DamageValues = self:GetAllDamage(target, true)
     end
@@ -1614,8 +1673,8 @@ function Annie:Tick()
     end
     if Tibbers then
         if Tibbers.dead or Tibbers.health <= 0 then
-            TickR = false
             Tibbers = nil
+            TickR = false
         end
     end
     StunBuff = BuffActive(myHero, "anniepassiveprimed")
@@ -1657,15 +1716,13 @@ function Annie:Tick()
     if not PredLoaded then
 		DelayAction(function()
 			if self.AnnieMenu.Pred.Change:Value() == 1 then
-				require('GamsteronPrediction')
-				PredLoaded = true
-			elseif self.AnnieMenu.Pred.Change:Value() == 2 then
 				require('PremiumPrediction')
 				PredLoaded = true
-			else 
+			elseif self.AnnieMenu.Pred.Change:Value() == 2 then
 				require('GGPrediction')
 				PredLoaded = true					
-			end
+            else
+            end
 		end, 1)	
 	end
 end
@@ -2178,8 +2235,8 @@ end
 function Annie:UseTibbers(unit)
     if TibbersNextClick < Game.Timer() then
         Control.CastSpell(HK_R, unit)
-        PrintChat("Moved Tibbers")
-        TibbersNextClick = Game.Timer() + 0.45
+        --PrintChat("Moved Tibbers")
+        TibbersNextClick = Game.Timer() + 0.3
     end
 end
 
@@ -2202,4 +2259,9 @@ function Annie:AllyE()
             end	
         end	
     end
+end
+
+function OnLoad()
+    DrawInfo = true
+    Manager()
 end
