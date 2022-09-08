@@ -3073,7 +3073,7 @@ _G.DamageLib = {
   monsterType = Monstertable,
 }
 function DamageLib:IsMelee(unit)
-  return IsMelee(IsMelee)
+  return IsMelee(unit) --bool
 end
 --[[ 
 function DamageLib:ItemID(ItemID)
