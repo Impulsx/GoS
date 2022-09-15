@@ -206,7 +206,7 @@ local SuperMinionList = {"SRU_ChaosMinionSuper", "SRU_OrderMinionSuper", "HA_Cha
 local NormalMinionList = {"SRU_ChaosMinionRanged", "SRU_OrderMinionRanged", "SRU_ChoasMinionMelee", "SRU_OrderMinionMelee", "HA_ChaosMinionMelee", "HA_OrderMinionMelee", "HA_ChaosMinionRanged", "HA_OrderMinionRanged"}
 -- Monster Info --
 local Monstertable = {
-	SRU_Baron = {epicMonster = true},
+--[[ 	SRU_Baron = {epicMonster = true},
 	SRU_RiftHerald = {epicMonster = true},
   SRU_Dragon_Elder = {epicMonster = true},
 
@@ -226,6 +226,26 @@ local Monstertable = {
 	SRU_Razorbeak = {largeMonster = true},
 	SRU_Krug = {largeMonster = true},
 	Sru_Crab = {largeMonster = true},
+
+  [MeleeMinionList] = { meleeMinion = true },
+  [RangedMinionList] = { rangedMinion = true},
+  [SiegeMinionList] = { siegeMinion = true},
+  [SuperMinionList] = { superMinion = true},
+  [NormalMinionList] = { normalMinion = true}, ]]
+}
+local epicMonster = {
+  "SRU_Baron",
+	"SRU_RiftHerald",
+  "SRU_Dragon_Elder",
+
+	"SRU_Dragon_Water",
+  "SRU_Dragon_Fire",
+  "SRU_Dragon_Earth",
+  "SRU_Dragon_Air",
+
+  "SRU_Dragon_Ruined",
+  "SRU_Dragon_Chemtech",
+	"SRU_Dragon_Hextech",
 }
 -- Turret Info --
 local TurretsInfo = {
@@ -1806,7 +1826,17 @@ local SpellDamageTable = {
   ["Kalista"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 85, 150, 215, 280})[level] + source.totalDamage end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) local baseDmg = (({14, 15, 16, 17, 18})[level] / 100) * target.maxHealth; if GotBuff(target, "kalistacoopstrikeally") then if target.type == Obj_AI_Minion then if target.health <= 125 then return target.health end; return math_max(math_min(baseDmg, 75), ({100,125,150,175,200})[level]) end; end; return baseDmg end}, -- Soul-marked target calc
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) local count = GotBuff(target, "kalistaexpungemarker"); if count == 0 then return 0 end; local monsterName = target.charName; local dmg = (({20, 30, 40, 50, 60})[level] + (0.7 * source.totalDamage)) + ((count - 1)*(({10, 16, 22, 28, 34})[level]+(({23.20, 27.55, 31.90, 36.25, 40.60})[level]/100) * (source.totalDamage))); if target.type == Obj_AI_Minion then; if Monstertable[monsterName].epicMonster then; dmg = dmg * 0.50; end; end; return dmg end; },
+    {Slot = "E", Stage = 1, DamageType = 1, 
+    Damage = function(source, target, level)
+       local count = GotBuff(target, "kalistaexpungemarker"); 
+       if count == 0 then return 0 end; 
+       local dmg = (({20, 30, 40, 50, 60})[level] + (0.7 * source.totalDamage)) + ((count - 1)*(({10, 16, 22, 28, 34})[level]+(({23.20, 27.55, 31.90, 36.25, 40.60})[level]/100) * (source.totalDamage))); 
+       if target.type == Obj_AI_Minion then
+        local monsterName = target.charName; 
+        if table_contains(epicMonster, monsterName) then --epicMonster[monsterName] then -- table_contains(epicMonster, monsterName)
+        dmg = dmg * 0.50; end; 
+       end; 
+      return dmg end; },
   },
   
   ["Kayn"] = {
