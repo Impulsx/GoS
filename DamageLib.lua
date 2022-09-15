@@ -191,7 +191,6 @@ local math_max = assert(math.max)
 local math_floor = assert(math.floor)
 local table_insert = assert(table.insert)
 local table_remove = assert(table.remove)
-local table_contains = assert(table.contains)
 local pairs = pairs
 local ipairs = ipairs
 
@@ -199,54 +198,53 @@ local ItemSlots = { ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6, ITEM_7 }
 local ItemKeys = { HK_ITEM_1, HK_ITEM_2, HK_ITEM_3, HK_ITEM_4, HK_ITEM_5, HK_ITEM_6, HK_ITEM_7 }
 
 -- Minion Info --
-local MeleeMinionList = {"SRU_ChaosMinionMelee", "SRU_OrderMinionMelee", "HA_ChaosMinionMelee", "HA_OrderMinionMelee"}
-local RangedMinionList = {"SRU_ChaosMinionRanged", "SRU_OrderMinionRanged", "HA_ChaosMinionRanged", "HA_OrderMinionRanged"}
-local SiegeMinionList = {"SRU_ChaosMinionSiege", "SRU_OrderMinionSiege", "HA_ChaosMinionSiege", "HA_OrderMinionSiege"}
-local SuperMinionList = {"SRU_ChaosMinionSuper", "SRU_OrderMinionSuper", "HA_ChaosMinionSuper", "HA_OrderMinionSuper"}
-local NormalMinionList = {"SRU_ChaosMinionRanged", "SRU_OrderMinionRanged", "SRU_ChoasMinionMelee", "SRU_OrderMinionMelee", "HA_ChaosMinionMelee", "HA_OrderMinionMelee", "HA_ChaosMinionRanged", "HA_OrderMinionRanged"}
+local MeleeMinionList = {"SRU_ChaosMinionMelee", "SRU_OrderMinionMelee", "HA_ChaosMinionMelee", "HA_OrderMinionMelee", }
+local RangedMinionList = {"SRU_ChaosMinionRanged", "SRU_OrderMinionRanged", "HA_ChaosMinionRanged", "HA_OrderMinionRanged", }
+local SiegeMinionList = {"SRU_ChaosMinionSiege", "SRU_OrderMinionSiege", "HA_ChaosMinionSiege", "HA_OrderMinionSiege", }
+local SuperMinionList = {"SRU_ChaosMinionSuper", "SRU_OrderMinionSuper", "HA_ChaosMinionSuper", "HA_OrderMinionSuper", }
+local NormalMinionList = {"SRU_ChaosMinionRanged", "SRU_OrderMinionRanged", "SRU_ChoasMinionMelee", "SRU_OrderMinionMelee", "HA_ChaosMinionMelee", "HA_OrderMinionMelee", "HA_ChaosMinionRanged", "HA_OrderMinionRanged", }
 -- Monster Info --
-local Monstertable = {
---[[ 	SRU_Baron = {epicMonster = true},
-	SRU_RiftHerald = {epicMonster = true},
-  SRU_Dragon_Elder = {epicMonster = true},
-
-	SRU_Dragon_Water = {epicMonster = true},
-  SRU_Dragon_Fire = {epicMonster = true},
-  SRU_Dragon_Earth = {epicMonster = true},
-  SRU_Dragon_Air = {epicMonster = true},
-
-  SRU_Dragon_Ruined = {epicMonster = true},
-  SRU_Dragon_Chemtech = {epicMonster = true},
-	SRU_Dragon_Hextech = {epicMonster = true},
-
-	SRU_Blue = {largeMonster = true},
-	SRU_Red = {largeMonster = true},
-	SRU_Gromp = {largeMonster = true},
-	SRU_Murkwolf = {largeMonster = true},
-	SRU_Razorbeak = {largeMonster = true},
-	SRU_Krug = {largeMonster = true},
-	Sru_Crab = {largeMonster = true},
-
-  [MeleeMinionList] = { meleeMinion = true },
-  [RangedMinionList] = { rangedMinion = true},
-  [SiegeMinionList] = { siegeMinion = true},
-  [SuperMinionList] = { superMinion = true},
-  [NormalMinionList] = { normalMinion = true}, ]]
-}
 local epicMonster = {
   "SRU_Baron",
 	"SRU_RiftHerald",
   "SRU_Dragon_Elder",
-
 	"SRU_Dragon_Water",
   "SRU_Dragon_Fire",
   "SRU_Dragon_Earth",
   "SRU_Dragon_Air",
-
   "SRU_Dragon_Ruined",
   "SRU_Dragon_Chemtech",
 	"SRU_Dragon_Hextech",
 }
+--[[ local Monstertable = {
+  ["SRU_Baron"] = {epicMonster = true},
+	["SRU_RiftHerald"] = {epicMonster = true},
+  ["SRU_Dragon_Elder"] = {epicMonster = true},
+
+	["SRU_Dragon_Water"] = {epicMonster = true},
+  ["SRU_Dragon_Fire"] = {epicMonster = true},
+  ["SRU_Dragon_Earth"] = {epicMonster = true},
+  ["SRU_Dragon_Air"] = {epicMonster = true},
+
+  ["SRU_Dragon_Ruined"] = {epicMonster = true},
+  ["SRU_Dragon_Chemtech"] = {epicMonster = true},
+	["SRU_Dragon_Hextech"] = {epicMonster = true},
+
+	["SRU_Blue"] = {largeMonster = true},
+	["SRU_Red"] = {largeMonster = true},
+	["SRU_Gromp"] = {largeMonster = true},
+	["SRU_Murkwolf"] = {largeMonster = true},
+	["SRU_Razorbeak"] = {largeMonster = true},
+	["SRU_Krug"] = {largeMonster = true},
+	["Sru_Crab"] = {largeMonster = true},
+  [epicMonster] = { epicMonster = true},
+  [MeleeMinionList] = { meleeMinion = true },
+  [RangedMinionList] = { rangedMinion = true},
+  [SiegeMinionList] = { siegeMinion = true},
+  [SuperMinionList] = { superMinion = true},
+  [NormalMinionList] = { normalMinion = true},
+} ]]
+
 -- Turret Info --
 local TurretsInfo = {
   --blue
@@ -729,6 +727,16 @@ AbyssalMask = 8020,
 }
 
 -- Local Functions --
+local table_contains = function(table, x)
+  local found = false
+  for _, v in pairs(table) do
+      if v == x then 
+          found = true 
+      end
+  end
+  return found
+end
+
 local GetBaseHealth = function(unit)
   if unit.charName == "Sylas" then
     return 575 + (129 * (unit.levelData.lvl - 1))
@@ -942,6 +950,18 @@ local Buff = {
 		return result
 	end,
 
+  	HasBuffContainsNameCount = function(self, unit, name)
+		name = name:lower()
+		local buffs = Cached:GetBuffs(unit)
+		local result = 0
+		for i = 1, #buffs do
+			if buffs[i].name:lower():find(name) then
+				result = result + 1
+			end
+		end
+		return result
+	end,
+
 	ContainsBuffs = function(self, unit, arr)
 		local buffs = Cached:GetBuffs(unit)
 		local result = false
@@ -1038,7 +1058,7 @@ local GetTurretType = function(name, type)
     print("No Turret Data - Unsupported Map")
   end
   if Turrets[name] then
-    if type == Turrets[name.charName].turrettype then
+    if type == Turrets[name.name].turrettype then
       return true and Turrets
     end
   end
@@ -1102,6 +1122,7 @@ local DamageReductionItemsTable = {
   3193 Gargoyle Stoneplate
   8001 Anathema's Chains
 ]]
+
 local SpecialAADamageTable = {
   ["Akshan"] = function(args) --Akshan
     args.RawPhysical = args.RawPhysical
@@ -1826,15 +1847,16 @@ local SpellDamageTable = {
   ["Kalista"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 85, 150, 215, 280})[level] + source.totalDamage end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) local baseDmg = (({14, 15, 16, 17, 18})[level] / 100) * target.maxHealth; if GotBuff(target, "kalistacoopstrikeally") then if target.type == Obj_AI_Minion then if target.health <= 125 then return target.health end; return math_max(math_min(baseDmg, 75), ({100,125,150,175,200})[level]) end; end; return baseDmg end}, -- Soul-marked target calc
-    {Slot = "E", Stage = 1, DamageType = 1, 
-    Damage = function(source, target, level)
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level)
        local count = GotBuff(target, "kalistaexpungemarker"); 
        if count == 0 then return 0 end; 
        local dmg = (({20, 30, 40, 50, 60})[level] + (0.7 * source.totalDamage)) + ((count - 1)*(({10, 16, 22, 28, 34})[level]+(({23.20, 27.55, 31.90, 36.25, 40.60})[level]/100) * (source.totalDamage))); 
        if target.type == Obj_AI_Minion then
-        local monsterName = target.charName; 
-        if table_contains(epicMonster, monsterName) then --epicMonster[monsterName] then -- table_contains(epicMonster, monsterName)
-        dmg = dmg * 0.50; end; 
+        local monsterName = target.charName;
+        if table_contains(epicMonster, monsterName) then 
+          dmg = dmg * 0.50; end; 
+--[[         if table_contains(Monstertable, monsterName) and epicMonster[monsterName].epicMonster then --epicMonster[monsterName] then -- table_contains(epicMonster, monsterName)
+          dmg = dmg * 0.50; end;  ]]
        end; 
       return dmg end; },
   },
@@ -2699,6 +2721,10 @@ local DamageReductionMod = function(source, target, DamageType, amount)
     if GotBuff(source, "barontarget") > 0 then
       amount = amount * (1 - 0.50)
     end
+    if Buff:HasBuffContainsName(source, "SRX_DragonBuff") then
+      local count = Buff:HasBuffContainsNameCount(source, "SRX_DragonBuff")
+      amount = amount * (1 - (0.07*count))
+    end
   end
 
   if targetIsHero then
@@ -2904,9 +2930,9 @@ CalcDamage = function(source, target, DamageType, amount, IsAA)
       if targetIsMinion then
         local percentHP = nil
         if table_contains(SiegeMinionList, target.charName) then
-          if GetTurretType(source.charName, "Base") then local percentHP = TurretToMinionPercent[SiegeMinionList].Base
-          elseif GetTurretType(source.charName, "Inner") then local percentHP = TurretToMinionPercent[SiegeMinionList].Inner
-          elseif GetTurretType(source.charName, "Outer") then local percentHP = TurretToMinionPercent[SiegeMinionList].Outer
+          if GetTurretType(source.name, "Base") then local percentHP = TurretToMinionPercent[SiegeMinionList].Base
+          elseif GetTurretType(source.name, "Inner") then local percentHP = TurretToMinionPercent[SiegeMinionList].Inner
+          elseif GetTurretType(source.name, "Outer") then local percentHP = TurretToMinionPercent[SiegeMinionList].Outer
           end
         elseif table_contains(RangedMinionList, target.charName) then local percentHP = TurretToMinionPercent[RangedMinionList]
         elseif table_contains(MeleeMinionList, target.charName) then local percentHP = TurretToMinionPercent[MeleeMinionList]
