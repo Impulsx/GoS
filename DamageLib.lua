@@ -2721,7 +2721,7 @@ local DamageReductionMod = function(source, target, DamageType, amount)
     if GotBuff(source, "barontarget") > 0 then
       amount = amount * (1 - 0.50)
     end
-    if Buff:HasBuffContainsName(source, "SRX_DragonBuff") then
+    if Buff:HasBuffContainsName(target, "s5_dragonvengeance") then
       local count = Buff:HasBuffContainsNameCount(source, "SRX_DragonBuff")
       amount = amount * (1 - (0.07*count))
     end
