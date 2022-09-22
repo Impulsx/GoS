@@ -3161,7 +3161,7 @@ end)
 _G.DamageLib = {
   ItemID = ItemID,
   MeleeHeros = Hero[1],
-  monsterType = Monstertable,
+  --monsterType = Monstertable,
 }
 function DamageLib:IsMelee(unit)
   return IsMelee(unit) --returns bool
