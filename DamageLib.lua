@@ -1097,23 +1097,23 @@ local DamageReductionBuffsTable = {
 
 local DamageReductionItemsTable = {
   [ItemID.PlatedSteelcaps] = {IsAA = true, amount = function(source, target, DamageType, amount) --3047 Plated Steelcaps
-    -- if AA and not SourceIsTurret then dmg = dmg * (1-0.12)
+      --if AA and not SourceIsTurret then dmg = dmg * (1-0.12)
       return 1 - 0.12
     end},
-  [ItemID.FrozenHeart] = {IsAA = true, amount = function(source, target, DamageType, amount) -- 3110 Frozen Heart
-    -- if AA then dmg = dmg - (5 + 3.5 per 1000 hp) cap at 40% of dmg
+  [ItemID.FrozenHeart] = {IsAA = true, amount = function(source, target, DamageType, amount) --3110 Frozen Heart
+      --if AA then dmg = dmg - (5 + 3.5 per 1000 hp) cap at 40% of dmg
       return math_max(5 + (3.5 * math_floor(target.maxHealth / 1000)), amount*0.40)
     end},
-  [ItemID.RanduinsOmen] = {IsAA = true, amount = function(source, target, DamageType, amount) -- 3143 Randuin's Omen
-    -- if AA then dmg = dmg - (5 + 3.5 per 1000 hp) cap at 40% of dmg
+  [ItemID.RanduinsOmen] = {IsAA = true, amount = function(source, target, DamageType, amount) --3143 Randuin's Omen
+      --if AA then dmg = dmg - (7 + 3.5 per 1000 hp) cap at 40% of dmg
       return math_max(7+ (3.5 * math_floor(target.maxHealth / 1000)), amount*0.40)
     end},
-  [ItemID.WardensMail] = {IsAA = true, amount = function(source, target, DamageType, amount) -- 3082 Warden's Mail
-    -- if AA then dmg = dmg - (5 + 3.5 per 1000 hp) cap at 40% of dmg
+  [ItemID.WardensMail] = {IsAA = true, amount = function(source, target, DamageType, amount) --3082 Warden's Mail
+      --if AA then dmg = dmg - (7 + 3.5 per 1000 hp) cap at 40% of dmg
       return math_max(7+ (3.5 * math_floor(target.maxHealth / 1000)), amount*0.40)
     end},
   [ItemID.ForceofNature] = {buff = "4401maxstacked", IsAA = false, DamageType = 2,  amount = function(source, target, DamageType, amount)
-    -- if buff and magic damage then (1 - 0.25)
+      --if buff and magic damage then (1 - 0.25)
       if DamageType == 2 then
         return (1 - 0.25)
       end
@@ -1687,7 +1687,7 @@ local SpellDamageTable = {
   ["Garen"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 60, 90, 120, 150})[level] + 0.5 * source.totalDamage end},
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({4, 8, 12, 16, 20})[level] + ({0, 0.8, 1.6, 2.4, 3.2, 4, 4.8, 5.6, 6.4, 6.6, 6.6, 7, 7.2, 7.4, 7.6, 7.8, 8, 8.2})[myHero.levelData.lvl] + ({32, 34, 36, 38, 40})[level] / 100 * source.totalDamage end},
-    {Slot = "R", Stage = 1, DamageType = 3, Damage = function(source, target, level) return ({150, 300, 450})[level] + (({20, 25, 30})[level] / 100) * GetMissingHP(target) end},
+    {Slot = "R", Stage = 1, DamageType = 3, Damage = function(source, target, level) return ({150, 300, 450})[level] + (({25, 30, 35})[level] / 100) * GetMissingHP(target) end},
   },
 
   ["Gnar"] = {
