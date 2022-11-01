@@ -66,6 +66,7 @@ SpellDamageTable:
 
 
 Calculations:
+
 -- Calc -- = {
   PassivePercentMod(source, target, DamageType, amount),
     increases %
@@ -84,6 +85,7 @@ Calculations:
 }
 
 API Release:
+
 _G.DamageLib = {
   ItemID = ItemID,
   MeleeHeros = Hero[1],
