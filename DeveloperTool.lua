@@ -1,5 +1,52 @@
 local PRINT_CONSOLE = false;
 
+local myHero = myHero
+local os = os
+local math = math
+local Game = Game
+local Vector = Vector
+local Control = Control
+local Draw = Draw
+local GetTickCount = GetTickCount
+
+local math_huge = math.huge
+local math_pi = math.pi
+local math_ceil = assert(math.ceil)
+local math_min = assert(math.min)
+local math_max = assert(math.max)
+local math_atan = assert(math.atan)
+local math_random = assert(math.random)
+
+local table_sort = assert(table.sort)
+local table_remove = assert(table.remove)
+local table_insert = assert(table.insert)
+
+local pairs = pairs
+local ipairs = ipairs
+
+local GameTimer = Game.Timer
+local GameIsOnTop = Game.IsOnTop
+local GameIsChatOpen = Game.IsChatOpen
+local GameCanUseSpell = Game.CanUseSpell
+
+local GameWard = Game.Ward
+local GameHero = Game.Hero
+local GameObject = Game.Object
+local GameTurret = Game.Turret
+local GameMinion = Game.Minion
+local GameMissile = Game.GameMissile
+local GameParticle = Game.Particle
+
+local GameWardCount = Game.WardCount
+local GameHeroCount = Game.HeroCount
+local GameObjectCount = Game.ObjectCount
+local GameTurretCount = Game.TurretCount
+local GameMinionCount = Game.MinionCount
+local GameMissileCount = Game.MissileCount
+local GameParticleCount = Game.ParticleCount
+
+local GameGetObjectByNetID = Game.GetObjectByNetID
+
 local menu = MenuElement({ id = "DeveloperTool", name = "DeveloperTool", type = MENU });
 menu:MenuElement({ id = "GameObject", name = "GameObject", value = false });
 menu:MenuElement({ id = "damage", name = "damage", value = false });
@@ -9,7 +56,7 @@ menu:MenuElement({ id = "missileData", name = "missileData", value = false });
 menu:MenuElement({ id = "spellData", name = "spellData", value = false });
 menu:MenuElement({ id = "buff", name = "buff", value = false });
 menu:MenuElement({ id = "particles", name = "particles", value = false });
-menu:MenuElement({ id = "API", name = "[ Click to dump API Documentation and hide ]", type = SPACE, tooltip = "Dump to 'api.lua' in \\LOLEXT\\Scripts\\", onclick = function() DumpDocumentation("api.lua")  menu.API:Hide() end});
+--menu:MenuElement({ id = "API", name = "[ Click to dump API Documentation and hide ]", type = SPACE, tooltip = "Dump to 'api.lua' in \\LOLEXT\\Scripts\\", onclick = function() DumpDocumentation("api.lua")  menu.API:Hide() end});
 
 
 local function isObj_AI_Base(obj)
@@ -75,19 +122,19 @@ local function convertState(state)
 end
 
 local slots = {};
-table.insert(slots, _Q);
-table.insert(slots, _W);
-table.insert(slots, _E);
-table.insert(slots, _R);
-table.insert(slots, ITEM_1);
-table.insert(slots, ITEM_2);
-table.insert(slots, ITEM_3);
-table.insert(slots, ITEM_4);
-table.insert(slots, ITEM_5);
-table.insert(slots, ITEM_6);
-table.insert(slots, ITEM_7);
-table.insert(slots, SUMMONER_1);
-table.insert(slots, SUMMONER_2);
+table_insert(slots, _Q);
+table_insert(slots, _W);
+table_insert(slots, _E);
+table_insert(slots, _R);
+table_insert(slots, ITEM_1);
+table_insert(slots, ITEM_2);
+table_insert(slots, ITEM_3);
+table_insert(slots, ITEM_4);
+table_insert(slots, ITEM_5);
+table_insert(slots, ITEM_6);
+table_insert(slots, ITEM_7);
+table_insert(slots, SUMMONER_1);
+table_insert(slots, SUMMONER_2);
 
 local handleToNetworkID = {};
 local function getObjectByHandle(handle)
@@ -95,53 +142,52 @@ local function getObjectByHandle(handle)
 		return nil;
 	end
 	local networkID = handleToNetworkID[handle];
-	return networkID ~= nil and Game.GetObjectByNetID(networkID) or nil;
+	return networkID ~= nil and GameGetObjectByNetID(networkID) or nil;
 end
 
 local itemSlots = {};
-table.insert(itemSlots, ITEM_1);
-table.insert(itemSlots, ITEM_2);
-table.insert(itemSlots, ITEM_3);
-table.insert(itemSlots, ITEM_4);
-table.insert(itemSlots, ITEM_5);
-table.insert(itemSlots, ITEM_6);
-table.insert(itemSlots, ITEM_7);
+table_insert(itemSlots, ITEM_1);
+table_insert(itemSlots, ITEM_2);
+table_insert(itemSlots, ITEM_3);
+table_insert(itemSlots, ITEM_4);
+table_insert(itemSlots, ITEM_5);
+table_insert(itemSlots, ITEM_6);
+table_insert(itemSlots, ITEM_7);
 
 
-Callback.Add('Load', 
-	function()
+Callback.Add('Load', function()
 		local Obj_AI_Bases = {}
 		Callback.Add('Tick', function()
 			Obj_AI_Bases = {};
 			handleToNetworkID = {};
-			for i = 0, Game.HeroCount() do
-				local obj = Game.Hero(i);
+			for i = 0, GameHeroCount() do
+				local obj = GameHero(i);
 				if isValidTarget(obj) then
 					if isObj_AI_Base(obj) then
 						if isOnScreen(obj) then -- just because of fps
-							table.insert(Obj_AI_Bases, obj);
+							table_insert(Obj_AI_Bases, obj);
 						end
 						handleToNetworkID[obj.handle] = obj.networkID;
 					end
 				end
 			end
-			for i = 0, Game.MinionCount() do
-				local obj = Game.Minion(i);
+			for i = 0, GameMinionCount() do
+				local obj = GameMinion(i);
 				if isValidTarget(obj) then
 					if isObj_AI_Base(obj) then
 						if isOnScreen(obj) then -- just because of fps
-							table.insert(Obj_AI_Bases, obj);
+							table_insert(Obj_AI_Bases, obj);
 						end
 						handleToNetworkID[obj.handle] = obj.networkID;
 					end
 				end
 			end
-			for i = 0, Game.TurretCount() do
-				local obj = Game.Turret(i);
+			for i = 0, GameTurretCount() do
+				local obj = GameTurret(i);
 				if isValidTarget(obj) then
 					if isObj_AI_Base(obj) then
 						if isOnScreen(obj) then -- just because of fps
-							table.insert(Obj_AI_Bases, obj);
+							table_insert(Obj_AI_Bases, obj);
 						end
 						handleToNetworkID[obj.handle] = obj.networkID;
 					end
@@ -152,9 +198,9 @@ Callback.Add('Load',
 		Callback.Add('Draw', function()
 			counters = {};
 			if menu.GameObject:Value() then
-				if Game.ObjectCount() > 0 then
-					for i = 0, Game.ObjectCount() do
-						local obj = Game.Object(i);
+				if GameObjectCount() > 0 then
+					for i = 0, GameObjectCount() do
+						local obj = GameObject(i);
 						if isValidTarget(obj) then
 							drawText(obj, getValue('type', function()
 								return obj.type;
@@ -262,7 +308,7 @@ Callback.Add('Load',
 							return isValidTarget(target) and target.name or "";
 						end));
 						drawText(obj, getValue('timeLeft', function()
-							return math.max(obj.attackData.endTime - Game.Timer(), 0);
+							return math_max(obj.attackData.endTime - GameTimer(), 0);
 						end));
 					end
 
@@ -270,8 +316,8 @@ Callback.Add('Load',
 						for j, slot in ipairs(itemSlots) do
 							local item = obj:GetItemData(slot);
 							if item ~= nil and item.itemID > 0 then
-								drawText(obj, "itemID: " .. item.itemID .. 
-									", stacks: " .. item.stacks .. 
+								drawText(obj, "itemID: " .. item.itemID ..
+									", stacks: " .. item.stacks ..
 									", ammo: " .. item.ammo
 								);
 							end
@@ -282,8 +328,8 @@ Callback.Add('Load',
 						for j, slot in ipairs(slots) do
 							local spellData = obj:GetSpellData(slot);
 							if spellData ~= nil and spellData.name ~= "" and spellData.name ~= "BaseSpell" then
-								drawText(obj, "name: " .. spellData.name .. 
-									", castTime: " .. spellData.castTime .. 
+								drawText(obj, "name: " .. spellData.name ..
+									", castTime: " .. spellData.castTime ..
 									", cd: " .. spellData.cd ..
 									", currentCd: " .. spellData.currentCd ..
 									", toggleState: " .. spellData.toggleState ..
@@ -302,13 +348,13 @@ Callback.Add('Load',
 						for j = 0, obj.buffCount do
 							local buff = obj:GetBuff(j);
 							if buff ~= nil and buff.count > 0 then
-								drawText(obj, "type: " .. buff.type .. 
-									", name: " .. buff.name .. 
-									", startTime: " .. buff.startTime .. 
-									", expireTime: " .. buff.expireTime .. 
-									", duration: " .. buff.duration .. 
-									", stacks: " .. buff.stacks .. 
-									", count: " .. buff.count .. 
+								drawText(obj, "type: " .. buff.type ..
+									", name: " .. buff.name ..
+									", startTime: " .. buff.startTime ..
+									", expireTime: " .. buff.expireTime ..
+									", duration: " .. buff.duration ..
+									", stacks: " .. buff.stacks ..
+									", count: " .. buff.count ..
 									", sourceName: " .. buff.sourceName
 								);
 							end
@@ -318,8 +364,8 @@ Callback.Add('Load',
 			end
 
 			if menu.missileData:Value() then
-				for i = 0, Game.MissileCount() do
-					local missile = Game.Missile(i);
+				for i = 0, GameMissileCount() do
+					local missile = GameMissile(i);
 					if isValidMissile(missile) then
 						if isOnScreen(missile) then
 							drawText(missile, getValue('name', function()
@@ -365,8 +411,8 @@ Callback.Add('Load',
 			end
 
 			if menu.particles:Value() then
-				for i = 0, Game.ParticleCount() do
-					local particle = Game.Particle(i);
+				for i = 0, GameParticleCount() do
+					local particle = GameParticle(i);
 					if particle ~= nil and not particle.dead and particle.pos:DistanceTo(mousePos) <= 200 then
 						if isOnScreen(particle) then -- just because of fps
 							drawText(particle, getValue('name', function()
