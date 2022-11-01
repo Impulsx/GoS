@@ -2557,6 +2557,7 @@ local SpellDamageTable = {
 
   ["Vladimir"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.6 * source.ap end},
+    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({148, 185, 222, 259, 296})[level] + 1.11 * source.ap end},--empowered q
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({20, 33.75, 47.5, 61.25, 75})[level] + (0.025 * (source.maxHealth - GetBaseHealth(source))) end}, --per tick
     {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({80, 135, 190, 245, 300})[level] + (0.1 * (source.maxHealth - GetBaseHealth(source))) end}, --totalDamage
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({30, 45, 60, 75, 90})[level] + (0.35 * source.ap) + (0.015 * source.maxHealth) end}, --min damage
