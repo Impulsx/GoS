@@ -1,5 +1,5 @@
 --[[
-Version: 12.20
+Version: 12.21
 
 Usage:
 
@@ -1444,11 +1444,11 @@ local SpellDamageTable = {
   },
 
   ["Ahri"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + 0.30 * source.ap end},
-    {Slot = "Q", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({40, 65, 90, 115, 140})[level] + 0.35 * source.ap end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 65, 90, 115, 140})[level] + 0.3 * source.ap end},
-    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({12, 19.5, 27, 34.5, 42})[level] + 0.09 * source.ap end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + 0.6 * source.ap end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 65, 90, 115, 140})[level] + 0.45 * source.ap end},
+    {Slot = "Q", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({40, 65, 90, 115, 140})[level] + 0.45 * source.ap end}, --return
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({50, 75, 100, 125, 150})[level] + 0.30 * source.ap end},
+    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({12, 19.5, 27, 34.5, 42})[level] + 0.09 * source.ap end}, --additional damage
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + 0.60 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 90, 120})[level] + 0.35 * source.ap end},
     {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({60, 90, 120})[level] + 0.35 * source.ap end},
     {Slot = "R", Stage = 3, DamageType = 2, Damage = function(source, target, level) return ({60, 90, 120})[level] + 0.35 * source.ap end},
@@ -1886,6 +1886,15 @@ local SpellDamageTable = {
       return dmg end; },
   },
 
+  ["KSante"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 75, 100, 125, 150})[level] + 0.40 * source.totalDamage end}, -- + bonus armor & mr
+    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({25, 35, 45, 55, 65})[level] + (0.50 * source.totalDamage) + (({4.25, 4.50, 4.75, 5.00, 5.25})[level]/100) * target.maxHealth end}, --total min dmg
+    {Slot = "W", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({25, 35, 45, 55, 65})[level] + (0.50 * source.totalDamage) end}, --bonus dmg
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({185, 320, 455})[level] + 0.40 * source.totalDamage end}, --total
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({35, 70, 105})[level] + 0.20 * source.totalDamage end}, --min
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.20 * source.totalDamage end}, --additional
+  },
+
   ["Kayn"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({75, 95, 115, 135, 155})[level] + 0.65 * source.bonusDamage end},
     {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({75, 95, 115, 135, 155})[level] + 0.65 * source.bonusDamage + (0.05 + (0.035 * math_floor(source.bonusDamage/100)) * target.maxHealth) end}, --darkin
@@ -1995,9 +2004,9 @@ local SpellDamageTable = {
 
   ["MissFortune"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 45, 70, 95, 120})[level] + (0.35 * source.ap) + source.totalDamage end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({8.75, 12.50, 16.25, 20.00, 23.75})[level] + 0.125 * source.ap end}, --per tick
-    {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({70, 100, 130, 160, 190})[level] + 1.0 * source.ap end}, --max damage
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return 0.75 * source.totalDamage + 0.2 * source.ap end}, -- each wave
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({8.75, 12.50, 16.25, 20.00, 23.75})[level] + 0.15 * source.ap end}, --per tick
+    {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({70, 100, 130, 160, 190})[level] + 1.20 * source.ap end}, --max damage
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (0.75 * source.totalDamage) + (0.25 * source.ap) end}, -- each wave
   },
 
   ["MonkeyKing"] = {
