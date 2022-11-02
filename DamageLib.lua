@@ -1078,8 +1078,6 @@ local IsMelee = function(unit)
   return false
 end
 
--- Calc --
-
 -- Calc Damage Tables --
 local DamageReductionBuffsTable = {
   --["Annie"] = {buff = "AnnieE", amount = function(target) return 1 - ({0.10,0.13,0.16,0.19,0.22})[target:GetSpellData(_E).level] end},
@@ -1091,7 +1089,7 @@ local DamageReductionBuffsTable = {
   ["Galio"] = {buff = "galiowpassivedefense", DamageType = 1, amount = function(target) return 1 - ({0.1, 0.125, 0.15, 0.175, 0.20})[target:GetSpellData(_W).level] + (0.025 * target.ap / 100) + (0.4 * target.bonusMagicResist / 100) end},
   ["Garen"] = {buff = "GarenW", amount = function(target) return 1 - 0.3 end},
   ["Gragas"] = {buff = "GragasWSelf", amount = function(target) return 1 - ({0.1, 0.12, 0.14, 0.16, 0.18})[target:GetSpellData(_W).level] + 0.04 * target.ap / 100 end},
-  --["Kled"] = {buff = "dismount?", amount = function(target) return 1 end},
+  ["KSante"] = {buff = "KSanteW", amount = function(source, target) local level = target.levelData.lvl return 1 - 0.25 + (0.10 * math_floor(target.bonusArmor/100)) + (0.10 * math_floor(target.bonusMagicResist/100)) end}, --KSanteW? TODO "+ (0.10 * math_floor(target.bonusHealth/100))"
   ["Malzahar"] = {buff = "malzaharpassiveshield", amount = function(target) return 1 - 0.9 end},
   ["MasterYi"] = {buff = "Meditate", amount = function(source, target) return 1 - ({0.45, 0.475, 0.50, 0.525, 0.55})[target:GetSpellData(_W).level] / (source.type == Obj_AI_Turret and 2 or 1) end},
   ["NilahW"] = {buff = "NilahW", DamageType = 2, amount = function(target) return 1 - 0.25 end}, --TODO
@@ -1121,83 +1119,26 @@ local DamageReductionItemsTable = {
       end
     end},
 }
---[[
-  8020 Abyssal Mask
-  3193 Gargoyle Stoneplate
-  8001 Anathema's Chains
-]]
+  -- TODO
+  --8020 Abyssal Mask
+  --3193 Gargoyle Stoneplate
+  --8001 Anathema's Chains
 
 local SpecialAADamageTable = {
-  ["Akshan"] = function(args) --Akshan
-    args.RawPhysical = args.RawPhysical
-    + 0.50 * args.source.totalDamage
-  end,
-  ["Ashe"] = function(args) --Ashe
-    if Buff:HasBuff(args.target, "frost") then
-      args.RawPhysical = args.RawPhysical
-      + 1.10 * args.source.critChance
-    end
-  end,
+  --Spell/Skills
   ["Blitzcrank"] = function(args) --BlitzcrankW
     if Buff:HasBuff(args.source, "Overdrive") then
       local unitLevel = args.source.levelData.lvl
-      local maxHealth = (1/100 * args.Target.maxHealth)
+      local maxHealth = (1 / 100 * args.Target.maxHealth)
       if args.TargetIsMinion then
-        args.RawMagical = (maxHealth) + ({60, 80, 100, 120, 140, 160, 165, 170, 175, 180, 185, 190, 195, 200, 205, 210, 215, 220})[unitLevel]-- (60+120, 17*(unitLevel-1))
+        args.RawMagical = (maxHealth) +
+            ({ 60, 80, 100, 120, 140, 160, 165, 170, 175, 180, 185, 190, 195, 200, 205, 210, 215, 220 })[unitLevel] -- (60+120, 17*(unitLevel-1))
       else
         args.RawMagical = (maxHealth)
       end
     end
   end,
-  ["Caitlyn"] = function(args) --Caitlyn
-    if Buff:HasBuff(args.source, "caitlynpassivedriver") then
-      --local modCrit = 1.09375 + (Item:HasItem(args.source, ItemID.InfinityEdge) and 0.21875 or 0)
-      --local modCrit =  1.75 + (((Item:HasItem(args.source, ItemID.InfinityEdge)) and (args.source.critChance >= 0.60) and 0.35) or 0) --actual crit
-      local modCrit = 1.3125 + (Item:HasItem(args.source, ItemID.InfinityEdge) and 0.2625 or 0) --1.3125 or 131.25% = 75% * standard critical damage factor
-      if args.TargetIsMinion then
-        local unitLevel = args.source.levelData.lvl
-        local modLevel = unitLevel < 7 and 1.10 or (unitLevel < 13 and 1.15 or 1.20)
-        --args.RawPhysical = args.RawPhysical + (1 + (modCrit * args.source.critChance)) * args.source.totalDamage
-        args.RawPhysical = args.RawPhysical + (1 + (modCrit * args.source.critChance)) * (args.source.totalDamage * modLevel)
-      else
-        local unitLevel = args.source.levelData.lvl
-        local modLevel = unitLevel < 7 and 0.60 or (unitLevel < 13 and 0.90 or 1.20)
-        args.RawPhysical = args.RawPhysical
-          + (1 + (modCrit * args.source.critChance)) * (args.source.totalDamage * modLevel)
-      end
-    end
-  end,
-  ["Corki"] = function(args) --Corki
-    args.RawPhysical = args.RawTotal * 0.2
-    args.RawMagical = args.RawTotal * 0.80
-  end,
-  ["Diana"] = function(args) --Diana
-    if Buff:GetBuffCount(args.source, "dianapassivemarker") == 2 then
-      local level = args.source.levelData.lvl
-      args.RawMagical = args.RawMagical
-        + ({20, 25, 30, 35, 40, 45, 55, 65, 75, 85, 95, 110, 125, 140, 150, 170, 195, 220})[level]
-        --math_max(15 + 5 * level, -10 + 10 * level, -60 + 15 * level, -125 + 20 * level, -200 + 25 * level)
-        + 0.5 * args.source.ap
-    end
-  end,
-  ["Draven"] = function(args) --Draven
-    if Buff:HasBuff(args.source, "DravenSpinningAttack") then
-      local level = args.source:GetSpellData(_Q).level
-      args.RawPhysical = args.RawPhysical + 25 + 5 * level + (0.55 + 0.1 * level) * args.source.bonusDamage
-    end
-  end,
-  ["Graves"] = function(args) --Graves
-    local t = { 70, 71, 72, 74, 75, 76, 78, 80, 81, 83, 85, 87, 89, 91, 95, 96, 97, 100 }
-    args.RawTotal = args.RawTotal * t[math_max(math_min(args.source.levelData.lvl, 18), 1)] * 0.01
-  end,
-  ["Jinx"] = function(args) --JinxQ
-    if Buff:HasBuff(args.source, "JinxQ") then
-      args.RawPhysical = args.RawPhysical + args.source.totalDamage * 0.1
-    end
-  end,
-  ["Kalista"] = function(args) --Kalista
-    args.RawPhysical = args.RawPhysical - args.source.totalDamage * 0.1
-  end,
+
   ["Kayle"] = function(args) --KayleE
     local level = args.source:GetSpellData(_E).level
     if level > 0 then
@@ -1208,25 +1149,28 @@ local SpecialAADamageTable = {
       end
     end
   end,
+
   ["Nasus"] = function(args) --NasusQ
     if Buff:HasBuff(args.source, "NasusQ") then
       args.RawPhysical = args.RawPhysical
-        + math_max(Buff:GetBuffCount(args.source, "NasusQStacks"), 0)
-        + 10
-        + 20 * args.source:GetSpellData(_Q).level
+          + math_max(Buff:GetBuffCount(args.source, "NasusQStacks"), 0)
+          + 10
+          + 20 * args.source:GetSpellData(_Q).level
     end
   end,
+
   ["Nilah"] = function(args) --NilahQ
     if Buff:HasBuff(args.source, "NilahQ") then
       args.RawPhysical = args.RawPhysical
-        + 1.0 * args.source.totalDamage
+          + 1.0 * args.source.totalDamage
     end
   end,
+
   ["Thresh"] = function(args) --ThreshE
     local level = args.source:GetSpellData(_E).level
     if level > 0 then
       local damage = math_max(Buff:GetBuffCount(args.source, "threshpassivesouls"), 0)
-        + (0.5 + 0.3 * level) * args.source.totalDamage
+          + (0.5 + 0.3 * level) * args.source.totalDamage
       if Buff:HasBuff(args.source, "threshqpassive4") then
         damage = damage * 1
       elseif Buff:HasBuff(args.source, "threshqpassive3") then
@@ -1239,6 +1183,7 @@ local SpecialAADamageTable = {
       args.RawMagical = args.RawMagical + damage
     end
   end,
+
   ["TwistedFate"] = function(args) --TwistedFateW
     if Buff:HasBuff(args.source, "cardmasterstackparticle") then
       args.RawMagical = args.RawMagical + 30 + 25 * args.source:GetSpellData(_E).level + 0.5 * args.source.ap
@@ -1254,58 +1199,73 @@ local SpecialAADamageTable = {
       args.RawMagical = args.RawMagical + 7.5 + 7.5 * args.source:GetSpellData(_W).level + 0.5 * args.source.ap
     end
   end,
+
   ["Udyr"] = function(args) --Udyr Q and R
     if Buff:HasBuff(args.source, "UdyrPAttackReady") then
       local level = args.source.levelData.lvl
       local qlevel = args.source:GetSpellData(_Q).level
       if Buff:HasBuff(args.source, "UdyrQ") then
         args.DamageType = DAMAGE_TYPE_PHYSICAL
-        args.RawPhysical = args.RawPhysical + ({5, 13, 21, 29, 37, 45})[qlevel] + (0.20 * args.source.bonusDamage) + (({3.00, 4.40, 5.80, 7.20, 8.60, 10.00})[qlevel]/100 + (0.06 * math_floor(args.source.bonusDamage/100)) * args.Target.maxHealth)
+        args.RawPhysical = args.RawPhysical + ({ 5, 13, 21, 29, 37, 45 })[qlevel] + (0.20 * args.source.bonusDamage) +
+            (
+            ({ 3.00, 4.40, 5.80, 7.20, 8.60, 10.00 })[qlevel] / 100 +
+                (0.06 * math_floor(args.source.bonusDamage / 100)) * args.Target.maxHealth)
       elseif Buff:HasBuff(args.source, "UdyrR") then
         args.DamageType = DAMAGE_TYPE_MAGICAL
-        args.RawMagical = args.RawMagical + (10 + 20 / 17 * (level-1)) + (0.30 * args.source.ap)
+        args.RawMagical = args.RawMagical + (10 + 20 / 17 * (level - 1)) + (0.30 * args.source.ap)
       end
     end
   end,
+
   ["Varus"] = function(args) --VarusW
     local level = args.source:GetSpellData(_W).level
     if level > 0 then
       args.RawMagical = args.RawMagical + 6 + 4 * level + 0.25 * args.source.ap
     end
   end,
+
   ["Viktor"] = function(args) --ViktorQ
     if Buff:HasBuff(args.source, "ViktorPowerTransferReturn") then
       local level = args.source:GetSpellData(_Q).level
       args.DamageType = DAMAGE_TYPE_MAGICAL
-      args.RawMagical = args.RawMagical + ({20, 45, 70, 95, 120})[level] + 0.6 * args.source.ap + 1.0 * args.source.totalDamage
+      args.RawMagical = args.RawMagical + ({ 20, 45, 70, 95, 120 })[level] + 0.6 * args.source.ap +
+          1.0 * args.source.totalDamage
     end
   end,
+
   ["Vayne"] = function(args) --VayneQ
     if Buff:HasBuff(args.source, "vaynetumblebonus") then
       args.RawPhysical = args.RawPhysical
-        + (0.25 + 0.05 * args.source:GetSpellData(_Q).level) * args.source.totalDamage
+          + (0.25 + 0.05 * args.source:GetSpellData(_Q).level) * args.source.totalDamage
     end
   end,
-  ["Zac"] =  function(args) --ZacQ
+
+  ["Zac"] = function(args) --ZacQ
     local level = args.source:GetSpellData(_Q).level
     args.DamageType = DAMAGE_TYPE_MAGICAL
-    args.RawMagical = ({40, 55, 70, 85, 100})[level] + (0.3 * args.source.ap) + (0.025 * args.source.maxHealth)
+    args.RawMagical = ({ 40, 55, 70, 85, 100 })[level] + (0.3 * args.source.ap) + (0.025 * args.source.maxHealth)
   end,
-  ["Zeri"] = function(args) --Zeri
+
+  ["Zeri"] = function(args) --ZeriQ
     args.DamageType = DAMAGE_TYPE_MAGICAL
     args.RawTotal = args.RawTotal * 0
     args.RawPhysical = args.RawTotal
     local small = { 15, 16, 17, 18, 19, 20, 22, 23, 24, 26, 27, 29, 31, 32, 34, 36, 38, 40 }
     local big = { 90, 94, 99, 104, 109, 115, 121, 127, 133, 140, 146, 153, 160, 168, 175, 183, 191, 200 }
     if Buff:HasBuff(myHero, "zeriqpassiveready") then
-      args.RawMagical = 90+(110/17)*(args.source.levelData.lvl-1)*(0.7025+0.0175*(args.source.levelData.lvl-1)) + args.source.ap * 0.90 + (1+(14/17)*(args.source.levelData.lvl-1)*(0.7025+0.0175*(args.source.levelData.lvl-1))) --big[math_max(math_min(args.source.levelData.lvl, 18), 1)] + args.source.ap * 0.8
+      args.RawMagical = 90 + (110 / 17) * (args.source.levelData.lvl - 1) * (0.7025 +
+          0.0175 * (args.source.levelData.lvl - 1)) + args.source.ap * 0.90 +
+          (1 + (14 / 17) * (args.source.levelData.lvl - 1) * (0.7025 + 0.0175 * (args.source.levelData.lvl - 1))) --big[math_max(math_min(args.source.levelData.lvl, 18), 1)] + args.source.ap * 0.8
     else
-      args.RawMagical = 10+(15/17)*(args.source.levelData.lvl-1)*(0.7025+0.0175*(args.source.levelData.lvl-1)) + args.source.ap * 0.03 --small[math_max(math_min(args.source.levelData.lvl, 18), 1)] + args.source.ap * 0.04
+      args.RawMagical = 10 + (15 / 17) * (args.source.levelData.lvl - 1) * (0.7025 + 0.0175 *
+          (args.source.levelData.lvl - 1)) + args.source.ap * 0.03 --small[math_max(math_min(args.source.levelData.lvl, 18), 1)] + args.source.ap * 0.04
     end
   end,
+
 }
 
 local HeroPassiveDamageTable = {
+  --Passives/Buffs
   ["Blitzcrank"] = function(args) --BlitzcrankE TODO R passive
     if Buff:HasBuff(args.source, "PowerFist") then --PowerFistAttack
       local level = args.source.levelData.lvl
@@ -1316,66 +1276,150 @@ local HeroPassiveDamageTable = {
       end
     end
   end,
-  ["Fiora"] = function(args)
+
+  ["Akshan"] = function(args) --Akshan
+    args.RawPhysical = args.RawPhysical
+        + 0.50 * args.source.totalDamage
+  end,
+
+  ["Ashe"] = function(args) --Ashe
+    if Buff:HasBuff(args.Target, "frost") then
+      args.RawPhysical = args.RawPhysical
+          + 1.10 * args.source.critChance
+    end
+  end,
+
+  ["Caitlyn"] = function(args) --Caitlyn headshot
+    if Buff:HasBuff(args.source, "caitlynpassivedriver") then
+      --local modCrit = 1.09375 + (Item:HasItem(args.source, ItemID.InfinityEdge) and 0.21875 or 0)
+      --local modCrit =  1.75 + (((Item:HasItem(args.source, ItemID.InfinityEdge)) and (args.source.critChance >= 0.60) and 0.35) or 0) --actual crit
+      local modCrit = 1.3125 + (Item:HasItem(args.source, ItemID.InfinityEdge) and 0.2625 or 0) --1.3125 or 131.25% = 75% * standard critical damage factor
+      if args.TargetIsMinion then
+        local unitLevel = args.source.levelData.lvl
+        local modLevel = unitLevel < 7 and 1.10 or (unitLevel < 13 and 1.15 or 1.20)
+        --args.RawPhysical = args.RawPhysical + (1 + (modCrit * args.source.critChance)) * args.source.totalDamage
+        args.RawPhysical = args.RawPhysical +
+            (1 + (modCrit * args.source.critChance)) * (args.source.totalDamage * modLevel)
+      else
+        local unitLevel = args.source.levelData.lvl
+        local modLevel = unitLevel < 7 and 0.60 or (unitLevel < 13 and 0.90 or 1.20)
+        args.RawPhysical = args.RawPhysical
+            + (1 + (modCrit * args.source.critChance)) * (args.source.totalDamage * modLevel)
+      end
+    end
+  end,
+
+  ["Corki"] = function(args) --Corki
+    args.RawPhysical = args.RawTotal * 0.2
+    args.RawMagical = args.RawTotal * 0.80
+  end,
+
+  ["Diana"] = function(args) --Diana AA
+    if Buff:GetBuffCount(args.source, "dianapassivemarker") == 2 then
+      local level = args.source.levelData.lvl
+      args.RawMagical = args.RawMagical
+          + ({ 20, 25, 30, 35, 40, 45, 55, 65, 75, 85, 95, 110, 125, 140, 150, 170, 195, 220 })[level]
+          --math_max(15 + 5 * level, -10 + 10 * level, -60 + 15 * level, -125 + 20 * level, -200 + 25 * level)
+          + 0.5 * args.source.ap
+    end
+  end,
+
+  ["Draven"] = function(args) --Draven
+    if Buff:HasBuff(args.source, "DravenSpinningAttack") then
+      local level = args.source:GetSpellData(_Q).level
+      args.RawPhysical = args.RawPhysical + 25 + 5 * level + (0.55 + 0.1 * level) * args.source.bonusDamage
+    end
+  end,
+
+  ["Fiora"] = function(args) --Fiora E passive for AA
     if Buff:HasBuff(args.source, "fiorae2") then
       args.CriticalStrike = true
       args.RawPhysical = args.RawPhysical
     end
   end,
-  ["Jhin"] = function(args)
+
+  ["Graves"] = function(args) --Graves
+    local t = { 70, 71, 72, 74, 75, 76, 78, 80, 81, 83, 85, 87, 89, 91, 95, 96, 97, 100 }
+    args.RawTotal = args.RawTotal * t[math_max(math_min(args.source.levelData.lvl, 18), 1)] * 0.01
+  end,
+
+  ["Jhin"] = function(args) --Jhin 4thshot/AA
     if Buff:HasBuff(args.source, "jhinpassiveattackbuff") then
       args.CriticalStrike = true
       args.RawPhysical = args.RawPhysical
-        + math_min(0.25, 0.1 + 0.05 * math_ceil(args.source.levelData.lvl / 5))
+          + math_min(0.25, 0.1 + 0.05 * math_ceil(args.source.levelData.lvl / 5))
           * (args.Target.maxHealth - args.Target.health)
     end
   end,
-  ["Lux"] = function(args)
+
+  ["Jinx"] = function(args) --JinxQ
+    if Buff:HasBuff(args.source, "JinxQ") then
+      args.RawPhysical = args.RawPhysical + args.source.totalDamage * 0.1
+    end
+  end,
+
+  ["Kalista"] = function(args) --Kalista
+    args.RawPhysical = args.RawPhysical - args.source.totalDamage * 0.1
+  end,
+
+  ["KSante"] = function(args) --KSanteMark?
+    local level = args.source.levelData.lvl
+    if Buff:HasBuff(args.Target, "KSantePMark") then
+      args.RawPhysical = args.RawPhysical + args.source.totalDamage + 10 + 15 / 17 * (level - 1)
+    end
+  end,
+
+  ["Lux"] = function(args) --Lux Marks
     if Buff:HasBuff(args.Target, "LuxIlluminatingFraulein") then
       args.RawMagical = 20 + args.source.levelData.lvl * 10 + args.source.ap * 0.2
     end
   end,
+
   ["Orianna"] = function(args)
     local level = math_ceil(args.source.levelData.lvl / 3)
     args.RawMagical = args.RawMagical + 2 + 8 * level + 0.15 * args.source.ap
     if args.Target.Ghandle == args.source.attackData.target then
       args.RawMagical = args.RawMagical
-        + math_max(Buff:GetBuffCount(args.source, "orianapowerdaggerdisplay"), 0)
+          + math_max(Buff:GetBuffCount(args.source, "orianapowerdaggerdisplay"), 0)
           * (0.4 + 1.6 * level + 0.03 * args.source.ap)
     end
   end,
+
   ["Quinn"] = function(args)
     if Buff:HasBuff(args.Target, "QuinnW") then
       local level = args.source.levelData.lvl
       args.RawPhysical = args.RawPhysical + 10 + level * 5 + (0.14 + 0.02 * level) * args.source.totalDamage
     end
   end,
+
   ["Teemo"] = function(args)
     local Edata = args.source:GetSpellData(_E)
     if Edata.level > 0 then
-      args.RawMagical = ({14, 25, 36, 47, 58})[Edata.level] + 0.30 * args.source.ap
+      args.RawMagical = ({ 14, 25, 36, 47, 58 })[Edata.level] + 0.30 * args.source.ap
     end
   end,
+
   ["Vayne"] = function(args)
     if Buff:GetBuffCount(args.Target, "VayneSilveredDebuff") == 2 then
       local level = args.source:GetSpellData(_W).level
       args.CalculatedTrue = args.CalculatedTrue
-        + math_max((0.045 + 0.015 * level) * args.Target.maxHealth, 20 + 20 * level)
+          + math_max((0.045 + 0.015 * level) * args.Target.maxHealth, 20 + 20 * level)
     end
   end,
+
   ["Zed"] = function(args)
-    if
-      100 * args.Target.health / args.Target.maxHealth <= 50 and not Buff:HasBuff(args.source, "zedpassivecd")
-    then
-      args.RawMagical = args.RawMagical
-        + args.Target.maxHealth * (4 + 2 * math_ceil(args.source.levelData.lvl / 6)) * 0.01
+    if 100 * args.Target.health / args.Target.maxHealth <= 50 and not Buff:HasBuff(args.source, "zedpassivecd") then
+      args.RawMagical = args.RawMagical +
+          args.Target.maxHealth * (4 + 2 * math_ceil(args.source.levelData.lvl / 6)) * 0.01
     end
   end,
+
   ["Zeri"] = function(args)
     if args.Target.health < (args.Target.maxHealth * 0.35) then
       args.RawMagical = args.RawMagical * 4
     end
   end,
+
 }
 
 local ItemDamageTable = {
@@ -1886,15 +1930,6 @@ local SpellDamageTable = {
       return dmg end; },
   },
 
-  ["KSante"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 75, 100, 125, 150})[level] + 0.40 * source.totalDamage end}, -- + bonus armor & mr
-    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({25, 35, 45, 55, 65})[level] + (0.50 * source.totalDamage) + (({4.25, 4.50, 4.75, 5.00, 5.25})[level]/100) * target.maxHealth end}, --total min dmg
-    {Slot = "W", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({25, 35, 45, 55, 65})[level] + (0.50 * source.totalDamage) end}, --bonus dmg
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({185, 320, 455})[level] + 0.40 * source.totalDamage end}, --total
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({35, 70, 105})[level] + 0.20 * source.totalDamage end}, --min
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.20 * source.totalDamage end}, --additional
-  },
-
   ["Kayn"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({75, 95, 115, 135, 155})[level] + 0.65 * source.bonusDamage end},
     {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({75, 95, 115, 135, 155})[level] + 0.65 * source.bonusDamage + (0.05 + (0.035 * math_floor(source.bonusDamage/100)) * target.maxHealth) end}, --darkin
@@ -1915,6 +1950,15 @@ local SpellDamageTable = {
     {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 30, 40, 50, 60})[level] + (({4.5, 5, 5.5, 6, 6.5})[level]/100 + (0.05 * math_floor(source.bonusDamage/100)) * target.maxHealth) end}, --needs to be (+ 5% per 100 bonus AD)
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({35, 60, 85, 110, 135})[level] + source.bonusDamage * 0.65 end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) local dmg = (({4, 5, 6})[level]/100 + 0.04 * math_floor(source.bonusDamage/100) * target.maxHealth); return dmg end}, --0.08 * (0.16sec * spell.isChanneling.time)
+  },
+
+  ["KSante"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 75, 100, 125, 150})[level] + 0.40 * source.totalDamage + (0.30 * source.bonusArmor) + (0.30 * source.bonusMagicResist)end},
+    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({25, 35, 45, 55, 65})[level] + (0.50 * source.totalDamage) + (({4.25, 4.50, 4.75, 5.00, 5.25})[level]/100) * target.maxHealth end}, --total min dmg
+    {Slot = "W", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({25, 35, 45, 55, 65})[level] + (0.50 * source.totalDamage) end}, --bonus dmg
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({185, 320, 455})[level] + 0.40 * source.totalDamage end}, --total
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({35, 70, 105})[level] + 0.20 * source.totalDamage end}, --min
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.20 * source.totalDamage end}, --additional
   },
 
   ["Leblanc"] = {
@@ -2250,7 +2294,7 @@ local SpellDamageTable = {
     --{Slot = "W", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.1 * source.bonusDamage end}, -- True Damage without expended Grit
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 70, 90, 110, 130})[level] + 0.6 * source.totalDamage end},
     --{Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({200, 300, 400})[level] + (1.2 * source.bonusDamage) + ({40, 50, 60})[level] / 100 * source.bonusHealth end}, -- with Target BonusHealth when GameObject.bonusHealth becomes a thing
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({200, 300, 400})[level] + (1.2 * source.bonusDamage) end}, -- without Target BonusHealth
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({200, 300, 400})[level] + (1.2 * source.bonusDamage) end}, -- without unit.bonusHealth
   },
 
   ["Shaco"] = {
@@ -2990,7 +3034,6 @@ CalcDamage = function(source, target, DamageType, amount, IsAA)
   local percentPen = 0
   local bonuspercentPen = 0
 
-
   if DamageType == 1 then
     baseResist = math_max(target.armor - target.bonusArmor, 0)
     bonusResist = target.bonusArmor
@@ -3096,7 +3139,6 @@ getdmg = function(spell, target, source, stage, level)
 
   local Mark = (source:GetSpellData(SUMMONER_1).name:lower():find("mark") and SUMMONER_1 or (source:GetSpellData(SUMMONER_2).name:lower():find("mark") and SUMMONER_2 or nil))
   local Dash = (source:GetSpellData(SUMMONER_1).name:lower():find("Dash") and SUMMONER_1 or (source:GetSpellData(SUMMONER_2).name:lower():find("Dash") and SUMMONER_2 or nil))
-
 
   local dmgtable = {}
   if spell == "Q" or spell == "W" or spell == "E" or spell == "R" or spell == "QM" or spell == "WM" or spell == "EM" and sourceIsHero then
