@@ -360,6 +360,7 @@ local Hero = {
   Kindred = { false, 0.625 },
   Kled = { true, 0.625 },
   KogMaw = { false, 0.665 },
+  KSante = { true, 0.625 },
   Leblanc = { false, 0.625 },
   LeeSin = { true, 0.651 },
   Leona = { true, 0.625 },
@@ -1089,7 +1090,7 @@ local DamageReductionBuffsTable = {
   ["Galio"] = {buff = "galiowpassivedefense", DamageType = 1, amount = function(target) return 1 - ({0.1, 0.125, 0.15, 0.175, 0.20})[target:GetSpellData(_W).level] + (0.025 * target.ap / 100) + (0.4 * target.bonusMagicResist / 100) end},
   ["Garen"] = {buff = "GarenW", amount = function(target) return 1 - 0.3 end},
   ["Gragas"] = {buff = "GragasWSelf", amount = function(target) return 1 - ({0.1, 0.12, 0.14, 0.16, 0.18})[target:GetSpellData(_W).level] + 0.04 * target.ap / 100 end},
-  ["KSante"] = {buff = "KSanteW", amount = function(source, target) local level = target.levelData.lvl return 1 - 0.25 + (0.10 * math_floor(target.bonusArmor/100)) + (0.10 * math_floor(target.bonusMagicResist/100)) end}, --KSanteW? TODO "+ (0.10 * math_floor(target.bonusHealth/100))"
+  ["KSante"] = {buff = "KSanteW", amount = function(source, target) return 1 - 0.25 + (0.10 * math_floor(target.bonusArmor/100)) + (0.10 * math_floor(target.bonusMagicResist/100)) end}, --KSanteW? TODO "+ (0.10 * math_floor(target.bonusHealth/100))"
   ["Malzahar"] = {buff = "malzaharpassiveshield", amount = function(target) return 1 - 0.9 end},
   ["MasterYi"] = {buff = "Meditate", amount = function(source, target) return 1 - ({0.45, 0.475, 0.50, 0.525, 0.55})[target:GetSpellData(_W).level] / (source.type == Obj_AI_Turret and 2 or 1) end},
   ["NilahW"] = {buff = "NilahW", DamageType = 2, amount = function(target) return 1 - 0.25 end}, --TODO
@@ -1364,8 +1365,20 @@ local HeroPassiveDamageTable = {
 
   ["KSante"] = function(args) --KSanteMark?
     local level = args.source.levelData.lvl
+    local hplvl = 1
     if Buff:HasBuff(args.Target, "KSantePMark") then
-      args.RawPhysical = args.RawPhysical + args.source.totalDamage + 10 + 15 / 17 * (level - 1)
+      --if level < 6 then hplvl = 1
+      if level >= 6 and level < 11 then hplvl = 2
+      elseif level >= 11 and level < 16 then hplvl = 3
+      elseif level >= 16 then hplvl = 4
+      end
+      if Buff:HasBuff(args.source, "KSanteRTransform") then
+        local allOutDamageMod =  0.35 + (0.20 * math_floor(args.source.bonusArmor/100)) + (0.20 * math_floor(args.source.bonusMagicResist/100))
+        args.RawPhysical = args.RawPhysical * allOutDamageMod
+        args.CalculatedTrue = args.CalculatedTrue + ((10 + 15 / 17 * (level - 1)) + ({1.00, 1.33, 1.66, 2.00})[hplvl]/100 * args.Target.maxHealth) * allOutDamageMod
+      else
+        args.RawPhysical = args.RawPhysical + 10 + 15 / 17 * (level - 1) + ({1.00, 1.33, 1.66, 2.00})[hplvl]/100 * args.Target.maxHealth
+      end
     end
   end,
 
@@ -1953,12 +1966,12 @@ local SpellDamageTable = {
   },
 
   ["KSante"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 75, 100, 125, 150})[level] + 0.40 * source.totalDamage + (0.30 * source.bonusArmor) + (0.30 * source.bonusMagicResist)end},
-    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({25, 35, 45, 55, 65})[level] + (0.50 * source.totalDamage) + (({4.25, 4.50, 4.75, 5.00, 5.25})[level]/100) * target.maxHealth end}, --total min dmg
-    {Slot = "W", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({25, 35, 45, 55, 65})[level] + (0.50 * source.totalDamage) end}, --bonus dmg
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({185, 320, 455})[level] + 0.40 * source.totalDamage end}, --total
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({35, 70, 105})[level] + 0.20 * source.totalDamage end}, --min
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.20 * source.totalDamage end}, --additional
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 75, 100, 125, 150})[level] + (0.40 * source.totalDamage) + (0.30 * source.bonusArmor) + (0.30 * source.bonusMagicResist)end},
+    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) local dmg = ((({4.25, 4.50, 4.75, 5.00, 5.25})[level]/100) * target.maxHealth) if Buff:HasBuff(source, "KSanteRTransform") then dmg = dmg + ({25, 35, 45, 55, 65})[level] + (0.50 * source.totalDamage) end return dmg end}, --min
+    {Slot = "W", Stage = 2, DamageType = 1, Damage = function(source, target, level) local dmg = ((({8.25, 8.50, 8.75, 9.00, 9.25})[level]/100) * target.maxHealth) if Buff:HasBuff(source, "KSanteRTransform") then dmg = dmg + ({110, 170, 230, 290, 350})[level] + (0.50 * source.totalDamage) end return dmg end}, --total max dmg
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({35, 70, 105})[level] + 0.20 * source.totalDamage end}, --No wall
+    --{Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.20 * source.totalDamage end}, --additional
+    {Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({185, 320, 455})[level] + 0.40 * source.totalDamage end}, --Hit Wall
   },
 
   ["Leblanc"] = {
@@ -3161,7 +3174,7 @@ getdmg = function(spell, target, source, stage, level)
     end
   end
   if spell == "AA" then
-    local SpecialAADamage = GetSpecialAADamage(source, targetIsMinion) and targetIsMinion --target.type == Obj_AI_Minion
+    local SpecialAADamage = GetSpecialAADamage(source, targetIsMinion) --and targetIsMinion --target.type == Obj_AI_Minion
     --return GetAADamage(source, target, SpecialAADamage)
     return GetAADamage(source, target, SpecialAADamage)--(source, target)
   end
