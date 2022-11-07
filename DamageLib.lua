@@ -36,7 +36,7 @@ CalcDamage(source, target, DamageType, amount, IsAA)
 Special Champions/Items: {
   -- Local Functions -- {
     GetBaseHealth:
-      {Sylas, Chogath, Volibear, DrMundo, },
+      {Sylas, Chogath, Volibear, DrMundo, Volibear, Vladimir, Maokai, KSante, Sett },
     GetBaseMana:
       {Kassadin, Ryze, },
     GetCriticalStrikePercent:
@@ -754,6 +754,10 @@ local GetBaseHealth = function(unit)
     return 653 + (103 * (unit.levelData.lvl - 1))
   elseif unit.charName == "Maokai" then
     return 635 + (109 * (unit.levelData.lvl - 1))
+  elseif unit.charName == "KSante" then
+    return 610 + (104 * (unit.levelData.lvl - 1))
+  elseif unit.charName == "Sett" then
+    return 670 + (114 * (unit.levelData.lvl - 1))
   end
 end
 
@@ -1090,7 +1094,7 @@ local DamageReductionBuffsTable = {
   ["Galio"] = {buff = "galiowpassivedefense", DamageType = 1, amount = function(target) return 1 - ({0.1, 0.125, 0.15, 0.175, 0.20})[target:GetSpellData(_W).level] + (0.025 * target.ap / 100) + (0.4 * target.bonusMagicResist / 100) end},
   ["Garen"] = {buff = "GarenW", amount = function(target) return 1 - 0.3 end},
   ["Gragas"] = {buff = "GragasWSelf", amount = function(target) return 1 - ({0.1, 0.12, 0.14, 0.16, 0.18})[target:GetSpellData(_W).level] + 0.04 * target.ap / 100 end},
-  ["KSante"] = {buff = "KSanteW", amount = function(source, target) return 1 - 0.25 + (0.10 * math_floor(target.bonusArmor/100)) + (0.10 * math_floor(target.bonusMagicResist/100)) end}, --KSanteW? TODO "+ (0.10 * math_floor(target.bonusHealth/100))"
+  ["KSante"] = {buff = "KSanteW", amount = function(source, target) return 1 - 0.25 + (0.10 * math_floor(target.bonusArmor/100)) + (0.10 * math_floor(target.bonusMagicResist/100)) + (0.10 * math_floor((target.maxHealth - GetBaseHealth(target))/100)) end}, --KSanteW? TODO "+ (0.10 * math_floor(target.bonusHealth/100))"
   ["Malzahar"] = {buff = "malzaharpassiveshield", amount = function(target) return 1 - 0.9 end},
   ["MasterYi"] = {buff = "Meditate", amount = function(source, target) return 1 - ({0.45, 0.475, 0.50, 0.525, 0.55})[target:GetSpellData(_W).level] / (source.type == Obj_AI_Turret and 2 or 1) end},
   ["NilahW"] = {buff = "NilahW", DamageType = 2, amount = function(target) return 1 - 0.25 end}, --TODO
@@ -1669,9 +1673,9 @@ local SpellDamageTable = {
   ["DrMundo"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) local dmg = (({20, 22.5, 25, 27.5, 30})[level] / 100 * target.health) if target.type == Obj_AI_Camp then return math_max(({80, 130, 180, 230, 280})[level], math_min(({350, 425, 500, 575, 650})[level], dmg)) end; return dmg end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({5, 8.75, 12.5, 16.25, 20})[level] end}, --per tick/activation
-    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({20, 35, 50, 65, 80})[level] + (0.07 * (myHero.maxHealth - GetBaseHealth(source))) end}, --recast/detonation
+    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({20, 35, 50, 65, 80})[level] + (0.07 * (source.maxHealth - GetBaseHealth(source))) end}, --recast/detonation
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({15, 20, 25, 30, 35})[level] * (1 + (0.01 * math_min(GetPercentMissingHP(source), 70))) end}, --Passive
-    {Slot = "E", Stage = 2, DamageType = 1, Damage = function(source, target, level) local dmg = (({5, 15, 25, 35, 45})[level] + (0.07 * (myHero.maxHealth - GetBaseHealth(source)))) * (1 + (0.015 * math_min(GetPercentMissingHP(source), 40))) if target.type == Obj_AI_Minion then return dmg * 2 end; return dmg end}, --Active
+    {Slot = "E", Stage = 2, DamageType = 1, Damage = function(source, target, level) local dmg = (({5, 15, 25, 35, 45})[level] + (0.07 * (source.maxHealth - GetBaseHealth(source)))) * (1 + (0.015 * math_min(GetPercentMissingHP(source), 40))) if target.type == Obj_AI_Minion then return dmg * 2 end; return dmg end}, --Active
   },
 
   ["Draven"] = {
@@ -2046,11 +2050,11 @@ local SpellDamageTable = {
   },
 
   ["Maokai"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({65, 110, 155, 200, 245})[level] + 0.40 * source.ap end}, --
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 95, 120, 145, 170})[level] + 0.4 * source.ap end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({50, 80, 105, 130, 155})[level] + (0.425 * source.ap) + (0.006 * (myHero.maxHealth - GetBaseHealth(source))) end}, --Normal
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({65, 110, 155, 200, 245})[level] + (0.40 * source.ap) + (({2.00, 2.25, 2.5, 2.75, 3.00})[target.maxHealth]/100) end}, --
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + 0.4 * source.ap end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({55, 80, 105, 130, 155})[level] + (0.40 * source.ap) + (0.006 * (source.maxHealth - GetBaseHealth(source))) end}, --Normal
     --{Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return (2 * ({25, 50, 75, 100, 125})[level] + (({0.07, 0.0725, 0.075, 0.0775, 0.08})[level] + (0.008*source.ap)) * target.maxHealth) end}, --Bush saplings
-    {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({50, 80, 105, 130, 155})[level] + (0.40 * source.ap) + (0.006 * (myHero.maxHealth - GetBaseHealth(source))) --[[ * 2 ]] end}, --Bush saplings just x2 now
+    {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({55, 80, 105, 130, 155})[level] + (0.40 * source.ap) + (0.006 * (source.maxHealth - GetBaseHealth(source))) * 2 end}, --Bush saplings just x2 now
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 225, 300})[level] + 0.75 * source.ap end},
   },
 
@@ -2307,7 +2311,7 @@ local SpellDamageTable = {
     --{Slot = "W", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.1 * source.bonusDamage end}, -- True Damage without expended Grit
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 70, 90, 110, 130})[level] + 0.6 * source.totalDamage end},
     --{Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({200, 300, 400})[level] + (1.2 * source.bonusDamage) + ({40, 50, 60})[level] / 100 * source.bonusHealth end}, -- with Target BonusHealth when GameObject.bonusHealth becomes a thing
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({200, 300, 400})[level] + (1.2 * source.bonusDamage) end}, -- without unit.bonusHealth
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({200, 300, 400})[level] + (1.2 * source.bonusDamage) + ((({40, 50, 60})[level] / 100) * (source.maxHealth - GetBaseHealth(source))) end},
   },
 
   ["Shaco"] = {
@@ -3179,7 +3183,7 @@ getdmg = function(spell, target, source, stage, level)
     return GetAADamage(source, target, SpecialAADamage)--(source, target)
   end
   if spell == "IGNITE" then
-    local IgniteDamage = (50+20*source.levelData.lvl - (target.hpRegen*3))
+    local IgniteDamage = ((50+20*source.levelData.lvl) - (target.hpRegen*3))
     return IgniteDamage
   end
   if spell == "MARK" or spell == "DASH" then
