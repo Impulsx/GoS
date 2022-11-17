@@ -2811,6 +2811,9 @@ local PassivePercentMod = function(source, target, DamageType, amount)
   local targetIsHero = target.type == Obj_AI_Hero;
   local sourceIsHero = source.type == Obj_AI_Hero;
   if sourceIsHero then
+    if Buff:HasBuffContainsName(source, "SRX_DragonSoulBuffChemtech") and GetPercentHP(source) < 50 then
+      amount = amount * 0.10
+    end
     if targetIsHero then
       if (GetItemSlot(source, ItemID.LordDominiksRegards) > 0) and source.maxHealth < target.maxHealth and DamageType == 1 then -- Lord Dominik's Regards
         amount = amount * (1 + 0.0075 * (math_min(2000, target.maxHealth - source.maxHealth)/ 100)) -- as bonusDamage
@@ -2827,18 +2830,24 @@ local DamageReductionMod = function(source, target, DamageType, amount)
     if GotBuff(source, "Exhaust") > 0 then
       amount = amount * (1 - 0.35)
     end
-    if GotBuff(source, "itemsmitechallenger") > 0 then
+    if GotBuff(source, "itemsmitechallenger") > 0 then --removed
       amount = amount * (1 - 0.10)
     end
     if GotBuff(source, "barontarget") > 0 then
       amount = amount * (1 - 0.50)
     end
+    --Dragon Buff/Debuff  SRX_DragonBuffChemtech
+    if Buff:HasBuffContainsName(target, "SRX_DragonSoulBuffChemtech") and GetPercentHP(target) < 50 then
+      amount = amount * (1-0.10)
+    end
     if Buff:HasBuffContainsName(target, "s5_dragonvengeance") then
+      --[[ if target.charName == "SRU_Dragon_Chemtech" and GetPercentHP(target) < 50 then
+        amount = amount * (1-0.33)
+      end ]]
       local count = Buff:HasBuffContainsNameCount(source, "SRX_DragonBuff")
       amount = amount * (1 - (0.07*count))
     end
   end
-
   if targetIsHero then
     for i = 0, target.buffCount do
       if target:GetBuff(i).count > 0 then
