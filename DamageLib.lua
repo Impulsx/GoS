@@ -1,5 +1,5 @@
 --[[
-Version: 12.21.1
+Version: 12.22.1
 
 Usage:
 
@@ -59,7 +59,7 @@ Special Champions/Items: {
   HeroPassiveDamageTable:
   { Jhin, Lux, Orianna, Quinn, Teemo, Vayne, Zed, Zac, Zeri, },
   ItemDamageTable: TODO
-  { Recurve Bow, Kirchei's Shard, Sheen, Runaan's Hurricane, Sunfire Aegis/Forgefire Crest, Trinity Force (Infinity Force), Wit's End, Rapid Firecannon, Lich Bane, Nashor's Tooth, Guinsoo's Rageblade, },
+  { Recurve Bow, Kirchei's Shard, Sheen, Runaan's Hurricane, Sunfire Aegis, Trinity Force (Infinity Force), Wit's End, Rapid Firecannon, Lich Bane, Nashor's Tooth, Guinsoo's Rageblade, },
 }
 SpellDamageTable:
 { All Champs, },
@@ -137,7 +137,7 @@ OnHit = {
     { Braum's - Concussive Blows, Nami's - Tidecaller's Blessing, Sona's - Hymn of Valor, Teemo's - Toxic Shot, }
   Passive Effects:
     { Blade of the Ruined King, Dead Man's Plate, Doran's Ring, Doran's Shield, Duskblade of Draktharr (Draktharr's Shadowcarver),
-    Eclipse (Syzygy), Frostfire Gauntlet (Rimeforged Grasp), Kircheis Shard (energized), Manamune, Noonquiver, }
+    Eclipse (Syzygy), Kircheis Shard (energized), Manamune, Noonquiver, }
   Triggered Effects:
     { Ardent Censer, Divine Sunderer (Deicide), Essence Reaver, Muramana, Zeke's Convergence, }
   Runes:
@@ -364,7 +364,7 @@ local Hero = {
   Leblanc = { false, 0.625 },
   LeeSin = { true, 0.651 },
   Leona = { true, 0.625 },
-  Lillia = { false, 0.625 },
+  Lillia = { true, 0.625 },
   Lissandra = { false, 0.656 },
   Lucian = { false, 0.638 },
   Lulu = { false, 0.625 },
@@ -490,11 +490,11 @@ local ItemID = {
   ClothArmor = 1029,
   ChainVest = 1031,
   NullMagicMantle = 1033,
-  Emberknife = 1035,
+  Emberknife = 1035, --removed 12.22
   LongSword = 1036,
   Pickaxe = 1037,
   BFSword = 1038,
-  Hailblade = 1039,
+  Hailblade = 1039, --removed 12.22
   ObsidianEdge = 1040,
   Dagger = 1042,
   RecurveBow = 1043,
@@ -507,6 +507,10 @@ local ItemID = {
   NeedlesslyLargeRod = 1058,
   DarkSeal = 1082,
   Cull = 1083,
+  ScorchclawPup = 1101,
+  GustwalkerHatchling = 1102,
+  MosstomperSeedling = 1103,
+  EyeoftheHerald = 1104 or 3513,
   PenetratingBullets = 1500,
   Fortification = 1501,
   ReinforcedArmor = 1502 or 1506,
@@ -576,6 +580,7 @@ local ItemID = {
   TrinityForce = 3078,
   WardensMail = 3082,
   WarmogsArmor = 3083,
+  Heartsteel = 3084,
   RunaansHurricane = 3085,
   Zeal = 3086,
   RabadonsDeathcap = 3089,
@@ -614,6 +619,7 @@ local ItemID = {
   MawofMalmortius = 3156,
   ZhonyasHourglass = 3157,
   IonianBootsofLucidity = 3158,
+  SpearOfShojin = 3161,
   Morellonomicon = 3165,
   GuardiansBlade = 3177,
   UmbralGlaive = 3179,
@@ -631,12 +637,12 @@ local ItemID = {
   YourCut = 3400,
   ArdentCenser = 3504,
   EssenceReaver = 3508,
-  EyeoftheHerald = 3513,
   KalistasBlackSpear = 3599 or 3600,
   DeadMansPlate = 3742,
   TitanicHydra = 3748,
   CrystallineBracer = 3801,
   LostChapter = 3802,
+  CatalystofAeons = 3803,
   EdgeofNight = 3814,
   SpellthiefsEdge = 3850,
   Frostfang = 3851,
@@ -683,9 +689,12 @@ local ItemID = {
   LiandrysAnguish = 6653,
   LudensTempest = 6655,
   Everfrost = 6656,
+  RodofAges = 6657,
   BamisCinder = 6660,
-  FrostfireGauntlet = 6662,
+  IcebornGauntlet = 6662,
   TurboChemtank = 6664,
+  JakShoTheProtean = 6665,
+  RadiantVirtue = 6667,
   Noonquiver = 6670,
   Galeforce = 6671,
   KrakenSlayer = 6672,
@@ -702,9 +711,7 @@ local ItemID = {
   SandshrikesClaw = 7000,
   Syzygy = 7001,
   DraktharrsShadowcarver = 7002,
-  TurbochargedHexperiment = 7003,
-  ForgefireCrest = 7004,
-  RimeforgedGrasp = 7005,
+  FrozenFist = 7005,
   Typhoon = 7006,
   WyrmfallenSacrifice = 7007,
   Bloodward = 7008,
@@ -724,10 +731,14 @@ local ItemID = {
   SeatofCommand = 7022,
   Equinox = 7023,
   Caesura = 7024,
+  Leviathan = 7025,
+  TheUnspokenParasite = 7026,
+  PrimordialDawn = 7027,
+  InfiniteConvergence = 7028,
   GangplankPlaceholder = 7050,
   AnathemasChains = 8001,
   AbyssalMask = 8020,
-}
+  }
 
 
 -- Local Functions --
@@ -743,21 +754,23 @@ end
 
 local GetBaseHealth = function(unit)
   if unit.charName == "Sylas" then
-    return 575 + (129 * (unit.levelData.lvl - 1))
+    return 575 + (129 * (unit.levelData.lvl - 1))*(0.7025+(0.0175*(unit.levelData.lvl-1)))
   elseif unit.charName == "Chogath" then
-    return 607 + (110 * (unit.levelData.lvl - 1))
+    return 607 + (110 * (unit.levelData.lvl - 1))*(0.7025+(0.0175*(unit.levelData.lvl-1)))
   elseif unit.charName == "Volibear" then
-    return 650 + (104 * (unit.levelData.lvl - 1))
+    return 650 + (104 * (unit.levelData.lvl - 1))*(0.7025+(0.0175*(unit.levelData.lvl-1)))
   elseif unit.charName == "Vladimir" then
-    return 537 + (96 * (unit.levelData.lvl - 1))
+    return 537 + (96 * (unit.levelData.lvl - 1))*(0.7025+(0.0175*(unit.levelData.lvl-1)))
   elseif unit.charName == "DrMundo" then
-    return 653 + (103 * (unit.levelData.lvl - 1))
+    return 653 + (103 * (unit.levelData.lvl - 1))*(0.7025+(0.0175*(unit.levelData.lvl-1)))
   elseif unit.charName == "Maokai" then
-    return 635 + (109 * (unit.levelData.lvl - 1))
+    return 635 + (109 * (unit.levelData.lvl - 1))*(0.7025+(0.0175*(unit.levelData.lvl-1)))
   elseif unit.charName == "KSante" then
-    return 610 + (104 * (unit.levelData.lvl - 1))
+    return 610 + (104 * (unit.levelData.lvl - 1))*(0.7025+(0.0175*(unit.levelData.lvl-1)))
   elseif unit.charName == "Sett" then
-    return 670 + (114 * (unit.levelData.lvl - 1))
+    return 670 + (114 * (unit.levelData.lvl - 1))*(0.7025+(0.0175*(unit.levelData.lvl-1)))
+  elseif unit.charName == "Nunu" then
+    return 610 + (90 * (unit.levelData.lvl - 1))*(0.7025+(0.0175*(unit.levelData.lvl-1)))
   end
 end
 
@@ -1124,11 +1137,12 @@ local DamageReductionItemsTable = {
       end
     end},
 }
-  -- TODO
+--[[ TODO
+  Chemtech Blight damage increase/reduction
   --8020 Abyssal Mask
   --3193 Gargoyle Stoneplate
   --8001 Anathema's Chains
-
+]]
 local SpecialAADamageTable = {
   --Spell/Skills
   ["Blitzcrank"] = function(args) --BlitzcrankW
@@ -1453,7 +1467,7 @@ local ItemDamageTable = {
       args.RawPhysical = args.RawPhysical + 1 * args.source.baseDamage
     end
   end,
-  [ItemID.SunfireAegis or ItemID.ForgefireCrest] = function(args) --"Sunfire Aegis" 7004: Forgefire Crest
+  [ItemID.SunfireAegis] = function(args) --"Sunfire Aegis"
     if Buff:GetBuffCount(args.source, "item3068stack") == 8 then
       --buff.ammo on hit burn * 3 - (args.Target.hpRegen*3)
     end
@@ -1645,7 +1659,7 @@ local SpellDamageTable = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 135, 190, 245, 300})[level] + source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 125, 175, 225, 275})[level] + 0.7 * source.ap end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({22, 34, 46, 58, 70})[level] + 0.3 * source.ap + 0.03 * target.maxHealth end},
-    {Slot = "R", Stage = 1, DamageType = 3, Damage = function(source, target, level) return ({300, 475, 650})[level] + 0.5 * source.ap + 0.1 * (source.maxHealth - GetBaseHealth(source)) end},
+    {Slot = "R", Stage = 1, DamageType = 3, Damage = function(source, target, level) local dmg = ({300, 475, 650})[level] + (0.50 * source.ap) + (0.10 * (source.maxHealth - GetBaseHealth(source))); if target.type ~= Obj_AI_Hero then dmg = 1200 + (0.50 * source.ap) + (0.10 * (source.maxHealth - GetBaseHealth(source))) end; return dmg end},
   },
 
   ["Corki"] = {
@@ -2142,8 +2156,8 @@ local SpellDamageTable = {
   },
 
   ["Nunu"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 100, 140, 180, 220})[level] + 0.65 * source.ap end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({36, 45, 54, 63, 72})[level] + 0.3 * source.ap end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) local dmg = ({60, 100, 140, 180, 220})[level] + (0.65 * source.ap) + (0.05 * (source.maxHealth - GetBaseHealth(source))) if target.type ~= Obj_AI_Hero then dmg = ({340, 500, 660, 820, 980})[level] end; return dmg end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({36, 45, 54, 63, 72})[level] + 0.30 * source.ap end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({16, 24, 32, 40, 48})[level] + 0.06 * source.ap end},--per Snowbal
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({625, 950, 1275})[level] + 3.0 * source.ap end},
   },
@@ -3151,8 +3165,9 @@ getdmg = function(spell, target, source, stage, level)
   local sourceIsHero = source.type == Obj_AI_Hero;
   local Ignite = (source:GetSpellData(SUMMONER_1).name:lower():find("summonerdot") and SUMMONER_1 or (source:GetSpellData(SUMMONER_2).name:lower():find("summonerdot") and SUMMONER_2 or nil))
   local Smite = (source:GetSpellData(SUMMONER_1).name:lower():find("smite") and SUMMONER_1 or (source:GetSpellData(SUMMONER_2).name:lower():find("smite") and SUMMONER_2 or nil))
-  local SmiteGanker = (source:GetSpellData(SUMMONER_1).name:lower():find("ganker") and SUMMONER_1 or (source:GetSpellData(SUMMONER_2).name:lower():find("ganker") and SUMMONER_2 or nil))
+  local SmiteUnleashed = (source:GetSpellData(SUMMONER_1).name:lower():find("ganker") and SUMMONER_1 or (source:GetSpellData(SUMMONER_2).name:lower():find("ganker") and SUMMONER_2 or nil))
   local SmiteDuel = (source:GetSpellData(SUMMONER_1).name:lower():find("duel") and SUMMONER_1 or (source:GetSpellData(SUMMONER_2).name:lower():find("duel") and SUMMONER_2 or nil))
+  local SmiteAvatar = (source:GetSpellData(SUMMONER_1).name:lower():find("avatar") and SUMMONER_1 or (source:GetSpellData(SUMMONER_2).name:lower():find("avatar") and SUMMONER_2 or nil))
 
   local Mark = (source:GetSpellData(SUMMONER_1).name:lower():find("mark") and SUMMONER_1 or (source:GetSpellData(SUMMONER_2).name:lower():find("mark") and SUMMONER_2 or nil))
   local Dash = (source:GetSpellData(SUMMONER_1).name:lower():find("Dash") and SUMMONER_1 or (source:GetSpellData(SUMMONER_2).name:lower():find("Dash") and SUMMONER_2 or nil))
@@ -3191,27 +3206,27 @@ getdmg = function(spell, target, source, stage, level)
     return MarkandDashDamage
   end
   if spell == "SMITE" then
-    local SmiteDamage = 450
-    local SmiteGankerDamageHero = (12+8*source.levelData.lvl)
-    local SmiteAdvDamageMinion = (500 + (0.15 * target.maxHealth))
-    local SmiteAdvDamageMonster = 900
-    local SmiteDuelDamageHero = ((48+77/17*(source.levelData.lvl-1)) - (target.hpRegen*3.25))
-    if targetIsCamp then
+    local SmiteDamage = 600
+    local SmiteUnleashedDamage = 900
+    local SmitePrimalDamage = 1200
+    local SmiteAdvDamageHero = 80 + 80 / 17 * (source.levelData.lvl - 1)
+    if not targetIsHero then
       if source:GetSpellData(Smite).name == "SummonerSmite" then
         return SmiteDamage
-      elseif source:GetSpellData(SmiteGanker).name == "S5_SummonerSmitePlayerGanker" or source:GetSpellData(SmiteDuel).name == "S5_SummonerSmiteDuel" then
-        return SmiteAdvDamageMonster end
---[[     elseif targetIsMinion then
-      if source:GetSpellData(Smite).name == "SummonerSmite" then
-        return SmiteDamage
-      elseif source:GetSpellData(SmiteGanker).name == "S5_SummonerSmitePlayerGanker" or source:GetSpellData(SmiteDuel).name == "S5_SummonerSmiteDuel" then
-        return SmiteAdvDamageMinion end ]]
+      elseif source:GetSpellData(SmiteUnleashed).name == "S5_SummonerSmitePlayerGanker" or source:GetSpellData(SmiteDuel).name == "S5_SummonerSmiteDuel" then
+        return SmiteUnleashedDamage
+      elseif source:GetSpellData(SmiteAvatar).name == "SummonerSmiteAvatarOffensive" or source:GetSpellData(SmiteAvatar).name == "SummonerSmiteAvatarUtility"  or source:GetSpellData(SmiteAvatar).name == "SummonerSmiteAvatarDefensive" then
+        return SmitePrimalDamage
+      end
     elseif targetIsHero then
-      if source:GetSpellData(SmiteGanker).name == "S5_SummonerSmitePlayerGanker" then
-        return SmiteGankerDamageHero
-      elseif source:GetSpellData(SmiteDuel).name == "S5_SummonerSmiteDuel" then
-        return SmiteDuelDamageHero end
-    else return 0 end
+      if source:GetSpellData(SmiteUnleashed).name == "S5_SummonerSmitePlayerGanker" or source:GetSpellData(SmiteDuel).name == "S5_SummonerSmiteDuel" then
+        return SmiteAdvDamageHero
+      elseif source:GetSpellData(SmiteAvatar).name == "SummonerSmiteAvatarOffensive" or source:GetSpellData(SmiteAvatar).name == "SummonerSmiteAvatarUtility"  or source:GetSpellData(SmiteAvatar).name == "SummonerSmiteAvatarDefensive" then
+        return SmiteAdvDamageHero
+      end
+    else
+      return 0
+    end
   end
   if spell == "HEXTECH" then
     return CalcDamage(source, target, 2, 125+(0.15*source.ap))
