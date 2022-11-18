@@ -1,5 +1,5 @@
 --[[
-Version: 12.22.1
+Version: 12.22.2 HOTFIX
 
 Usage:
 
@@ -1554,7 +1554,7 @@ local SpellDamageTable = {
   ["Amumu"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 130, 180, 230, 280})[level] + 0.7 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({4, 6, 8, 10, 12})[level] + (({0.5, 0.575, 0.65, 0.725, 0.8})[level]/100 + ((0.25/100) * math_floor(source.ap / 100)) * target.maxHealth) end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 100, 125, 150, 175})[level] + 0.5 * source.ap end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({85, 110, 135, 160, 185})[level] + 0.5 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({200, 300, 400})[level] + 0.8 * source.ap end},
   },
 
