@@ -1,5 +1,5 @@
 --[[
-Version: 12.22.1
+Version: 12.22.2 HOTFIX
 
 Usage:
 
@@ -49,16 +49,16 @@ Special Champions/Items: {
   -- Damage Tables -- {
   DamageReductionBuffsTable:
     { --Annie, Alistar, Amumu, Belveth, Braum, Galio[AP&AD], Garen, Gragas, Malzahar, MasterYi, },
-  DamageReductionItemsTable: TODO
+  DamageReductionItemsTable: TODO:
     { Plated Steelcaps, }
-  Post-mitigation: TODO
+  Post-mitigation: TODO:
     { Frozen Heart, Randuin's Omen, Warden's Mail, }
 
   SpecialAADamageTable:
   { Akshan, Caitlyn, Corki, Diana, Draven, Graves, Jinx, Kalista, Kayle, Nasus, Thresh, TwistedFate, Varus, Vayne, Viktor, Zac, Zeri, }
   HeroPassiveDamageTable:
   { Jhin, Lux, Orianna, Quinn, Teemo, Vayne, Zed, Zac, Zeri, },
-  ItemDamageTable: TODO
+  ItemDamageTable: TODO:
   { Recurve Bow, Kirchei's Shard, Sheen, Runaan's Hurricane, Sunfire Aegis, Trinity Force (Infinity Force), Wit's End, Rapid Firecannon, Lich Bane, Nashor's Tooth, Guinsoo's Rageblade, },
 }
 SpellDamageTable:
@@ -738,8 +738,7 @@ local ItemID = {
   GangplankPlaceholder = 7050,
   AnathemasChains = 8001,
   AbyssalMask = 8020,
-  }
-
+}
 
 -- Local Functions --
 local table_contains = function(table, x)
@@ -859,15 +858,13 @@ local GetPercentMissingHP = function(unit)
 end
 
 local GetMissingHP = function(unit)
-  return unit.maxHealth - unit.health
+  return (unit.maxHealth - unit.health)
 end
 
 -- Items --
 local GetItemSlot = function(unit, id)
   for i = ITEM_1, ITEM_7 do
-    if unit:GetItemData(i).itemID == id then
-      return i
-    end
+    if unit:GetItemData(i).itemID == id then return i end
   end
   return 0
 end
@@ -1107,10 +1104,10 @@ local DamageReductionBuffsTable = {
   ["Galio"] = {buff = "galiowpassivedefense", DamageType = 1, amount = function(target) return 1 - ({0.1, 0.125, 0.15, 0.175, 0.20})[target:GetSpellData(_W).level] + (0.025 * target.ap / 100) + (0.4 * target.bonusMagicResist / 100) end},
   ["Garen"] = {buff = "GarenW", amount = function(target) return 1 - 0.3 end},
   ["Gragas"] = {buff = "GragasWSelf", amount = function(target) return 1 - ({0.1, 0.12, 0.14, 0.16, 0.18})[target:GetSpellData(_W).level] + 0.04 * target.ap / 100 end},
-  ["KSante"] = {buff = "KSanteW", amount = function(source, target) return 1 - 0.25 + (0.10 * math_floor(target.bonusArmor/100)) + (0.10 * math_floor(target.bonusMagicResist/100)) + (0.10 * math_floor((target.maxHealth - GetBaseHealth(target))/100)) end}, --KSanteW? TODO "+ (0.10 * math_floor(target.bonusHealth/100))"
+  ["KSante"] = {buff = "KSanteW", amount = function(source, target) return 1 - 0.25 + (0.10 * math_floor(target.bonusArmor/100)) + (0.10 * math_floor(target.bonusMagicResist/100)) + (0.10 * math_floor((target.maxHealth - GetBaseHealth(target))/100)) end},
   ["Malzahar"] = {buff = "malzaharpassiveshield", amount = function(target) return 1 - 0.9 end},
   ["MasterYi"] = {buff = "Meditate", amount = function(source, target) return 1 - ({0.45, 0.475, 0.50, 0.525, 0.55})[target:GetSpellData(_W).level] / (source.type == Obj_AI_Turret and 2 or 1) end},
-  ["NilahW"] = {buff = "NilahW", DamageType = 2, amount = function(target) return 1 - 0.25 end}, --TODO
+  ["NilahW"] = {buff = "NilahW", DamageType = 2, amount = function(target) return 1 - 0.25 end}, --TODO:
 }
 
 local DamageReductionItemsTable = {
@@ -1137,7 +1134,7 @@ local DamageReductionItemsTable = {
       end
     end},
 }
---[[ TODO
+--[[ TODO:
   Chemtech Blight damage increase/reduction
   --8020 Abyssal Mask
   --3193 Gargoyle Stoneplate
@@ -1285,7 +1282,7 @@ local SpecialAADamageTable = {
 
 local HeroPassiveDamageTable = {
   --Passives/Buffs
-  ["Blitzcrank"] = function(args) --BlitzcrankE TODO R passive
+  ["Blitzcrank"] = function(args) --BlitzcrankE TODO: R passive
     if Buff:HasBuff(args.source, "PowerFist") then --PowerFistAttack
       local level = args.source.levelData.lvl
       if args.TargetIsMinion then
@@ -1554,7 +1551,7 @@ local SpellDamageTable = {
   ["Amumu"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 130, 180, 230, 280})[level] + 0.7 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({4, 6, 8, 10, 12})[level] + (({0.5, 0.575, 0.65, 0.725, 0.8})[level]/100 + ((0.25/100) * math_floor(source.ap / 100)) * target.maxHealth) end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 100, 125, 150, 175})[level] + 0.5 * source.ap end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({85, 110, 135, 160, 185})[level] + 0.5 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({200, 300, 400})[level] + 0.8 * source.ap end},
   },
 
@@ -1712,7 +1709,7 @@ local SpellDamageTable = {
   },
 
   ["Evelynn"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({25, 30, 35, 40, 45})[level] + 0.3 * source.ap end}, --TODO bonus damage next 3 AA or spells
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({25, 30, 35, 40, 45})[level] + 0.3 * source.ap end}, --TODO: bonus damage next 3 AA or spells
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({55, 70, 85, 100, 115})[level] + (0.03 + (0.015 * math_floor(source.ap / 100))) * target.maxHealth end}, --non-empowered
     {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) local dmg = ({75, 100, 125, 150, 175})[level] + (0.04 + (0.025 * math_floor(source.ap / 100))) * target.maxHealth if target.type == Obj_AI_Camp then return math_max(25, math_min(450, dmg)) end; return dmg end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) local dmg = ({125, 250, 375})[level] + 0.75 * source.ap if GetPercentMissingHP(target) > 30 then return dmg * 1.4 end; return dmg end},
@@ -1803,7 +1800,7 @@ local SpellDamageTable = {
   },
 
   ["Hecarim"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + 0.90 * source.bonusDamage end}, --TODO per stack +4%(+6^per100bonusAD) to 12%(+18per)
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + 0.90 * source.bonusDamage end}, --TODO: per stack +4%(+6^per100bonusAD) to 12%(+18per)
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({20, 30, 40, 50, 60})[level] + 0.2 * source.ap end}, -- per tick
     {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({80, 120, 160, 200, 240})[level] + 0.8 * source.ap end}, -- totalDamage
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 45, 60, 75, 90})[level] + 0.50 * source.bonusDamage end}, --happens twice
@@ -2491,9 +2488,9 @@ local SpellDamageTable = {
 
   ["Syndra"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({70, 105, 140, 175, 210})[level] + 0.70 * source.ap) end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 110, 150, 190, 230})[level] + 0.70 * source.ap end}, -- TODO calc for 60 splinters of wrath +15%(+1.5% per 100 ap) bonus true damage
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 110, 150, 190, 230})[level] + 0.70 * source.ap end}, -- TODO: calc for 60 splinters of wrath +15%(+1.5% per 100 ap) bonus true damage
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 115, 155, 195, 235})[level] + 0.55 * source.ap end},
-    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({270, 390, 510})[level] + 0.51 * source.ap end}, -- min damage TODO 100 splinters of wrath execute under 15% hp
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({270, 390, 510})[level] + 0.51 * source.ap end}, -- min damage TODO: 100 splinters of wrath execute under 15% hp
     {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({90, 130, 170})[level] + 0.17 * source.ap end},-- PER SPHERE
   },
 
@@ -2565,8 +2562,8 @@ local SpellDamageTable = {
   },
 
   ["Udyr"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (({3.00, 4.40, 5.80, 7.20, 8.60, 10.00})[level]/100 + (0.06 * math_floor(source.bonusDamage / 100))) * target.maxHealth end}, --TODO is AA damage x2 + on-hit
-    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ((1.5 + 1.5 / 17 * (level-1)) + (0.008 * math_floor(source.ap / 100))) * target.maxHealth end}, --Awaken lightning + TODO min dmg against minions
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (({3.00, 4.40, 5.80, 7.20, 8.60, 10.00})[level]/100 + (0.06 * math_floor(source.bonusDamage / 100))) * target.maxHealth end}, --TODO: is AA damage x2 + on-hit
+    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ((1.5 + 1.5 / 17 * (level-1)) + (0.008 * math_floor(source.ap / 100))) * target.maxHealth end}, --Awaken lightning + TODO: min dmg against minions
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({10, 19, 28, 37, 46, 55})[level] + (0.20 * source.ap) end}, --per tick
     {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return (0.01 + 0.01 / 17 * (level-1) + (0.4375/100 * math_floor(source.ap / 100)) * target.maxHealth) end}, --Awaken storm per tick
     {Slot = "R", Stage = 3, DamageType = 2, Damage = function(source, target, level) return (10 + 20 / 17 * (level-1)) + (0.30 * source.ap) end}, --is AA dmg see SpecialAADamageTable
@@ -2788,7 +2785,7 @@ local GetCriticalStrikePercent = function(source)
   if Item:HasItem(source, ItemID.InfinityEdge) and source.critChance >= 0.60 then --Infinity Edge
     baseCriticalDamage = baseCriticalDamage + 0.35 or 2.10
   end
-  if source.charName == "Akshan" then
+  if source.charName == "Akshan" then --TODO: additional shot after AA
     percentMod = 0.70
   elseif source.charName == "Ashe" then
     baseCriticalDamage = 1
@@ -2803,7 +2800,7 @@ local GetCriticalStrikePercent = function(source)
   elseif source.charName == "Yone" then
     percentMod = 0.90
   end
-  local modCrit =  baseCriticalDamage + (((Item:HasItem(source, ItemID.InfinityEdge)) and (source.critChance >= 0.60) and 0.35) or 0) --TODO
+  local modCrit =  baseCriticalDamage + (((Item:HasItem(source, ItemID.InfinityEdge)) and (source.critChance >= 0.60) and 0.35) or 0) --TODO:
   return baseCriticalDamage * percentMod
 end
 
@@ -2812,11 +2809,11 @@ local PassivePercentMod = function(source, target, DamageType, amount)
   local sourceIsHero = source.type == Obj_AI_Hero;
   if sourceIsHero then
     if Buff:HasBuffContainsName(source, "SRX_DragonSoulBuffChemtech") and GetPercentHP(source) < 50 then
-      amount = amount * 0.10
+      amount = amount * (1 + 0.10)
     end
     if targetIsHero then
       if (GetItemSlot(source, ItemID.LordDominiksRegards) > 0) and source.maxHealth < target.maxHealth and DamageType == 1 then -- Lord Dominik's Regards
-        amount = amount * (1 + 0.0075 * (math_min(2000, target.maxHealth - source.maxHealth)/ 100)) -- as bonusDamage
+        amount = amount * (1 + 0.0075 * (math_min(2000, target.maxHealth - source.maxHealth)/ 100)) --TODO: as bonusDamage
       end
     end
   end
@@ -2836,13 +2833,13 @@ local DamageReductionMod = function(source, target, DamageType, amount)
     if GotBuff(source, "barontarget") > 0 then
       amount = amount * (1 - 0.50)
     end
-    --Dragon Buff/Debuff  SRX_DragonBuffChemtech
+    --Dragon Buff/Debuff
     if Buff:HasBuffContainsName(target, "SRX_DragonSoulBuffChemtech") and GetPercentHP(target) < 50 then
-      amount = amount * (1-0.10)
+      amount = amount * (1 - 0.10)
     end
     if Buff:HasBuffContainsName(target, "s5_dragonvengeance") then
       --[[ if target.charName == "SRU_Dragon_Chemtech" and GetPercentHP(target) < 50 then
-        amount = amount * (1-0.33)
+        amount = amount * (1 - 0.33)
       end ]]
       local count = Buff:HasBuffContainsNameCount(source, "SRX_DragonBuff")
       amount = amount * (1 - (0.07*count))
@@ -2984,7 +2981,7 @@ local GetHeroAADamage = function(source, target, SpecialAA)
       end
     end
     --Spoils of War passive for Support items
-    --TODO charges? if buff
+    --TODO: charges? if buff
     if Item:HasItem(source, ItemID.RelicShield) or Item:HasItem(source, ItemID.SteelShoulderguards) then --Relic Shieldor --Steel Shoulderguards
       if IsMelee(source) then
         if GetPercentHP(target) < 50 then
@@ -3134,13 +3131,13 @@ CalcDamage = function(source, target, DamageType, amount, IsAA)
 	end
 
   local flatPassive = 0
-  if targetIsHero then --TODO Move to own function/table
+  if targetIsHero then --TODO: Move to own function/table
     if target.charName == "Fizz" then
       flatPassive = flatPassive - (4 + 0.01 * source.ap) --TODO 50% max reduction
     elseif target.charName == "Leona" and GetBuffData(target, "LeonaSolarBarrier") then
       flatPassive = flatPassive - (({8, 12, 16, 20, 24})[target:GetSpellData(_W).level])
     elseif target.charName == "Amumu" and GetBuffData(target, "Tantrum") then
-      flatPassive = flatPassive - (({5, 7, 9, 11, 13})[target:GetSpellData(_E).level] + (0.03 * target.bonusMagicResist) + (0.03 * target.bonusArmor)) --TODO max 50%
+      flatPassive = flatPassive - (({5, 7, 9, 11, 13})[target:GetSpellData(_E).level] + (0.03 * target.bonusMagicResist) + (0.03 * target.bonusArmor)) --TODO: max 50%
     end
     if GetItemSlot(target, ItemID.GuardiansHorn) > 0 then --Guardian's Horn
       flatPassive = flatPassive - 15
