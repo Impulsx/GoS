@@ -1,5 +1,5 @@
 --[[
-Version: 12.22.1
+Version: 12.22.2 HOTFIX
 
 Usage:
 
@@ -1554,7 +1554,7 @@ local SpellDamageTable = {
   ["Amumu"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 130, 180, 230, 280})[level] + 0.7 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({4, 6, 8, 10, 12})[level] + (({0.5, 0.575, 0.65, 0.725, 0.8})[level]/100 + ((0.25/100) * math_floor(source.ap / 100)) * target.maxHealth) end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 100, 125, 150, 175})[level] + 0.5 * source.ap end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({85, 110, 135, 160, 185})[level] + 0.5 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({200, 300, 400})[level] + 0.8 * source.ap end},
   },
 
@@ -2812,7 +2812,7 @@ local PassivePercentMod = function(source, target, DamageType, amount)
   local sourceIsHero = source.type == Obj_AI_Hero;
   if sourceIsHero then
     if Buff:HasBuffContainsName(source, "SRX_DragonSoulBuffChemtech") and GetPercentHP(source) < 50 then
-      amount = amount * 0.10
+      amount = amount * (1 + 0.10)
     end
     if targetIsHero then
       if (GetItemSlot(source, ItemID.LordDominiksRegards) > 0) and source.maxHealth < target.maxHealth and DamageType == 1 then -- Lord Dominik's Regards
@@ -2836,13 +2836,13 @@ local DamageReductionMod = function(source, target, DamageType, amount)
     if GotBuff(source, "barontarget") > 0 then
       amount = amount * (1 - 0.50)
     end
-    --Dragon Buff/Debuff  SRX_DragonBuffChemtech
+    --Dragon Buff/Debuff
     if Buff:HasBuffContainsName(target, "SRX_DragonSoulBuffChemtech") and GetPercentHP(target) < 50 then
-      amount = amount * (1-0.10)
+      amount = amount * (1 - 0.10)
     end
     if Buff:HasBuffContainsName(target, "s5_dragonvengeance") then
       --[[ if target.charName == "SRU_Dragon_Chemtech" and GetPercentHP(target) < 50 then
-        amount = amount * (1-0.33)
+        amount = amount * (1 - 0.33)
       end ]]
       local count = Buff:HasBuffContainsNameCount(source, "SRX_DragonBuff")
       amount = amount * (1 - (0.07*count))
