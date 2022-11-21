@@ -1,5 +1,5 @@
 --[[
-Version: 12.22.2 HOTFIX
+Version: 12.22.3 HOTFIX
 
 Usage:
 
@@ -3135,9 +3135,9 @@ CalcDamage = function(source, target, DamageType, amount, IsAA)
     if target.charName == "Fizz" then
       flatPassive = flatPassive - (4 + 0.01 * source.ap) --TODO 50% max reduction
     elseif target.charName == "Leona" and GetBuffData(target, "LeonaSolarBarrier") then
-      flatPassive = flatPassive - (({8, 12, 16, 20, 24})[target:GetSpellData(_W).level])
+      flatPassive = flatPassive - (({8, 12, 16, 20, 24})[target:GetSpellData(_W).level or 1])
     elseif target.charName == "Amumu" and GetBuffData(target, "Tantrum") then
-      flatPassive = flatPassive - (({5, 7, 9, 11, 13})[target:GetSpellData(_E).level] + (0.03 * target.bonusMagicResist) + (0.03 * target.bonusArmor)) --TODO: max 50%
+      flatPassive = flatPassive - (({5, 7, 9, 11, 13})[target:GetSpellData(_E).level or 1] + (0.03 * target.bonusMagicResist) + (0.03 * target.bonusArmor)) --TODO: max 50%
     end
     if GetItemSlot(target, ItemID.GuardiansHorn) > 0 then --Guardian's Horn
       flatPassive = flatPassive - 15
