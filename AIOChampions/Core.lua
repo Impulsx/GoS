@@ -1,5 +1,5 @@
 local heroes = false
-local checkCount = 0 
+local checkCount = 0
 local menu = 1
 local Orb
 local _OnWaypoint = {}
@@ -44,7 +44,7 @@ local MathSqrt = math.sqrt
 local MathHuge = math.huge
 local TableInsert = table.insert
 local TableRemove = table.remove
-_G.LATENCY = 0.05
+--_G.LATENCY = 0.05
 
 
 function LoadUnits()
@@ -68,7 +68,7 @@ local function CheckLoadedEnemyies()
 	end
 	return count
 end
-		
+
 local function ConvertToHitChance(menuValue, hitChance)
     return menuValue == 1 and _G.PremiumPrediction.HitChance.High(hitChance)
     or menuValue == 2 and _G.PremiumPrediction.HitChance.VeryHigh(hitChance)
@@ -86,7 +86,7 @@ local function Ready(spell)
     return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and GameCanUseSpell(spell) == 0
 end
 
-function GetMode()   
+function GetMode()
     if Orb == 1 then
         if combo == 1 then
             return 'Combo'
@@ -101,7 +101,7 @@ function GetMode()
 		if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
 			return "Combo"
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
-			return "Harass"	
+			return "Harass"
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] or _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
 			return "Clear"
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] then
@@ -116,29 +116,29 @@ function GetMode()
 	elseif Orb == 5 then
 	  return _G.PremiumOrbwalker:GetMode()
 	end
-	
+
     if _G.SDK then
-        return 
+        return
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] and "Combo"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] and "Harass"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] and "Clear"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] and "Clear"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] and "LastHit"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] and "Flee"
 		or nil
-    
+
 	elseif _G.PremiumOrbwalker then
 		return _G.PremiumOrbwalker:GetMode()
 	end
-	return nil	
+	return nil
 end
 
-function GetTarget(range) 
+function GetTarget(range)
 	if Orb == 1 then
 		if myHero.ap > myHero.totalDamage then
 			return EOW:GetTarget(range, EOW.ap_dec, myHero.pos)
@@ -159,11 +159,11 @@ function GetTarget(range)
         end
     elseif _G.gsoSDK then
 		return _G.gsoSDK.TS:GetTarget()
-	
+
 	elseif _G.PremiumOrbwalker then
 		return _G.PremiumOrbwalker:GetTarget(range)
-	end	
-	
+	end
+
 	if _G.SDK then
 		if myHero.ap > myHero.totalDamage then
 			return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
@@ -172,16 +172,16 @@ function GetTarget(range)
 		end
 	elseif _G.PremiumOrbwalker then
 		return _G.PremiumOrbwalker:GetTarget(range)
-	end	
+	end
 end
 
 local function SetAttack(bool)
 	if _G.EOWLoaded then
 		EOW:SetAttacks(bool)
-	elseif _G.SDK then                                                        
+	elseif _G.SDK then
 		_G.SDK.Orbwalker:SetAttack(bool)
 	elseif _G.PremiumOrbwalker then
-		_G.PremiumOrbwalker:SetAttack(bool)	
+		_G.PremiumOrbwalker:SetAttack(bool)
 	else
 		GOS.BlockAttack = not bool
 	end
@@ -194,7 +194,7 @@ local function SetMovement(bool)
 	elseif _G.SDK then
 		_G.SDK.Orbwalker:SetMovement(bool)
 	elseif _G.PremiumOrbwalker then
-		_G.PremiumOrbwalker:SetMovement(bool)	
+		_G.PremiumOrbwalker:SetMovement(bool)
 	else
 		GOS.BlockMovement = not bool
 	end
@@ -219,14 +219,14 @@ end
 
 local function IsRecalling(unit)
 	for i = 1, 63 do
-	local buff = unit:GetBuff(i) 
+	local buff = unit:GetBuff(i)
 		if buff.count > 0 and buff.name == "recall" and Game.Timer() < buff.expireTime then
 			return true
 		end
-	end 
+	end
 	return false
-end 
-	
+end
+
 local function MyHeroNotReady()
     return myHero.dead or GameIsChatOpen() or (_G.JustEvade and _G.JustEvade:Evading()) or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or IsRecalling(myHero)
 end
@@ -254,20 +254,20 @@ for i = 0, myHero.buffCount do
 		print("Stacks:  "..buff.stacks)
 		print("Count:  "..buff.count)
 		print("Id:  "..buff.sourcenID)
-		print("SouceName:  "..buff.sourceName)	
+		print("SouceName:  "..buff.sourceName)
 	end
 end
 ]]
 local IsLoaded = false
-Callback.Add("Tick", function()  
-	if heroes == false then 
-		local EnemyCount = CheckLoadedEnemyies()			
+Callback.Add("Tick", function()
+	if heroes == false then
+		local EnemyCount = CheckLoadedEnemyies()
 		if EnemyCount < 1 then
 			LoadUnits()
 		else
 			heroes = true
 		end
-	else	
+	else
 		if not IsLoaded then
 			LoadScript()
 			DelayAction(function()
@@ -278,15 +278,15 @@ Callback.Add("Tick", function()
 					require('PremiumPrediction')
 				else
 					require('GGPrediction')
-				end	
+				end
 			end, 1)
 			IsLoaded = true
-		end	
-	end	
+		end
+	end
 end)
 
 local DrawTime = false
-Callback.Add("Draw", function() 
+Callback.Add("Draw", function()
 	if heroes == false then
 		Draw.Text(myHero.charName.." is Loading !!", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 255, 0, 0))
 	else
@@ -295,6 +295,6 @@ Callback.Add("Draw", function()
 			DelayAction(function()
 			DrawTime = true
 			end, 4.0)
-		end	
+		end
 	end
 end)
