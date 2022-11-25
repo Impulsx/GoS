@@ -1,7 +1,7 @@
 Data = {
 
     Loader = {
-        Version = 0.21,
+        Version = 0.22,
     },
     Core = {
         Changelog = "Auto Version ChangeLog Here",
@@ -183,7 +183,7 @@ Data = {
         },
            Jinx = {
             Changelog = "Jinx Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         },
            Ashe = {
             Changelog = "Ashe Changelog Here",

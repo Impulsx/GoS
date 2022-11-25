@@ -1,7 +1,7 @@
 --//// Ported from BoL / Dienofail Jinx ////--
 
-local AARange = 525 + myHero.boundingRadius
-local QRange = 605 + myHero.boundingRadius
+local AARange = 525
+local QRange = 605
 local isFishBones;
 local FishStacks = 0;
 
@@ -98,21 +98,22 @@ end
 
 
 local function CheckQ()
-	--print(myHero.range)
 	--QRange = MyHeroRange --605 + myHero.boundingRadius*2--({80, 110, 140, 170, 200})[myHero:GetSpellData(_Q).level] + (myHero:GetSpellData(_Q).range) --(myHero:GetSpellData(_Q).level*25) + 75 + 600
-	local qLevel = 1 or myHero:GetSpellData(_Q).level
-	AARange = 525 + myHero.boundingRadius*2
-	QRange = AARange + ({80, 110, 140, 170, 200})[qLevel]
+	local qLevel = myHero:GetSpellData(_Q).level or 1
+	local bradius = myHero.boundingRadius
+	local range = myHero.range
+	AARange = 525 + bradius
+	QRange = (qLevel*30) + 50 + AARange --  ({80, 110, 140, 170, 200})[qLevel] + AARange
 	local fishBones = GetBuffData(myHero, "JinxQ").count >= 1
 	local powPow = GetBuffData(myHero, "jinxqicon").count >= 1
 	if fishBones then
-		QRange = myHero.range + myHero.boundingRadius*2
+		QRange = range + bradius
 		isFishBones = true
-	else
-		AARange = myHero.range + myHero.boundingRadius*2
+	elseif powPow then
+		AARange = range + bradius
 		isFishBones = false
 	end
-	--DrawText('isfishBones: '..tostring(isFishBones)..' | fishBones: '..tostring(fishBones), 24, myHero.pos2D.x, myHero.pos2D.y+75)
+	--DrawText('isfishBones: '..tostring(isFishBones)..' | fishBones: '..tostring(fishBones).. ' | qlvl: '..tostring(qLevel), 24, myHero.pos2D.x, myHero.pos2D.y+75)
 	--DrawText('QRange: '..tostring(QRange)..' | AARange: '..tostring(AARange)..' | myHero.range: '..tostring(myHero.range), 24, myHero.pos2D.x, myHero.pos2D.y+25)
 	local Buff = GetBuffData(myHero, "jinxqramp")
 	if Buff.count then
@@ -125,7 +126,7 @@ end
 
 function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.09"}})
 
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
@@ -272,7 +273,7 @@ function Tick()
 		CheckImmobile()
 	end
 
-	if target == nil and Wtarget == nil and isFishBones and Ready(_Q) and Mode == "Clear" then --was not isFishBones.
+	if target == nil and Wtarget == nil and (Menu.Extras.AOEFarm:Value() and not isFishBones or isFishBones) and Ready(_Q) and Mode == "Clear" then --was not isFishBones
 		Control.CastSpell(HK_Q)
 	end
 end
@@ -310,34 +311,37 @@ function ComboR()
 end
 
 function Swap(Target)
+	local FishStacksSwap = FishStacks < 3
+	local TbRadius = Target.boundingRadius
 	if IsValid(Target) and Ready(_Q) then
 
 		if isFishBones then
-			if Menu.Extras.SwapThree:Value() and FishStacks == 3 and GetDistance(myHero.pos, Target.pos) < AARange then
+			if Menu.Extras.SwapThree:Value() and FishStacksSwap and GetDistance(myHero.pos, Target.pos) < AARange then
 				Control.CastSpell(HK_Q)
 			end
-			if Menu.Extras.SwapDistance:Value() and GetDistance(myHero.pos, Target.pos) < AARange + Target.boundingRadius and GetDistance(myHero.pos, Target.pos) < QRange + Target.boundingRadius then
+			if Menu.Extras.SwapDistance:Value() and GetDistance(myHero.pos, Target.pos) < AARange and (Menu.Extras.SwapThree:Value() and FishStacksSwap or false) then -- and GetDistance(myHero.pos, Target.pos) < QRange + TbRadius
 				Control.CastSpell(HK_Q)
 			end
-			if Menu.Extras.SwapAOE:Value() and GetEnemyCount(250, Target) <= 1 or Menu.Extras.SwapThree:Value() and FishStacks < 2 then
+			if Menu.Extras.SwapAOE:Value() and GetEnemyCount(250, Target) <= 1 and GetDistance(myHero.pos, Target.pos) < AARange and (Menu.Extras.SwapThree:Value() and FishStacksSwap or false) then
 				Control.CastSpell(HK_Q)
 			end
 		else
-			if Menu.Extras.SwapAOE:Value() and GetEnemyCount(250, Target) > 1 then
+			if Menu.Extras.SwapAOE:Value() and GetEnemyCount(250, Target) > 1 and GetDistance(myHero.pos, Target.pos) < QRange then
 				Control.CastSpell(HK_Q)
 				--return
 			end
-			if Menu.Extras.SwapDistance:Value() and GetDistance(myHero.pos, Target.pos) < AARange + Target.boundingRadius then
+			if Menu.Extras.SwapDistance:Value() and GetDistance(myHero.pos, Target.pos) > AARange + TbRadius then
 				Control.CastSpell(HK_Q)
 			end
-			if Menu.Extras.SwapThree:Value() and FishStacks < 3 and GetDistance(myHero.pos, Target.pos) < AARange + Target.boundingRadius then
+			if Menu.Extras.SwapThree:Value() and FishStacks == 3 then --and GetDistance(myHero.pos, Target.pos) > AARange + TbRadius
 				Control.CastSpell(HK_Q)
 			end
-			if GetMode() == "Harass" and GetDistance(myHero.pos, Target.pos) > AARange + Target.boundingRadius + 50 then
+			if GetMode() == "Harass" and GetDistance(myHero.pos, Target.pos) > AARange + TbRadius + 50 then
 				Control.CastSpell(HK_Q)
 			end
 		end
 	end
+
 end
 
 function Harass(Target)
@@ -410,7 +414,7 @@ function CastR(Target)
 		if GetDistance(myHero.pos, Target.pos) <= Menu.Extras.RRange2:Value() and GetEnemyCount(400, Target) >= Menu.Extras.REnemies:Value() then
 			local CurrentRSpeed = JinxUltSpeed(Target)
 			if Menu.Pred.Change:Value() == 1 then
-				local RData = {Type = _G.SPELLTYPE_LINE, Delay = 1, Radius = 280, Range = 12500, Speed = CurrentRSpeed, Collision = false}
+				local RData = {Type = _G.SPELLTYPE_LINE, Delay = 1, Radius = 280, Range = 12500, Speed = CurrentRSpeed, Collision = true, } --CollisionTypes = {}
 				local pred = GetGamsteronPrediction(Target, RData, myHero)
 				if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
 					Control.CastSpell(HK_R, pred.CastPosition)
@@ -456,7 +460,7 @@ function SemiCastUlt()
 
 	local CurrentRSpeed = JinxUltSpeed(Target)
 	if Menu.Pred.Change:Value() == 1 then
-		local RData = {Type = _G.SPELLTYPE_LINE, Delay = 1, Radius = 70, Range = Menu.Extras.RRange3:Value(), Speed = CurrentRSpeed, Collision = false}
+		local RData = {Type = _G.SPELLTYPE_LINE, Delay = 1, Radius = 70, Range = Menu.Extras.RRange3:Value(), Speed = CurrentRSpeed, Collision = true, }
 		local pred = GetGamsteronPrediction(Target, RData, myHero)
 		if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
 			Control.CastSpell(HK_R, pred.CastPosition)
@@ -479,7 +483,7 @@ end
 function CastPredUlt(unit)
 	local CurrentRSpeed = JinxUltSpeed(unit)
 	if Menu.Pred.Change:Value() == 1 then
-		local RData = {Type = _G.SPELLTYPE_LINE, Delay = 1, Radius = 70, Range = Menu.Extras.RRange:Value(), Speed = CurrentRSpeed, Collision = false}
+		local RData = {Type = _G.SPELLTYPE_LINE, Delay = 1, Radius = 70, Range = Menu.Extras.RRange:Value(), Speed = CurrentRSpeed, Collision = true,}
 		local pred = GetGamsteronPrediction(unit, RData, myHero)
 		if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
 			Control.CastSpell(HK_R, pred.CastPosition)
