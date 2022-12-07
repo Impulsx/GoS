@@ -1035,6 +1035,23 @@ local Buff = {
 		return result
 	end,
 
+  GetBuffStacks = function(self, unit, name)
+		name = name:lower()
+		local result = 0
+		local buff = nil
+		local buffs = Cached:GetBuffs(unit)
+		for i = 1, #buffs do
+			buff = buffs[i]
+			if buff.name:lower() == name then
+				local stacks = buff.stacks
+				if stacks > result then
+					result = stacks
+				end
+			end
+		end
+		return result
+	end,
+
 	Print = function(self, target)
 		local result = ""
 		local buffs = self:GetBuffs(target)
@@ -1660,7 +1677,7 @@ local SpellDamageTable = {
   ["Chogath"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 135, 190, 245, 300})[level] + source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 135, 190, 245, 300})[level] + 0.70 * source.ap end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) local feastStacks = Buff:GetBuff(source, "Feast") return ({22, 34, 46, 58, 70})[level] + 0.30 * source.ap + 0.030 * target.maxHealth end}, --TODO +0.5% per Feast stack --feastStack = bonusHealth
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) local feastStacks = Buff:GetBuffStacks(source, "Feast") return ({22, 34, 46, 58, 70})[level] + 0.30 * source.ap + 0.030 * target.maxHealth end}, --TODO +0.5% per Feast stack --feastStack = bonusHealth
     {Slot = "R", Stage = 1, DamageType = 3, Damage = function(source, target, level) local dmg = ({300, 475, 650})[level] + (0.50 * source.ap) + (0.10 * (source.maxHealth - GetBaseHealth(source))); if target.type ~= Obj_AI_Hero then dmg = 1200 + (0.50 * source.ap) + (0.10 * (source.maxHealth - GetBaseHealth(source))) end; return dmg end},
   },
 
@@ -2493,10 +2510,22 @@ local SpellDamageTable = {
 
   ["Syndra"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({70, 105, 140, 175, 210})[level] + 0.70 * source.ap) end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) local passiveStacks = Buff:GetBuff(source, "syndrapassivestack").stacks; local dmg = ({70, 110, 150, 190, 230})[level] + 0.70 * source.ap; if passiveStacks >= 60 then dmg = dmg + (0.12 + (0.02 * math_floor(source.ap / 100)) * dmg) end; return dmg end}, -- TODO: +12%(+2.0% per 100 ap) as bonus true damage
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level)
+      local passiveStacks = Buff:GetBuffStacks(source, "syndrapassivestack");
+      local dmg = ({70, 110, 150, 190, 230})[level] + 0.70 * source.ap;
+      if passiveStacks >= 60 then dmg = dmg + (0.12 + (0.02 * math_floor(source.ap / 100)) * dmg) end; return dmg end}, -- TODO: +12%(+2.0% per 100 ap) as bonus true damage
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 115, 155, 195, 235})[level] + 0.45 * source.ap end},
-    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) local passiveStacks = Buff:GetBuff(source, "syndrapassivestack").stacks; local spheres = source:GetSpellData(_R).ammo; local spheredmg = (({90, 130, 170})[level] + 0.17 * source.ap) * spheres; local dmg = ({270, 390, 510})[level] + 0.51 * source.ap + spheredmg; if passiveStacks >= 100 and (GetPercentHP(target) >= 15 or (100 * (target.health-dmg/target.maxHealth)) > 15) then dmg = target.health + 9999 end; return dmg end},
-    --{Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({90, 130, 170})[level] + 0.17 * source.ap end},-- PER SPHERE
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level)
+      local passiveStacks = Buff:GetBuffStacks(source, "syndrapassivestack");
+      local spheres = source:GetSpellData(_R).ammo;
+      local spheredmg = (({90, 130, 170})[level] + 0.17 * source.ap);
+      local mindmg = ({270, 390, 510})[level] + 0.51 * source.ap
+      local dmg = mindmg + spheredmg
+      if spheres > 3 then
+        dmg = spheredmg + spheredmg*spheres
+      end
+      if passiveStacks >= 100 and (GetPercentHP(target) >= 15 or (100 * (target.health-dmg/target.maxHealth)) > 15) then dmg = target.health + 9999 end; return dmg end},
+    {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({90, 130, 170})[level] + 0.17 * source.ap end},-- PER SPHERE
   },
 
   ["Talon"] = {
