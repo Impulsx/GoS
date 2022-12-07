@@ -59,7 +59,7 @@ Data = {
         },
         Sona = {
             Changelog = "Sona Changelog Here",
-            Version = 0.07,
+            Version = 0.08,
         },
         Morgana = {
             Changelog = "Morgana Changelog Here",

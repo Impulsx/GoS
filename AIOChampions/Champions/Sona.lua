@@ -25,7 +25,7 @@ end
 function LoadScript()
 
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.07"}})
+	Menu:MenuElement({name = " ", drop = {"Version 0.08"}})
 
 	Menu:MenuElement({id = "Key", name = "Key Settings", type = MENU})
 	Menu.Key:MenuElement({id = "Combo",name = "Combo Key", key = string.byte(" ")})
@@ -36,15 +36,17 @@ function LoadScript()
 	Menu.Qset:MenuElement({id = "Harass", name = "Use in Harass", value = true})
 
 	Menu:MenuElement({id = "Wset", name = "W Settings", type = MENU})
-	Menu.Wset:MenuElement({id = "AutoW", name = "Enable Auto Health",value = true})
-	Menu.Wset:MenuElement({id = "MyHp", name = "My HP lower than",value = 30, min = 1, max = 100,step = 1, identifier = "%"})
-	Menu.Wset:MenuElement({id = "AllyHp", name = "AllyHP lower than",value = 50, min = 1, max = 100,step = 1, identifier = "%"})
+	Menu.Wset:MenuElement({id = "AutoW", name = "Enable Auto Health", value = true})
+	Menu.Wset:MenuElement({id = "MyHp", name = "My HP lower than", value = 30, min = 1, max = 100, step = 1, identifier = "%"})
+	Menu.Wset:MenuElement({id = "AllyHp", name = "AllyHP lower than", value = 50, min = 1, max = 100, step = 1, identifier = "%"})
 
 	Menu:MenuElement({id = "Rset", name = "R Settings",type = MENU})
-	Menu.Rset:MenuElement({id = "AutoR", name = "Enable Auto R",value = true})
-	Menu.Rset:MenuElement({id = "RHit", name = "Min enemies hit",value = 3, min = 1, max = 5,step = 1})
-	Menu.Rset:MenuElement({id = "AutoRAlly", name = "Enable Auto Ally Save",value = true})
-	Menu.Rset:MenuElement({id = "AllyHp", name = "Use Ult if AllyHP lower than ",value = 30, min = 1, max = 100,step = 1, identifier = "%"})
+	Menu.Rset:MenuElement({id = "AutoR", name = "Enable Auto R", value = true})
+	Menu.Rset:MenuElement({id = "RHit", name = "Min enemies hit", value = 3, min = 1, max = 5, step = 1})
+	Menu.Rset:MenuElement({id = "Key",name = "[Manual] Key", key = string.byte("T")})
+	Menu.Rset:MenuElement({id = "manualRHit", name = "[Manual] Min enemies hit", value = 1, min = 1, max = 5, step = 1})
+	Menu.Rset:MenuElement({id = "AutoRAlly", name = "Enable Auto Ally Save", value = false})
+	Menu.Rset:MenuElement({id = "AllyHp", name = "Use Ult if AllyHP lower than ", value = 30, min = 1, max = 100,step = 1, identifier = "%"})
 
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
 	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Type reload 2x F6"}})
@@ -107,7 +109,11 @@ local Mode = GetMode()
 			Harass()
 		end
 	end
+
 	if Ready(_R) then
+		if Menu.Rset.Key:Value() then
+			ManualR()
+		end
 		AutoR()
 		AutoRAlly()
 	end
@@ -153,6 +159,16 @@ end
 function AutoW2()
 	if myHero.health/myHero.maxHealth < Menu.Wset.MyHp:Value()/100 and Menu.Wset.AutoW:Value() then
 		Control.CastSpell(HK_W,myHero.pos)
+		return
+	end
+end
+
+function ManualR()
+	local target = GetTarget(1500)
+	if target == nil then return end
+	if IsValid(target) and myHero.pos:DistanceTo(target.pos) < R.range then
+		local minEnemey = Menu.Rset.manualRHit:Value() or 1
+		CastR(target, true, minEnemey)
 		return
 	end
 end
@@ -204,7 +220,7 @@ function CastQ(target)
 end
 
 
-function CastR(target, AOE)
+function CastR(target, AOE, minEnemey)
 	if Menu.Pred.Change:Value() == 1 then
 		local pred = GetGamsteronPrediction(target, RData, myHero)
 		if pred.Hitchance >= Menu.Pred.PredR:Value()+1 then
@@ -221,7 +237,7 @@ function CastR(target, AOE)
 		if AOE then
 			local RAOE = RPrediction:GetAOEPrediction(myHero)
 			local hitchance = Menu.Pred.PredR:Value() + 1
-			local minenemies = Menu.Rset.RHit:Value()
+			local minenemies = minEnemey or Menu.Rset.RHit:Value()
 			local bestaoe = nil
 			local bestcount = 0
 			local bestdistance = 1000
