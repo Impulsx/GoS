@@ -207,7 +207,7 @@ Data = {
         },
         Velkoz = {
             Changelog = "Velkoz Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         },
         Illaoi = {
             Changelog = "Illaoi Changelog Here",
