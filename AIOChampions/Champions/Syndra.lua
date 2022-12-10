@@ -52,7 +52,7 @@ end
 local function HasBuff(unit, buffname)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
-		if buff.name == buffname and buff.count > 0 then 
+		if buff.name == buffname and buff.count > 0 then
 			return true
 		end
 	end
@@ -70,7 +70,7 @@ local function GetMinionCount(range, pos)
 		end
 	end
 	return count
-end 
+end
 
 local function IsImmobileTarget(unit)
 	for i = 0, unit.buffCount do
@@ -79,7 +79,7 @@ local function IsImmobileTarget(unit)
 			return true
 		end
 	end
-	return false	
+	return false
 end
 
 local function GetEnemyTurrets()
@@ -89,7 +89,7 @@ end
 local function IsUnderTurret(unit)
 	for i, turret in ipairs(GetEnemyTurrets()) do
         local range = (turret.boundingRadius + 775 + unit.boundingRadius / 2)
-        if not turret.dead then 
+        if not turret.dead then
             if turret.pos:DistanceTo(unit.pos) < range then
                 return true
             end
@@ -98,127 +98,127 @@ local function IsUnderTurret(unit)
     return false
 end
 
-function LoadScript()	
+function LoadScript()
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
-	
-	--ComboMenu  
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
+
+	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
-	Menu.Combo:MenuElement({id = "qcombo", name = "[Q]", value = true})		
-	Menu.Combo:MenuElement({id = "qecombo", name = "[Q/E]", value = true})	
+	Menu.Combo:MenuElement({id = "qcombo", name = "[Q]", value = true})
+	Menu.Combo:MenuElement({id = "qecombo", name = "[Q/E]", value = true})
 	Menu.Combo:MenuElement({id = "qerange", name = "[Q/E] Max range", value = 1100, min = 800, max = 1150, step = 1})
-	Menu.Combo:MenuElement({id = "wcombo", name = "[W]", value = true})		
+	Menu.Combo:MenuElement({id = "wcombo", name = "[W]", value = true})
 	Menu.Combo:MenuElement({id = "ecombo", name = "[E]", value = true})
-	Menu.Combo:MenuElement({type = MENU, id = "rset", name = "Ultimate Settings"})	
+	Menu.Combo:MenuElement({type = MENU, id = "rset", name = "Ultimate Settings"})
 	Menu.Combo.rset:MenuElement({id = "rcombo", name = "[R]", value = true})
-	Menu.Combo.rset:MenuElement({id = "rmod", name = "[R] Mode - Engage/Finisher", key = string.byte("T"), value = true, toggle = true})	
-	Menu.Combo.rset:MenuElement({id = "orb", name = "Min. Orbs for Engage Mode", value = 5, min = 3, max = 7})	
+	Menu.Combo.rset:MenuElement({id = "rmod", name = "[R] Mode - Engage/Finisher", key = string.byte("T"), value = true, toggle = true})
+	Menu.Combo.rset:MenuElement({id = "orb", name = "Min. Orbs for Engage Mode", value = 5, min = 3, max = 7})
 	Menu.Combo.rset:MenuElement({id = "engagemode", name = "Only Engage if ComboDmg can Kill", value = true})
-	Menu.Combo.rset:MenuElement({type = MENU, id = "blacklist", name = "Ultimate Blacklist"})	
+	Menu.Combo.rset:MenuElement({type = MENU, id = "blacklist", name = "Ultimate Blacklist"})
 	DelayAction(function()
 		for i, Hero in pairs(GetEnemyHeroes()) do
-			Menu.Combo.rset.blacklist:MenuElement({id = Hero.charName, name = "Block Ult on: "..Hero.charName, value = false})		
-		end		
+			Menu.Combo.rset.blacklist:MenuElement({id = Hero.charName, name = "Block Ult on: "..Hero.charName, value = false})
+		end
 	end,0.2)
-	
+
 
 	--HarassMenu
-	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})	
-	Menu.Harass:MenuElement({id = "autoq", name = "Auto[Q]", value = false})	
-	Menu.Harass:MenuElement({id = "autoqcc", name = "Auto[Q] on CC", value = true})	
+	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
+	Menu.Harass:MenuElement({id = "autoq", name = "Auto[Q]", value = false})
+	Menu.Harass:MenuElement({id = "autoqcc", name = "Auto[Q] on CC", value = true})
 	Menu.Harass:MenuElement({id = "turret2", name = "Block Auto[Q] if Syndra under Turret", value = true})
-	Menu.Harass:MenuElement({id = "qharass", name = "[Q]", value = true})	
-	Menu.Harass:MenuElement({id = "qeharass", name = "[Q/E]", value = true})	
-	Menu.Harass:MenuElement({id = "wharass", name = "[W]", value = true})	
-	Menu.Harass:MenuElement({id = "eharass", name = "[E]", value = true})		
+	Menu.Harass:MenuElement({id = "qharass", name = "[Q]", value = true})
+	Menu.Harass:MenuElement({id = "qeharass", name = "[Q/E]", value = true})
+	Menu.Harass:MenuElement({id = "wharass", name = "[W]", value = true})
+	Menu.Harass:MenuElement({id = "eharass", name = "[E]", value = true})
 	Menu.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass", value = 30, min = 0, max = 100, identifier = "%"})
 
 	--LaneClear Menu
-	Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear"})	
+	Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear"})
 	Menu.Clear:MenuElement({id = "farmq", name = "[Q]", value = true})
-	Menu.Clear:MenuElement({id = "hitq", name = "[Q] min Minions", value = 2, min = 1, max = 6})	
-	Menu.Clear:MenuElement({id = "farmw", name = "[W]", value = true})  
-	Menu.Clear:MenuElement({id = "hitw", name = "[W] min Minions", value = 3, min = 1, max = 6})	
+	Menu.Clear:MenuElement({id = "hitq", name = "[Q] min Minions", value = 2, min = 1, max = 6})
+	Menu.Clear:MenuElement({id = "farmw", name = "[W]", value = true})
+	Menu.Clear:MenuElement({id = "hitw", name = "[W] min Minions", value = 3, min = 1, max = 6})
 	Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to LaneClear", value = 30, min = 0, max = 100, identifier = "%"})
-  
+
 	--JungleClear
 	Menu:MenuElement({type = MENU, id = "JClear", name = "JungelClear"})
-	Menu.JClear:MenuElement({id = "farmq", name = "[Q]", value = true})         	
+	Menu.JClear:MenuElement({id = "farmq", name = "[Q]", value = true})
 	Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 30, min = 0, max = 100, identifier = "%"})
 
 	--KillSteal
 	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal"})
-	Menu.ks:MenuElement({id = "ksq", name = "[Q]", value = true})	
-	Menu.ks:MenuElement({id = "ksw", name = "[W]", value = true})	
-	Menu.ks:MenuElement({id = "ksr", name = "[R]", value = true})	
+	Menu.ks:MenuElement({id = "ksq", name = "[Q]", value = true})
+	Menu.ks:MenuElement({id = "ksw", name = "[W]", value = true})
+	Menu.ks:MenuElement({id = "ksr", name = "[R]", value = true})
 
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
-	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})	
-	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
-	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})
+	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})
 	Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
- 
-	--Drawing 
+
+	--Drawing
 	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings"})
 	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
-	Menu.Drawing:MenuElement({id = "DrawQE", name = "Draw [Q/E] Range", value = false})	
+	Menu.Drawing:MenuElement({id = "DrawQE", name = "Draw [Q/E] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
-	Menu.Drawing:MenuElement({type = MENU, id = "XY", name = "Text Pos Settings"})	
-	Menu.Drawing.XY:MenuElement({id = "Text", name = "Draw RMode Text", value = true})		
+	Menu.Drawing:MenuElement({type = MENU, id = "XY", name = "Text Pos Settings"})
+	Menu.Drawing.XY:MenuElement({id = "Text", name = "Draw RMode Text", value = true})
 	Menu.Drawing.XY:MenuElement({id = "x", name = "Pos: [X]", value = 700, min = 0, max = 1500, step = 10})
-	Menu.Drawing.XY:MenuElement({id = "y", name = "Pos: [Y]", value = 0, min = 0, max = 860, step = 10})	
+	Menu.Drawing.XY:MenuElement({id = "y", name = "Pos: [Y]", value = 0, min = 0, max = 860, step = 10})
 
 	QData =
 	{
 	Type = _G.SPELLTYPE_CIRCLE, Delay = spellQ.delay, Radius = spellQ.radius, Range = spellQ.range, Speed = spellQ.speed, Collision = false
-	}	
+	}
 	QspellData = {speed = spellQ.speed, range = spellQ.range, delay = spellQ.delay, radius = spellQ.radius, collision = {nil}, type = "circular"}
 
 	WData =
 	{
-	Type = _G.SPELLTYPE_CIRCLE, Delay = spellW.delay, Radius = spellW.radius, Range = spellW.range, Speed = spellW.speed, Collision = false 
-	}	
+	Type = _G.SPELLTYPE_CIRCLE, Delay = spellW.delay, Radius = spellW.radius, Range = spellW.range, Speed = spellW.speed, Collision = false
+	}
 	WspellData = {speed = spellW.speed, range = spellW.range, delay = spellW.delay, radius = spellW.radius, collision = {nil}, type = "circular"}
 
 	QEData =
 	{
 	Type = _G.SPELLTYPE_LINE, Delay = spellQE.delay, Radius = spellQE.width, Range = spellQE.range, Speed = spellQE.speed, Collision = false
-	}	
-	QEspellData = {speed = spellQE.speed, range = spellQE.range, delay = spellQE.delay, radius = spellQE.width, collision = {nil}, type = "linear"}	
-	
+	}
+	QEspellData = {speed = spellQE.speed, range = spellQE.range, delay = spellQE.delay, radius = spellQE.width, collision = {nil}, type = "linear"}
+
 	QE2Data =
 	{
 	Type = _G.SPELLTYPE_CIRCLE, Delay = spellQE2.delay, Radius = spellQE2.width, Range = spellQE2.range, Speed = spellQE2.speed, Collision = false
-	}	
-	QE2spellData = {speed = spellQE2.speed, range = spellQE2.range, delay = spellQE2.delay, radius = spellQE2.width, collision = {nil}, type = "circular"}	
-  	                                           											   
+	}
+	QE2spellData = {speed = spellQE2.speed, range = spellQE2.range, delay = spellQE2.delay, radius = spellQE2.width, collision = {nil}, type = "circular"}
+
 	Callback.Add("Tick", function() Tick() end)
-	Callback.Add("WndMsg", function(msg, param) CheckWndMsg(msg, param) end) 
-	
+	Callback.Add("WndMsg", function(msg, param) CheckWndMsg(msg, param) end)
+
 	Callback.Add("Draw", function()
-		if Menu.Drawing.XY.Text:Value() then 
-			DrawText("R Mode: ", 15, Menu.Drawing.XY.x:Value(), Menu.Drawing.XY.y:Value()+10, DrawColor(255, 225, 255, 0))		
+		if Menu.Drawing.XY.Text:Value() then
+			DrawText("R Mode: ", 15, Menu.Drawing.XY.x:Value(), Menu.Drawing.XY.y:Value()+10, DrawColor(255, 225, 255, 0))
 			if Menu.Combo.rset.rmod:Value() then
 				DrawText("Engage", 15, Menu.Drawing.XY.x:Value()+50, Menu.Drawing.XY.y:Value()+10, DrawColor(255, 0, 255, 0))
 			else
 				DrawText("Finisher", 15, Menu.Drawing.XY.x:Value()+50, Menu.Drawing.XY.y:Value()+10, DrawColor(255, 0, 255, 0))
 			end
-		end	
-		
+		end
+
 		if myHero.dead then return end
-		
+
 		if Menu.Drawing.DrawR:Value() and Ready(_R) then
 		DrawCircle(myHero, spellR.range, 1, DrawColor(255, 225, 255, 10))
-		end                                                 
+		end
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
 		DrawCircle(myHero, spellQ.range, 1, DrawColor(225, 225, 0, 10))
 		end
 		if Menu.Drawing.DrawQE:Value() and Ready(_Q) and Ready(_E) then
 		DrawCircle(myHero, spellQE.range, 1, DrawColor(225, 225, 0, 10))
-		end		
+		end
 		if Menu.Drawing.DrawE:Value() and Ready(_E) then
 		DrawCircle(myHero, spellE.range, 1, DrawColor(225, 225, 125, 10))
 		end
@@ -254,33 +254,41 @@ local ECasting = 0
 local objSomething = {}
 
 local function QDamage(target)
-	local damage = 0
-	
+--[[ 	local damage = 0
+
 	if myHero:GetSpellData(_Q).level > 0 and myHero:GetSpellData(_Q).level < 5 then
 		damage = getdmg("Q", target, myHero)
 	end
-	
+
 	if myHero:GetSpellData(_Q).level == 5 then
 		damage = getdmg("Q", target, myHero) + (getdmg("Q", target, myHero)*0.25)
-	end
+	end ]]
+	local damage = getdmg("Q", target, myHero)
 	return damage
 end
 
 local function WDamage(target)
-	local damage = 0
-	
+--[[ 	local damage = 0
+
 	if myHero:GetSpellData(_W).level > 0 and myHero:GetSpellData(_W).level < 5 then
 		damage = getdmg("W", target, myHero)
 	end
-	
+
 	if myHero:GetSpellData(_W).level == 5 then
 		damage = getdmg("W", target, myHero) + (0.2 * (({70, 110, 150, 190, 230})[myHero:GetSpellData(_W).level] + 0.7 * myHero.ap))
-	end
+	end ]]
+	local damage = getdmg("W", target, myHero)
+	return damage
+end
+
+local function EDamage(target)
+	local damage = getdmg("E", target, myHero)
 	return damage
 end
 
 local function RDamage(target)
-	return getdmg("R", target, myHero, 2) * myHero:GetSpellData(_R).ammo
+	return getdmg("R", target, myHero)
+	--return getdmg("R", target, myHero, 2) * myHero:GetSpellData(_R).ammo
 end
 
 function CheckWndMsg(msg, param)
@@ -289,15 +297,15 @@ function CheckWndMsg(msg, param)
 		if param == HK_Q then
 			delay = 0.7 + ping
 		elseif param == HK_R then
-			delay = 0.5 + ping			
+			delay = 0.5 + ping
 		end
-	
-		if delay then               
-			DelayAction(function() 
-				CheckSphere() 
+
+		if delay then
+			DelayAction(function()
+				CheckSphere()
 			end, delay)
 		end
-	end	
+	end
 end
 
 function CheckObject(obj)
@@ -315,8 +323,8 @@ function CheckSphere()
 		if obj and obj.name == "Seed" and not CheckObject(obj) then
 			TableInsert(objSomething, obj)
 			NoIdeaWhatImDoing = os.clock() + 6
-		end		
-	end	
+		end
+	end
 end
 
 function Objects()
@@ -344,27 +352,27 @@ function Objects()
 	end
 
 	local closestMinion = nil
-	local closestMinionDistance = 9999	
+	local closestMinionDistance = 9999
 
 	for i = 1, GameMinionCount() do
 		local minion = GameMinion(i)
 		if minion and IsValid(minion) and GetDistance(myHero.pos, minion.pos) <= spellW.range then
 			if minion.team == TEAM_ENEMY then
-				local minionDistanceToMouse1 = GetDistance(myHero.pos, minion.pos) 
+				local minionDistanceToMouse1 = GetDistance(myHero.pos, minion.pos)
 				if minionDistanceToMouse1 < closestMinionDistance then
 					closestMinion = minion
 					closestMinionDistance = minionDistanceToMouse1
 				end
-			end	
-			
+			end
+
 			if minion.team == TEAM_JUNGLE then
 				local minionDistanceToMouse2 = GetDistance(myHero.pos, minion.pos)
 
 				if minionDistanceToMouse2 < closestMinionDistance then
 					closestMinion = minion
 					closestMinionDistance = minionDistanceToMouse2
-				end			
-			end	
+				end
+			end
 		end
 	end
 
@@ -373,17 +381,17 @@ function Objects()
 	end
 	if closestMinion then
 		return closestMinion
-	end		
-	return nil	
+	end
+	return nil
 end
 
 function Tick()
 	spellQE.range = Menu.Combo.qerange:Value()
-	
+
 	if myHero:GetSpellData(_R).level == 3 then
 		spellR.range = 750
-	end	
-	
+	end
+
 	if MyHeroNotReady() then return end
 	local Object = Objects()
 	if Object and Ready(_E) then
@@ -391,7 +399,7 @@ function Tick()
 	end
 
 	Killsteal()
-	
+
 	if Menu.Harass.autoqcc:Value() and Ready(_Q) then
 		if (myHero.mana / myHero.maxMana) * 100 >= Menu.Harass.Mana:Value() then
 			local target = GetTargetQ()
@@ -404,13 +412,13 @@ function Tick()
 						end
 					else
 						Control.CastSpell(HK_Q, pos)
-						
+
 					end
 				end
 			end
 		end
 	end
-	
+
 	if Menu.Harass.autoq:Value() and Ready(_Q) then
 		if (myHero.mana / myHero.maxMana) * 100 >= Menu.Harass.Mana:Value() then
 			local target = GetTargetQ()
@@ -420,11 +428,11 @@ function Tick()
 					if Menu.Harass.turret2:Value() then
 						if not IsUnderTurret(myHero) then
 							Control.CastSpell(HK_Q, pos)
-							
+
 						end
 					else
 						Control.CastSpell(HK_Q, pos)
-						
+
 					end
 				end
 			end
@@ -438,7 +446,7 @@ function Tick()
 		Harass()
 	elseif Mode == "Clear" then
 		LaneClear()
-		JungleClear()	
+		JungleClear()
 	end
 end
 
@@ -455,7 +463,7 @@ function Killsteal()
 					end
 				end
 			end
-			
+
 			if Menu.ks.ksw:Value() and Ready(_W) then
 				if GetDistance(myHero.pos, enemies.pos) < spellW.range - 80 and WDamage(enemies) > hp then
 					if myHero:GetSpellData(_W).name == "SyndraW" then
@@ -464,7 +472,7 @@ function Killsteal()
 							if os.clock() - LastWCast > 0.26 + ping and os.clock() - ECasting > 0.24 + ping then
 								Control.CastSpell(HK_W, Object.pos)
 								LastWCast = os.clock()
-								
+
 							end
 						end
 					else
@@ -477,7 +485,7 @@ function Killsteal()
 					end
 				end
 			end
-			
+
 			if Menu.ks.ksr:Value() and Ready(_R) then
 				if GetDistance(myHero.pos, enemies.pos) < spellR.range and hp < RDamage(enemies) then
 					Control.CastSpell(HK_R, enemies)
@@ -509,7 +517,7 @@ function LaneClear()
 	end
 
 	if (myHero.mana / myHero.maxMana) * 100 >= Menu.Clear.Mana:Value() then
-		
+
 		if Menu.Clear.farmq:Value() and Ready(_Q) then
 			for i = 1, GameMinionCount() do
 				local minion1 = GameMinion(i)
@@ -526,17 +534,17 @@ function LaneClear()
 						end
 					end
 				end
-			
-			
-				if minion1 and IsValid(minion1) and minion1.team == TEAM_ENEMY and GetDistance(myHero.pos, minion1.pos) <= spellQ.range then 
+
+
+				if minion1 and IsValid(minion1) and minion1.team == TEAM_ENEMY and GetDistance(myHero.pos, minion1.pos) <= spellQ.range then
 					local MinionCount = GetMinionCount(spellQ.radius, minion1)
 					if MinionCount >= Menu.Clear.hitq:Value() then
 						Control.CastSpell(HK_Q, minion1.pos)
 					end
 				end
-			end	
+			end
 		end
-		
+
 		if Menu.Clear.farmw:Value() and Ready(_W) then
 			for i = 1, GameMinionCount() do
 				local minion1 = GameMinion(i)
@@ -554,10 +562,10 @@ function LaneClear()
 									if os.clock() - LastWCast > 0.26 + ping and os.clock() - ECasting > 0.24 + ping then
 										Control.CastSpell(HK_W, Object.pos)
 										LastWCast = os.clock()
-										
+
 									end
-								end	
-							else	
+								end
+							else
 								if GetDistance(myHero.pos, minion1.pos) <= spellW.range then
 									Control.CastSpell(HK_W, minion1.pos)
 								end
@@ -570,7 +578,7 @@ function LaneClear()
 						end
 					end
 				end
-			
+
 				if minion1 and IsValid(minion1) and minion1.team == TEAM_ENEMY and GetDistance(myHero.pos, minion1.pos) <= spellW.range then
 					if (GetMinionCount(spellW.radius, minion1) + aaa) >= Menu.Clear.hitw:Value() then
 						if myHero:GetSpellData(_W).name == "SyndraW" then
@@ -579,10 +587,10 @@ function LaneClear()
 								if os.clock() - LastWCast > 0.26 + ping and os.clock() - ECasting > 0.24 + ping then
 									Control.CastSpell(HK_W, Object.pos)
 									LastWCast = os.clock()
-									
+
 								end
-							end	
-						else	
+							end
+						else
 							if GetDistance(myHero.pos, minion1.pos) <= spellW.range then
 								Control.CastSpell(HK_W, minion1.pos)
 							end
@@ -609,7 +617,7 @@ function Combo()
 			end
 		end
 	end
-	
+
 	if Menu.Combo.wcombo:Value() and Ready(_W) then
 		local target = GetTargetW()
 		if target and IsValid(target) then
@@ -622,7 +630,7 @@ function Combo()
 							if os.clock() - LastWCast > 0.26 + ping and os.clock() - ECasting > 0.24 + ping then
 								Control.CastSpell(HK_W, Object.pos)
 								LastWCast = os.clock()
-								
+
 							end
 						else
 							if not HasBuff(target, "SyndraEDebuff") then
@@ -634,7 +642,7 @@ function Combo()
 			end
 		end
 	end
-	
+
 	if os.clock() - LastWCast > 0.1 + ping then
 		if Menu.Combo.ecombo:Value() and Ready(_E) then
 			for i, target in ipairs(GetEnemyHeroes()) do
@@ -657,13 +665,13 @@ function Combo()
 												if GetDistance(myHero.pos, pos) <= spellE.range then
 													Control.CastSpell(HK_E, pos)
 													ECasting = os.clock()
-												end	
-											end										
+												end
+											end
 										end
 									end
 								end
 							end
-						end					
+						end
 					end
 				end
 			end
@@ -683,7 +691,7 @@ function Combo()
 				if GetDistance(myHero.pos, target.pos) < 900 then
 					spellQE.delay = 0.25
 				end]]
-				
+
 				--local pos = GetPredPos(target, QE)
 				--if pos then
 					local CastPos = Vector(target.pos):Shortened(myHero.pos, - (GetDistance(myHero.pos, target.pos)/2))
@@ -694,13 +702,13 @@ function Combo()
 							ECasting = os.clock()
 							LastWCast = os.clock()
 							SetMovement(true)
-						end,0.05)	
+						end,0.05)
 					end
 				--end
 			end
 		end
 	end
-	
+
 	if Menu.Combo.rset.rcombo:Value() and Ready(_R) then
 		local mode = Menu.Combo.rset.rmod:Value()
 		local target = GetTargetR()
@@ -711,17 +719,17 @@ function Combo()
 						Control.CastSpell(HK_R, target)
 					end
 				end
-				
+
 			else
 
 				if Menu.Combo.rset.blacklist[target.charName] and not Menu.Combo.rset.blacklist[target.charName]:Value() then
 					if myHero:GetSpellData(_R).ammo >= Menu.Combo.rset.orb:Value() then
 						if not Menu.Combo.rset.engagemode:Value() then
-							Control.CastSpell(HK_R, target)						
+							Control.CastSpell(HK_R, target)
 						else
 							local QDmg = Ready(_Q) and QDamage(target) or 0
 							local WDmg = Ready(_W) and WDamage(target) or 0
-							local EDmg = Ready(_E) and getdmg("E", target, myHero) or 0
+							local EDmg = Ready(_E) and EDamage(target) or 0
 							local damages = RDamage(target) + QDmg + WDmg + EDmg
 							if target.health <= damages then
 								Control.CastSpell(HK_R, target)
@@ -745,7 +753,7 @@ function Harass()
 				end
 			end
 		end
-		
+
 		if Menu.Harass.wharass:Value() and Ready(_W) then
 			local target = GetTargetW()
 			if target and IsValid(target) then
@@ -758,7 +766,7 @@ function Harass()
 								if os.clock() - LastWCast > 0.26 + ping and os.clock() - ECasting > 0.24 + ping then
 									Control.CastSpell(HK_W, Object.pos)
 									LastWCast = os.clock()
-									
+
 								end
 							else
 								if not HasBuff(target, "SyndraEDebuff") then
@@ -767,10 +775,10 @@ function Harass()
 							end
 						end
 					end
-				end	
+				end
 			end
 		end
-		
+
 		if os.clock() - LastWCast > 0.1 + ping then
 			if Menu.Harass.eharass:Value() and Ready(_E) then
 				for i, target in ipairs(GetEnemyHeroes()) do
@@ -793,8 +801,8 @@ function Harass()
 													if GetDistance(myHero.pos, pos) <= spellE.range then
 														Control.CastSpell(HK_E, pos)
 														ECasting = os.clock()
-													end	
-												end													
+													end
+												end
 											end
 										end
 									end
@@ -805,7 +813,7 @@ function Harass()
 				end
 			end
 		end
-		
+
 		if Menu.Harass.qeharass:Value() and Ready(_Q) and Ready(_E) then
 			local target = GetTargetQE()
 			if target and IsValid(target) then
@@ -820,7 +828,7 @@ function Harass()
 						if GetDistance(myHero.pos, target.pos) < 900 then
 							spellQE2.delay = 0.25
 						end
-						
+
 						local pos = GetPredPos(target, QE2)
 						if pos then
 							local CastPos = myHero.pos + (pos - myHero.pos):Normalized() * 700
@@ -852,9 +860,9 @@ function GetPredPos(unit, Spell)
 			QPrediction:GetPrediction(unit, myHero)
 			if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 				return QPrediction.CastPosition
-			end	
+			end
 		end
-		
+
 	elseif Spell == W then
 		if Menu.Pred.Change:Value() == 1 then
 			local pred = GetGamsteronPrediction(unit, WData, myHero)
@@ -871,9 +879,9 @@ function GetPredPos(unit, Spell)
 			WPrediction:GetPrediction(unit, myHero)
 			if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 				return WPrediction.CastPosition
-			end	
+			end
 		end
-	
+
 	elseif Spell == QE then
 		if Menu.Pred.Change:Value() == 1 then
 			local pred = GetGamsteronPrediction(unit, QEData, myHero)
@@ -890,9 +898,9 @@ function GetPredPos(unit, Spell)
 			QEPrediction:GetPrediction(unit, myHero)
 			if QEPrediction:CanHit(Menu.Pred.PredQ:Value()+1) then
 				return QEPrediction.CastPosition
-			end	
+			end
 		end
-		
+
 	elseif Spell == QE2 then
 		if Menu.Pred.Change:Value() == 1 then
 			local pred = GetGamsteronPrediction(unit, QE2Data, myHero)
@@ -909,8 +917,8 @@ function GetPredPos(unit, Spell)
 			QE2Prediction:GetPrediction(unit, myHero)
 			if QE2Prediction:CanHit(3) then
 				return QE2Prediction.CastPosition
-			end	
-		end	
+			end
+		end
 	end
 	return nil
 end

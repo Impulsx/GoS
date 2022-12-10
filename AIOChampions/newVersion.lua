@@ -303,7 +303,7 @@ Data = {
         },
            Syndra = {
             Changelog = "Syndra Changelog Here",
-          Version = 0.04,
+          Version = 0.05,
         },
            Yone = {
             Changelog = "Yone Changelog Here",
