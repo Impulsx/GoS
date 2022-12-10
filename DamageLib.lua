@@ -2637,7 +2637,7 @@ local SpellDamageTable = {
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({30, 50, 70, 90, 110})[level] + (0.15 * source.ap) end}, --initial damage
     {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({45, 75, 105, 135, 165})[level] + (0.25 * source.ap) end}, --detonation
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 100, 130, 160, 190})[level] + (0.3 * source.ap) end},
-    {Slot = "R", Stage = 1, DamageType = 3, Damage = function(source, target, level) return (GotBuff(target, "velkozresearchedstack") > 0 and ({450, 625, 800})[level] + (1.25 * source.ap) or CalcDamage(source, target, ({450, 625, 800})[level] + (1.25 * source.ap))) end},
+    {Slot = "R", Stage = 1, DamageType = 3, Damage = function(source, target, level) return (GotBuff(target, "velkozresearchedstack") > 0 and ({450, 625, 800})[level] + (1.25 * source.ap) or CalcDamage(source, target, 2, ({450, 625, 800})[level] + (1.25 * source.ap))) end},
   },
 
   ["Vex"] = {
