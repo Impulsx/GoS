@@ -40,7 +40,7 @@ local function GetAllyTurret()
 			TableInsert(_AllyTurrets, turret)
 		end
 	end
-	return _AllyTurrets		
+	return _AllyTurrets
 end
 
 local function GetEnemyCount(range, pos)
@@ -58,30 +58,40 @@ end
 local function GetBuffData(unit, buffname)
 	for i = 0, unit.buffCount do
     local buff = unit:GetBuff(i)
-		if buff.name == buffname and buff.count > 0 then 
+		if buff.name == buffname and buff.count > 0 then
 			return buff
 		end
 	end
 	return false
 end
-	
-function LoadScript()                     
-	
---MainMenu
-Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
 
---Combo 
-Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
+local QRange = 1100
+local QMinRange = 1100
+local QSpeed = 666
+local QDelay = 0.1
+local QData = {Type = _G.SPELLTYPE_LINE, Delay = QDelay+ping, Radius = 60, Range = QRange, Speed = QSpeed, Collision = false}
+local QspellData = {speed = QSpeed, range = QRange, delay = QDelay+ping, radius = 60, collision = {nil}, type = "linear"}
+local WRange, ERange, RRadius, RRange
+
+local ActiveUlt = false
+local casted = false
+
+function LoadScript()
+	--MainMenu
+	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
+	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
+
+	--Combo
+	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
-	Menu.Combo:MenuElement({id = "QRange", name = "[Q] Only if range bigger than -->", value = 400, min = 0, max = 1000, step = 5})	
-	Menu.Combo:MenuElement({name = " ", drop = {"[Q] Range = 1100r +(22r / 0.1sec Cast)", "[Q] Speed = 666.67s +( 16.67s / 0.1sec Cast)"}})	
-	Menu.Combo:MenuElement({id = "QDelay", name = "[Q] CastTime -->", value = 2, min = 0, max = 3, step = 0.1, identifier = "sec"})	
+	Menu.Combo:MenuElement({id = "QMinRange", name = "[Q] Only if target distance bigger than: ", value = 400, min = 0, max = 1000, step = 5})
+	Menu.Combo:MenuElement({name = " ", drop = {"[Q] Range = 1100r +(22r per 0.1sec Cast)", "[Q] Speed = 666.67s +( 16.67s per 0.1sec Cast)"}})
+	Menu.Combo:MenuElement({id = "QDelay", name = "[Q] CastTime -->", value = 2, min = 0, max = 3, step = 0.1, identifier = "sec"})
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
-	
-	Menu.Combo:MenuElement({type = MENU, id = "ComboE", name = "[E] Settings"})	
+
+	Menu.Combo:MenuElement({type = MENU, id = "ComboE", name = "[E] Settings"})
 		Menu.Combo.ComboE:MenuElement({id = "UseE", name = "[E]", value = true})
-		Menu.Combo.ComboE:MenuElement({id = "Emode", name = "[E] Mode", value = 1, drop = {"Combo Mode", "Auto Cast Mode"}})	
+		Menu.Combo.ComboE:MenuElement({id = "Emode", name = "[E] Mode", value = 1, drop = {"Combo Mode", "Auto Cast Mode"}})
 		Menu.Combo.ComboE:MenuElement({id = "UseE2", name = "[E] Shield Tower", value = true})
 		Menu.Combo.ComboE:MenuElement({id = "UseE3", name = "[E] Shield Janna", value = true})
 		Menu.Combo.ComboE:MenuElement({id = "UseE3H", name = "[E] if Janna Hp lower than -->", value = 30, min = 0, max = 100, step = 5, identifier = "%"})
@@ -90,14 +100,14 @@ Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
 		Menu.Combo.ComboE:MenuElement({id = "Targets", name = "Ally BlockList", type = MENU})
 		DelayAction(function()
 			for i, Hero in pairs(AllyHeroes()) do
-				Menu.Combo.ComboE.Targets:MenuElement({id = Hero.charName, name = "Block [E] on "..Hero.charName, value = false})		
-			end	
-		end,0.2)	
+				Menu.Combo.ComboE.Targets:MenuElement({id = Hero.charName, name = "Block [E] on "..Hero.charName, value = false})
+			end
+		end,0.2)
 
-	Menu.Combo:MenuElement({type = MENU, id = "ComboR", name = "[R] Settings"})	
+	Menu.Combo:MenuElement({type = MENU, id = "ComboR", name = "[R] Settings"})
 		Menu.Combo.ComboR:MenuElement({id = "UseR", name = "[R]", value = true})
 		Menu.Combo.ComboR:MenuElement({id = "Rmode", name = "[R] Mode", value = 1, drop = {"Combo Mode", "Auto Cast Mode"}})
-		Menu.Combo.ComboR:MenuElement({id = "UseR2", name = "[R] Stop for [E] Shield Janna/Ally", value = false})	
+		Menu.Combo.ComboR:MenuElement({id = "UseR2", name = "[R] Stop for [E] Shield Janna/Ally", value = false})
 		Menu.Combo.ComboR:MenuElement({id = "UseR3", name = "[R] Check Janna Hp", value = true})
 		Menu.Combo.ComboR:MenuElement({id = "UseR3H", name = "[R] if Janna Hp lower than -->", value = 15, min = 0, max = 100, step = 5, identifier = "%"})
 		Menu.Combo.ComboR:MenuElement({id = "UseR4", name = "[R] Check Ally Hp", value = true})
@@ -105,145 +115,158 @@ Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
 		Menu.Combo.ComboR:MenuElement({id = "Targets", name = "Ally BlockList", type = MENU})
 		DelayAction(function()
 			for i, Hero in pairs(AllyHeroes()) do
-				Menu.Combo.ComboR.Targets:MenuElement({id = Hero.charName, name = "Block [R] on "..Hero.charName, value = false})		
-			end	
-		end,0.2)		
-			
---Harass		
+				Menu.Combo.ComboR.Targets:MenuElement({id = Hero.charName, name = "Block [R] on "..Hero.charName, value = false})
+			end
+		end,0.2)
+
+--Harass
 Menu:MenuElement({type = MENU, id = "Harass", name = "Harass Mode"})
-	Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = true})		
-		
-		
+	Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = true})
+
+
 --Prediction
 Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})	
-	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
-	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})	
+	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})
+	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})
+	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})
 
 
---Drawing 
-Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings Mode"})
-	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] min Range", value = false})
+--Drawing
+	Menu:MenuElement({type = MENU, id = "Drawing", name = "Drawings Mode"})
+	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
+	Menu.Drawing:MenuElement({id = "DrawQmin", name = "Draw [Q] min Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
-	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})	
+	Menu.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
-	
-	Callback.Add("Tick", function() Tick() end)
-	
-	Callback.Add("Draw", function()
-		if myHero.dead then return end                                                 
-		
-		if Menu.Drawing.DrawR:Value() and Ready(_R) then
-			Draw.Circle(myHero, 775, 1, Draw.Color(255, 225, 255, 10))
-		end                                                 
-		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
-			Draw.Circle(myHero, 1000, 1, Draw.Color(225, 225, 0, 10))
-		end
-		if Menu.Drawing.DrawE:Value() and Ready(_E) then
-			Draw.Circle(myHero, 800, 1, Draw.Color(225, 225, 125, 10))
-		end
-		if Menu.Drawing.DrawW:Value() and Ready(_W) then
-			Draw.Circle(myHero, 550, 1, Draw.Color(225, 225, 125, 10))
-		end		
-	end)
-	
-	QRange = 1100 + (220 * Menu.Combo.QDelay:Value())
-	QSpeed = 666.67 + (166.67 * Menu.Combo.QDelay:Value())
+
+	QRange = 1100 + (22 * (Menu.Combo.QDelay:Value()/0.1))
+	--QMinRange = Menu.Combo.QMinRange:Value()
+	QSpeed = 666.67 + (16.67 * (Menu.Combo.QDelay:Value()/0.1))
 	QDelay = Menu.Combo.QDelay:Value()
 
+	WRange = 650
+	ERange = 800
+	RRadius = 700
+	RRange = RRadius+RRadius+myHero.boundingRadius+myHero.boundingRadius
 
 	QData ={Type = _G.SPELLTYPE_LINE, Delay = QDelay+ping, Radius = 60, Range = QRange, Speed = QSpeed, Collision = false}
 	QspellData = {speed = QSpeed, range = QRange, delay = QDelay+ping, radius = 60, collision = {nil}, type = "linear"}
-	
+
+	Callback.Add("Tick", function() Tick() end)
+
+	Callback.Add("Draw", function()
+		if myHero.dead then return end
+
+		if Menu.Drawing.DrawR:Value() and Ready(_R) then
+			Draw.Circle(myHero, RRadius, 1, Draw.Color(255, 225, 255, 10))
+		end
+		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
+			Draw.Circle(myHero, QRange, 1, Draw.Color(225, 225, 0, 10))
+		end
+		if Menu.Drawing.DrawQmin:Value() and Ready(_Q) then
+			Draw.Circle(myHero, QMinRange, 1, Draw.Color(225, 225, 0, 10))
+		end
+		if Menu.Drawing.DrawE:Value() and Ready(_E) then
+			Draw.Circle(myHero, ERange, 1, Draw.Color(225, 225, 125, 10))
+		end
+		if Menu.Drawing.DrawW:Value() and Ready(_W) then
+			Draw.Circle(myHero, WRange, 1, Draw.Color(225, 225, 125, 10))
+		end
+	end)
 end
 
-local ActiveUlt = false
-casted = false
-
-function Tick()					
+function Tick()
 	local currSpell = myHero.activeSpell
-	if currSpell and currSpell.valid and myHero.isChanneling and currSpell.name == "JannaR" then	
-		SetAttack(false)
+	QRange = 1100 + (22 * (Menu.Combo.QDelay:Value()/0.1))
+	--QMinRange = Menu.Combo.QMinRange:Value()
+	QSpeed = 666.67 + (16.67 * (Menu.Combo.QDelay:Value()/0.1))
+	QDelay = Menu.Combo.QDelay:Value()
+
+	QData ={Type = _G.SPELLTYPE_LINE, Delay = QDelay+ping, Radius = 60, Range = QRange, Speed = QSpeed, Collision = false}
+	QspellData = {speed = QSpeed, range = QRange, delay = QDelay+ping, radius = 60, collision = {nil}, type = "linear"}
+
+	if currSpell and currSpell.valid and myHero.isChanneling and currSpell.name == "JannaR" then
 		SetMovement(false)
+		SetAttack(false)
 		ActiveUlt = true
 	else
+		SetMovement(true)
 		SetAttack(true)
-		SetMovement(true)	
 		ActiveUlt = false
 	end
-	
-	local Buff = GetBuffData(myHero, "HowlingGale")		
-	if buff and Buff.duration <= (3 - Menu.Combo.QDelay:Value()) then
+
+	local Buff = GetBuffData(myHero, "HowlingGale")
+	if Buff and Buff.duration <= (3 - Menu.Combo.QDelay:Value()) then
 		Control.CastSpell(HK_Q)
-	end	
-	
+	end
+
 	if casted then
-		DelayAction(function()	
-			casted = false 
-		end,Menu.Combo.QDelay:Value()+0.25)	
-	end	
-	
+		DelayAction(function()
+			casted = false
+		end,Menu.Combo.QDelay:Value()+0.25)
+	end
+
 	if MyHeroNotReady() then return end
 
 	local Mode = GetMode()
 	if Mode == "Combo" then
 		Combo()
 	elseif Mode == "Harass" then
-		Harass()	
+		Harass()
 	end
-	
+
 	if Menu.Combo.ComboE.UseE:Value() and Ready(_E) and Menu.Combo.ComboE.Emode:Value() == 2 then
 		CastE()
-	end	
+	end
 
 	if Menu.Combo.ComboR.UseR:Value() and Ready(_R) and Menu.Combo.ComboR.Rmode:Value() == 2 then
 		CastR()
-	end		
+	end
 end
 
-function Combo()	
-	local target = GetTarget(QRange)     	
-	if target == nil then return end	
+function Combo()
+	local target = GetTarget(QRange)
+	if target == nil then return end
 	if IsValid(target) then
 		if Menu.Combo.ComboE.UseE:Value() and Ready(_E) and Menu.Combo.ComboE.Emode:Value() == 1 then
 			CastE()
-		end			
-		
-		if ActiveUlt then return end
-		
-		if Menu.Combo.UseQ:Value() and Ready(_Q) and GetDistance(myHero.pos, target.pos) >= Menu.Combo.QRange:Value() then
-			local Buff = GetBuffData(myHero, "HowlingGale")
-			if not Buff then 
-				GetPredQ(target)
-			end	
 		end
-		
+
+		if ActiveUlt then return end
+
+		if Menu.Combo.UseQ:Value() and Ready(_Q) and GetDistance(myHero.pos, target.pos) >= Menu.Combo.QMinRange:Value() then
+			local Buff = GetBuffData(myHero, "HowlingGale")
+			if not Buff then
+				GetPredQ(target)
+			end
+		end
+
 		if Menu.Combo.UseW:Value() and Ready(_W) then
-			if GetDistance(myHero.pos, target.pos) < 600 then
+			if GetDistance(myHero.pos, target.pos) < WRange then
 				Control.CastSpell(HK_W, target)
 			end
 		end
 
 		if Menu.Combo.ComboR.UseR:Value() and Ready(_R) and Menu.Combo.ComboR.Rmode:Value() == 1 then
 			CastR()
-		end		
-	end		
+		end
+	end
 end
 
-function CastE()	
+function CastE()
 	if Menu.Combo.ComboE.UseE2:Value() and not ActiveUlt then
-		for k, enemy in ipairs(EnemyHeroes()) do    	
-			if enemy and GetDistance(enemy.pos, myHero.pos) < 2000 and IsValid(enemy) then		
+		for k, enemy in ipairs(EnemyHeroes()) do
+			if enemy and GetDistance(enemy.pos, myHero.pos) < 2000 and IsValid(enemy) then
 				for i, turret in ipairs(GetAllyTurret()) do
-					
-					if turret and GetDistance(myHero.pos, turret.pos) < 800 and turret.targetID == enemy.networkID then
+
+					if turret and GetDistance(myHero.pos, turret.pos) < ERange and turret.targetID == enemy.networkID then
 						Control.CastSpell(HK_E, turret)
 					end
 				end
-			end	
-		end	
-	end	
-		
+			end
+		end
+	end
+
 	if ActiveUlt and not Menu.Combo.ComboR.UseR2:Value() then return end
 	if Menu.Combo.ComboE.UseE3:Value() then
 		local Count = GetEnemyCount(1600, myHero)
@@ -251,48 +274,48 @@ function CastE()
 			Control.CastSpell(HK_E, myHero)
 		end
 	end
-	
+
 	if Menu.Combo.ComboE.UseE4:Value() then
 		for i, ally in ipairs(AllyHeroes()) do
-			if ally and GetDistance(myHero.pos, ally.pos) < 800 and IsValid(ally) and Menu.Combo.ComboE.Targets[ally.charName] and not Menu.Combo.ComboE.Targets[ally.charName]:Value() and not IsRecalling(ally) then
+			if ally and GetDistance(myHero.pos, ally.pos) < ERange and IsValid(ally) and Menu.Combo.ComboE.Targets[ally.charName] and not Menu.Combo.ComboE.Targets[ally.charName]:Value() and not IsRecalling(ally) then
 				local Count = GetEnemyCount(1600, ally)
 				if Count >= 1 and ally.health/ally.maxHealth <= Menu.Combo.ComboE.UseE4H:Value() / 100 then
 					Control.CastSpell(HK_E, ally)
 				end
 			end
-		end	
-	end	
+		end
+	end
 end
 
-function CastR()	
+function CastR()
 	if Menu.Combo.ComboR.UseR3:Value() then
 		local Count = GetEnemyCount(1600, myHero)
 		if Count >= 1 and myHero.health/myHero.maxHealth <= Menu.Combo.ComboR.UseR3H:Value() / 100 and not IsRecalling(myHero) then
 			Control.CastSpell(HK_R)
 		end
 	end
-	
+
 	if Menu.Combo.ComboR.UseR4:Value() then
 		for i, ally in ipairs(AllyHeroes()) do
-			if ally and GetDistance(myHero.pos, ally.pos) < 700 and IsValid(ally) and Menu.Combo.ComboR.Targets[ally.charName] and not Menu.Combo.ComboR.Targets[ally.charName]:Value() and not IsRecalling(ally) then
+			if ally and GetDistance(myHero.pos, ally.pos) < RRadius and IsValid(ally) and Menu.Combo.ComboR.Targets[ally.charName] and not Menu.Combo.ComboR.Targets[ally.charName]:Value() and not IsRecalling(ally) then
 				local Count = GetEnemyCount(1600, ally)
 				if Count >= 1 and ally.health/ally.maxHealth <= Menu.Combo.ComboR.UseE4H:Value() / 100 then
 					Control.CastSpell(HK_R)
 				end
 			end
-		end	
-	end	
+		end
+	end
 end
 
 function Harass()
-	local target = GetTarget(600)     	
+	local target = GetTarget(WRange)
 	if target == nil or ActiveUlt then return end
 	if IsValid(target) then
 
 		if Menu.Combo.UseW:Value() and Ready(_W) then
 			Control.CastSpell(HK_W, target)
-		end	
-	end	
+		end
+	end
 end
 
 function GetPredQ(unit)
@@ -313,6 +336,6 @@ function GetPredQ(unit)
 			casted = true
 			Control.CastSpell(HK_Q, QPrediction.CastPosition)
    			return
-		end		
+		end
 	end
 end
