@@ -858,7 +858,7 @@ self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
 	self.Menu.ComboSet.SafeCombo:MenuElement({id = "UseW", name = "[W]", value = true})
 	self.Menu.ComboSet.SafeCombo:MenuElement({id = "UseE", name = "[E]", value = true})
 	self.Menu.ComboSet.SafeCombo:MenuElement({id = "UseR", name = "[R]", value = true})
-	self.Menu.ComboSet:MenuElement({id = "SafeComboEnable", name = "[T] to toggle Fast [R] Logic: W range", key = string.byte("T"), value = true, toggle = true})
+	self.Menu.ComboSet:MenuElement({id = "SafeComboEnable", name = "[T] to toggle SafeCombo Logic: W range", key = string.byte("T"), value = true, toggle = true})
 	self.Menu.ComboSet:MenuElement({id = "DynamicCombo", name = "Dynamic Combo", value = false})
 
 	--Harass/AutoMenu
