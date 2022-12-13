@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
 
-    local Version = 0.10
+    local Version = 0.11
 
     local Files = {
         Lua = {
