@@ -941,7 +941,7 @@ function Samira:Tick()
 	self:ProcessSpells()
 	self:Kraken()
 	self:BuffAttackMovement(target)
-	self:Damage(target)
+	--self:Damage(target)
 
 	if MyHeroNotReady() then return end
 	local Mode = GetMode()
@@ -1227,6 +1227,9 @@ function Samira:SafeCombo(target)
 	if Ready(_Q) and Ready(_W) and Ready(_E) then
 		comboStage = 0
 	end
+	if not Ready(_W) then
+		comboStage = 1
+	end
 	if not Ready(_W) and not Ready(_E) then
 		comboStage = 2
 	end
@@ -1240,7 +1243,7 @@ function Samira:SafeCombo(target)
 	local rangeR = ((GetDistance(myHero.pos, target.pos) <= RRange) or (myHero.pos:DistanceTo(target.pos) <= RRange) or (GetEnemyCount(RRange, myHero.pos) > 0))
 
 	if self.Menu.ComboSet.SafeComboEnable:Value() then
-		if Ready(_R) and RReady and rangeR and self.Menu.ComboSet.SafeCombo.UseR:Value() then
+		if Ready(_R) and rangeR and self.Menu.ComboSet.SafeCombo.UseR:Value() then --and RReady
 			Control.CastSpell(HK_R)
 			comboStage = 0
 			local timer
@@ -1391,7 +1394,6 @@ function Samira:KillSteal()
 	if not Ready(_Q) and CastEQ then CastEQ = false end
 	for i, target in ipairs(GetEnemyHeroes()) do
 		if target and myHero.pos:DistanceTo(target.pos) <= 1000 and IsValid(target) then
-			QDmg, WDmg, EDmg, RDmg, AAdmg = self:Damage(target)
 			--[[ local QDmg = getdmg("Q", target, myHero)
 			local EDmg = getdmg("E", target, myHero)
 			local AAdmg = getdmg("AA", target, myHero) ]]
@@ -1403,6 +1405,7 @@ function Samira:KillSteal()
 			end
 
 			if self.Menu.ks.UseQ:Value() and self.Menu.ks.UseE:Value() and Ready(_Q) and Ready(_E) then
+				QDmg, WDmg, EDmg, RDmg, AAdmg = self:Damage(target)
 				if myHero.pos:DistanceTo(target.pos) <= ERange then
 					if QDmg+EDmg > target.health then
 						CastEQ = true
@@ -1411,6 +1414,7 @@ function Samira:KillSteal()
 			end
 
 			if Ready(_Q) and self.Menu.ks.UseQ:Value() and WExpire < GameTimer() and not (CastingW or CastingR) then
+				QDmg, WDmg, EDmg, RDmg, AAdmg = self:Damage(target)
 				if myHero.pos:DistanceTo(target.pos) <= QRange and myHero.pos:DistanceTo(target.pos) > WRange and QDmg > target.health then
 					self:CastQ(target)
 				end
@@ -1420,6 +1424,7 @@ function Samira:KillSteal()
 			end
 
 			if Ready(_E) and self.Menu.ks.UseE:Value() then
+				QDmg, WDmg, EDmg, RDmg, AAdmg = self:Damage(target)
 				if myHero.pos:DistanceTo(target.pos) <= ERange and EDmg > target.health then
 					Control.CastSpell(HK_E, target)
 				end
@@ -1517,9 +1522,6 @@ function Samira:Draw()
 	DrawText(tostring(comboStage), 15, myHero.pos2D.x-50, myHero.pos2D.y-75, DrawColor(255, 0, 255, 0))
 	DrawText(tostring(CastedW), 15, myHero.pos2D.x-50, myHero.pos2D.y-50, DrawColor(255, 0, 255, 0)) ]]
 
-	DrawText(tostring(style), 20, myHero.pos2D.x-50, myHero.pos2D.y-100, DrawColor(255, 0, 255, 0))
-	DrawText(tostring(comboStage), 15, myHero.pos2D.x-50, myHero.pos2D.y-75, DrawColor(255, 0, 255, 0))
-	DrawText(tostring(CastedW), 15, myHero.pos2D.x-50, myHero.pos2D.y-50, DrawColor(255, 0, 255, 0))
 	if self.Menu.MiscSet.Drawing.DrawCombo:Value() then
 		local posX = self.Menu.MiscSet.Drawing.ComboposX:Value()
 		local posY = self.Menu.MiscSet.Drawing.ComboposY:Value()
