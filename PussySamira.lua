@@ -1230,6 +1230,10 @@ function Samira:SafeCombo(target)
 	if not Ready(_W) and not Ready(_E) then
 		comboStage = 2
 	end
+	if not Ready(_Q) and not Ready(_W) and not Ready(_E) and not Ready(_W) then
+		return
+	end
+
 	local rangeQ = ((myHero.pos:DistanceTo(target.pos) <= QRange))
 	local rangeW = ((myHero.pos:DistanceTo(target.pos) <= WRange))
 	local rangeE = ((myHero.pos:DistanceTo(target.pos) <= ERange))
