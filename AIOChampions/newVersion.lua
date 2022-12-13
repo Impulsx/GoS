@@ -295,7 +295,7 @@ Data = {
         },
           Anivia = {
             Changelog = "Anivia Changelog Here",
-          Version = 0.03,
+          Version = 0.04,
         },
           Lulu = {
             Changelog = "Lulu Changelog Here",
