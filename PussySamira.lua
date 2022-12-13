@@ -1234,10 +1234,11 @@ function Samira:SafeCombo(target)
 		return
 	end
 
-	local rangeQ = ((myHero.pos:DistanceTo(target.pos) <= QRange))
-	local rangeW = ((myHero.pos:DistanceTo(target.pos) <= WRange))
-	local rangeE = ((myHero.pos:DistanceTo(target.pos) <= ERange))
-	local rangeR = ((myHero.pos:DistanceTo(target.pos) <= RRange) or (GetEnemyCount(RRange, myHero.pos) >= 1))
+	local rangeQ = ((GetDistance(myHero.pos, target.pos) <= QRange) or (myHero.pos:DistanceTo(target.pos) <= QRange))
+	local rangeW = ((GetDistance(myHero.pos, target.pos) <= WRange) or (myHero.pos:DistanceTo(target.pos) <= WRange) or (GetEnemyCount(WRange, myHero.pos) > 0))
+	local rangeE = ((GetDistance(myHero.pos, target.pos) <= ERange) or (myHero.pos:DistanceTo(target.pos) <= ERange))
+	local rangeR = ((GetDistance(myHero.pos, target.pos) <= RRange) or (myHero.pos:DistanceTo(target.pos) <= RRange) or (GetEnemyCount(RRange, myHero.pos) > 0))
+
 	if self.Menu.ComboSet.SafeComboEnable:Value() then
 		if Ready(_R) and RReady and rangeR and self.Menu.ComboSet.SafeCombo.UseR:Value() then
 			Control.CastSpell(HK_R)
@@ -1262,7 +1263,7 @@ function Samira:SafeCombo(target)
 
 		--
 		local isAttacking = ((myHero.attackData.state == STATE_WINDDOWN) or _G.SDK.Orbwalker:IsAutoAttacking(target))
-		if self.Menu.ComboSet.SafeCombo.UseW:Value() and (comboStage == 0) and rangeW and isAttacking and style < 6 or style > 0 then
+		if self.Menu.ComboSet.SafeCombo.UseW:Value() and (comboStage == 0) and rangeW and isAttacking and style > 0 and style < 6 then
 			if Ready(_W) and not (CastingQ or CastingR) then
 				Control.CastSpell(HK_W)
 				comboStage = 1
@@ -1515,6 +1516,10 @@ function Samira:Draw()
 	DrawText(tostring(style), 20, myHero.pos2D.x-50, myHero.pos2D.y-100, DrawColor(255, 0, 255, 0))
 	DrawText(tostring(comboStage), 15, myHero.pos2D.x-50, myHero.pos2D.y-75, DrawColor(255, 0, 255, 0))
 	DrawText(tostring(CastedW), 15, myHero.pos2D.x-50, myHero.pos2D.y-50, DrawColor(255, 0, 255, 0)) ]]
+
+	DrawText(tostring(style), 20, myHero.pos2D.x-50, myHero.pos2D.y-100, DrawColor(255, 0, 255, 0))
+	DrawText(tostring(comboStage), 15, myHero.pos2D.x-50, myHero.pos2D.y-75, DrawColor(255, 0, 255, 0))
+	DrawText(tostring(CastedW), 15, myHero.pos2D.x-50, myHero.pos2D.y-50, DrawColor(255, 0, 255, 0))
 	if self.Menu.MiscSet.Drawing.DrawCombo:Value() then
 		local posX = self.Menu.MiscSet.Drawing.ComboposX:Value()
 		local posY = self.Menu.MiscSet.Drawing.ComboposY:Value()
