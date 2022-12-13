@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
 
-    local Version = 0.11
+    local Version = 0.12
 
     local Files = {
         Lua = {
@@ -838,7 +838,7 @@ function Samira:LoadMenu()
 DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0
 	--MainMenu
 self.Menu = MenuElement({type = MENU, id = "PussySamira", name = "PussySamira"})
-	self.Menu:MenuElement({name = " ", drop = {"Version 0.11"}})
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.12"}})
 
 	--AutoW
 self.Menu:MenuElement({type = MENU, id = "WSet", name = "AutoW Incomming CC Spells"})
@@ -1260,7 +1260,7 @@ function Samira:SafeCombo(target)
 			--return self:SafeCombo(target, comboStage)
 		end
 
-		if self.Menu.ComboSet.DynamicCombo:Value() and CastedW or style > 5 then --and comboStage == 3 or CastedR
+		if self.Menu.ComboSet.DynamicCombo:Value() and (CastedW or style > 5) then --and comboStage == 3 or CastedR
 			--comboStage = 1
 			return self:Combo(target) --or self:SafeCombo(target, comboStage)
 		end
