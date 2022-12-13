@@ -838,7 +838,7 @@ function Samira:LoadMenu()
 DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0
 	--MainMenu
 self.Menu = MenuElement({type = MENU, id = "PussySamira", name = "PussySamira"})
-	self.Menu:MenuElement({name = " ", drop = {"Version 0.10"}})
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.11"}})
 
 	--AutoW
 self.Menu:MenuElement({type = MENU, id = "WSet", name = "AutoW Incomming CC Spells"})
@@ -865,7 +865,7 @@ self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
 self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass/Auto Settings"})
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	self.Menu.Harass:MenuElement({id = "AutoQ", name = "Auto[Q]", key = string.byte("H"), value = true, toggle = true})
-	self.Menu.Harass:MenuElement({id = "AutoStyle", name = "Auto[Q] build Style", value = true})
+	self.Menu.Harass:MenuElement({id = "AutoStyle", name = "Auto[Q] build Style", value = false})
 
 	--Lane/JungleClear
 self.Menu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
@@ -937,7 +937,6 @@ self.Menu.MiscSet:MenuElement({type = MENU, id = "Drawing", name = "Drawings Mod
 end
 
 function Samira:Tick()
-	style = myHero.hudAmmo
 	local target = GetTarget(QRange+myHero.boundingRadius)
 	self:ProcessSpells()
 	self:Kraken()
@@ -987,6 +986,7 @@ end
 
 function Samira:ProcessSpells()
 	local TickQ, TickW, TickE, TickR = false
+	style = myHero.hudAmmo
 
 	CastingQ = myHero.activeSpell.name == "SamiraQ"
 	CastingW = myHero.activeSpell.name == "SamiraW"
@@ -1001,7 +1001,7 @@ function Samira:ProcessSpells()
 
     --Kraken = HasBuff(myHero, "6672buff")
 
-    if myHero:GetSpellData(SUMMONER_1).name:find("Flash") then
+    --[[ if myHero:GetSpellData(SUMMONER_1).name:find("Flash") then
         Flash = SUMMONER_1
         FlashSpell = HK_SUMMONER_1
     elseif myHero:GetSpellData(SUMMONER_2).name:find("Flash") then
@@ -1009,7 +1009,7 @@ function Samira:ProcessSpells()
         FlashSpell = HK_SUMMONER_2
     else
         Flash = nil
-    end
+    end ]]
 
     if Kraken == false then
         KrakenStacks = 0
@@ -1231,9 +1231,9 @@ function Samira:SafeCombo(target)
 		comboStage = 2
 	end
 	local rangeQ = ((myHero.pos:DistanceTo(target.pos) <= QRange))
-	local rangeW = ((myHero.pos:DistanceTo(target.pos) <= WRange) or (GetEnemyCount(WRange, myHero.pos) >= 1))
+	local rangeW = ((myHero.pos:DistanceTo(target.pos) <= WRange))
 	local rangeE = ((myHero.pos:DistanceTo(target.pos) <= ERange))
-	local rangeR = ((myHero.pos:DistanceTo(target.pos) <= RRange) or (GetEnemyCount(RRange, myHero.pos) >= 1))
+	local rangeR = ((myHero.pos:DistanceTo(target.pos) <= RRange))
 	if self.Menu.ComboSet.SafeComboEnable:Value() then
 		if Ready(_R) and RReady and rangeR and self.Menu.ComboSet.SafeCombo.UseR:Value() then
 			Control.CastSpell(HK_R)
