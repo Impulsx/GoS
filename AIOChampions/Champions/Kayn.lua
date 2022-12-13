@@ -47,13 +47,13 @@ end
 
 function RedRDmg(unit)
     local RedDmg = (0.1 + (0.13 * (myHero.bonusDamage / 100))) * unit.maxHealth
-    return CalcPhysicalDamage(myHero, unit, RedDmg)
+    return CalcDamage(myHero, unit, 1, RedDmg)
 end
 
 local function RedQDmg(unit)
     local Bonus = 0.04 * (myHero.bonusDamage / 100)
     local RedDmg = (0.55 * myHero.totalDamage) + ((0.05 + Bonus) * unit.maxHealth)
-    return CalcPhysicalDamage(myHero, unit, RedDmg) 
+    return CalcDamage(myHero, unit, 1, RedDmg)
 end
 
 local function isRedKayne()
@@ -73,7 +73,7 @@ end
 local function HasBuff(unit, buffname)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
-		if buff.name == buffname and buff.count > 0 then 
+		if buff.name == buffname and buff.count > 0 then
 			return true
 		end
 	end
@@ -81,16 +81,16 @@ local function HasBuff(unit, buffname)
 end
 
 function LoadScript()
-	
+
 	Menu = MenuElement({type = MENU, id = "PussyAIO".. myHero.charName, name = myHero.charName})
-	Menu:MenuElement({name = " ", drop = {"Version 0.02"}})
-	
+	Menu:MenuElement({name = " ", drop = {"Version 0.03"}})
+
 	--ComboMenu
 	Menu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
 	Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})
-	
+
 	--HarassMenu
 	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
 	Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
@@ -102,7 +102,7 @@ function LoadScript()
 	Menu.Killsteal:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.Killsteal:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Killsteal:MenuElement({id = "UseR", name = "[R]", value = true})
-	
+
 	--LaneClear Menu
 	Menu:MenuElement({type = MENU, id = "Clear", name = "LaneClear"})
 	Menu.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})
@@ -110,20 +110,20 @@ function LoadScript()
 	Menu.Clear:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.Clear:MenuElement({id = "Wmin", name = "[W] If Hit X Minion ", value = 3, min = 1, max = 6, step = 1, identifier = "Minion/s"})
 	Menu.Clear:MenuElement({id = "Mana", name = "Min Mana to LaneClear", value = 30, min = 0, max = 100, identifier = "%"})
-	
+
 	--JungleClear
 	Menu:MenuElement({type = MENU, id = "JClear", name = "JungleClear"})
 	Menu.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	Menu.JClear:MenuElement({id = "UseW", name = "[W]", value = true})
 	Menu.JClear:MenuElement({id = "Mana", name = "Min Mana to JungleClear", value = 30, min = 0, max = 100, identifier = "%"})
-	
+
 	--Prediction
 	Menu:MenuElement({type = MENU, id = "Pred", name = "Prediction"})
 	Menu.Pred:MenuElement({name = " ", drop = {"After change Pred.Typ reload 2x F6"}})
 	Menu.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 3, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})
 	Menu.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q]", value = 2, drop = {"Normal", "High", "Immobile"}})
 	Menu.Pred:MenuElement({id = "PredW", name = "Hitchance[w]", value = 2, drop = {"Normal", "High", "Immobile"}})
-	
+
 	--Misc
 	Menu:MenuElement({type = MENU, id = "Misc", name = "Misc"})
 	Menu.Misc:MenuElement({id = "Evade", name = "[R] Self HP", value = 15, min = 0, max = 100, identifier = "%"})
@@ -133,37 +133,37 @@ function LoadScript()
 	Menu.Drawing:MenuElement({id = "DrawQ", name = "Draw[Q]", value = false})
 	Menu.Drawing:MenuElement({id = "DrawW", name = "Draw[W]", value = false})
 	Menu.Drawing:MenuElement({id = "DrawR", name = "Draw[R]", value = false})
-	
+
 	QData =
 	{
 	Type = _G.SPELLTYPE_CIRCLE, Delay = 0.55, Radius = 50, Range = 350, Speed = MathHuge, Collision = false
 	}
-	
-	QspellData = {speed = MathHuge, range = 350, delay = 0.55, radius = 50, collision = {nil}, type = "circular"}	
+
+	QspellData = {speed = MathHuge, range = 350, delay = 0.55, radius = 50, collision = {nil}, type = "circular"}
 
 	WDataDarkin =
 	{
 	Type = _G.SPELLTYPE_LINE, Delay = 0.55, Radius = 45, Range = 700, Speed = MathHuge, Collision = false
 	}
-	
-	WspellDataDarkin = {speed = MathHuge, range = 700, delay = 0.55, radius = 45, collision = {nil}, type = "linear"}	
+
+	WspellDataDarkin = {speed = MathHuge, range = 700, delay = 0.55, radius = 45, collision = {nil}, type = "linear"}
 
 	WDataSlayer =
 	{
 	Type = _G.SPELLTYPE_LINE, Delay = 0, Radius = 45, Range = 900, Speed = MathHuge, Collision = false
 	}
-	
-	WspellDataSlayer = {speed = MathHuge, range = 900, delay = 0, radius = 45, collision = {nil}, type = "linear"}			
-  	                                          
+
+	WspellDataSlayer = {speed = MathHuge, range = 900, delay = 0, radius = 45, collision = {nil}, type = "linear"}
+
 	Callback.Add("Tick", function() Tick() end)
-	
+
 	Callback.Add("Draw", function()
 		if myHero.dead then return end
-		
+
 		if Menu.Drawing.DrawQ:Value() and Ready(_Q) then
 			DrawCircle(myHero, 600, 1, DrawColor(225, 0, 225, 85))
 		end
-		
+
 		if Menu.Drawing.DrawW:Value() and Ready(_W) then
 			if isRedKayne() then
 				DrawCircle(myHero, 700, 1, DrawColor(225, 225, 188, 0))
@@ -171,15 +171,15 @@ function LoadScript()
 				DrawCircle(myHero, 900, 1, DrawColor(225, 225, 188, 0))
 			end
 		end
-		
+
 		if Menu.Drawing.DrawR:Value() and Ready(_R) then
 			if isRedKayne() then
 				DrawCircle(myHero, 550, 1, DrawColor(225, 225, 0, 10))
 			else
 				DrawCircle(myHero, 750, 1, DrawColor(225, 225, 0, 10))
 			end
-		end		
-	end)		
+		end
+	end)
 end
 
 function Tick()
@@ -205,27 +205,27 @@ function Evade()
 		if myHero.pos:DistanceTo(target.pos) < 800 and IsValid(target) and HasBuff(target, "kaynrenemymark") and (myHero.health * 100 ) / myHero.maxHealth <= Menu.Misc.Evade:Value() then
 
 			if isRedKayne() then
-				
+
 				if myHero.pos:DistanceTo(target.pos) < 525 then
 					Control.CastSpell(HK_R, target)
 				end
 
 			elseif isBlueKayne() then
-				
+
 				if myHero.pos:DistanceTo(target.pos) < 725 then
 					Control.CastSpell(HK_R, target)
 				end
 			end
 		end
 	end
-end	
+end
 
 function Combo()
 	local target = GetTarget(900)
 	if target == nil then return end
-	
+
 	if IsValid(target) then
-			
+
 		if isRedKayne() then
 			if myHero.pos:DistanceTo(target.pos) < 675 then
 				if Menu.Combo.UseW:Value() and Ready(_W) then
@@ -244,13 +244,13 @@ function Combo()
 						WPrediction:GetPrediction(target, myHero)
 						if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 							Control.CastSpell(HK_W, WPrediction.CastPosition)
-						end	
+						end
 					end
 				end
 			end
 
 		elseif isBlueKayne() then
-			
+
 			if myHero.pos:DistanceTo(target.pos) < 875 then
 				if Menu.Combo.UseW:Value() and Ready(_W) then
 					if Menu.Pred.Change:Value() == 1 then
@@ -268,7 +268,7 @@ function Combo()
 						WPrediction:GetPrediction(target, myHero)
 						if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 							Control.CastSpell(HK_W, WPrediction.CastPosition)
-						end	
+						end
 					end
 				end
 			end
@@ -290,7 +290,7 @@ function Combo()
 				QPrediction:GetPrediction(target, myHero)
 				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 					Control.CastSpell(HK_Q, QPrediction.CastPosition)
-				end				
+				end
 			end
 		end
 
@@ -301,26 +301,26 @@ function Combo()
 			if Menu.Combo.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 525 and Ready(_R) then
 				local RDmg = getdmg("R", target, myHero)
 				local RedUltDmg = RDmg + RedRDmg(target)
-				--local AADmg = getdmg("AA", target, myHero)				
+				--local AADmg = getdmg("AA", target, myHero)
 				if RedUltDmg >= hp and Acount <= 1 and HasBuff(target, "kaynrenemymark") then
 					Control.CastSpell(HK_R, target)
 				end
 				if RedUltDmg >= hp and myHero:GetSpellData(_R).name ~= "KaynR" then
 					Control.CastSpell(HK_R, target)
-				end					
+				end
 			end
 
 		elseif isBlueKayne() then
-			
+
 			if Menu.Combo.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 725 and Ready(_R) then
 				local RDmg = getdmg("R", target, myHero)
-				--local AADmg = getdmg("AA", target, myHero)				
+				--local AADmg = getdmg("AA", target, myHero)
 				if RDmg >= hp and Acount <= 1 and HasBuff(target, "kaynrenemymark") then
 					Control.CastSpell(HK_R, target)
-				end 
+				end
 				if RDmg >= hp and myHero:GetSpellData(_R).name ~= "KaynR" then
 					Control.CastSpell(HK_R, target)
-				end					
+				end
 			end
 		end
 	end
@@ -334,7 +334,7 @@ function KillSteal()
 			local Acount = GetAllyCount(1500, myHero)
 
 			if isRedKayne() then
-			
+
 				if Menu.Killsteal.UseW:Value() and myHero.pos:DistanceTo(target.pos) < 675 and Ready(_W) then
 					local WDmg = getdmg("W", target, myHero)
 					if WDmg > hp then
@@ -353,11 +353,11 @@ function KillSteal()
 							WPrediction:GetPrediction(target, myHero)
 							if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 								Control.CastSpell(HK_W, WPrediction.CastPosition)
-							end	
+							end
 						end
 					end
 				end
-				
+
 				if Menu.Killsteal.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 350 and Ready(_Q) then
 					local QDmg = getdmg("Q", target, myHero)
 					local RedQDmg = QDmg*2 + RedQDmg(target)
@@ -377,27 +377,27 @@ function KillSteal()
 							QPrediction:GetPrediction(target, myHero)
 							if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 								Control.CastSpell(HK_Q, QPrediction.CastPosition)
-							end				
+							end
 						end
 					end
-				end	
-				
+				end
+
 				if GetMode() ~= "Combo" then
 					if Menu.Killsteal.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 525 and Ready(_R) then
 						local RDmg = getdmg("R", target, myHero)
-						local RedUltDmg = RDmg + RedRDmg(target)				
-						--local AADmg = getdmg("AA", target, myHero)				
+						local RedUltDmg = RDmg + RedRDmg(target)
+						--local AADmg = getdmg("AA", target, myHero)
 						if RedUltDmg >= hp and Acount <= 1 and HasBuff(target, "kaynrenemymark") then
 							Control.CastSpell(HK_R, target)
 						end
 						if RedUltDmg >= hp and myHero:GetSpellData(_R).name ~= "KaynR" then
 							Control.CastSpell(HK_R, target)
-						end						
+						end
 					end
-				end	
+				end
 
 			elseif isBlueKayne() then
-				
+
 				if Menu.Killsteal.UseW:Value() and myHero.pos:DistanceTo(target.pos) < 875 and Ready(_W) then
 					local WDmg = getdmg("W", target, myHero)
 					if WDmg > hp then
@@ -416,11 +416,11 @@ function KillSteal()
 							WPrediction:GetPrediction(target, myHero)
 							if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 								Control.CastSpell(HK_W, WPrediction.CastPosition)
-							end	
+							end
 						end
 					end
 				end
-				
+
 				if Menu.Killsteal.UseQ:Value() and myHero.pos:DistanceTo(target.pos) < 350 and Ready(_Q) then
 					local QDmg = getdmg("Q", target, myHero)
 					if QDmg*2 > hp then
@@ -439,26 +439,26 @@ function KillSteal()
 							QPrediction:GetPrediction(target, myHero)
 							if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 								Control.CastSpell(HK_Q, QPrediction.CastPosition)
-							end				
+							end
 						end
 					end
-				end	
+				end
 
 				if GetMode() ~= "Combo" then
 					if Menu.Killsteal.UseR:Value() and myHero.pos:DistanceTo(target.pos) < 725 and Ready(_R) then
 						local RDmg = getdmg("R", target, myHero)
-						--local AADmg = getdmg("AA", target, myHero)								
+						--local AADmg = getdmg("AA", target, myHero)
 						if RDmg >= hp and Acount <= 1 and HasBuff(target, "kaynrenemymark") then
 							Control.CastSpell(HK_R, target)
 						end
 						if RDmg >= hp and myHero:GetSpellData(_R).name ~= "KaynR" then
 							Control.CastSpell(HK_R, target)
-						end						
-					end	
-				end	
+						end
+					end
+				end
 			end
 		end
-	end	
+	end
 end
 
 function Harass()
@@ -468,7 +468,7 @@ function Harass()
 	if IsValid(target) and myHero.mana/myHero.maxMana >= Menu.Harass.Mana:Value()/100 then
 
 		if isRedKayne() then
-			
+
 			if myHero.pos:DistanceTo(target.pos) < 675 then
 				if Menu.Harass.UseW:Value() and Ready(_W) then
 					if Menu.Pred.Change:Value() == 1 then
@@ -486,13 +486,13 @@ function Harass()
 						WPrediction:GetPrediction(target, myHero)
 						if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 							Control.CastSpell(HK_W, WPrediction.CastPosition)
-						end	
+						end
 					end
 				end
 			end
 
 		elseif isBlueKayne() then
-			
+
 			if myHero.pos:DistanceTo(target.pos) < 875 then
 				if Menu.Harass.UseW:Value() and Ready(_W) then
 					if Menu.Pred.Change:Value() == 1 then
@@ -510,7 +510,7 @@ function Harass()
 						WPrediction:GetPrediction(target, myHero)
 						if WPrediction:CanHit(Menu.Pred.PredW:Value() + 1) then
 							Control.CastSpell(HK_W, WPrediction.CastPosition)
-						end	
+						end
 					end
 				end
 			end
@@ -532,17 +532,17 @@ function Harass()
 				QPrediction:GetPrediction(target, myHero)
 				if QPrediction:CanHit(Menu.Pred.PredQ:Value() + 1) then
 					Control.CastSpell(HK_Q, QPrediction.CastPosition)
-				end				
+				end
 			end
 		end
 	end
-end	
+end
 
 function Clear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 		if myHero.pos:DistanceTo(minion.pos) <= 900 and minion.team == TEAM_ENEMY and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.Clear.Mana:Value() / 100 then
-			
+
 			if isRedKayne() then
 				if myHero.pos:DistanceTo(minion.pos) < 675 and Menu.Clear.UseW:Value() and Ready(_W) then
 					local count = GetMinionCount(150, minion)
@@ -552,7 +552,7 @@ function Clear()
 				end
 
 			elseif isBlueKayne() then
-				
+
 				if myHero.pos:DistanceTo(minion.pos) < 875 and Menu.Clear.UseW:Value() and Ready(_W) then
 					local count = GetMinionCount(150, minion)
 					if count >= Menu.Clear.Wmin:Value() then
@@ -566,7 +566,7 @@ function Clear()
 				if count >= Menu.Clear.Qmin:Value() then
 					Control.CastSpell(HK_Q, minion.pos)
 				end
-			end		
+			end
 		end
 	end
 end
@@ -575,16 +575,16 @@ function JungleClear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 		if myHero.pos:DistanceTo(minion.pos) <= 900 and minion.team == TEAM_JUNGLE and IsValid(minion) and myHero.mana/myHero.maxMana >= Menu.JClear.Mana:Value() / 100 then
-			
+
 			if isRedKayne() then
-				
+
 				if myHero.pos:DistanceTo(minion.pos) < 675 and Menu.Clear.UseW:Value() and Ready(_W) then
 					--local count = GetMinionCount(150, minion)
 					Control.CastSpell(HK_W, minion.pos)
 				end
 
 			elseif isBlueKayne() then
-				
+
 				if myHero.pos:DistanceTo(minion.pos) < 875 and Menu.Clear.UseW:Value() and Ready(_W) then
 					--local count = GetMinionCount(150, minion)
 					Control.CastSpell(HK_W, minion.pos)

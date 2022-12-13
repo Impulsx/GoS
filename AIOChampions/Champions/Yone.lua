@@ -7,7 +7,7 @@ local function GetEnemyHeroes()
 		end
 	end
 	return _EnemyHeroes
-end 
+end
 
 local function GetDistanceSqr(pos1, pos2)
 	local pos2 = pos2 or myHero.pos
@@ -44,7 +44,7 @@ local function GetEnemyTurret()
 			TableInsert(_EnemyTurrets, turret)
 		end
 	end
-	return _EnemyTurrets		
+	return _EnemyTurrets
 end
 
 local function GetEnemyCount(range, pos)
@@ -61,7 +61,7 @@ end
 
 local function IsUnderTurret(unit)
 	for i, turret in ipairs(GetEnemyTurret()) do
-        local range = (turret.boundingRadius + 750 + unit.boundingRadius / 2) 
+        local range = (turret.boundingRadius + 750 + unit.boundingRadius / 2)
 		if turret.pos:DistanceTo(unit.pos) < range then
 			return true
 		end
@@ -75,9 +75,9 @@ local function CalcFullDmg(unit, DmgSpell)
 	local RDmg 	   = Ready(_R) and (getdmg("R", unit, myHero, 1) + getdmg("R", unit, myHero, 2))*0.8 or 0
 
 	local AADmg	   		= getdmg("AA", unit, myHero)
-	local AACritDmg		= CalcPhysicalDamage(myHero, unit, AADmg * 1.8)
-	local AADmg2		= CalcPhysicalDamage(myHero, unit, myHero.totalDamage*0.5) + CalcMagicalDamage(myHero, unit, myHero.totalDamage*0.5)
-	local AACritDmg2	= CalcPhysicalDamage(myHero, unit, (myHero.totalDamage*0.9)) + CalcMagicalDamage(myHero, unit, (myHero.totalDamage*0.9))
+	local AACritDmg		= CalcDamage(myHero, unit, 1, AADmg * 1.8)
+	local AADmg2		= CalcDamage(myHero, unit, 1, myHero.totalDamage*0.5) + CalcDamage(myHero, unit, 2, myHero.totalDamage*0.5)
+	local AACritDmg2	= CalcDamage(myHero, unit, 1, (myHero.totalDamage*0.9)) + CalcDamage(myHero, unit, 2, (myHero.totalDamage*0.9))
 	local CalcEDmg = 0
 
 	local AADmgFinal = ((AADmg + AADmg2)/2) * ((myHero.critChance*0.9)+1)
@@ -87,19 +87,19 @@ local function CalcFullDmg(unit, DmgSpell)
 	local pdamage  = 0
 	if Ready(_Q) then
 		damage = damage + getdmg("Q", unit, myHero) + AADmgFinal
-	end	
+	end
 	if Ready(_W) then
 		damage = damage + getdmg("W", unit, myHero, 1) + getdmg("W", unit, myHero, 2) + AADmgFinal
-	end	
+	end
 	if Ready(_R) then
 		damage = damage + (getdmg("R", unit, myHero, 1) + getdmg("R", unit, myHero, 2)) *0.8 + AADmgFinal
 	end
 	if Ready(_E) or myHero.mana > 0 then
 		damage = damage * EDmgPercent
-	end	
+	end
 	pdamage = (QDmg + WDmg + RDmg + (AADmgFinal*3)) * EDmgPercent
 	--print(RDmg)
-	local Damages = {CurrentDamage = damage, PossibleDamage = pdamage}		
+	local Damages = {CurrentDamage = damage, PossibleDamage = pdamage}
 	return Damages
 end
 
@@ -107,7 +107,7 @@ local function CalcTurretDmg()
 	local Damage = 0
 	local TimeCalc = 100
 	local Timer = GameTimer()
-	
+
 	if Timer < 30 then
 		TimeCalc = 0
 	elseif Timer < 90 then
@@ -139,7 +139,7 @@ local function CalcTurretDmg()
 	elseif Timer >= 810 then
 		TimeCalc = 14
 	end
-	
+
 	if TimeCalc < 100 then
 		local Dmg = 152 + (9 * TimeCalc)
 		Damage = Dmg
@@ -176,7 +176,7 @@ function LoadScript()
 		if myHero.dead then return end
 			if Menu.MiscSet.Drawing.DrawR:Value() and Ready(_R) then
 			Draw.Circle(myHero, 1000, 1, Draw.Color(255, 225, 255, 10))
-		end                                                 
+		end
 		if Menu.MiscSet.Drawing.DrawQ:Value() and Ready(_Q) then
 			if myHero:GetSpellData(_Q).name == "YoneQ3" then
 				Draw.Circle(myHero, 950, 1, Draw.Color(225, 225, 0, 10))
@@ -198,53 +198,53 @@ function LoadScript()
 
 	--//// R-Prediction Data ////--
 	RspellData = {speed = 1500, range = 900, delay = 0.5, radius = 120, collision = {nil}, type = "linear"}
-	R2spellData = {speed = 1500, range = 1200, delay = 0.8, radius = 120, collision = {nil}, type = "linear"}	
+	R2spellData = {speed = 1500, range = 1200, delay = 0.8, radius = 120, collision = {nil}, type = "linear"}
 end
 
-function LoadMenu()                     	
+function LoadMenu()
 									 -- MainMenu --
 	Menu = MenuElement({type = MENU, id = "PussySeries".. myHero.charName, name = "Yone"})
-	Menu:MenuElement({name = " ", drop = {"Version 0.04"}})
-	
-	
+	Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
+
+
 									  -- Combo --
 	Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
-	
+
 	-- Q --
 	Menu.ComboSet:MenuElement({type = MENU, id = "Q", name = "Q Settings"})
-	Menu.ComboSet.Q:MenuElement({id = "UseQ1", name = "Use [Q] in Combo", value = true})	
+	Menu.ComboSet.Q:MenuElement({id = "UseQ1", name = "Use [Q] in Combo", value = true})
 	Menu.ComboSet.Q:MenuElement({id = "UseQ2", name = "Stack [Q] on Minions", value = false})
-	Menu.ComboSet.Q:MenuElement({id = "UseQ3", name = "[Q3] Single Target", value = true})	
-	Menu.ComboSet.Q:MenuElement({id = "UseQ4", name = "[Q3] Focus Multiple Targets", value = true})		
-			
+	Menu.ComboSet.Q:MenuElement({id = "UseQ3", name = "[Q3] Single Target", value = true})
+	Menu.ComboSet.Q:MenuElement({id = "UseQ4", name = "[Q3] Focus Multiple Targets", value = true})
+
 	-- W --
-	Menu.ComboSet:MenuElement({type = MENU, id = "W", name = "W Settings"})		
+	Menu.ComboSet:MenuElement({type = MENU, id = "W", name = "W Settings"})
 	Menu.ComboSet.W:MenuElement({id = "UseW1", name = "Use [W] in Combo", value = true})
-	Menu.ComboSet.W:MenuElement({id = "UseW2", name = "[W] Focus Multiple Targets ( Bigger Shield )", value = true})	
+	Menu.ComboSet.W:MenuElement({id = "UseW2", name = "[W] Focus Multiple Targets ( Bigger Shield )", value = true})
 
 	-- E --
-	Menu.ComboSet:MenuElement({type = MENU, id = "E", name = "E Settings"})		
+	Menu.ComboSet:MenuElement({type = MENU, id = "E", name = "E Settings"})
 	Menu.ComboSet.E:MenuElement({id = "UseE1", name = "Use [E] in Combo", value = true})
 	Menu.ComboSet.E:MenuElement({id = "UseE2", name = "Save Life under Tower (E2 Back if can Tower kill you)", value = true})
 	Menu.ComboSet.E:MenuElement({id = "UseE3", name = "[E2] Back ( Back if Yone Hp lower than Slider )", value = true})
 	Menu.ComboSet.E:MenuElement({id = "Hp", name = "[E2] Back if Yone Hp lower than -->", value = 5, min = 0, max = 100, identifier = "%"})
 	Menu.ComboSet.E:MenuElement({id = "UseE4", name = "[E2] Execute Target", value = true})
-	
-	
+
+
 	-- R --
-	Menu.ComboSet:MenuElement({type = MENU, id = "R", name = "R Settings"})		
+	Menu.ComboSet:MenuElement({type = MENU, id = "R", name = "R Settings"})
 	Menu.ComboSet.R:MenuElement({id = "UseR1", name = "Use [R] in Combo", value = true})
 	Menu.ComboSet.R:MenuElement({id = "UseR2", name = "[R] Single Target if killable full Combo", value = true})
 	Menu.ComboSet.R:MenuElement({id = "UseR3", name = "[R] Focus Multiple Targets", value = true})
 	Menu.ComboSet.R:MenuElement({id = "RCount", name = "[R] Multiple Targets", value = 2, min = 2, max = 5, step = 1})
-	
-	
+
+
 									  -- Harass --
-	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})	
-	
-	Menu.Harass:MenuElement({id = "UseQ1", name = "Use [Q] in Harass", value = true})	
+	Menu:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
+
+	Menu.Harass:MenuElement({id = "UseQ1", name = "Use [Q] in Harass", value = true})
 	Menu.Harass:MenuElement({id = "UseQ2", name = "Use [Q3] in Harass", value = true})
-	Menu.Harass:MenuElement({id = "UseQ3", name = "Stack [Q] on Minions", value = true})	
+	Menu.Harass:MenuElement({id = "UseQ3", name = "Stack [Q] on Minions", value = true})
 	Menu.Harass:MenuElement({id = "UseW", name = "Use [W] in Harass", value = true})
 	Menu.Harass:MenuElement({id = "UseE", name = "Use [E] in Harass", value = true})
 	Menu.Harass:MenuElement({id = "UseE3", name = "[E2] Back (After Set Number of AA's)", value = true})
@@ -254,9 +254,9 @@ function LoadMenu()
 
 
 	                                 -- KillSteal --
-	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal Settings"})	
+	Menu:MenuElement({type = MENU, id = "ks", name = "KillSteal Settings"})
 	Menu.ks:MenuElement({id = "UseR", name = "Auto[R] killable single target", value = true})
-	Menu.ks:MenuElement({id = "RRange", name = "Checkrange others around single Target", value = 500, min = 0, max = 2000, step = 10})	
+	Menu.ks:MenuElement({id = "RRange", name = "Checkrange others around single Target", value = 500, min = 0, max = 2000, step = 10})
 
 
 								  -- Lane/JungleClear --
@@ -265,33 +265,33 @@ function LoadMenu()
 	--LaneClear Menu
 	Menu.ClearSet:MenuElement({type = MENU, id = "Clear", name = "Clear Mode"})
 	Menu.ClearSet.Clear:MenuElement({id = "UseQ1", name = "Use [Q]", value = true})
-	Menu.ClearSet.Clear:MenuElement({id = "UseQ2", name = "Use [Q3]", value = true})	
-	Menu.ClearSet.Clear:MenuElement({id = "UseW", name = "Use [W]", value = true})	
-	
+	Menu.ClearSet.Clear:MenuElement({id = "UseQ2", name = "Use [Q3]", value = true})
+	Menu.ClearSet.Clear:MenuElement({id = "UseW", name = "Use [W]", value = true})
+
 	--JungleClear Menu
 	Menu.ClearSet:MenuElement({type = MENU, id = "JClear", name = "JungleClear Mode"})
 	Menu.ClearSet.JClear:MenuElement({id = "UseQ1", name = "Use [Q]", value = true})
-	Menu.ClearSet.JClear:MenuElement({id = "UseQ2", name = "Use [Q3]", value = true})	
-	Menu.ClearSet.JClear:MenuElement({id = "UseW", name = "Use [W]", value = true})		
+	Menu.ClearSet.JClear:MenuElement({id = "UseQ2", name = "Use [Q3]", value = true})
+	Menu.ClearSet.JClear:MenuElement({id = "UseW", name = "Use [W]", value = true})
 
 
 										-- Misc --
-    Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})	
-			
+    Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
+
 	--Prediction
 	Menu.MiscSet:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
-	Menu.MiscSet.Pred:MenuElement({name = " ", drop = {"After change Prediction Typ press 2xF6"}})	
-	Menu.MiscSet.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Premium Prediction", "GGPrediction"}})	
+	Menu.MiscSet.Pred:MenuElement({name = " ", drop = {"After change Prediction Typ press 2xF6"}})
+	Menu.MiscSet.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 1, drop = {"Premium Prediction", "GGPrediction"}})
 	Menu.MiscSet.Pred:MenuElement({id = "PredQ", name = "Hitchance[Q3]", value = 1, drop = {"Normal", "High", "Immobile"}})
-	Menu.MiscSet.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})	
-	Menu.MiscSet.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 1, drop = {"Normal", "High", "Immobile"}})	
- 
-	--Drawing 
+	Menu.MiscSet.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})
+	Menu.MiscSet.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 1, drop = {"Normal", "High", "Immobile"}})
+
+	--Drawing
 	Menu.MiscSet:MenuElement({type = MENU, id = "Drawing", name = "Drawings Mode"})
 	Menu.MiscSet.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] and [Q3] Range", value = false})
 	Menu.MiscSet.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
 	Menu.MiscSet.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
-	Menu.MiscSet.Drawing:MenuElement({id = "Kill", name = "Draw KillText 1 vs 1", value = true})		
+	Menu.MiscSet.Drawing:MenuElement({id = "Kill", name = "Draw KillText 1 vs 1", value = true})
 end
 
 function Tick()
@@ -307,7 +307,7 @@ function Tick()
 	end
 		target = GetTarget(1300)
 	local target2 = GetTarget(1300)
-		CalcEDmg(target)   
+		CalcEDmg(target)
 	if MyHeroNotReady() then return end
 		ProcessSpells()
 		KsUlt()
@@ -318,8 +318,8 @@ function Tick()
 		Harass()
 	elseif Mode == "Clear" then
 		JungleClear()
-		Clear()	
-	end			
+		Clear()
+	end
 end
 
 function CastingChecks()
@@ -328,7 +328,7 @@ function CastingChecks()
 	local CastingE = myHero.activeSpell.name == "YoneE"
 	local CastingR = myHero.activeSpell.name == "YoneR"
 
-	local CastingChecksReturn = not CastingQ and not CastingW and not CastingE and not CastingR and not (myHero.pathing and myHero.pathing.isDashing) 
+	local CastingChecksReturn = not CastingQ and not CastingW and not CastingE and not CastingR and not (myHero.pathing and myHero.pathing.isDashing)
 	return CastingChecksReturn
 end
 
@@ -364,17 +364,17 @@ function CalcEDmg(unit)
 	if myHero.mana > 0 and unit ~= nil then
 
 		local QDmg     		= getdmg("Q", unit, myHero)
-		local QCritDmg 		= CalcPhysicalDamage(myHero, unit, QDmg * 1.8)
+		local QCritDmg 		= CalcDamage(myHero, unit, 1, QDmg * 1.8)
 		local WDmg     		= getdmg("W", unit, myHero, 1) + getdmg("W", unit, myHero, 2)
 		local RDmg     		= getdmg("R", unit, myHero, 1) + getdmg("R", unit, myHero, 2)
 
 		local AADmg	   		= getdmg("AA", unit, myHero)
-		local AACritDmg		= CalcPhysicalDamage(myHero, unit, AADmg * 1.8)
-		local AADmg2		= CalcPhysicalDamage(myHero, unit, myHero.totalDamage*0.5) + CalcMagicalDamage(myHero, unit, myHero.totalDamage*0.5)
-		local AACritDmg2	= CalcPhysicalDamage(myHero, unit, (myHero.totalDamage*0.5) *0.9) + CalcMagicalDamage(myHero, unit, (myHero.totalDamage*0.5) *0.9)
- 		
+		local AACritDmg		= CalcDamage(myHero, unit, 1, AADmg * 1.8)
+		local AADmg2		= CalcDamage(myHero, unit, 1, myHero.totalDamage*0.5) + CalcDamage(myHero, unit, 2, myHero.totalDamage*0.5)
+		local AACritDmg2	= CalcDamage(myHero, unit, 1, (myHero.totalDamage*0.5) *0.9) + CalcDamage(myHero, unit, 2, (myHero.totalDamage*0.5) *0.9)
+
 		if Added == false then
-            
+
 			if myHero.activeSpell.name == "YoneBasicAttack" or myHero.activeSpell.name == "YoneBasicAttack3" then
             	LastSpellName = myHero.activeSpell.name
             	DelayAction(function()
@@ -402,13 +402,13 @@ function CalcEDmg(unit)
                 	EDmgPred = EDmgPred + AACritDmg2
 				end,0.2)
                 Added = true
-                AutoAttacks = AutoAttacks + 1     
+                AutoAttacks = AutoAttacks + 1
             end
-        
+
 		elseif myHero.activeSpell.name ~= LastSpellName then
             Added = false
         end
-        
+
 		if TickQ then
 	        if unit.health ~= LastTargetHealth then
                 if (LastTargetHealth - unit.health) - QDmg > -50 and (LastTargetHealth - unit.health) - QDmg < 50 then
@@ -421,20 +421,20 @@ function CalcEDmg(unit)
 	        end
         end
        	LastTargetHealth = unit.health
-       
+
 		if TickW then
         	--print("Tick W")
         	EDmgPred = EDmgPred + WDmg
         	TickW = false
         end
-        
+
 		if TickR then
         	EDmgPred = EDmgPred + RDmg
-        	TickR = false      
+        	TickR = false
 		end
-		
+
     else
-    	
+
 		EDmgPred = 0
     	Added = false
     	LastSpellName = ""
@@ -444,9 +444,9 @@ function CalcEDmg(unit)
     	AutoAttacks = 0
     	LastTargetHealth = 10000
 	end
-	
+
 	local EPercent = 0.225 + (0.025*myHero:GetSpellData(_E).level)
-	if EDmgPred ~= 0 then 
+	if EDmgPred ~= 0 then
 		--print(math.floor(EDmgPred * EPercent))
 	end
 end
@@ -456,7 +456,7 @@ function KsUlt()
 		for i, Enemy in ipairs(GetEnemyHeroes()) do
 			if Enemy and myHero.pos:DistanceTo(Enemy.pos) <= 1000 and IsValid(Enemy) then
 				local RDmg  = getdmg("R", Enemy, myHero, 1) + getdmg("R", Enemy, myHero, 2)
-				local AADmg = getdmg("AA", Enemy, myHero) + (CalcPhysicalDamage(myHero, Enemy, 0.5 * myHero.totalDamage) + CalcMagicalDamage(myHero, Enemy, 0.5 * myHero.totalDamage))
+				local AADmg = getdmg("AA", Enemy, myHero) + (CalcDamage(myHero, Enemy, 1, 0.5 * myHero.totalDamage) + CalcDamage(myHero, Enemy, 2, 0.5 * myHero.totalDamage))
 				local KSDmg = RDmg + AADmg
 
 				if KSDmg >= Enemy.health and GetEnemyCount(Menu.ks.RRange:Value(), Enemy) == 1 and CastingChecks() then
@@ -471,20 +471,20 @@ function KsUlt()
 						if RPrediction:CanHit(Menu.MiscSet.Pred.PredR:Value()+1) then
 							Control.CastSpell(HK_R, RPrediction.CastPosition)
 						end
-					end	
-				end			
+					end
+				end
 			end
 		end
-	end	
+	end
 end
 
 function Combo()
 local CastingE = myHero.activeSpell.name == "YoneE"
-local CastingR = myHero.activeSpell.name == "YoneR"  	
+local CastingR = myHero.activeSpell.name == "YoneR"
 if target == nil then return end
-	
+
 	if IsValid(target) then
-		
+
 		CalcEDmg(target)
 		local FullDmg = CalcFullDmg(target)
 		local EnemyCount = GetEnemyCount(2000, myHero)
@@ -493,10 +493,10 @@ if target == nil then return end
 		if _G.SDK then
 			Attacking = _G.SDK.Attack:IsActive()
 		elseif _G.PremiumOrbwalker then
-			Attacking =_G.PremiumOrbwalker:IsAutoAttacking()	-- added Prem.Orb Attack Check		
+			Attacking =_G.PremiumOrbwalker:IsAutoAttacking()	-- added Prem.Orb Attack Check
 		end
-				
-		
+
+
 		if Menu.ComboSet.E.UseE4:Value() and myHero.mana > 0 and Ready(_E) and not (myHero.pathing and myHero.pathing.isDashing) and not CastingE and not CastingR then
 			local EPercent = 0.225 + (0.025*myHero:GetSpellData(_E).level)
 			if target.health <= EDmgPred * EPercent then
@@ -504,7 +504,7 @@ if target == nil then return end
 				Control.CastSpell(HK_E)
 			end
 		end
-		
+
 		if Menu.ComboSet.E.UseE3:Value() and myHero.mana > 0 and Ready(_E) and not (myHero.pathing and myHero.pathing.isDashing) and not CastingE and not CastingR then
 			if myHero.health/myHero.maxHealth <= Menu.ComboSet.E.Hp:Value() / 100 then
 				Control.CastSpell(HK_E)
@@ -516,7 +516,7 @@ if target == nil then return end
 				local TurretDmg = CalcTurretDmg()
 				if TurretDmg + 50 >= myHero.health then
 					Control.CastSpell(HK_E)
-				end	
+				end
 			end
 		end
 
@@ -528,8 +528,8 @@ if target == nil then return end
 			if Menu.ComboSet.R.UseR3:Value() then
 				if EnemyCount >= Menu.ComboSet.R.RCount:Value() then
 					CastRAOE(target)
-				end	
-			end			
+				end
+			end
 			if Menu.ComboSet.R.UseR2:Value() and (myHero:GetSpellData(_Q).name == "YoneQ" or myHero.mana == 0) then
 				if myHero.pos:DistanceTo(target.pos) <= 900 then
 					if FullDmg.CurrentDamage >= target.health then
@@ -537,10 +537,10 @@ if target == nil then return end
 					end
 				end
 			end
-		end			
+		end
 
 		local QReady = Ready(_Q) and Menu.ComboSet.Q.UseQ1:Value()
-		if QReady and CastingChecks() --[[and not Attacking]] then			
+		if QReady and CastingChecks() --[[and not Attacking]] then
 			if myHero:GetSpellData(_Q).name == "YoneQ" then
 				if (myHero.mana == 0 or not Ready(_R) or target.health > FullDmg.CurrentDamage) then
 					if myHero.pos:DistanceTo(target.pos) <= 450 then
@@ -555,31 +555,31 @@ if target == nil then return end
 				if Menu.ComboSet.Q.UseQ4:Value() then
 					if EnemyCount > 2 then
 						CastQAOE(target)
-					end	
+					end
 				end
 				if Menu.ComboSet.Q.UseQ3:Value() then
 					if myHero.pos:DistanceTo(target.pos) <= 850 then
 						CastQ(target)
-					end	
+					end
 				end
 			end
-		end	
+		end
 
-		if Menu.ComboSet.W.UseW1:Value() and Ready(_W) and CastingChecks() --[[and not Attacking]] then			
+		if Menu.ComboSet.W.UseW1:Value() and Ready(_W) and CastingChecks() --[[and not Attacking]] then
 			local CheckCount = GetEnemyCount(600, myHero)
 			local CheckTargetCount = GetEnemyCount(250, target)
 			local RPrimed = (myHero.mana > 0 and Ready(_R) and target.health < FullDmg.CurrentDamage)
-			if Menu.ComboSet.W.UseW2:Value() and CheckCount >= 2 and (CheckTargetCount < 2 or not RPrimed) then 
+			if Menu.ComboSet.W.UseW2:Value() and CheckCount >= 2 and (CheckTargetCount < 2 or not RPrimed) then
 				CastW()
 			elseif not RPrimed then
 				if myHero.pos:DistanceTo(target.pos) <= 500 then
 					Control.CastSpell(HK_W, target.pos)
 				end
-			end	
-		end	
+			end
+		end
 
 	end
-end	
+end
 
 function Harass()
 
@@ -587,33 +587,33 @@ local Attacking = false
 if _G.SDK then
 	Attacking = _G.SDK.Attack:IsActive()
 elseif _G.PremiumOrbwalker then
-	Attacking =_G.PremiumOrbwalker:IsAutoAttacking()	-- added Prem.Orb Attack Check		
+	Attacking =_G.PremiumOrbwalker:IsAutoAttacking()	-- added Prem.Orb Attack Check
 end
-     	
-if target == nil then return end 
-	
+
+if target == nil then return end
+
 	if IsValid(target) then
-		
+
 		if Menu.Harass.UseE2:Value() and myHero.mana > 0 and Ready(_E) then
 			if myHero.health/myHero.maxHealth <= Menu.Harass.Hp:Value() / 100 then
 				Control.CastSpell(HK_E)
 			end
-		end			
-		
+		end
+
 		if Menu.Harass.UseE3:Value() and myHero.mana > 0 and Ready(_E) then
 			if AutoAttacks >= Menu.Harass.E3AA:Value() then
 				Control.CastSpell(HK_E)
 			end
-		end	
+		end
 
-		if Menu.Harass.UseW:Value() and Ready(_W) and (not Attacking or GetDistance(target.pos) > 200) then			
+		if Menu.Harass.UseW:Value() and Ready(_W) and (not Attacking or GetDistance(target.pos) > 200) then
 			if myHero.pos:DistanceTo(target.pos) <= 500 then
 				Control.CastSpell(HK_W, target.pos)
 			end
-		end	
-			
+		end
+
 		if Menu.Harass.UseQ1:Value() and Ready(_Q) and (not Attacking or GetDistance(target.pos) > 200) then
-			
+
 			if myHero:GetSpellData(_Q).name == "YoneQ" then
 				if myHero.pos:DistanceTo(target.pos) <= 450 then
 					CastQShort(target)
@@ -626,8 +626,8 @@ if target == nil then return end
 				if Menu.Harass.UseQ2:Value() and myHero:GetSpellData(_Q).name == "YoneQ3" and Ready(_Q) then
 					if myHero.pos:DistanceTo(target.pos) <= 850 then
 						CastQ(target)
-					end							
-				end				
+					end
+				end
 			end
 		end
 	end
@@ -643,56 +643,56 @@ function StackQMinion()
 				Control.CastSpell(HK_Q, minion)
 				SetMovement(true)
 			end
-		end	
-	end	
-end		
+		end
+	end
+end
 
 function JungleClear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 
 		if myHero.pos:DistanceTo(minion.pos) <= 500 and minion.team == TEAM_JUNGLE and IsValid(minion) then
- 			
+
 			if Menu.ClearSet.JClear.UseW:Value() and Ready(_W) then
-				Control.CastSpell(HK_W, minion.pos)                  
-            end           
-           
+				Control.CastSpell(HK_W, minion.pos)
+            end
+
 			if Menu.ClearSet.JClear.UseQ1:Value() then
 				if myHero.pos:DistanceTo(minion.pos) <= 475 and myHero:GetSpellData(_Q).name == "YoneQ" and Ready(_Q) then
 					Control.CastSpell(HK_Q, minion.pos)
-				end	
-			end	
+				end
+			end
 
 			if Menu.ClearSet.JClear.UseQ2:Value() then
-				if myHero.pos:DistanceTo(minion.pos) <= 450 and myHero:GetSpellData(_Q).name == "YoneQ3" and Ready(_Q) then 
+				if myHero.pos:DistanceTo(minion.pos) <= 450 and myHero:GetSpellData(_Q).name == "YoneQ3" and Ready(_Q) then
 					Control.CastSpell(HK_Q, minion.pos)
-				end	
-			end				
+				end
+			end
         end
     end
 end
-			
+
 function Clear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 
 		if myHero.pos:DistanceTo(minion.pos) <= 500 and minion.team == TEAM_ENEMY and IsValid(minion) then
- 			
+
 			if Menu.ClearSet.Clear.UseW:Value() and Ready(_W) then
-				Control.CastSpell(HK_W, minion.pos)                  
-            end           
-           
+				Control.CastSpell(HK_W, minion.pos)
+            end
+
 			if Menu.ClearSet.Clear.UseQ1:Value() then
-				if myHero.pos:DistanceTo(minion.pos) <= 475 and myHero:GetSpellData(_Q).name == "YoneQ" and Ready(_Q) then 
+				if myHero.pos:DistanceTo(minion.pos) <= 475 and myHero:GetSpellData(_Q).name == "YoneQ" and Ready(_Q) then
 					Control.CastSpell(HK_Q, minion.pos)
-				end	
-			end	
+				end
+			end
 
 			if Menu.ClearSet.Clear.UseQ2:Value() then
-				if myHero.pos:DistanceTo(minion.pos) <= 450 and myHero:GetSpellData(_Q).name == "YoneQ3" and Ready(_Q) then 
+				if myHero.pos:DistanceTo(minion.pos) <= 450 and myHero:GetSpellData(_Q).name == "YoneQ3" and Ready(_Q) then
 					Control.CastSpell(HK_Q, minion.pos)
-				end	
-			end				
+				end
+			end
         end
     end
 end
@@ -703,7 +703,7 @@ function CastE1Smart(unit)
 	if mode == "Harass" then
 		E1Ready = Menu.Harass.UseE:Value() and Ready(_E) and myHero.mana == 0
 	end
-	
+
 	if E1Ready then
 		local EnemyCount = GetEnemyCount(600, unit)
 		if EnemyCount > 1 then
@@ -729,18 +729,18 @@ function CastQ(unit)
 	if mode == "Harass" then
 		E1Ready = Menu.Harass.UseE:Value() and Ready(_E) and myHero.mana == 0
 	end
-	
+
 	if myHero.mana > 0 or not E1Ready or GetDistance(unit.pos) < 200 then
-		
+
 		if Menu.MiscSet.Pred.Change:Value() == 1 then
 			local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, QspellData)
 			if pred.CastPos and ConvertToHitChance(Menu.MiscSet.Pred.PredQ:Value(), pred.HitChance) then
 				Control.CastSpell(HK_Q, pred.CastPos)
 			end
 		else
-			CastQGGPred(unit)	
+			CastQGGPred(unit)
 		end
-	
+
 	elseif E1Ready then
 		CastE1Smart(unit)
 	end
@@ -753,9 +753,9 @@ function CastQShort(unit)
 			Control.CastSpell(HK_Q, pred.CastPos)
 		end
 	else
-		CastQShortGGPred(unit)	
+		CastQShortGGPred(unit)
 	end
-end		
+end
 
 function CastW()
 	for i, Enemy in ipairs(GetEnemyHeroes()) do
@@ -766,11 +766,11 @@ function CastW()
 					Control.CastSpell(HK_W, pred.CastPos)
 				end
 			else
-				CastWGGPred()	
-			end	
+				CastWGGPred()
+			end
 		end
 	end
-end	
+end
 
 function CastR(unit)
 	local mode = GetMode()
@@ -778,20 +778,20 @@ function CastR(unit)
 	if mode == "Harass" then
 		E1Ready = Menu.Harass.UseE:Value() and Ready(_E) and myHero.mana == 0
 	end
-	
+
 	if myHero.mana > 0 or not E1Ready then
 		if Menu.MiscSet.Pred.Change:Value() == 1 then
 			local pred = _G.PremiumPrediction:GetPrediction(myHero, unit, R2spellData)
 			if pred.CastPos and ConvertToHitChance(Menu.MiscSet.Pred.PredR:Value(), pred.HitChance) then
-				Control.CastSpell(HK_R, pred.CastPos)				
+				Control.CastSpell(HK_R, pred.CastPos)
 			end
 		else
-			CastRGGPred(unit)	
+			CastRGGPred(unit)
 		end
-	elseif E1Ready then 
+	elseif E1Ready then
 		CastE1Smart(unit)
 	end
-end	
+end
 
 function CastRAOE(unit)
 	local mode = GetMode()
@@ -805,10 +805,10 @@ function CastRAOE(unit)
 			if pred.HitCount >= Menu.ComboSet.R.RCount:Value() then
 				if myHero.mana > 0 or not E1Ready then
 					Control.CastSpell(HK_R, pred.CastPos)
-				elseif E1Ready then 
+				elseif E1Ready then
 					CastE1Smart(unit)
 				end
-			end				
+			end
 		end
 	else						-- GG-AOE-Prediction --
 		local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.8, Radius = 120, Range = 1200, Speed = 1500, Collision = false})
@@ -817,7 +817,7 @@ function CastRAOE(unit)
 		local bestaoe = nil
 		local bestcount = 0
 		local bestdistance = 1000
-	   
+
 		for i = 1, #aoeresult do
 			local aoe = aoeresult[i]
 			if aoe.HitChance >= minhitchance and aoe.TimeToHit <= 0.8 and aoe.Count >= Menu.ComboSet.R.RCount:Value() then
@@ -828,16 +828,16 @@ function CastRAOE(unit)
 				end
 			end
 		end
-		
+
 		if bestaoe then
 			if myHero.mana > 0 or not E1Ready then
 				Control.CastSpell(HK_R, bestaoe.CastPosition)
-			elseif E1Ready then 
+			elseif E1Ready then
 				CastE1Smart(unit)
-			end			 
-		end	
+			end
+		end
 	end
-end	
+end
 
 function CastQAOE(unit)
 	local mode = GetMode()
@@ -845,17 +845,17 @@ function CastQAOE(unit)
 	if mode == "Harass" then
 		E1Ready = Menu.Harass.UseE:Value() and Ready(_E) and myHero.mana == 0
 	end
-	
+
 	if Menu.MiscSet.Pred.Change:Value() == 1 then
 		local pred = _G.PremiumPrediction:GetAOEPrediction(myHero, unit, QspellData)
 		if pred.CastPos and ConvertToHitChance(Menu.MiscSet.Pred.PredQ:Value(), pred.HitChance) then
 			if pred.HitCount >= 2 then
 				if myHero.mana > 0 or not E1Ready then
 					Control.CastSpell(HK_Q, pred.CastPos)
-				elseif E1Ready then 
+				elseif E1Ready then
 					CastE1Smart(unit)
 				end
-			end	
+			end
 		end
 	else						-- GG-AOE-Prediction --
 		local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.35, Radius = 120, Range = 900, Speed = 1700, Collision = false})
@@ -864,7 +864,7 @@ function CastQAOE(unit)
 		local bestaoe = nil
 		local bestcount = 0
 		local bestdistance = 1000
-	   
+
 		for i = 1, #aoeresult do
 			local aoe = aoeresult[i]
 			if aoe.HitChance >= minhitchance and aoe.TimeToHit <= 0.4 and aoe.Count >= 2 then
@@ -875,23 +875,23 @@ function CastQAOE(unit)
 				end
 			end
 		end
-		
+
 		if bestaoe then
 			if myHero.mana > 0 or not E1Ready then
 				Control.CastSpell(HK_Q, bestaoe.CastPosition)
-			elseif E1Ready then 
+			elseif E1Ready then
 				CastE1Smart(unit)
-			end			 
+			end
 		end
-	end	
-end	
+	end
+end
 
 function CastQGGPred(unit)
 	local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.35, Radius = 120, Range = 900, Speed = 1700, Collision = false})
 	QPrediction:GetPrediction(unit, myHero)
 	if QPrediction:CanHit(Menu.MiscSet.Pred.PredQ:Value()+1) then
 		Control.CastSpell(HK_Q, QPrediction.CastPosition)
-	end	
+	end
 end
 
 function CastQShortGGPred(unit)
@@ -899,7 +899,7 @@ function CastQShortGGPred(unit)
 	QPrediction:GetPrediction(unit, myHero)
 	if QPrediction:CanHit(2) then
 		Control.CastSpell(HK_Q, QPrediction.CastPosition)
-	end	
+	end
 end
 
 function CastWGGPred(mintargets, maxtimetohit)
@@ -909,7 +909,7 @@ function CastWGGPred(mintargets, maxtimetohit)
     local bestaoe = nil
     local bestcount = 0
     local bestdistance = 1000
-   
+
 	for i = 1, #aoeresult do
         local aoe = aoeresult[i]
         if aoe.HitChance >= minhitchance and aoe.TimeToHit <= 0.5 and aoe.Count >= 2 then
@@ -920,9 +920,9 @@ function CastWGGPred(mintargets, maxtimetohit)
             end
         end
     end
-    
+
 	if bestaoe then
-        Control.CastSpell(HK_W, bestaoe.CastPosition) 
+        Control.CastSpell(HK_W, bestaoe.CastPosition)
     end
 end
 
@@ -930,9 +930,9 @@ function CastRGGPred(unit)
 	local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.8, Radius = 120, Range = 1200, Speed = 1500, Collision = false})
 	RPrediction:GetPrediction(unit, myHero)
 	if RPrediction:CanHit(Menu.MiscSet.Pred.PredR:Value()+1) then
-		Control.CastSpell(HK_R, RPrediction.CastPosition)			
+		Control.CastSpell(HK_R, RPrediction.CastPosition)
 	end
-	if Menu.MiscSet.Drawing.Kill:Value() then  	
+	if Menu.MiscSet.Drawing.Kill:Value() then
 		if target == nil then return end
 
 		if IsValid(target) then
@@ -953,5 +953,5 @@ function CastRGGPred(unit)
 				end
 			end
 		end
-	end	
-end	
+	end
+end

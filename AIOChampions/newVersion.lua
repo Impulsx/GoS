@@ -11,11 +11,11 @@ Data = {
     Champions = {
         Mordekaiser = {
             Changelog = "Mordekaiser Changelog Here",
-            Version = 0.07,
+            Version = 0.08,
         },
         Cassiopeia = {
             Changelog = "Cassiopeia Changelog Here",
-            Version = 0.12,
+            Version = 0.13,
         },
         Lux = {
             Changelog = "Lux Changelog Here",
@@ -55,7 +55,7 @@ Data = {
         },
         Tristana = {
             Changelog = "Tristana Changelog Here",
-            Version = 0.11,
+            Version = 0.12,
         },
         Sona = {
             Changelog = "Sona Changelog Here",
@@ -123,7 +123,7 @@ Data = {
         },
          Akali = {
             Changelog = "Akali Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         },
          Sett = {
             Changelog = "Sett Changelog Here",
@@ -135,7 +135,7 @@ Data = {
         },
          Diana = {
             Changelog = "Diana Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         },
           Fiora = {
             Changelog = "Fiora Changelog Here",
@@ -191,7 +191,7 @@ Data = {
         },
            Katarina = {
             Changelog = "Katarina Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
            Karthus = {
             Changelog = "Karthus Changelog Here",
@@ -199,7 +199,7 @@ Data = {
         },
            Leblanc = {
             Changelog = "Leblanc Changelog Here",
-            Version = 0.03,
+            Version = 0.04,
         },
         Seraphine = {
             Changelog = "Seraphine Changelog Here",
@@ -215,11 +215,11 @@ Data = {
         },
         Kayn = {
             Changelog = "Kayn Changelog Here",
-            Version = 0.02,
+            Version = 0.03,
         },
         Kayle = {
             Changelog = "Kayle Changelog Here",
-            Version = 0.04,
+            Version = 0.05,
         },
          Graves = {
             Changelog = "Graves Changelog Here",
@@ -307,7 +307,7 @@ Data = {
         },
            Yone = {
             Changelog = "Yone Changelog Here",
-           Version = 0.04,
+           Version = 0.05,
         },
     },
 }
