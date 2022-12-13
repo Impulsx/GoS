@@ -1277,7 +1277,7 @@ function Samira:SafeCombo(target)
 			comboStage = 1
 			--return self:SafeCombo(target, comboStage)
 		end
-		if self.Menu.ComboSet.SafeCombo.UseE:Value() and comboStage == 1 and Ready(_E) and Ready(_Q) and rangeE then
+		if self.Menu.ComboSet.SafeCombo.UseE:Value() and comboStage == 1 and Ready(_E) and Ready(_Q) and rangeE and not self:IsDashPosTurret(target) then
 			-- E logic + dash to AoE?
 			--if QDmg+EDmg+RDmg then end
 			Control.CastSpell(HK_E, target)
