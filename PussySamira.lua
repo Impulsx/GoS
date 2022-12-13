@@ -1237,11 +1237,11 @@ function Samira:SafeCombo(target)
 	local rangeQ = ((myHero.pos:DistanceTo(target.pos) <= QRange))
 	local rangeW = ((myHero.pos:DistanceTo(target.pos) <= WRange))
 	local rangeE = ((myHero.pos:DistanceTo(target.pos) <= ERange))
-	local rangeR = ((myHero.pos:DistanceTo(target.pos) <= RRange))
+	local rangeR = ((myHero.pos:DistanceTo(target.pos) <= RRange) or (GetEnemyCount(RRange, myHero.pos) >= 1))
 	if self.Menu.ComboSet.SafeComboEnable:Value() then
 		if Ready(_R) and RReady and rangeR and self.Menu.ComboSet.SafeCombo.UseR:Value() then
 			Control.CastSpell(HK_R)
-			comboStage = 1
+			comboStage = 0
 			local timer
 			if RExpire > GameTimer() then
 				timer = RExpire - GameTimer()
