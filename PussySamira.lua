@@ -1262,7 +1262,7 @@ function Samira:SafeCombo(target)
 
 		--
 		local isAttacking = ((myHero.attackData.state == STATE_WINDDOWN) or _G.SDK.Orbwalker:IsAutoAttacking(target))
-		if self.Menu.ComboSet.SafeCombo.UseW:Value() and (comboStage == 0) and rangeW and isAttacking and style > 0 and not style == 6 then
+		if self.Menu.ComboSet.SafeCombo.UseW:Value() and (comboStage == 0) and rangeW and isAttacking and style < 6 or style > 0 then
 			if Ready(_W) and not (CastingQ or CastingR) then
 				Control.CastSpell(HK_W)
 				comboStage = 1
