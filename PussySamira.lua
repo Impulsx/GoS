@@ -1233,14 +1233,15 @@ function Samira:SafeCombo(target)
 	if not Ready(_W) and not Ready(_E) then
 		comboStage = 2
 	end
-	if not Ready(_Q) and not Ready(_W) and not Ready(_E) and not Ready(_W) then
+	if not Ready(_Q) and not Ready(_W) and not Ready(_E) and not Ready(_R) then
 		return
 	end
-
-	local rangeQ = ((GetDistance(myHero.pos, target.pos) <= QRange) or (myHero.pos:DistanceTo(target.pos) <= QRange))
-	local rangeW = ((GetDistance(myHero.pos, target.pos) <= WRange) or (myHero.pos:DistanceTo(target.pos) <= WRange) or (GetEnemyCount(WRange, myHero.pos) > 0))
-	local rangeE = ((GetDistance(myHero.pos, target.pos) <= ERange) or (myHero.pos:DistanceTo(target.pos) <= ERange))
-	local rangeR = ((GetDistance(myHero.pos, target.pos) <= RRange) or (myHero.pos:DistanceTo(target.pos) <= RRange) or (GetEnemyCount(RRange, myHero.pos) > 0))
+	local rangeAll = GetDistance(myHero.pos, target.pos)
+	local distanceTo = myHero.pos:DistanceTo(target.pos)
+	local rangeQ = ((rangeAll) <= QRange) or (distanceTo <= QRange)
+	local rangeW = ((rangeAll) <= WRange) or (distanceTo <= WRange) or (GetEnemyCount(WRange, myHero.pos) > 0)
+	local rangeE = ((rangeAll) <= ERange) or (distanceTo <= ERange)
+	local rangeR = ((rangeAll) <= RRange) or (distanceTo <= RRange) or (GetEnemyCount(RRange, myHero.pos) > 0)
 
 	if self.Menu.ComboSet.SafeComboEnable:Value() then
 		if Ready(_R) and rangeR and self.Menu.ComboSet.SafeCombo.UseR:Value() then --and RReady
@@ -1521,7 +1522,6 @@ function Samira:Draw()
 	DrawText(tostring(style), 20, myHero.pos2D.x-50, myHero.pos2D.y-100, DrawColor(255, 0, 255, 0))
 	DrawText(tostring(comboStage), 15, myHero.pos2D.x-50, myHero.pos2D.y-75, DrawColor(255, 0, 255, 0))
 	DrawText(tostring(CastedW), 15, myHero.pos2D.x-50, myHero.pos2D.y-50, DrawColor(255, 0, 255, 0)) ]]
-
 	if self.Menu.MiscSet.Drawing.DrawCombo:Value() then
 		local posX = self.Menu.MiscSet.Drawing.ComboposX:Value()
 		local posY = self.Menu.MiscSet.Drawing.ComboposY:Value()
