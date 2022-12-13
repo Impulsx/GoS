@@ -30,9 +30,9 @@ end
 
 -- [ AutoUpdate ]
 do
-    
-    local Version = 0.05
-    
+
+    local Version = 0.06
+
     local Files = {
         Lua = {
             Path = SCRIPT_PATH,
@@ -45,21 +45,21 @@ do
             Url = "https://raw.githubusercontent.com/Impulsx/GoS/master/PussyLillia.version"
         }
     }
-    
+
     local function AutoUpdate()
 
         local function DownloadFile(url, path, fileName)
             DownloadFileAsync(url, path .. fileName, function() end)
             while not FileExist(path .. fileName) do end
         end
-        
+
         local function ReadFile(path, fileName)
             local file = io.open(path .. fileName, "r")
             local result = file:read()
             file:close()
             return result
         end
-        
+
         DownloadFile(Files.Version.Url, Files.Version.Path, Files.Version.Name)
         local textPos = myHero.pos:To2D()
         local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
@@ -69,12 +69,12 @@ do
         else
             print("PussyLillia loaded")
         end
-    
+
     end
-    
+
     AutoUpdate()
 
-end 
+end
 
 ----------------------------------------------------
 --|                    Utils                     |--
@@ -115,7 +115,6 @@ local GameTurretCount = Game.TurretCount
 local GameTurret = Game.Turret
 local GameIsChatOpen = Game.IsChatOpen
 local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
-_G.LATENCY = 0.05
 
 
 function LoadUnits()
@@ -152,7 +151,7 @@ local function GetDistance(pos1, pos2)
 	return sqrt(GetDistanceSqr(pos1, pos2))
 end
 
-function GetTarget(range) 
+function GetTarget(range)
 	if _G.SDK then
 		if myHero.ap > myHero.totalDamage then
 			return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
@@ -164,22 +163,22 @@ function GetTarget(range)
 	end
 end
 
-function GetMode()   
+function GetMode()
     if _G.SDK then
-        return 
+        return
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] and "Combo"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] and "Harass"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] and "LaneClear"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] and "LaneClear"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] and "LastHit"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] and "Flee"
 		or nil
-    
+
 	elseif _G.PremiumOrbwalker then
 		return _G.PremiumOrbwalker:GetMode()
 	end
@@ -189,10 +188,10 @@ end
 local function SetAttack(bool)
 	if _G.EOWLoaded then
 		EOW:SetAttacks(bool)
-	elseif _G.SDK then                                                        
+	elseif _G.SDK then
 		_G.SDK.Orbwalker:SetAttack(bool)
 	elseif _G.PremiumOrbwalker then
-		_G.PremiumOrbwalker:SetAttack(bool)	
+		_G.PremiumOrbwalker:SetAttack(bool)
 	else
 		GOS.BlockAttack = not bool
 	end
@@ -205,7 +204,7 @@ local function SetMovement(bool)
 	elseif _G.SDK then
 		_G.SDK.Orbwalker:SetMovement(bool)
 	elseif _G.PremiumOrbwalker then
-		_G.PremiumOrbwalker:SetMovement(bool)	
+		_G.PremiumOrbwalker:SetMovement(bool)
 	else
 		GOS.BlockMovement = not bool
 	end
@@ -240,12 +239,12 @@ local function GetMinionCount(range, pos)
 		end
 	end
 	return count
-end	
+end
 
 local function IsUnderTurret(unit)
 	for i, turret in ipairs(GetEnemyTurrets()) do
         local range = (turret.boundingRadius + 750 + unit.boundingRadius / 2)
-        if not turret.dead then 
+        if not turret.dead then
             if turret.pos:DistanceTo(unit.pos) < range then
                 return true
             end
@@ -257,7 +256,7 @@ end
 local function HasBuff(unit, buffname)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
-		if buff.name == buffname and buff.count > 0 then 
+		if buff.name == buffname and buff.count > 0 then
 			return true
 		end
 	end
@@ -267,7 +266,7 @@ end
 local function GetBuffData(unit, buffname)
 	for i = 0, unit.buffCount do
     local buff = unit:GetBuff(i)
-		if buff.name == buffname and buff.count > 0 then 
+		if buff.name == buffname and buff.count > 0 then
 			return buff
 		end
 	end
@@ -297,27 +296,27 @@ end
 local function CalcDmg(unit)
 	local total = 0
 	local level = myHero.levelData.lvl
-	
+
 	if Ready(_Q) then
-		local QDmg = CalcMagicalDamage(myHero, unit, (15 + 15 * level) + (0.4 * myHero.ap))
-		local TrueDmg = (15 + 15 * level) + (0.4 * myHero.ap)		
+		local QDmg = CalcDamage(myHero, unit, 2, (15 + 15 * level) + (0.4 * myHero.ap))
+		local TrueDmg = (15 + 15 * level) + (0.4 * myHero.ap)
 		total = total + (QDmg + TrueDmg)
 	end
 
 	if Ready(_W) then
-		local WDmg = CalcMagicalDamage(myHero, unit, (165 + 45 * level) + (0.9 * myHero.ap))		
-		total = total + WDmg 
+		local WDmg = CalcDamage(myHero, unit, 2, (165 + 45 * level) + (0.9 * myHero.ap))
+		total = total + WDmg
 	end
 
 	if Ready(_E) then
-		local EDmg = CalcMagicalDamage(myHero, unit, (50 + 20 * level) + (0.4 * myHero.ap))		
-		total = total + EDmg 
+		local EDmg = CalcDamage(myHero, unit, 2, (50 + 20 * level) + (0.4 * myHero.ap))
+		total = total + EDmg
 	end
 
 	if Ready(_R) then
-		local RDmg = CalcMagicalDamage(myHero, unit, (50 + 50 * level) + (0.3 * myHero.ap))		
-		total = total + RDmg 
-	end	
+		local RDmg = CalcDamage(myHero, unit, 2, (50 + 50 * level) + (0.3 * myHero.ap))
+		total = total + RDmg
+	end
 	return total
 end
 
@@ -360,37 +359,37 @@ function Lillia:__init()
 			elseif self.Menu.MiscSet.Pred.Change:Value() == 2 then
 				require('PremiumPrediction')
 				PredLoaded = true
-			else 
+			else
 				require('GGPrediction')
-				PredLoaded = true					
+				PredLoaded = true
 			end
-		end, 1)	
+		end, 1)
 	end
 end
 
-function Lillia:LoadMenu()                     	
+function Lillia:LoadMenu()
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "PussyLillia", name = "PussyLillia"})
 self.Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
 
 	--AutoQ
-self.Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ Mode"})	
+self.Menu:MenuElement({type = MENU, id = "AutoQ", name = "AutoQ Mode"})
 	self.Menu.AutoQ:MenuElement({id = "UseQ", name = "AutoQ Toggle Key", key = string.byte("T"), value = true, toggle = true})
 	self.Menu.AutoQ:MenuElement({id = "QLogic", name = "[Q] Logic", value = 1, drop = {"Auto Q only outer range (TrueDmg)", "Auto Q always"}})
 
 self.Menu:MenuElement({type = MENU, id = "ComboSet", name = "Combo Settings"})
-	
-	--ComboMenu  
+
+	--ComboMenu
 	self.Menu.ComboSet:MenuElement({type = MENU, id = "Combo", name = "Combo Mode"})
-	self.Menu.ComboSet.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})	
-	self.Menu.ComboSet.Combo:MenuElement({id = "QLogic", name = "[Q] Logic", value = 1, drop = {"Q only outer range (TrueDmg)", "Q always"}})	
+	self.Menu.ComboSet.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
+	self.Menu.ComboSet.Combo:MenuElement({id = "QLogic", name = "[Q] Logic", value = 1, drop = {"Q only outer range (TrueDmg)", "Q always"}})
 	self.Menu.ComboSet.Combo:MenuElement({id = "UseW", name = "[W]", value = true})
-	self.Menu.ComboSet.Combo:MenuElement({id = "UseE", name = "[E] only in Cast range", value = true})	
+	self.Menu.ComboSet.Combo:MenuElement({id = "UseE", name = "[E] only in Cast range", value = true})
 	self.Menu.ComboSet.Combo:MenuElement({id = "UseR", name = "[R]Single Target if killable", value = true})
-	self.Menu.ComboSet.Combo:MenuElement({id = "UseRCount", name = "Auto[R] Multiple Enemys", value = true})	
+	self.Menu.ComboSet.Combo:MenuElement({id = "UseRCount", name = "Auto[R] Multiple Enemys", value = true})
 	self.Menu.ComboSet.Combo:MenuElement({id = "RCount", name = "Multiple Enemys", value = 2, min = 2, max = 5, step = 1})
-	self.Menu.ComboSet.Combo:MenuElement({id = "RRange", name = "Max search passive range for [R]", value = 1000, min = 0, max = 2000, step = 10})	
-	
+	self.Menu.ComboSet.Combo:MenuElement({id = "RRange", name = "Max search passive range for [R]", value = 1000, min = 0, max = 2000, step = 10})
+
 
 
 self.Menu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
@@ -398,58 +397,58 @@ self.Menu:MenuElement({type = MENU, id = "ClearSet", name = "Clear Settings"})
 	--LaneClear Menu
 	self.Menu.ClearSet:MenuElement({type = MENU, id = "Clear", name = "Clear Mode"})
 	self.Menu.ClearSet.Clear:MenuElement({id = "UseQ", name = "[Q]", value = true})
-	self.Menu.ClearSet.Clear:MenuElement({id = "QCount", name = "min Minions for [Q]", value = 3, min = 1, max = 7, step = 1})	
+	self.Menu.ClearSet.Clear:MenuElement({id = "QCount", name = "min Minions for [Q]", value = 3, min = 1, max = 7, step = 1})
 	self.Menu.ClearSet.Clear:MenuElement({id = "UseW", name = "[W]", value = true})
-	self.Menu.ClearSet.Clear:MenuElement({id = "WCount", name = "min Minions for [W]", value = 3, min = 1, max = 7, step = 1})			
+	self.Menu.ClearSet.Clear:MenuElement({id = "WCount", name = "min Minions for [W]", value = 3, min = 1, max = 7, step = 1})
 	self.Menu.ClearSet.Clear:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
-	
+
 	--JungleClear Menu
 	self.Menu.ClearSet:MenuElement({type = MENU, id = "JClear", name = "JungleClear Mode"})
-	self.Menu.ClearSet.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true})	
+	self.Menu.ClearSet.JClear:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	self.Menu.ClearSet.JClear:MenuElement({id = "UseW", name = "[W]", value = true})
-	self.Menu.ClearSet.JClear:MenuElement({id = "UseE", name = "[E]", value = true})		
-	self.Menu.ClearSet.JClear:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})		
+	self.Menu.ClearSet.JClear:MenuElement({id = "UseE", name = "[E]", value = true})
+	self.Menu.ClearSet.JClear:MenuElement({id = "Mana", name = "Min Mana", value = 40, min = 0, max = 100, identifier = "%"})
 
-	
+
 self.Menu:MenuElement({type = MENU, id = "MiscSet", name = "Misc Settings"})
 
 	self.Menu.MiscSet:MenuElement({type = MENU, id = "BlockAA", name = "Block AutoAttack"})
-	self.Menu.MiscSet.BlockAA:MenuElement({name = " ", drop = {"BlockAA (Combo/AutoQ) if Q Ready or almost Ready"}})	
+	self.Menu.MiscSet.BlockAA:MenuElement({name = " ", drop = {"BlockAA (Combo/AutoQ) if Q Ready or almost Ready"}})
 	self.Menu.MiscSet.BlockAA:MenuElement({id = "Block", name = "Toggle Key", key = string.byte("Z"), value = true, toggle = true})
-							
+
 	--Prediction
 	self.Menu.MiscSet:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
-	self.Menu.MiscSet.Pred:MenuElement({name = " ", drop = {"After change Prediction Typ press 2xF6"}})	
-	self.Menu.MiscSet.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 2, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})	
+	self.Menu.MiscSet.Pred:MenuElement({name = " ", drop = {"After change Prediction Typ press 2xF6"}})
+	self.Menu.MiscSet.Pred:MenuElement({id = "Change", name = "Change Prediction Typ", value = 2, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction"}})
 	self.Menu.MiscSet.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 1, drop = {"Normal", "High", "Immobile"}})
-	self.Menu.MiscSet.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})	
+	self.Menu.MiscSet.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 1, drop = {"Normal", "High", "Immobile"}})
 
-	--Drawing 
+	--Drawing
 	self.Menu.MiscSet:MenuElement({type = MENU, id = "Drawing", name = "Drawings Mode"})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "Draw_AutoQ", name = "Draw Auto Q indictator", value = true})
-	self.Menu.MiscSet.Drawing:MenuElement({id = "Draw_BlockAA", name = "Draw Block AA indictator", value = true})	
+	self.Menu.MiscSet.Drawing:MenuElement({id = "Draw_BlockAA", name = "Draw Block AA indictator", value = true})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = false})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawR", name = "Draw [R] Range", value = false})
 	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = false})
-	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})	
+	self.Menu.MiscSet.Drawing:MenuElement({id = "DrawW", name = "Draw [W] Range", value = false})
 
 	if _G.SDK then
 		_G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
 	elseif _G.PremiumOrbwalker then
 		_G.PremiumOrbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
-	end		
-end	
+	end
+end
 
-function Lillia:Tick()	
-	if heroes == false then 
-		local EnemyCount = CheckLoadedEnemyies()			
+function Lillia:Tick()
+	if heroes == false then
+		local EnemyCount = CheckLoadedEnemyies()
 		if EnemyCount < 1 then
 			LoadUnits()
 		else
 			heroes = true
 		end
-		
-	else	
+
+	else
 
 	if MyHeroNotReady() then return end
 
@@ -459,13 +458,13 @@ function Lillia:Tick()
 			self:CountR()
 		elseif Mode == "LaneClear" then
 			self:JungleClear()
-			self:Clear()	
+			self:Clear()
 		end
 
 		if self.Menu.AutoQ.UseQ:Value() then
 			self:AutoQ()
-		end	
-	end	
+		end
+	end
 end
 
 function Lillia:OnPreAttack(args)
@@ -476,12 +475,12 @@ function Lillia:OnPreAttack(args)
 		else
 			args.Process = true;
 		end
-	end	
+	end
 end
 
-function Lillia:AutoQ()	
-	for i, target in ipairs(GetEnemyHeroes()) do 		
-		if target and myHero.pos:DistanceTo(target.pos) <= 475 and IsValid(target) and Ready(_Q) then			
+function Lillia:AutoQ()
+	for i, target in ipairs(GetEnemyHeroes()) do
+		if target and myHero.pos:DistanceTo(target.pos) <= 475 and IsValid(target) and Ready(_Q) then
 			if self.Menu.AutoQ.QLogic:Value() == 1 then
 				if myHero.pos:DistanceTo(target.pos) > (225+target.boundingRadius) then
 					Control.CastSpell(HK_Q)
@@ -494,7 +493,7 @@ function Lillia:AutoQ()
 end
 
 function Lillia:Combo()
-local target = GetTarget(2000)     	
+local target = GetTarget(2000)
 if target == nil then return end
 	if IsValid(target) then
 
@@ -506,84 +505,84 @@ if target == nil then return end
 			else
 				if myHero.pos:DistanceTo(target.pos) < 475 then
 					Control.CastSpell(HK_Q)
-				end	
-			end	
+				end
+			end
 		end
 
-		if self.Menu.ComboSet.Combo.UseW:Value() and Ready(_W) then	
+		if self.Menu.ComboSet.Combo.UseW:Value() and Ready(_W) then
 			if myHero.pos:DistanceTo(target.pos) <= 500 then
 				self:CastW(target)
 			end
 		end
-		
-		if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) then	
+
+		if self.Menu.ComboSet.Combo.UseE:Value() and Ready(_E) then
 			if myHero.pos:DistanceTo(target.pos) < 750 then
 				self:CastE(target)
 			end
-		end	
+		end
 
-		if self.Menu.ComboSet.Combo.UseR:Value() and Ready(_R) then	
+		if self.Menu.ComboSet.Combo.UseR:Value() and Ready(_R) then
 			if myHero.pos:DistanceTo(target.pos) < 2000 then
 				local FullDmg = CalcDmg(target)
 				if FullDmg >= target.health then
 					Control.CastSpell(HK_R)
-				end	
+				end
 			end
-		end		
-	end	
-end	
+		end
+	end
+end
 
 function Lillia:CountR()
-	for i, target in ipairs(GetEnemyHeroes()) do 		
+	for i, target in ipairs(GetEnemyHeroes()) do
 		local CastRange = self.Menu.ComboSet.Combo.RRange:Value()
-		if target and myHero.pos:DistanceTo(target.pos) <= CastRange and IsValid(target) and self.Menu.ComboSet.Combo.UseRCount:Value() and Ready(_R) then	
+		if target and myHero.pos:DistanceTo(target.pos) <= CastRange and IsValid(target) and self.Menu.ComboSet.Combo.UseRCount:Value() and Ready(_R) then
 			local count = GetBuffedEnemyCount(CastRange, myHero)
 			if count >= self.Menu.ComboSet.Combo.RCount:Value() then
-				Control.CastSpell(HK_R)	
+				Control.CastSpell(HK_R)
 			end
-		end	
+		end
 	end
-end		
+end
 
 function Lillia:JungleClear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 
 		if minion.team == TEAM_JUNGLE and IsValid(minion) then
- 			
+
 			if myHero.pos:DistanceTo(minion.pos) <= 500 and self.Menu.ClearSet.JClear.UseW:Value() and Ready(_W) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 then
-				Control.CastSpell(HK_W, minion.pos)                  
-            end           
-           
+				Control.CastSpell(HK_W, minion.pos)
+            end
+
 			if myHero.pos:DistanceTo(minion.pos) <= 750 and self.Menu.ClearSet.JClear.UseE:Value() and Ready(_E) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 then
-				Control.CastSpell(HK_E, minion.pos)                  
-            end			
-			
+				Control.CastSpell(HK_E, minion.pos)
+            end
+
 			if myHero.pos:DistanceTo(minion.pos) <= 475 and self.Menu.ClearSet.JClear.UseQ:Value() and Ready(_Q) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.JClear.Mana:Value() / 100 then
 				Control.CastSpell(HK_Q)
-			end	
+			end
         end
     end
 end
-			
+
 function Lillia:Clear()
 	for i = 1, GameMinionCount() do
     local minion = GameMinion(i)
 
 		if minion.team == TEAM_ENEMY and IsValid(minion) then
- 			
+
 			if myHero.pos:DistanceTo(minion.pos) <= 500 and self.Menu.ClearSet.Clear.UseW:Value() and Ready(_W) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.Clear.Mana:Value() / 100 then
 				local Count = GetMinionCount(500, minion)
 				if Count >= self.Menu.ClearSet.Clear.WCount:Value() then
 					Control.CastSpell(HK_W, minion.pos)
-				end	
-            end           		
-			
+				end
+            end
+
 			if myHero.pos:DistanceTo(minion.pos) <= 475 and self.Menu.ClearSet.Clear.UseQ:Value() and Ready(_Q) and myHero.mana/myHero.maxMana >= self.Menu.ClearSet.Clear.Mana:Value() / 100 then
 				local Count = GetMinionCount(475, minion)
-				if Count >= self.Menu.ClearSet.Clear.QCount:Value() then				
+				if Count >= self.Menu.ClearSet.Clear.QCount:Value() then
 					Control.CastSpell(HK_Q)
-				end	
+				end
 			end
         end
     end
@@ -601,7 +600,7 @@ function Lillia:CastW(unit)
 			Control.CastSpell(HK_W, pred.CastPos)
 		end
 	else
-		self:CastWGGPred(unit)	
+		self:CastWGGPred(unit)
 	end
 end
 
@@ -617,28 +616,28 @@ function Lillia:CastE(unit)
 			Control.CastSpell(HK_E, pred.CastPos)
 		end
 	else
-		self:CastEGGPred(unit)	
+		self:CastEGGPred(unit)
 	end
-end	
+end
 
 function Lillia:CastEGGPred(unit)
 	local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.4, Radius = 150, Range = 750, Speed = 1500, Collision = false})
 		  EPrediction:GetPrediction(unit, myHero)
 	if EPrediction:CanHit(self.Menu.MiscSet.Pred.PredE:Value()+1) then
 		Control.CastSpell(HK_E, EPrediction.CastPosition)
-	end	
+	end
 end
- 
+
 function Lillia:CastWGGPred(unit)
 	local WPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 65, Range = 500, Speed = 1500, Collision = false})
 		  WPrediction:GetPrediction(unit, myHero)
 	if WPrediction:CanHit(self.Menu.MiscSet.Pred.PredW:Value()+1) then
 		Control.CastSpell(HK_W, WPrediction.CastPosition)
-	end	
-end 
- 
+	end
+end
+
 function Lillia:Draw()
-	
+
 	if heroes == false then
 		Draw.Text(myHero.charName.." is Loading (Search Enemys) !!", 24, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 255, 0, 0))
 	else
@@ -647,13 +646,13 @@ function Lillia:Draw()
 			DelayAction(function()
 			DrawTime = true
 			end, 4.0)
-		end	
+		end
 	end
 
 	if myHero.dead then return end
 	local posX, posY
-	local mePos = myHero.pos:To2D()	
-	
+	local mePos = myHero.pos:To2D()
+
 	if self.Menu.MiscSet.Drawing.Draw_AutoQ:Value() then
 
 		posX = mePos.x - 50
@@ -662,11 +661,11 @@ function Lillia:Draw()
 		if self.Menu.AutoQ.UseQ:Value() then
 			Draw.Text("Auto Q Enabled", (15), posX, posY, Draw.Color(240, 000, 255, 000))
 		else
-			Draw.Text("Auto Q Disabled", (15), posX, posY, Draw.Color(255, 255, 000, 000)) 
+			Draw.Text("Auto Q Disabled", (15), posX, posY, Draw.Color(255, 255, 000, 000))
 		end
 	end
-	
-	if self.Menu.MiscSet.Drawing.Draw_BlockAA:Value() then	
+
+	if self.Menu.MiscSet.Drawing.Draw_BlockAA:Value() then
 
 		posX = mePos.x - 50
 		posY = mePos.y + 16
@@ -674,14 +673,14 @@ function Lillia:Draw()
 		if self.Menu.MiscSet.BlockAA.Block:Value() then
 			Draw.Text("Block AA Enabled", (15), posX, posY, Draw.Color(240, 000, 255, 000))
 		else
-			Draw.Text("Block AA Disabled", (15), posX, posY, Draw.Color(255, 255, 000, 000)) 
+			Draw.Text("Block AA Disabled", (15), posX, posY, Draw.Color(255, 255, 000, 000))
 		end
-	end	
-	
-	
+	end
+
+
 	if self.Menu.MiscSet.Drawing.DrawR:Value() and Ready(_R) then
     DrawCircle(myHero, self.Menu.MiscSet.Rrange.R:Value(), 1, DrawColor(255, 225, 255, 10))
-	end                                                 
+	end
 	if self.Menu.MiscSet.Drawing.DrawQ:Value() and Ready(_Q) then
     DrawCircle(myHero, 485, 1, DrawColor(225, 225, 0, 10))
 	end
@@ -692,10 +691,10 @@ function Lillia:Draw()
     DrawCircle(myHero, 500, 1, DrawColor(225, 225, 125, 10))
 	end
 end
-	
-Callback.Add("Load", function()	
-	if table.contains(Heroes, myHero.charName) then	
+
+Callback.Add("Load", function()
+	if table.contains(Heroes, myHero.charName) then
 		_G[myHero.charName]()
-		LoadUnits()	
-	end	
+		LoadUnits()
+	end
 end)
