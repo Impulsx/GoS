@@ -1,5 +1,5 @@
 --[[
-Version: 12.23.1
+Version: 12.23.2
 
 Usage:
 
@@ -1904,6 +1904,23 @@ local SpellDamageTable = {
     {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) local buff = GetBuffData(target, "kaisapassivemarker"); local PlasmaStacks = buff.count; local bonusdmg = 0; local dmg = (({5,5,8,8,8,11,11,11,14,14,17,17,17,20,20,20,23,23})[source.levelData.lvl]) + (0.15 * source.ap); if PlasmaStacks >=1 then dmg = dmg + ((({1,1,1,3.75,3.75,3.75,3.75,6.5,6.5,6.5,6.5,9.25,9.25,9.25,9.25,12,12,12})[source.levelData.lvl] + ((2.5/100) * source.ap)) * PlasmaStacks) end; if PlasmaStacks == 4 then bonusdmg = (0.15 + 0.06 * math_floor(source.ap / 100)) * GetMissingHP(target); if target.type == Obj_AI_Camp then bonusdmg = math_min(400, bonusdmg) end; dmg = dmg + bonusdmg end; return dmg end},	-- passive pop damage
   },
 
+  ["Kalista"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 85, 150, 215, 280})[level] + source.totalDamage end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) local baseDmg = (({14, 15, 16, 17, 18})[level] / 100) * target.maxHealth; if GotBuff(target, "kalistacoopstrikeally") then if target.type == Obj_AI_Minion then if target.health <= 125 then return target.health end; return math_max(math_min(baseDmg, 75), ({100,125,150,175,200})[level]) end; end; return baseDmg end}, -- Soul-marked target calc
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level)
+       local count = GotBuff(target, "kalistaexpungemarker");
+       if count == 0 then return 0 end;
+       local dmg = (({20, 30, 40, 50, 60})[level] + (0.7 * source.totalDamage)) + ((count - 1)*(({10, 16, 22, 28, 34})[level]+(({23.20, 27.55, 31.90, 36.25, 40.60})[level]/100) * (source.totalDamage)));
+       if target.type == Obj_AI_Minion then
+        local monsterName = target.charName;
+        if table_contains(epicMonster, monsterName) then
+          dmg = dmg * 0.50; end;
+--[[         if table_contains(Monstertable, monsterName) and epicMonster[monsterName].epicMonster then --epicMonster[monsterName] then -- table_contains(epicMonster, monsterName)
+          dmg = dmg * 0.50; end;  ]]
+       end;
+      return dmg end; },
+  },
+
   ["Karma"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({90, 135, 180, 225, 270})[level] + 0.4 * source.ap end},
     {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({90, 135, 180, 225, 270})[level] + ({25, 75, 125, 175})[source:GetSpellData(_R).level] + 0.7 * source.ap end}, --Ult Q
@@ -1940,6 +1957,13 @@ local SpellDamageTable = {
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({200, 350, 500})[level] + (0.8 * source.ap) + source.bonusDamage end},
   },
 
+  ["Kayn"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({75, 95, 115, 135, 155})[level] + 0.65 * source.bonusDamage end},
+    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({75, 95, 115, 135, 155})[level] + 0.65 * source.bonusDamage + (0.05 + (0.035 * math_floor(source.bonusDamage/100)) * target.maxHealth) end}, --darkin
+    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({90, 135, 180, 225, 270})[level] + 1.3 * source.bonusDamage end},
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({150, 250, 350})[level] + 1.75 * source.bonusDamage end},
+  },
+
   ["Kennen"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 120, 165, 210, 255})[level] + 0.75 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 95, 120, 145, 170})[level] + 0.80 * source.ap end}, --active
@@ -1956,41 +1980,17 @@ local SpellDamageTable = {
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({65, 100, 135, 170, 205})[level] + 0.2 * source.bonusDamage end},
   },
 
+  ["Kindred"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + (0.75 * source.bonusDamage) end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) local buff = GetBuffData(source, "kindredmarkofthekindredstackcounter"); return ({25, 30, 35, 40, 45})[level] + (0.2 * source.bonusDamage) + (0.015 + (0.01 * buff.stacks) * GetMissingHP(target)) end},
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) local buff = GetBuffData(source, "kindredmarkofthekindredstackcounter"); return ({80, 100, 120, 140, 160})[level] + (0.8 * source.bonusDamage) + (0.08 + (0.005 * buff.stacks) * GetMissingHP(target)) end},
+  },
+
   ["KogMaw"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({90, 140, 190, 240, 290})[level] + 0.7 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) local dmg = ((({3, 3.75, 4.50, 5.25, 6.00})[level] / 100) * target.maxHealth) + (0.01 * math_floor(source.ap/100)) ; if target.type == Obj_AI_Minion or target.type == Obj_AI_Camp and dmg > 100 then dmg = 100 end ; return dmg end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 120, 165, 210, 255})[level] + 0.5 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({100, 140, 180})[level] + 0.65 * source.bonusDamage + 0.35 * source.ap) * (GetPercentHP(target) < 25 and 3 or (GetPercentHP(target) < 50 and 2 or 1)) end},
-  },
-
-  ["Kalista"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 85, 150, 215, 280})[level] + source.totalDamage end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) local baseDmg = (({14, 15, 16, 17, 18})[level] / 100) * target.maxHealth; if GotBuff(target, "kalistacoopstrikeally") then if target.type == Obj_AI_Minion then if target.health <= 125 then return target.health end; return math_max(math_min(baseDmg, 75), ({100,125,150,175,200})[level]) end; end; return baseDmg end}, -- Soul-marked target calc
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level)
-       local count = GotBuff(target, "kalistaexpungemarker");
-       if count == 0 then return 0 end;
-       local dmg = (({20, 30, 40, 50, 60})[level] + (0.7 * source.totalDamage)) + ((count - 1)*(({10, 16, 22, 28, 34})[level]+(({23.20, 27.55, 31.90, 36.25, 40.60})[level]/100) * (source.totalDamage)));
-       if target.type == Obj_AI_Minion then
-        local monsterName = target.charName;
-        if table_contains(epicMonster, monsterName) then
-          dmg = dmg * 0.50; end;
---[[         if table_contains(Monstertable, monsterName) and epicMonster[monsterName].epicMonster then --epicMonster[monsterName] then -- table_contains(epicMonster, monsterName)
-          dmg = dmg * 0.50; end;  ]]
-       end;
-      return dmg end; },
-  },
-
-  ["Kayn"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({75, 95, 115, 135, 155})[level] + 0.65 * source.bonusDamage end},
-    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({75, 95, 115, 135, 155})[level] + 0.65 * source.bonusDamage + (0.05 + (0.035 * math_floor(source.bonusDamage/100)) * target.maxHealth) end}, --darkin
-    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({90, 135, 180, 225, 270})[level] + 1.3 * source.bonusDamage end},
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({150, 250, 350})[level] + 1.75 * source.bonusDamage end},
-  },
-
-  ["Kindred"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + (0.75 * source.bonusDamage) end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) local buff = GetBuffData(source, "kindredmarkofthekindredstackcounter"); return ({25, 30, 35, 40, 45})[level] + (0.2 * source.bonusDamage) + (0.015 + (0.01 * buff.stacks) * GetMissingHP(target)) end},
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) local buff = GetBuffData(source, "kindredmarkofthekindredstackcounter"); return ({80, 100, 120, 140, 160})[level] + (0.8 * source.bonusDamage) + (0.08 + (0.005 * buff.stacks) * GetMissingHP(target)) end},
   },
 
   ["Kled"] = {
@@ -3250,15 +3250,15 @@ getdmg = function(spell, target, source, stage, level)
     --return GetAADamage(source, target, SpecialAADamage)
     return GetAADamage(source, target, SpecialAADamage)--(source, target)
   end
-  if spell == "IGNITE" then
+  if spell == "IGNITE" or (spell == Ignite) then
     local IgniteDamage = ((50+20*source.levelData.lvl) - (target.hpRegen*3))
     return IgniteDamage
   end
-  if spell == "MARK" or spell == "DASH" then
+  if (spell == "MARK" or spell == Mark) or (spell == "DASH" or spell == Dash) then
     local MarkandDashDamage = 10+5*source.levelData.lvl
     return MarkandDashDamage
   end
-  if spell == "SMITE" then
+  if spell == "SMITE" or (spell == Smite or SmiteUnleashed or SmiteAvatar) then
     local SmiteDamage = 600
     local SmiteUnleashedDamage = 900
     local SmitePrimalDamage = 1200
