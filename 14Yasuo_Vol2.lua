@@ -4,7 +4,7 @@ if not table.contains(Heroes, myHero.charName) then return end
 
 
 if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
-	DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
+	DownloadFileAsync("https://https://raw.githubusercontent.com/Impulsx/GoS/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
 	print("PremiumPred. installed Press 2x F6")
 	return
 end
@@ -20,7 +20,7 @@ local DrawInfo = false
 -- [ AutoUpdate ]
 do
 
-    local Version = 0.08
+    local Version = 0.09
 
     local Files = {
         Lua = {

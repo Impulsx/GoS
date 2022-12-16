@@ -8,17 +8,17 @@ require "MapPositionGOS"
 
 local DrawInfo = false
 
-Callback.Add("Draw", function() 
-	if DrawInfo then	
+Callback.Add("Draw", function()
+	if DrawInfo then
 		Draw.Text("[ Impuls ] scripts will after ~[30-40]s in-game time", 18, myHero.pos2D.x - 50, myHero.pos2D.y + 195, Draw.Color(255, 0, 128, 128))
-	end	
-end)	
+	end
+end)
 --[[
 -- [ update not enabled until proper rank ]
 do
-    
-    local Version = 0.03
-    
+
+    local Version = 0.04
+
     local Files = {
         Lua = {
             Path = SCRIPT_PATH,
@@ -34,21 +34,21 @@ do
 
 
     local function AutoUpdate()
-        
+
         local function DownloadFile(url, path, fileName)
             DownloadFileAsync(url, path .. fileName, function() end)
             while not FileExist(path .. fileName) do end
         end
-        
+
         local function ReadFile(path, fileName)
             local file = io.open(path .. fileName, "r")
             local result = file:read()
             file:close()
             return result
         end
-        
+
         DownloadFile(Files.Version.Url, Files.Version.Path, Files.Version.Name)
-        
+
         local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
         if NewVersion > Version then
             DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
@@ -56,9 +56,9 @@ do
         else
             print(Files.Version.Name .. ": No Updates Found")
         end
-    
+
     end
-    
+
     AutoUpdate()
 
 end
@@ -75,7 +75,7 @@ if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 end
 
 if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
-	DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
+	DownloadFileAsync("https://https://raw.githubusercontent.com/Impulsx/GoS/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
 	print("PremiumPred. installed Press 2x F6")
 	return
 end
@@ -89,7 +89,7 @@ end
 ----------------------------------------------------
 --|                    Utils                     |--
 ----------------------------------------------------
-    
+
 local _atan = math.atan2
 local _min = math.min
 local _abs = math.abs
@@ -147,17 +147,17 @@ local CCSpells = {
 	["BardQ"] = {charName = "Bard", displayName = "Cosmic Binding", slot = _Q, type = "linear", speed = 1500, range = 950, delay = 0.25, radius = 60, collision = true},
 	["BardR"] = {charName = "Bard", displayName = "Tempered Fate", slot = _R, type = "circular", speed = 2100, range = 3400, delay = 0.5, radius = 350, collision = false},
 	["RocketGrab"] = {charName = "Blitzcrank", displayName = "Rocket Grab", slot = _Q, type = "linear", speed = 1800, range = 1150, delay = 0.25, radius = 140, collision = true},
-	["BrandQ"] = {charName = "Brand", displayName = "Sear", slot = _Q, type = "linear", speed = 1600, range = 1050, delay = 0.25, radius = 60, collision = true},	
+	["BrandQ"] = {charName = "Brand", displayName = "Sear", slot = _Q, type = "linear", speed = 1600, range = 1050, delay = 0.25, radius = 60, collision = true},
 	["BraumQ"] = {charName = "Braum", displayName = "Winter's Bite", slot = _Q, type = "linear", speed = 1700, range = 1000, delay = 0.25, radius = 70, collision = true},
 	["BraumR"] = {charName = "Braum", displayName = "Glacial Fissure", slot = _R, type = "linear", speed = 1400, range = 1250, delay = 0.5, radius = 115, collision = false},
 	["CamilleE"] = {charName = "Camille", displayName = "Hookshot [First]", slot = _E, type = "linear", speed = 1900, range = 800, delay = 0, radius = 60, collision = false},
-	["CamilleEDash2"] = {charName = "Camille", displayName = "Hookshot [Second]", slot = _E, type = "linear", speed = 1900, range = 400, delay = 0, radius = 60, collision = false},	
+	["CamilleEDash2"] = {charName = "Camille", displayName = "Hookshot [Second]", slot = _E, type = "linear", speed = 1900, range = 400, delay = 0, radius = 60, collision = false},
 	["CaitlynYordleTrap"] = {charName = "Caitlyn", displayName = "Yordle Trap", slot = _W, type = "circular", speed = MathHuge, range = 800, delay = 0.25, radius = 75, collision = false},
 	["CaitlynEntrapment"] = {charName = "Caitlyn", displayName = "Entrapment", slot = _E, type = "linear", speed = 1600, range = 750, delay = 0.15, radius = 70, collision = true},
 	["CassiopeiaW"] = {charName = "Cassiopeia", displayName = "Miasma", slot = _W, type = "circular", speed = 2500, range = 800, delay = 0.75, radius = 160, collision = false},
 	["Rupture"] = {charName = "Chogath", displayName = "Rupture", slot = _Q, type = "circular", speed = MathHuge, range = 950, delay = 1.2, radius = 250, collision = false},
 	["InfectedCleaverMissile"] = {charName = "DrMundo", displayName = "Infected Cleaver", slot = _Q, type = "linear", speed = 2000, range = 975, delay = 0.25, radius = 60, collision = true},
-	["DianaQ"] = {charName = "Diana", displayName = "Crescent Strike", slot = _Q, type = "circular", speed = 1900, range = 900, delay = 0.25, radius = 185, collision = true},	
+	["DianaQ"] = {charName = "Diana", displayName = "Crescent Strike", slot = _Q, type = "circular", speed = 1900, range = 900, delay = 0.25, radius = 185, collision = true},
 	["DravenDoubleShot"] = {charName = "Draven", displayName = "Double Shot", slot = _E, type = "linear", speed = 1600, range = 1050, delay = 0.25, radius = 130, collision = false},
 	["DravenRCast"] = {charName = "Draven", displayName = "Whirling Death", slot = _R, type = "linear", speed = 2000, range = 12500, delay = 0.25, radius = 160, collision = false},
 	["EkkoQ"] = {charName = "Ekko", displayName = "Timewinder", slot = _Q, type = "linear", speed = 1650, range = 1175, delay = 0.25, radius = 60, collision = false},
@@ -176,9 +176,9 @@ local CCSpells = {
 	["GravesSmokeGrenade"] = {charName = "Graves", displayName = "Smoke Grenade", slot = _W, type = "circular", speed = 1500, range = 950, delay = 0.15, radius = 250, collision = false},
 	["HeimerdingerE"] = {charName = "Heimerdinger", displayName = "CH-2 Electron Storm Grenade", slot = _E, type = "circular", speed = 1200, range = 970, delay = 0.25, radius = 250, collision = false},
 	["HeimerdingerEUlt"] = {charName = "Heimerdinger", displayName = "CH-2 Electron Storm Grenade", slot = _E, type = "circular", speed = 1200, range = 970, delay = 0.25, radius = 250, collision = false},
-	["HecarimUlt"] = {charName = "Hecarim", displayName = "Onslaught of Shadows", slot = _R, type = "linear", speed = 1100, range = 1650, delay = 0.2, radius = 280, collision = false},	
-	["BlindMonkQOne"] = {charName = "Leesin", displayName = "Sonic Wave", slot = _Q, type = "linear", speed = 1800, range = 1100, delay = 0.25, radius = 60, collision = true},	
-	["IllaoiE"] = {charName = "Illaoi", displayName = "Test of Spirit", slot = _E, type = "linear", speed = 1900, range = 900, delay = 0.25, radius = 50, collision = true},	
+	["HecarimUlt"] = {charName = "Hecarim", displayName = "Onslaught of Shadows", slot = _R, type = "linear", speed = 1100, range = 1650, delay = 0.2, radius = 280, collision = false},
+	["BlindMonkQOne"] = {charName = "Leesin", displayName = "Sonic Wave", slot = _Q, type = "linear", speed = 1800, range = 1100, delay = 0.25, radius = 60, collision = true},
+	["IllaoiE"] = {charName = "Illaoi", displayName = "Test of Spirit", slot = _E, type = "linear", speed = 1900, range = 900, delay = 0.25, radius = 50, collision = true},
 	["IreliaW2"] = {charName = "Irelia", displayName = "Defiant Dance", slot = _W, type = "linear", speed = MathHuge, range = 775, delay = 0.25, radius = 120, collision = false},
 	["IreliaR"] = {charName = "Irelia", displayName = "Vanguard's Edge", slot = _R, type = "linear", speed = 2000, range = 950, delay = 0.4, radius = 160, collision = false},
 	["IvernQ"] = {charName = "Ivern", displayName = "Rootcaller", slot = _Q, type = "linear", speed = 1300, range = 1075, delay = 0.25, radius = 80, collision = true},
@@ -205,11 +205,11 @@ local CCSpells = {
 	["LuxLightBinding"] = {charName = "Lux", displayName = "Light Binding", slot = _Q, type = "linear", speed = 1200, range = 1175, delay = 0.25, radius = 50, collision = false},
 	["LuxLightStrikeKugel"] = {charName = "Lux", displayName = "Light Strike Kugel", slot = _E, type = "circular", speed = 1200, range = 1100, delay = 0.25, radius = 300, collision = true},
 	["Landslide"] = {charName = "Malphite", displayName = "Ground Slam", slot = _E, type = "circular", speed = MathHuge, range = 0, delay = 0.242, radius = 400, collision = false},
-	["UFSlash"] = {charName = "Malphite", displayName = "Unstoppable Force", slot = _R, type = "circular", speed = 1835, range = 1000, delay = 0, radius = 300, collision = false},	
+	["UFSlash"] = {charName = "Malphite", displayName = "Unstoppable Force", slot = _R, type = "circular", speed = 1835, range = 1000, delay = 0, radius = 300, collision = false},
 	["MalzaharQ"] = {charName = "Malzahar", displayName = "Call of the Void", slot = _Q, type = "rectangular", speed = 1600, range = 900, delay = 0.5, radius = 400, radius2 = 100, collision = false},
 	["MaokaiQ"] = {charName = "Maokai", displayName = "Bramble Smash", slot = _Q, type = "linear", speed = 1600, range = 600, delay = 0.375, radius = 110, collision = false},
 	["MorganaQ"] = {charName = "Morgana", displayName = "Dark Binding", slot = _Q, type = "linear", speed = 1200, range = 1250, delay = 0.25, radius = 70, collision = true},
-	["MordekaiserE"] = {charName = "Mordekaiser", displayName = "Death's Grasp", slot = _E, type = "linear", speed = MathHuge, range = 900, delay = 0.9, radius = 140, collision = false},	
+	["MordekaiserE"] = {charName = "Mordekaiser", displayName = "Death's Grasp", slot = _E, type = "linear", speed = MathHuge, range = 900, delay = 0.9, radius = 140, collision = false},
 	["NamiQ"] = {charName = "Nami", displayName = "Aqua Prison", slot = _Q, type = "circular", speed = MathHuge, range = 875, delay = 1, radius = 180, collision = false},
 	["NamiRMissile"] = {charName = "Nami", displayName = "Tidal Wave", slot = _R, type = "linear", speed = 850, range = 2750, delay = 0.5, radius = 250, collision = false},
 	["NautilusAnchorDragMissile"] = {charName = "Nautilus", displayName = "Dredge Line", slot = _Q, type = "linear", speed = 2000, range = 925, delay = 0.25, radius = 90, collision = true},
@@ -225,16 +225,16 @@ local CCSpells = {
 	["PykeQMelee"] = {charName = "Pyke", displayName = "Bone Skewer [Melee]", slot = _Q, type = "linear", speed = MathHuge, range = 400, delay = 0.25, radius = 70, collision = false},
 	["PykeQRange"] = {charName = "Pyke", displayName = "Bone Skewer [Range]", slot = _Q, type = "linear", speed = 2000, range = 1100, delay = 0.2, radius = 70, collision = true},
 	["PykeE"] = {charName = "Pyke", displayName = "Phantom Undertow", slot = _E, type = "linear", speed = 3000, range = 25000, delay = 0, radius = 110, collision = false},
-	["QiyanaR"] = {charName = "Qiyana", displayName = "Supreme Display of Talent", slot = _R, type = "linear", speed = 2000, range = 950, delay = 0.25, radius = 190, collision = false},	
+	["QiyanaR"] = {charName = "Qiyana", displayName = "Supreme Display of Talent", slot = _R, type = "linear", speed = 2000, range = 950, delay = 0.25, radius = 190, collision = false},
 	["RakanW"] = {charName = "Rakan", displayName = "Grand Entrance", slot = _W, type = "circular", speed = MathHuge, range = 650, delay = 0.7, radius = 265, collision = false},
 	["RengarE"] = {charName = "Rengar", displayName = "Bola Strike", slot = _E, type = "linear", speed = 1500, range = 1000, delay = 0.25, radius = 70, collision = true},
 	["RumbleGrenade"] = {charName = "Rumble", displayName = "Electro Harpoon", slot = _E, type = "linear", speed = 2000, range = 850, delay = 0.25, radius = 60, collision = true},
 	["SeraphineE"] = {charName = "Seraphine", displayName = "Beat Drop", slot = _E, type = "linear", speed = 500, range = 1300, delay = 0.25, radius = 35, collision = false},
 	["SettE"] = {charName = "Sett", displayName = "Facebreaker", slot = _E, type = "linear", speed = MathHuge, range = 490, delay = 0.25, radius = 175, collision = false},
-	["SennaW"] = {charName = "Senna", displayName = "Last Embrace", slot = _W, type = "linear", speed = 1150, range = 1300, delay = 0.25, radius = 60, collision = true},	
+	["SennaW"] = {charName = "Senna", displayName = "Last Embrace", slot = _W, type = "linear", speed = 1150, range = 1300, delay = 0.25, radius = 60, collision = true},
 	["SejuaniR"] = {charName = "Sejuani", displayName = "Glacial Prison", slot = _R, type = "linear", speed = 1600, range = 1300, delay = 0.25, radius = 120, collision = false},
 	["ShyvanaTransformLeap"] = {charName = "Shyvana", displayName = "Transform Leap", slot = _R, type = "linear", speed = 700, range = 850, delay = 0.25, radius = 150, collision = false},
-	["ShenE"] = {charName = "Shen", displayName = "Shadow Dash", slot = _E, type = "linear", speed = 1200, range = 600, delay = 0, radius = 60, collision = false},	
+	["ShenE"] = {charName = "Shen", displayName = "Shadow Dash", slot = _E, type = "linear", speed = 1200, range = 600, delay = 0, radius = 60, collision = false},
 	["SionQ"] = {charName = "Sion", displayName = "Decimating Smash", slot = _Q, origin = "", type = "linear", speed = MathHuge, range = 750, delay = 2, radius = 150, collision = false},
 	["SionE"] = {charName = "Sion", displayName = "Roar of the Slayer", slot = _E, type = "linear", speed = 1800, range = 800, delay = 0.25, radius = 80, collision = false},
 	["SkarnerFractureMissile"] = {charName = "Skarner", displayName = "Fracture", slot = _E, type = "linear", speed = 1500, range = 1000, delay = 0.25, radius = 70, collision = false},
@@ -242,12 +242,12 @@ local CCSpells = {
 	["SorakaQ"] = {charName = "Soraka", displayName = "Starcall", slot = _Q, type = "circular", speed = 1150, range = 810, delay = 0.25, radius = 235, collision = false},
 	["SwainW"] = {charName = "Swain", displayName = "Vision of Empire", slot = _W, type = "circular", speed = MathHuge, range = 3500, delay = 1.5, radius = 300, collision = false},
 	["SwainE"] = {charName = "Swain", displayName = "Nevermove", slot = _E, type = "linear", speed = 1800, range = 850, delay = 0.25, radius = 85, collision = false},
-	["SylasE2"] = {charName = "Sylas", displayName = "Abduct", slot = _E, type = "linear", speed = 1600, range = 850, delay = 0.25, radius = 60, collision = true},	
+	["SylasE2"] = {charName = "Sylas", displayName = "Abduct", slot = _E, type = "linear", speed = 1600, range = 850, delay = 0.25, radius = 60, collision = true},
 	["TahmKenchQ"] = {charName = "TahmKench", displayName = "Tongue Lash", slot = _Q, type = "linear", speed = 2800, range = 800, delay = 0.25, radius = 70, collision = true},
 	["TaliyahWVC"] = {charName = "Taliyah", displayName = "Seismic Shove", slot = _W, type = "circular", speed = MathHuge, range = 900, delay = 0.85, radius = 150, collision = false},
 	["TaliyahR"] = {charName = "Taliyah", displayName = "Weaver's Wall", slot = _R, type = "linear", speed = 1700, range = 3000, delay = 1, radius = 120, collision = false},
 	["ThreshE"] = {charName = "Thresh", displayName = "Flay", slot = _E, type = "linear", speed = MathHuge, range = 500, delay = 0.389, radius = 110, collision = true},
-	["ThreshQ"] = {charName = "Thresh", displayName = "Death Sentence", slot = _Q, type = "linear", speed = 1900, range = 1100, delay = 0.5, radius = 70, collision = true},	
+	["ThreshQ"] = {charName = "Thresh", displayName = "Death Sentence", slot = _Q, type = "linear", speed = 1900, range = 1100, delay = 0.5, radius = 70, collision = true},
 	["TristanaW"] = {charName = "Tristana", displayName = "Rocket Jump", slot = _W, type = "circular", speed = 1100, range = 900, delay = 0.25, radius = 300, collision = false},
 	["UrgotQ"] = {charName = "Urgot", displayName = "Corrosive Charge", slot = _Q, type = "circular", speed = MathHuge, range = 800, delay = 0.6, radius = 180, collision = false},
 	["UrgotE"] = {charName = "Urgot", displayName = "Disdain", slot = _E, type = "linear", speed = 1540, range = 475, delay = 0.45, radius = 100, collision = false},
@@ -256,13 +256,13 @@ local CCSpells = {
 	["VarusR"] = {charName = "Varus", displayName = "Chain of Corruption", slot = _R, type = "linear", speed = 1950, range = 1200, delay = 0.25, radius = 120, collision = false},
 	["VelkozQ"] = {charName = "Velkoz", displayName = "Plasma Fission", slot = _Q, type = "linear", speed = 1300, range = 1050, delay = 0.25, radius = 50, collision = true},
 	["VelkozE"] = {charName = "Velkoz", displayName = "Tectonic Disruption", slot = _E, type = "circular", speed = MathHuge, range = 800, delay = 0.8, radius = 185, collision = false},
-	["ViQ"] = {charName = "Vi", displayName = "Vault Breaker", slot = _Q, type = "linear", speed = 1500, range = 725, delay = 0, radius = 90, collision = false},	
+	["ViQ"] = {charName = "Vi", displayName = "Vault Breaker", slot = _Q, type = "linear", speed = 1500, range = 725, delay = 0, radius = 90, collision = false},
 	["ViktorGravitonField"] = {charName = "Viktor", displayName = "Graviton Field", slot = _W, type = "circular", speed = MathHuge, range = 800, delay = 1.75, radius = 270, collision = false},
 	["WarwickR"] = {charName = "Warwick", displayName = "Infinite Duress", slot = _R, type = "linear", speed = 1800, range = 3000, delay = 0.1, radius = 55, collision = false},
 	["XerathArcaneBarrage2"] = {charName = "Xerath", displayName = "Arcane Barrage", slot = _W, type = "circular", speed = MathHuge, range = 1000, delay = 0.75, radius = 235, collision = false},
 	["XerathMageSpear"] = {charName = "Xerath", displayName = "Mage Spear", slot = _E, type = "linear", speed = 1400, range = 1050, delay = 0.2, radius = 60, collision = true},
 	["XinZhaoW"] = {charName = "XinZhao", displayName = "Wind Becomes Lightning", slot = _W, type = "linear", speed = 5000, range = 900, delay = 0.5, radius = 40, collision = false},
-	["YasuoQ3Mis"] = {charName = "Yasuo", displayName = "Yasuo Q3", slot = _Q, type = "linear", speed = 1200, range = 1000, delay = 0.339, radius = 90, collision = false},	
+	["YasuoQ3Mis"] = {charName = "Yasuo", displayName = "Yasuo Q3", slot = _Q, type = "linear", speed = 1200, range = 1000, delay = 0.339, radius = 90, collision = false},
 	["ZacQ"] = {charName = "Zac", displayName = "Stretching Strikes", slot = _Q, type = "linear", speed = 2800, range = 800, delay = 0.33, radius = 120, collision = false},
 	["ZiggsW"] = {charName = "Ziggs", displayName = "Satchel Charge", slot = _W, type = "circular", speed = 1750, range = 1000, delay = 0.25, radius = 240, collision = false},
 	["ZiggsE"] = {charName = "Ziggs", displayName = "Hexplosive Minefield", slot = _E, type = "circular", speed = 1800, range = 900, delay = 0.25, radius = 250, collision = false},
@@ -285,7 +285,7 @@ local CCSpells = {
 	["SkarnerImpale"] = {charName = "Skarner", slot = _R, type = "targeted", displayName = "Impale", range = 350},
 	["TahmKenchW"] = {charName = "TahmKench", slot = _W, type = "targeted", displayName = "Devour", range = 250},
 	["TristanaR"] = {charName = "Tristana", slot = _R, type = "targeted", displayName = "Buster Shot", range = 669},
-	["TeemoQ"] = {charName = "Teemo", slot = _Q, type = "targeted", displayName = "Blinding Dart", range = 680},	
+	["TeemoQ"] = {charName = "Teemo", slot = _Q, type = "targeted", displayName = "Blinding Dart", range = 680},
 	["VeigarPrimordialBurst"] = {charName = "Veigar", slot = _R, type = "targeted", displayName = "Primordial Burst", range = 650},
 	["VolibearQ"] = {charName = "Volibear", displayName = "Thundering Smash", slot = _Q, type = "targeted", range = 200},
 	["YoneQ3"] = {charName = "Yone", displayName = "Mortal Steel [Storm]", slot = _Q, type = "linear", speed = 1500, range = 1050, delay = 0.25, radius = 80, collision = false},
@@ -339,22 +339,22 @@ function LoadUnits()
 end
 
 
-function GetMode()   
+function GetMode()
     if _G.SDK then
-        return 
+        return
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] and "Combo"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] and "Harass"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] and "LaneClear"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] and "LaneClear"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] and "LastHit"
-        or 
+        or
 		_G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] and "Flee"
 		or nil
-    
+
 	elseif _G.PremiumOrbwalker then
 		return _G.PremiumOrbwalker:GetMode()
 	end
@@ -389,7 +389,7 @@ function GetDistanceSqr(pos1, pos2)
 	return dx * dx + dz * dz
 end
 
-function GetTarget(range) 
+function GetTarget(range)
 	if _G.SDK then
 		if myHero.ap > myHero.totalDamage then
 			return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
@@ -413,7 +413,7 @@ function SetMovement(bool)
 	elseif _G.SDK then
 		_G.SDK.Orbwalker:SetMovement(bool)
 	elseif _G.PremiumOrbwalker then
-		_G.PremiumOrbwalker:SetMovement(bool)	
+		_G.PremiumOrbwalker:SetMovement(bool)
 	else
 		GOS.BlockMovement = not bool
 	end
@@ -480,7 +480,7 @@ function GetMinions(range, typ) -- 1 = Enemy / 2 = Ally / 3 = Monsters
 		elseif typ == 3 then
 			return _G.SDK.ObjectManager:GetMonsters(range)
 		end
-		
+
 	elseif _G.PremiumOrbwalker then
 		if typ < 3 then
 			return _G.PremiumOrbwalker:GetMinionsAround(range, typ)
@@ -493,7 +493,7 @@ function GetMinions(range, typ) -- 1 = Enemy / 2 = Ally / 3 = Monsters
 					if unit.isEnemy and unit.team == 300 then
 						TableInsert(Monsters, unit)
 					end
-				end	
+				end
 			end
 			return Monsters
 		end
@@ -785,11 +785,11 @@ end
 local Version, Author = "0.02", "Impuls"
 
 function Urgot:LoadMenu()
-    
+
     self.Spellx = nil
-    
+
     self.Collision = nil
-    
+
     self.CollisionSpellName = nil
         --Menu
     self.UrgotMenu = MenuElement({type = MENU, id = "Urgot", name = "Impuls's Urgod", leftIcon = HeroIcon})
@@ -821,8 +821,8 @@ function Urgot:LoadMenu()
     self.UrgotMenu.Escape:MenuElement({id = "UseE", name = "Use E", value = true})
     	--Prediction
 	self.UrgotMenu:MenuElement({type = MENU, id = "Pred", name = "Prediction Mode"})
-	self.UrgotMenu.Pred:MenuElement({name = " ", drop = {"After change Prediction Type press 2xF6"}})	
-	self.UrgotMenu.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 4, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction", "InternalPrediction"}})	
+	self.UrgotMenu.Pred:MenuElement({name = " ", drop = {"After change Prediction Type press 2xF6"}})
+	self.UrgotMenu.Pred:MenuElement({id = "Change", name = "Change Prediction Type", value = 4, drop = {"Gamsteron Prediction", "Premium Prediction", "GGPrediction", "InternalPrediction"}})
 	self.UrgotMenu.Pred:MenuElement({id = "PredR", name = "Hitchance[R]", value = 2, drop = {"Normal", "High", "Immobile"}})
 	self.UrgotMenu.Pred:MenuElement({id = "PredW", name = "Hitchance[W]", value = 2, drop = {"Normal", "High", "Immobile"}})
 	self.UrgotMenu.Pred:MenuElement({id = "PredE", name = "Hitchance[E]", value = 2, drop = {"Normal", "High", "Immobile"}})
@@ -862,7 +862,7 @@ function Urgot:__init()
             ["YasuoWMovingWall"] = {charName = "Yasuo", range = 400, delay = 3.75, radius = 100, collision = false},
         }
         self.Detected = {}
-        self.levelUP = false		
+        self.levelUP = false
         Callback.Add("Tick", function()self:Tick() end)
         Callback.Add("Draw", function()self:Draw() end)
         --Callback.Add("Tick", OnProcessSpell)
@@ -872,12 +872,12 @@ end
 
 function Urgot:Tick()
     if myHero.dead or Game.IsChatOpen() == true or IsRecalling() == true or ExtLibEvade and ExtLibEvade.Evading == true then return end
-    
+
     if self.Detected[1] == nil then
         self.Collision = false
         self.CollisionSpellName = nil
     end
-    
+
     Item_HK[ITEM_1] = HK_ITEM_1
     Item_HK[ITEM_2] = HK_ITEM_2
     Item_HK[ITEM_3] = HK_ITEM_3
@@ -885,14 +885,14 @@ function Urgot:Tick()
     Item_HK[ITEM_5] = HK_ITEM_5
     Item_HK[ITEM_6] = HK_ITEM_6
     Item_HK[ITEM_7] = HK_ITEM_7
-    
+
     self:Escape()
-    
+
     self:Action()
     self:ProcessSpell(GetEnemyHeroes())
     if Game.IsOnTop() then
 		self:AutoLevelStart()
-	end	
+	end
     if not PredLoaded then
 		DelayAction(function()
 			if self.UrgotMenu.Pred.Change:Value() == 1 then
@@ -901,11 +901,11 @@ function Urgot:Tick()
 			elseif self.UrgotMenu.Pred.Change:Value() == 2 then
 				require('PremiumPrediction')
 				PredLoaded = true
-			else 
+			else
 				require('GGPrediction')
-				PredLoaded = true					
+				PredLoaded = true
 			end
-		end, 1)	
+		end, 1)
 	end
 	DelayAction(function()
 		if self.UrgotMenu.Pred.Change:Value() == 1 then
@@ -920,18 +920,18 @@ function Urgot:Tick()
             self.EspellData = {speed = 1200, range = 1025, delay = 0.45, radius = 80, collision = {"minion"}, type = "linear"}
             self.RspellData = {speed = 3200, range = 1025, delay = 0.50, radius = 160, type = "linear"}
 		end
-		if self.UrgotMenu.Pred.Change:Value() == 3 then  
+		if self.UrgotMenu.Pred.Change:Value() == 3 then
             self.QPrediction = GGPrediction:SpellPrediction({Delay = 0.25, Radius = 210, Range = 800, Speed = MathHuge, Collision = false, Type = GGPrediction.SPELLTYPE_CIRCLE})
             self.WPrediction = GGPrediction:SpellPrediction({Delay = 0.00, Radius = 490, Range = 490, Speed = 2000, Collision = false, Type = GGPrediction.SPELLTYPE_CIRCLE})
             self.EPrediction = GGPrediction:SpellPrediction({Delay = 0.45, Radius = 80,  Range = 450, Speed = 1200, Collision = false, Type = GGPrediction.SPELLTYPE_LINE})
             self.RPrediction = GGPrediction:SpellPrediction({Delay = 0.50, Radius = 160, Range = 1150, Speed = 3200, Collision = true, CollisionTypes = {GGPrediction.COLLISION_ENEMYHERO}, Type = GGPrediction.SPELLTYPE_LINE})
         end
-            if self.UrgotMenu.Pred.Change:Value() == 4 then 
+            if self.UrgotMenu.Pred.Change:Value() == 4 then
         end
-	end, 1.2)	
+	end, 1.2)
 
     self:KillSteal()
-    
+
     if GetMode() == "Harass" then
         self:Harass()
     end
@@ -965,10 +965,10 @@ function Urgot:AutoLevelStart()
 	if self.UrgotMenu.AutoLevel.on:Value() and not self.levelUP then
 		local actualLevel = myHero.levelData.lvl
 		local levelPoints = myHero.levelData.lvlPts
-		local Spell1, Spell2, Spell3 = self:GetSkillOrder() 
+		local Spell1, Spell2, Spell3 = self:GetSkillOrder()
 
 		if (actualLevel == 18 and levelPoints == 0) or self.UrgotMenu.AutoLevel.LvL:Value() > actualLevel then return end
-	
+
 		if levelPoints > 0 then
 			self.levelUP = true
 			local Delay = self.UrgotMenu.AutoLevel.delay:Value()
@@ -988,7 +988,7 @@ function Urgot:AutoLevelStart()
 					Control.KeyDown(Spell2)
 					Control.KeyUp(Spell2)
 					Control.KeyUp(HK_LUS)
-				elseif actualLevel == 3 or actualLevel == 14 or actualLevel == 15 or actualLevel == 17 or actualLevel == 18 then				
+				elseif actualLevel == 3 or actualLevel == 14 or actualLevel == 15 or actualLevel == 17 or actualLevel == 18 then
 					Control.KeyDown(HK_LUS)
 					Control.KeyDown(Spell3)
 					Control.KeyUp(Spell3)
@@ -996,10 +996,10 @@ function Urgot:AutoLevelStart()
 				end
 				DelayAction(function()
 					self.levelUP = false
-				end, 0.25)				
-			end, Delay)	
+				end, 0.25)
+			end, Delay)
 		end
-	end	
+	end
 end
 
 function Urgot:CollisionX(myHeroPos, dangerousPos, unitPos, radius)
@@ -1170,7 +1170,7 @@ function Urgot:Draw()
     if self.UrgotMenu.Drawings.DrawW:Value() then Draw.Circle(myHero.pos, UrgotW.range, 1, Draw.Color(255, 65, 105, 225)) end
     if self.UrgotMenu.Drawings.DrawE:Value() then Draw.Circle(myHero.pos, UrgotE.range, 1, Draw.Color(255, 30, 144, 255)) end
     if self.UrgotMenu.Drawings.DrawR:Value() then Draw.Circle(myHero.pos, UrgotR.range, 1, Draw.Color(255, 0, 0, 255)) end
-    
+
     for i, enemy in pairs(GetEnemyHeroes()) do
         if self.UrgotMenu.Drawings.DrawJng:Value() then
             if enemy:GetSpellData(SUMMONER_1).name == "SummonerSmite" or enemy:GetSpellData(SUMMONER_2).name == "SummonerSmite" then
@@ -1204,11 +1204,11 @@ function Urgot:Draw()
 end
 
 function Urgot:Harass()
-    
+
     --print(GetSpellWName()) --UrgotW -- UrgotWCancel
     local targetQ = GOS:GetTarget(UrgotQ.range, "AD")
     local targetW = GOS:GetTarget(UrgotW.range, "AD")
-    
+
     if targetQ then
         if not IsImmune(targetQ) then
             if self.UrgotMenu.Harass.UseQ:Value() then
@@ -1223,12 +1223,12 @@ function Urgot:Harass()
             end
         end
     end
-    
+
     if targetW then
         if not IsImmune(targetW) then
             if self.UrgotMenu.Harass.UseW:Value() then
                 if self.CollisionSpellName == "YasuoWMovingWall" then
-                    
+
                     else
                     if IsReady(_W) and GetSpellWName() == "UrgotW" then
                         if ValidTarget(targetW, UrgotW.range) then
@@ -1261,7 +1261,7 @@ function Urgot:Combo()
                 end
             end
         end
-        
+
         if targetQ then
             if not IsImmune(targetQ) then
                 if self.UrgotMenu.Combo.UseQ:Value() then
@@ -1276,12 +1276,12 @@ function Urgot:Combo()
                 end
             end
         end
-        
+
         if targetW then
             if not IsImmune(targetW) then
                 if self.UrgotMenu.Combo.UseW:Value() then
                     if self.CollisionSpellName == "YasuoWMovingWall" then
-                        
+
                         else
                         if IsReady(_W) and not IsReady(_E) and GetSpellWName() == "UrgotW" and self.Collision == false then
                             if ValidTarget(targetW, UrgotW.range) then
@@ -1292,12 +1292,12 @@ function Urgot:Combo()
                 end
             end
         end
-        
+
         if targetR then
             if not IsImmune(targetR) then
                 if self.UrgotMenu.Combo.UseR:Value() then
                     if self.CollisionSpellName == "YasuoWMovingWall" then
-                        
+
                         else
                         if IsReady(_R) and self.Collision == false then
                             if ValidTarget(targetR, UrgotR.range) and ((targetR.health / targetR.maxHealth <= 24 / 100) or ((targetR.health - RDmg()) / targetR.maxHealth <= 24 / 100)) then
@@ -1327,12 +1327,12 @@ function Urgot:Combo()
                 end
             end
         end
-        
+
         if targetW then
             if not IsImmune(targetW) then
                 if self.UrgotMenu.Combo.UseW:Value() then
                     if self.CollisionSpellName == "YasuoWMovingWall" then
-                        
+
                         else
                         if IsReady(_W) and GetSpellWName() == "UrgotW" and self.Collision == false then
                             if ValidTarget(targetW, UrgotW.range) then
@@ -1343,12 +1343,12 @@ function Urgot:Combo()
                 end
             end
         end
-        
+
         if targetR then
             if not IsImmune(targetR) then
                 if self.UrgotMenu.Combo.UseR:Value() then
                     if self.CollisionSpellName == "YasuoWMovingWall" then
-                        
+
                         else
                         if IsReady(_R) and self.Collision == false then
                             if ValidTarget(targetR, UrgotR.range) and ((targetR.health / targetR.maxHealth <= 24 / 100) or ((targetR.health - RDmg()) / targetR.maxHealth <= 24 / 100)) then
@@ -1378,12 +1378,12 @@ function Urgot:Combo()
                 end
             end
         end
-        
+
         if targetR then
             if not IsImmune(targetR) then
                 if self.UrgotMenu.Combo.UseR:Value() then
                     if self.CollisionSpellName == "YasuoWMovingWall" then
-                        
+
                         else
                         if IsReady(_R) and self.Collision == false then
                             if ValidTarget(targetR, UrgotR.range) and ((targetR.health / targetR.maxHealth <= 24 / 100) or ((targetR.health - RDmg()) / targetR.maxHealth <= 24 / 100)) then
@@ -1416,18 +1416,18 @@ function Urgot:CastQ(target, EcastPos)
             if pred.Hitchance >= self.UrgotMenu.Pred.PredQ:Value()+1 then
                 Control.CastSpell(HK_Q, pred.CastPosition)
             end
-        end	
+        end
         if self.UrgotMenu.Pred.Change:Value() == 2 then
             local pred = _G.PremiumPrediction:GetAOEPrediction(myHero, unit, self.QspellData)
             if pred.CastPos and ConvertToHitChance(self.Menu.Pred.PredQ:Value(), pred.HitChance) then
                 Control.CastSpell(HK_Q, pred.CastPos)
             end
-        end	
+        end
         if self.UrgotMenu.Pred.Change:Value() == 3 then
-            self.QPrediction:GetAOEPrediction(unit, myHero)			
+            self.QPrediction:GetAOEPrediction(unit, myHero)
             if self.QPrediction:CanHit(self.UrgotMenu.Pred.PredQ:Value() + 1) then
                 Control.CastSpell(HK_Q, self.QPrediction.CastPosition)
-            end	
+            end
         end
         if self.UrgotMenu.Pred.Change:Value() == 4 then
             if LocalGameTimer() - OnWaypoint(target).time > 0.05 and (LocalGameTimer() - OnWaypoint(target).time < 0.125 or LocalGameTimer() - OnWaypoint(target).time > 1.25) then
@@ -1455,18 +1455,18 @@ function Urgot:CastR(target, EcastPos)
             if pred.Hitchance >= self.UrgotMenu.Pred.PredR:Value()+1 then
                 Control.CastSpell(HK_R, pred.CastPosition)
             end
-        end	
+        end
         if self.UrgotMenu.Pred.Change:Value() == 2 then
             local pred = _G.PremiumPrediction:GetAOEPrediction(myHero, unit, self.RspellData)
             if pred.CastPos and ConvertToHitChance(self.UrgotMenu.Pred.PredR:Value(), pred.HitChance) then
                 Control.CastSpell(HK_R, pred.CastPos)
             end
-        end	
+        end
         if self.UrgotMenu.Pred.Change:Value() == 3 then
-            self.RPrediction:GetAOEPrediction(unit, myHero)			
+            self.RPrediction:GetAOEPrediction(unit, myHero)
             if self.RPrediction:CanHit(self.UrgotMenu.Pred.PredR:Value() + 1) then
                 Control.CastSpell(HK_R, self.RPrediction.CastPosition)
-            end	
+            end
         end
         if self.UrgotMenu.Pred.Change:Value() == 4 then
             if LocalGameTimer() - OnWaypoint(target).time > 0.05 and (LocalGameTimer() - OnWaypoint(target).time < 0.125 or LocalGameTimer() - OnWaypoint(target).time > 1.25) then
@@ -1754,7 +1754,7 @@ function HPred:GetHitchance(source, target, range, delay, speed, radius, checkCo
             hitChance = -1
         end
     end
-    
+
     return hitChance, aimPosition
 end
 
@@ -1925,7 +1925,7 @@ function HPred:GetImmobileTarget(source, range, delay, speed, timingAccuracy, ch
         local t = LocalGameHero(i)
         if t and self:CanTarget(t) and self:IsInRange(source, t.pos, range) then
             local immobileTime = self:GetImmobileTime(t)
-            
+
             local interceptTime = self:GetSpellInterceptTime(source, t.pos, delay, speed)
             if immobileTime - interceptTime > timingAccuracy and (not checkCollision or not self:CheckMinionCollision(source, t.pos, delay, speed, radius)) then
                 target = t
@@ -2006,7 +2006,7 @@ function HPred:CacheParticles()
     if _windwall and _windwall.name == "" then
         _windwall = nil
     end
-    
+
     for i = 1, LocalGameParticleCount() do
         local particle = LocalGameParticle(i)
         if particle and self:IsInRange(particle.pos, myHero.pos, _maxCacheRange) then
@@ -2399,7 +2399,7 @@ function HPred:DoLineSegmentsIntersect(A, B, C, D)
     if o2 == 0 and self:IsOnSegment(A, D, B) then return true end
     if o3 == 0 and self:IsOnSegment(C, A, D) then return true end
     if o4 == 0 and self:IsOnSegment(C, B, D) then return true end
-    
+
     return false
 end
 

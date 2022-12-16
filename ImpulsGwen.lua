@@ -13,7 +13,7 @@ local DrawInfo = false
 
 
 if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
-	DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
+	DownloadFileAsync("https://https://raw.githubusercontent.com/Impulsx/GoS/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
 	print("PremiumPred. installed Press 2x F6")
 	return
 end
@@ -27,7 +27,7 @@ end
 -- [ AutoUpdate ]
 do
 
-    local Version = 0.03
+    local Version = 0.04
 
     local Files = {
         Lua = {
