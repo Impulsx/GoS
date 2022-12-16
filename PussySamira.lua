@@ -11,7 +11,7 @@ require "DamageLib"
 
 
 if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
-	DownloadFileAsync("https://https://raw.githubusercontent.com/Impulsx/GoS/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
+	DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
 	print("PremiumPred. installed Press 2x F6")
 	return
 end
@@ -1070,11 +1070,11 @@ function Samira:Kraken()
 end
 
 function Samira:Damage(target, spell)
-	local QDmg
-	local WDmg
-	local EDmg
-	local RDmg
-	local AAdmg
+	local QDmg = 0
+	local WDmg = 0
+	local EDmg = 0
+	local RDmg = 0
+	local AAdmg = 0
 	if target == nil then
 		--[[ QDmg = 0
 		WDmg = 0
@@ -1244,10 +1244,10 @@ function Samira:SafeCombo(target)
 	if not Ready(_W) then
 		comboStage = 1
 	end
-	if not (Ready(_W) and Ready(_E)) then
+	if not Ready(_W) and not Ready(_E) then
 		comboStage = 2
 	end
-	if not (Ready(_Q) and Ready(_W) and Ready(_E) and Ready(_R)) then
+	if not Ready(_Q) and not Ready(_W) and not Ready(_E) and not Ready(_R) then
 		return
 	end
 	if self.Menu.ComboSet.SafeComboEnable:Value() then
@@ -1256,7 +1256,7 @@ function Samira:SafeCombo(target)
 
 		local rangeR = ((rangeAll) <= RRange) or (distanceTo <= RRange) or (GetEnemyCount(RRange, myHero.pos) > 0)
 
-		if self.Menu.ComboSet.SafeCombo.UseR:Value() and Ready(_R) and rangeR then --and RReady
+		if self.Menu.ComboSet.SafeCombo.UseR:Value() and (Ready(_R) or RReady) and rangeR then --and RReady
 			Control.CastSpell(HK_R)
 			comboStage = 0
 			local timer
@@ -1269,7 +1269,7 @@ function Samira:SafeCombo(target)
 --[[ 			DelayAction(function() --self:Combo(target), self:ComboR(target)
 				comboStage = 0
 			end, timer) ]]
-		elseif (not self.Menu.ComboSet.SafeCombo.UseR:Value()) then
+		elseif not self.Menu.ComboSet.SafeCombo.UseR:Value() then
 			--return self:SafeCombo(target, comboStage)
 		end
 
@@ -1296,10 +1296,10 @@ function Samira:SafeCombo(target)
 		local level = myHero:GetSpellData(_R).level > 0 --and myHero.levelData.lvl > 5
 		local eDmg, eKills
 		if not level then
-			eDmg = self:GetDamage(target, "E")
+			eDmg = self:Damage(target, "E")
 			eKills = eDmg > target.health
 		end
-		local eLogic = comboStage == 1 and (level or (eDmg and GetEnemyCount(QRange, target.pos) < 2 and eKills)) and ((Ready(_E) and style > 4) or (Ready(_E) and Ready(_Q))) and rangeE
+		local eLogic = (comboStage == 1) and rangeE and (level or (eDmg and GetEnemyCount(QRange, target.pos) < 2 and eKills)) and (Ready(_E) and style > 4) or (Ready(_E) and Ready(_Q) and not Ready(_W))
 		if self.Menu.ComboSet.SafeCombo.UseE:Value() and eLogic and not self:IsDashPosTurret(target) then
 			-- E logic + dash to AoE?
 			--if QDmg+EDmg+RDmg then end
@@ -1309,7 +1309,7 @@ function Samira:SafeCombo(target)
 		elseif not self.Menu.ComboSet.SafeCombo.UseE:Value() and rangeQ then
 			comboStage = 2
 		end
-		local qLogic = (Ready(_Q) or (style < 6) or comboStage ~= 0 ) --comboStage == 2 or comboStage == 3 or comboStage == 1 and
+		local qLogic = Ready(_Q) and (style < 6 or comboStage ~= 0) --comboStage == 2 or comboStage == 3 or comboStage == 1 and
 		if self.Menu.ComboSet.SafeCombo.UseQ:Value() and qLogic and rangeQ or CastingE and not (CastingW or CastingR) then
 			local shoot = Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= QRange and myHero.pos:DistanceTo(target.pos) > WRange
 			local slash = Ready(_Q) and myHero.pos:DistanceTo(target.pos) < WRange
