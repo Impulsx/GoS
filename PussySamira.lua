@@ -837,7 +837,7 @@ function Samira:LoadMenu()
 DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0
 	--MainMenu
 self.Menu = MenuElement({type = MENU, id = "PussySamira", name = "PussySamira"})
-	self.Menu:MenuElement({name = " ", drop = {"Version 0.12"}})
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.13"}})
 
 	--AutoW
 self.Menu:MenuElement({type = MENU, id = "WSet", name = "AutoW Incomming CC Spells"})
