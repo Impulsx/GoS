@@ -17,7 +17,7 @@ end)
 -- [ update not enabled until proper rank ]
 do
 
-    local Version = 0.04
+    local Version = 0.05
 
     local Files = {
         Lua = {
@@ -75,7 +75,7 @@ if not FileExist(COMMON_PATH .. "GamsteronPrediction.lua") then
 end
 
 if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
-	DownloadFileAsync("https://https://raw.githubusercontent.com/Impulsx/GoS/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
+	DownloadFileAsync("https://raw.githubusercontent.com/Impulsx/GoS/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
 	print("PremiumPred. installed Press 2x F6")
 	return
 end
