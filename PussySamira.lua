@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
 
-    local Version = 0.13
+    local Version = 0.14
 
     local Files = {
         Lua = {
@@ -837,7 +837,7 @@ function Samira:LoadMenu()
 DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0
 	--MainMenu
 self.Menu = MenuElement({type = MENU, id = "PussySamira", name = "PussySamira"})
-	self.Menu:MenuElement({name = " ", drop = {"Version 0.13"}})
+	self.Menu:MenuElement({name = " ", drop = {"Version 0.14"}})
 
 	--AutoW
 self.Menu:MenuElement({type = MENU, id = "WSet", name = "AutoW Incomming CC Spells"})
