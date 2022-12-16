@@ -11,7 +11,7 @@ require "DamageLib"
 
 
 if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
-	DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
+	DownloadFileAsync("https://https://raw.githubusercontent.com/Impulsx/GoS/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua", function() end)
 	print("PremiumPred. installed Press 2x F6")
 	return
 end
@@ -25,7 +25,7 @@ end
 -- [ AutoUpdate ]
 do
 
-    local Version = 0.12
+    local Version = 0.13
 
     local Files = {
         Lua = {
@@ -773,7 +773,6 @@ end
 
 class "Samira"
 
-local lastSpell
 local wDelay = 0.76 --0.75
 local rDelay = 2.28 --2.277
 
@@ -806,11 +805,11 @@ local EDashRange = 650
 local RRange = 600
 local QspellData = {speed = 2600, range = QRange, delay = 0.25, radius = 60, collision = {"minion"}, type = "linear"} --{"minion", "hero"}
 
-local QDmg = 0
+--[[ local QDmg = 0
 local WDmg = 0
 local EDmg = 0
 local RDmg = 0
-local AAdmg = 0
+local AAdmg = 0 ]]
 
 local PredLoaded = false
 
@@ -985,7 +984,6 @@ function Samira:CastingChecks()
 end
 
 function Samira:ProcessSpells()
-	local TickQ, TickW, TickE, TickR = false
 	style = myHero.hudAmmo
 
 	CastingQ = myHero.activeSpell.name == "SamiraQ"
@@ -1015,6 +1013,8 @@ function Samira:ProcessSpells()
         KrakenStacks = 0
     end
 
+	local lastSpell
+	local TickQ, TickW, TickE, TickR = false
     if myHero:GetSpellData(_Q).currentCd == 0 then
         CastedQ = false
     else
@@ -1069,15 +1069,29 @@ function Samira:Kraken()
     end
 end
 
-function Samira:Damage(target)
+function Samira:Damage(target, spell)
+	local QDmg
+	local WDmg
+	local EDmg
+	local RDmg
+	local AAdmg
 	if target == nil then
-		QDmg = 0
+		--[[ QDmg = 0
 		WDmg = 0
 		EDmg = 0
 		RDmg = 0
-		AAdmg = 0
-		return end
-
+		AAdmg = 0 ]]
+		return
+	end
+	if spell then
+		local dmg = getdmg(spell, target, myHero)
+		if spell == "AA" then
+			if Kraken and KrakenStacks == 2 then
+				dmg = dmg + 60 + (0.45*myHero.bonusDamage)
+			end
+		end
+		return dmg
+	end
 	QDmg = getdmg("Q", target, myHero)
 	WDmg = getdmg("W", target, myHero)
 	EDmg = getdmg("E", target, myHero)
@@ -1087,7 +1101,7 @@ function Samira:Damage(target)
 		AAdmg = AAdmg + 60 + (0.45*myHero.bonusDamage)
 		--PrintChat(60 + (0.45*myHero.bonusDamage))
 	end
- return QDmg, WDmg, EDmg, RDmg, AAdmg
+	return QDmg, WDmg, EDmg, RDmg, AAdmg
 end
 
 function Samira:BuffAttackMovement(target)
@@ -1112,7 +1126,7 @@ function Samira:BuffAttackMovement(target)
 	end
 	if WSkill or RSkill then
 		SetAttack(false)
-	elseif not WSkill or not RSkill then --else ? lul
+	else
 		SetAttack(true)
 	end
 end
@@ -1230,21 +1244,19 @@ function Samira:SafeCombo(target)
 	if not Ready(_W) then
 		comboStage = 1
 	end
-	if not Ready(_W) and not Ready(_E) then
+	if not (Ready(_W) and Ready(_E)) then
 		comboStage = 2
 	end
-	if not Ready(_Q) and not Ready(_W) and not Ready(_E) and not Ready(_R) then
+	if not (Ready(_Q) and Ready(_W) and Ready(_E) and Ready(_R)) then
 		return
 	end
-	local rangeAll = GetDistance(myHero.pos, target.pos)
-	local distanceTo = myHero.pos:DistanceTo(target.pos)
-	local rangeQ = ((rangeAll) <= QRange) or (distanceTo <= QRange)
-	local rangeW = ((rangeAll) <= WRange) or (distanceTo <= WRange) or (GetEnemyCount(WRange, myHero.pos) > 0)
-	local rangeE = ((rangeAll) <= ERange) or (distanceTo <= ERange)
-	local rangeR = ((rangeAll) <= RRange) or (distanceTo <= RRange) or (GetEnemyCount(RRange, myHero.pos) > 0)
-
 	if self.Menu.ComboSet.SafeComboEnable:Value() then
-		if Ready(_R) and rangeR and self.Menu.ComboSet.SafeCombo.UseR:Value() then --and RReady
+		local rangeAll = GetDistance(myHero.pos, target.pos)
+		local distanceTo = myHero.pos:DistanceTo(target.pos)
+
+		local rangeR = ((rangeAll) <= RRange) or (distanceTo <= RRange) or (GetEnemyCount(RRange, myHero.pos) > 0)
+
+		if self.Menu.ComboSet.SafeCombo.UseR:Value() and Ready(_R) and rangeR then --and RReady
 			Control.CastSpell(HK_R)
 			comboStage = 0
 			local timer
@@ -1253,19 +1265,23 @@ function Samira:SafeCombo(target)
 			else
 				timer = 5
 			end
-			return DelayAction(function() --self:Combo(target), self:ComboR(target)
+			return
+--[[ 			DelayAction(function() --self:Combo(target), self:ComboR(target)
 				comboStage = 0
-			end, timer)
-		elseif not self.Menu.ComboSet.SafeCombo.UseR:Value() then
+			end, timer) ]]
+		elseif (not self.Menu.ComboSet.SafeCombo.UseR:Value()) then
 			--return self:SafeCombo(target, comboStage)
 		end
 
 		if self.Menu.ComboSet.DynamicCombo:Value() and (CastedW or style > 5) then --and comboStage == 3 or CastedR
-			--comboStage = 1
+			comboStage = 0
 			return self:Combo(target) --or self:SafeCombo(target, comboStage)
 		end
-
 		--
+		local rangeQ = ((rangeAll) <= QRange) or (distanceTo <= QRange)
+		local rangeW = ((rangeAll) <= WRange) or (distanceTo <= WRange) or (GetEnemyCount(WRange, myHero.pos) > 0)
+		local rangeE = ((rangeAll) <= ERange) or (distanceTo <= ERange)
+
 		local isAttacking = ((myHero.attackData.state == STATE_WINDDOWN) or _G.SDK.Orbwalker:IsAutoAttacking(target))
 		if self.Menu.ComboSet.SafeCombo.UseW:Value() and (comboStage == 0) and rangeW and isAttacking and style > 0 and style < 6 then
 			if Ready(_W) and not (CastingQ or CastingR) then
@@ -1277,7 +1293,14 @@ function Samira:SafeCombo(target)
 			comboStage = 1
 			--return self:SafeCombo(target, comboStage)
 		end
-		if self.Menu.ComboSet.SafeCombo.UseE:Value() and comboStage == 1 and Ready(_E) and Ready(_Q) and rangeE and not self:IsDashPosTurret(target) then
+		local level = myHero:GetSpellData(_R).level > 0 --and myHero.levelData.lvl > 5
+		local eDmg, eKills
+		if not level then
+			eDmg = self:GetDamage(target, "E")
+			eKills = eDmg > target.health
+		end
+		local eLogic = comboStage == 1 and (level or (eDmg and GetEnemyCount(QRange, target.pos) < 2 and eKills)) and ((Ready(_E) and style > 4) or (Ready(_E) and Ready(_Q))) and rangeE
+		if self.Menu.ComboSet.SafeCombo.UseE:Value() and eLogic and not self:IsDashPosTurret(target) then
 			-- E logic + dash to AoE?
 			--if QDmg+EDmg+RDmg then end
 			Control.CastSpell(HK_E, target)
@@ -1292,12 +1315,11 @@ function Samira:SafeCombo(target)
 			local slash = Ready(_Q) and myHero.pos:DistanceTo(target.pos) < WRange
 			if shoot then
 				self:CastQ(target)
-				comboStage = 0
 			end
 			if slash then
 				Control.CastSpell(HK_Q, target.pos)
-				comboStage = 0
 			end
+			comboStage = 0
 			--return self:SafeCombo(target)
 		--[[ elseif not self.Menu.ComboSet.SafeCombo.UseQ:Value() then
 			comboStage = 3 ]]
@@ -1399,6 +1421,12 @@ function Samira:KillSteal()
 			local EDmg = getdmg("E", target, myHero)
 			local AAdmg = getdmg("AA", target, myHero) ]]
 
+--[[ 	QDmg = self:Damage(target, "Q")
+	WDmg = self:Damage(target, "W")
+	EDmg = self:Damage(target, "E")
+	RDmg = self:Damage(target, "R")
+	AAdmg = self:Damage(target, "AA") ]]
+
 			if CastEQ then
 				if Control.CastSpell(HK_E, target) and WExpire < GameTimer() and not (CastingW or CastingR) then
 					Control.CastSpell(HK_Q)
@@ -1406,8 +1434,9 @@ function Samira:KillSteal()
 			end
 
 			if self.Menu.ks.UseQ:Value() and self.Menu.ks.UseE:Value() and Ready(_Q) and Ready(_E) then
-				QDmg, WDmg, EDmg, RDmg, AAdmg = self:Damage(target)
 				if myHero.pos:DistanceTo(target.pos) <= ERange then
+					local QDmg = self:Damage(target, "Q")
+					local EDmg = self:Damage(target, "E")
 					if QDmg+EDmg > target.health then
 						CastEQ = true
 					end
@@ -1415,7 +1444,7 @@ function Samira:KillSteal()
 			end
 
 			if Ready(_Q) and self.Menu.ks.UseQ:Value() and WExpire < GameTimer() and not (CastingW or CastingR) then
-				QDmg, WDmg, EDmg, RDmg, AAdmg = self:Damage(target)
+				local QDmg = self:Damage(target, "Q")
 				if myHero.pos:DistanceTo(target.pos) <= QRange and myHero.pos:DistanceTo(target.pos) > WRange and QDmg > target.health then
 					self:CastQ(target)
 				end
@@ -1425,7 +1454,7 @@ function Samira:KillSteal()
 			end
 
 			if Ready(_E) and self.Menu.ks.UseE:Value() then
-				QDmg, WDmg, EDmg, RDmg, AAdmg = self:Damage(target)
+				local EDmg = self:Damage(target, "E")
 				if myHero.pos:DistanceTo(target.pos) <= ERange and EDmg > target.health then
 					Control.CastSpell(HK_E, target)
 				end
