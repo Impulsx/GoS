@@ -220,7 +220,8 @@ end
 
 function Ryze:CastQ(target)
     if Ready(_Q) and lastQ +260 < GetTickCount() then
-        local Pred = GetGamsteronPrediction(target, self.Q, myHero)
+        local QPrediction = GGPrediction:SpellPrediction(self.Q)
+        local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
         if Pred.Hitchance >= _G.HITCHANCE_NORMAL then
             if HasBuff("RyzeW",target) then
                 local casted = Control.CastSpell(HK_Q, target)

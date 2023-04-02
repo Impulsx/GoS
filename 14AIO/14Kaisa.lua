@@ -205,7 +205,8 @@ function Kaisa:Combo()
         local target = TargetSelector:GetTarget(self.W.Range)
 
         if target then
-            local Pred = GetGamsteronPrediction(target, self.W, myHero)
+            local WPrediction = GGPrediction:SpellPrediction(self.W)
+            local Pred = WPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
             if Pred.Hitchance >= _G.HITCHANCE_HIGH then
                 Control.CastSpell(HK_W, Pred.CastPosition)
                 lastW = GetTickCount()
@@ -228,7 +229,8 @@ function Kaisa:Harass()
         local target = TargetSelector:GetTarget(self.W.Range)
 
         if target then
-            local Pred = GetGamsteronPrediction(target, self.W, myHero)
+            local WPrediction = GGPrediction:SpellPrediction(self.W)
+            local Pred = WPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
             if Pred.Hitchance >= _G.HITCHANCE_HIGH then
                 Control.CastSpell(HK_W, Pred.CastPosition)
                 lastW = GetTickCount()

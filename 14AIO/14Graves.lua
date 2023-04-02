@@ -278,7 +278,8 @@ end
 
 function Graves:CastQ(target)
     if Ready(_Q) and lastQ + 550 < GetTickCount() and orbwalker:CanMove() and not orbwalker:CanAttack() then
-        local Pred = GetGamsteronPrediction(target, self.Q, myHero)
+        local QPrediction = GGPrediction:SpellPrediction(self.Q)
+        local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
         if Pred.Hitchance >= self.Q.Hitchance then
             lineQ = self:CreateQPoly(Pred.CastPosition)
             for i, lineSegment in ipairs(lineQ:__getLineSegments()) do
@@ -297,8 +298,9 @@ function Graves:Combo()
     local target = TargetSelector:GetTarget(self.W.Range)
     if target and Ready(_W) and lastW + 300 < GetTickCount() then
         if self.tyMenu.Combo.W:Value() and orbwalker:CanMove() then
-            local Pred = GetGamsteronPrediction(target, self.W, myHero)
-            if Pred.Hitchance >= self.W.Hitchance then
+            local WPrediction = GGPrediction:SpellPrediction(self.W)
+            local Pred = WPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
+                if Pred.Hitchance >= self.W.Hitchance then
                 Control.CastSpell(HK_W, Pred.CastPosition)
                 lastW = GetTickCount()
             end
@@ -331,7 +333,8 @@ function Graves:Auto()
             local target = Enemys[i]
             if target.health < self:GetRDmg(target) and IsValid(target) and
             GetDistanceSquared(myHero.pos, target.pos) < self.R.Range ^2 then
-                local Pred = GetGamsteronPrediction(target, self.R, myHero)
+                local RPrediction = GGPrediction:SpellPrediction(self.R)
+                local Pred = RPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.R, myHero)
                 if Pred.Hitchance >= self.R.Hitchance then
                     Control.CastSpell(HK_R, Pred.CastPosition)
                     lastR = GetTickCount()

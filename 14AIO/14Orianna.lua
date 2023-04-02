@@ -32,20 +32,20 @@ local function GetDistanceSquared(vec1, vec2)
 end
 
 local function IsValid(unit)
-    return  unit 
-            and unit.valid 
-            and unit.isTargetable 
-            and unit.alive 
-            and unit.visible 
-            and unit.networkID 
+    return  unit
+            and unit.valid
+            and unit.isTargetable
+            and unit.alive
+            and unit.visible
+            and unit.networkID
             and unit.health > 0
             and not unit.dead
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -72,13 +72,13 @@ class "Orianna"
 function Orianna:__init()
 
     self.QData = {
-        Type = _G.SPELLTYPE_LINE, 
-        Delay = 0, Radius = 130, 
+        Type = _G.SPELLTYPE_LINE,
+        Delay = 0, Radius = 130,
         Range = 1250, Speed = 1400,
-        Collision = true, 
-        MaxCollision = 0, 
+        Collision = true,
+        MaxCollision = 0,
         CollisionTypes = {_G.COLLISION_YASUOWALL}
-        
+
 
     }
     self.WData = {
@@ -95,7 +95,212 @@ function Orianna:__init()
         Radius = 370
     }
 
-
+	self.OriannaBall = {
+		Object = myHero,
+		Pos = myHero.pos,
+		OnHero = true,
+		OnOtherObject = false,
+		Moving = false,
+		IsIzuna = false,
+		IzunaTimer = 0,
+		IsOnHero = function(self)
+			self.OnHero = false
+			if GG_Buff:HasBuff(myHero, "orianaghostself") then
+				self.Object = myHero
+				self.OnHero = true
+			else
+				local count = Game.HeroCount()
+				for i = 1, count do
+					local hero = Game.Hero(i)
+					if
+						hero
+						and hero.valid
+						and hero.visible
+						and hero.isAlly
+						and not hero.isMe
+						and GG_Buff:HasBuff(hero, "orianaghost")
+					then
+						self.Object = hero
+						self.OnHero = true
+						break
+					end
+				end
+			end
+			return self.OnHero
+		end,
+		IsMissile = function(self)
+			self.Moving = false
+			if self.IsIzuna then
+				if self.Object and self.Object.name == "OrianaIzuna" then
+					self.Moving = true
+					self.Pos = self.Object.pos
+					local data = self.Object.missileData
+					if data and data.endPos then
+						self.EndPos = Vector(data.endPos)
+						self.Pos = self.EndPos
+						--print('endPos 1 ' .. os.clock())
+						--print(tostring(self.EndPos) .. ' ' .. tostring(Vector(data.placementPos)))
+					end
+					self.IzunaTimer = os.clock()
+					return true
+				end
+				self.Object = nil
+				self.IsIzuna = false
+				--[[local count = Game.ObjectCount()
+                if count and count > 0 and count < 100000 then
+                    if os.clock() < self.IzunaTimer + 0.5 then
+                        for i = 1, count do
+                            local o = Game.Object(i)
+                            if o then
+                                local pos = o.pos
+                                if pos and GetDistance(pos, self.Pos) < 200 then
+                                    local name = o.name
+                                    if name and name == 'TheDoomBall' then
+                                        print(GetDistance(pos, self.Pos))
+                                        print("WUALA")
+                                        self.Pos = o.pos
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end]]
+				return false
+			end
+			for i = 1, Game.MissileCount() do
+				local missile = Game.Missile(i)
+				if missile and missile.name == "OrianaIzuna" then
+					local data = missile.missileData
+					if data then
+						self.Moving = true
+						self.IsIzuna = true
+						self.Object = missile
+						if data.endPos then
+							self.EndPos = Vector(data.endPos)
+							--print('endPos 2 ' .. os.clock())
+							self.Pos = self.EndPos
+						else
+							self.Pos = missile.pos
+							--print('pos ' .. os.clock())
+						end
+					end
+					break
+				end
+			end
+			return self.Moving
+		end,
+		DrawObjects = function(self)
+			local text = {}
+			local mePos = myHero.pos
+			for i = 1, Game.ObjectCount() do
+				local obj = Game.Object(i)
+				if obj then
+					local pos = obj.pos
+					if pos and GetDistance(mePos, pos) < 1300 then
+						Draw.Circle(pos, 10)
+						local pos2D = pos:To2D()
+						local contains = false
+						for j = 1, #text do
+							local t = text[j]
+							if GetDistance(pos2D, t[1]) < 50 then
+								contains = true
+								t[2] = t[2] .. tostring(obj.handle) .. " " .. obj.name .. "\n"
+								break
+							end
+						end
+						if not contains then
+							table.insert(text, { pos2D, tostring(obj.handle) .. " " .. obj.name .. "\n" })
+						end
+					end
+				end
+			end
+			for i = 1, #text do
+				Draw.Text(text[i][2], text[i][1])
+			end
+		end,
+		IsOtherObject = function(self)
+			self.OnOtherObject = false
+			local mePos = myHero.pos
+			local count = Game.ObjectCount()
+			if count and count > 0 and count < 100000 then
+				for i = 1, count do
+					local o = Game.Object(i)
+					if o then
+						local pos = o.pos
+						if pos and GetDistance(mePos, pos) < 1300 then
+							local name = o.name
+							if name and name:find("_Q_yomu_ring_green") then
+								self.Object = o
+								self.Pos = o.pos
+								self.OnOtherObject = true
+								return true
+							end
+						end
+					end
+				end
+			end
+			return self.OnOtherObject
+		end,
+		Update = function(self)
+			if self.OnOtherObject then
+				if self.Object and self.Object.name:find("_Q_yomu_ring_green") then
+					return
+				end
+				self.OnOtherObject = false
+			end
+			if self:IsOnHero() then
+				return
+			end
+			if self:IsMissile() then
+				return
+			end
+			if self:IsOtherObject() then
+				return
+			end
+		end,
+		DrawCircle = function(self, x, y, r)
+			local poly = {}
+			for i = 20, 360, 20 do
+				local angle = i * math.pi / 180
+				local ptx, pty = x + r * math.cos(angle), y + r * math.sin(angle)
+				poly[#poly + 1] = { x = ptx, y = pty }
+			end
+			for i = 1, #poly do
+				local p1 = poly[i]
+				local p2 = poly[i + 1]
+				if i == #poly then
+					p2 = poly[1]
+				end
+				Draw.Line(p1.x, p1.y, p2.x, p2.y)
+			end
+		end,
+		Draw = function(self)
+			if self.OnHero then
+				Draw.Circle(self.Object.pos, 50)
+			elseif self.OnOtherObject or os.clock() < self.IzunaTimer + 0.5 then
+				Draw.Circle(self.Pos, 50)
+				--[[local count = Game.HeroCount()
+				for i = 1, count do
+					local hero = Game.Hero(i)
+					if hero and hero.valid and hero.visible and hero.isEnemy then
+						print((80 + hero.boundingRadius) .. " " .. GetDistance(hero.pos, self.Pos))
+					end
+				end]]
+			end
+		end,
+		Load = function(self)
+			if self:IsOnHero() then
+				return
+			end
+			if self:IsMissile() then
+				return
+			end
+			if self:IsOtherObject() then
+				return
+			end
+		end,
+	}
 
     self:LoadMenu()
 
@@ -126,7 +331,7 @@ function Orianna:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 end
 
@@ -237,9 +442,9 @@ end
 
 function Orianna:Draw()
 
-    if ballPos.pos then 
+    if ballPos.pos then
         if TY.Drawing.ball:Value() then
-            Draw.Circle(ballPos.pos, 133, Draw.Color(TY.Drawing.BColor.T:Value() ,TY.Drawing.BColor.R:Value(),TY.Drawing.BColor.G:Value(),TY.Drawing.BColor.B:Value())) 
+            Draw.Circle(ballPos.pos, 133, Draw.Color(TY.Drawing.BColor.T:Value() ,TY.Drawing.BColor.R:Value(),TY.Drawing.BColor.G:Value(),TY.Drawing.BColor.B:Value()))
         end
         if TY.Drawing.W:Value() and Ready(_W) then
             Draw.Circle(ballPos.pos, self.WData.Radius , Draw.Color(TY.Drawing.WColor.T:Value() ,TY.Drawing.WColor.R:Value(),TY.Drawing.WColor.G:Value(),TY.Drawing.WColor.B:Value()))
@@ -388,8 +593,9 @@ end
 function Orianna:CastQ(target)
     if lastQTick + 100 > GetTickCount() then return end
     if Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= self.QData.Range then
-        local Pred = GetGamsteronPrediction(target, self.QData, ballPos)
-        if Pred.Hitchance >= _G.HITCHANCE_HIGH 
+        local QPrediction = GGPrediction:SpellPrediction(self.QData)
+        local Pred = QPrediction:GetPrediction(target, self.OriannaBall.Object) --GetGamsteronPrediction(target, self.QData, ballPos)
+        if Pred.Hitchance >= _G.HITCHANCE_HIGH
         and  myHero.pos:DistanceTo(Pred.CastPosition)<= 825
         then
             lastQTick = GetTickCount()

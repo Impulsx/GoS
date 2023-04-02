@@ -1,4 +1,4 @@
-require 'GGPrediction'
+require 'GamsteronPrediction'
 
 local GameHeroCount     = Game.HeroCount
 local GameHero          = Game.Hero
@@ -204,7 +204,8 @@ end
 
 function Amumu:CastQ(target)
     if Ready(_Q) and lastQ +350 < GetTickCount() and orbwalker:CanMove() then
-        local Pred = GetGamsteronPrediction(target, self.QData, myHero)
+        local QPrediction = GGPrediction:SpellPrediction(self.QData)
+        local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.QData, myHero)
         if Pred.Hitchance >= _G.HITCHANCE_HIGH then
             Control.CastSpell(HK_Q, Pred.CastPosition)
             print("cast Q")

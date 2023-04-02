@@ -194,7 +194,9 @@ end
 
 function Nautilus:CastQ(target)
     if Ready(_Q) and lastQ +350 < GetTickCount() and orbwalker:CanMove() then
-        local Pred = GetGamsteronPrediction(target, self.QData, myHero)
+        local QPrediction = GGPrediction:SpellPrediction(self.QData)
+        local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.QData, myHero)
+
         if Pred.Hitchance >= _G.HITCHANCE_HIGH then
             lineQ = self:CreateQPoly(Pred.CastPosition)
             for i, lineSegment in ipairs(lineQ:__getLineSegments()) do

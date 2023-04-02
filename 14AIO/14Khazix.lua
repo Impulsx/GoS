@@ -266,8 +266,8 @@ end
 
 function Khazix:CastW(target)
     if not Ready(_W) or lastW + 350 > GetTickCount() then return end
-
-    local Pred = GetGamsteronPrediction(target, self.W, myHero)
+    local WPrediction = GGPrediction:SpellPrediction(self.W)
+    local Pred = WPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
     if Pred.Hitchance >= _G.HITCHANCE_HIGH and orbwalker:CanMove() then
             Control.CastSpell(HK_W, Pred.CastPosition)
             lastW = GetTickCount()
@@ -279,8 +279,8 @@ end
 
 function Khazix:CastE(target)
     if not Ready(_E) or lastE + 350 >GetTickCount() then return end
-
-    local Pred = GetGamsteronPrediction(target, self.E, myHero)
+    local EPrediction = GGPrediction:SpellPrediction(self.E)
+    local Pred = EPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.E, myHero)
     if Pred.Hitchance >= _G.HITCHANCE_HIGH and orbwalker:CanMove() then
         Control.CastSpell(HK_E, Pred.CastPosition)
         lastE = GetTickCount()

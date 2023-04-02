@@ -243,7 +243,8 @@ function Leona:Combo()
         end
 
         if self.tyMenu.Combo.UseE:Value() and Ready(_E) and lastE +550 < GetTickCount() and myHero.pos:DistanceTo(target.pos) <= 875 then
-            local Pred = GetGamsteronPrediction(target, self.EData, myHero)
+            local EPrediction = GGPrediction:SpellPrediction(self.EData)
+            local Pred = EPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.EData, myHero)
             if Pred.Hitchance >= _G.HITCHANCE_HIGH then
                 ORB:SetMovement(false)
                 Control.CastSpell(HK_E, Pred.CastPosition)
@@ -260,8 +261,9 @@ function Leona:Combo()
 
         if self.tyMenu.Combo.UseR:Value() and Ready(_R) and lastR +450 < GetTickCount() and myHero.pos:DistanceTo(target.pos) <= 1150 then
             if myHero.pos:DistanceTo(target.pos) < 850 and not Ready(_E) and not Ready(_Q) then
-                local Pred = GetGamsteronPrediction(target, self.RData, myHero)
-                if Pred.Hitchance >= _G.HITCHANCE_HIGH then
+                local RPrediction = GGPrediction:SpellPrediction(self.RData)
+                local Pred = RPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.RData, myHero)
+                        if Pred.Hitchance >= _G.HITCHANCE_HIGH then
                     if EnemiesNear(Pred.CastPosition) >= self.tyMenu.Combo.MinR:Value() then
                         NextTick = GetTickCount() + 250
                         ORB:SetMovement(false)
@@ -272,8 +274,9 @@ function Leona:Combo()
                 end
             end
             if myHero.pos:DistanceTo(target.pos) > 800 and Ready(_E) and Ready(_Q) then
-                local Pred = GetGamsteronPrediction(target, self.RData, myHero)
-                if Pred.Hitchance >= _G.HITCHANCE_HIGH then
+                local RPrediction = GGPrediction:SpellPrediction(self.RData)
+                local Pred = RPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.RData, myHero)
+                        if Pred.Hitchance >= _G.HITCHANCE_HIGH then
                     if EnemiesNear(Pred.CastPosition) >= self.tyMenu.Combo.MinR:Value() then
                         NextTick = GetTickCount() + 250
                         ORB:SetMovement(false)
@@ -323,7 +326,8 @@ function Leona:Harass()
         end
 
         if self.tyMenu.Harass.UseE:Value() and Ready(_E) and lastE +550 < GetTickCount() and myHero.pos:DistanceTo(target.pos) <= 875 then
-            local Pred = GetGamsteronPrediction(target, self.EData, myHero)
+            local EPrediction = GGPrediction:SpellPrediction(self.EData)
+            local Pred = EPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.EData, myHero)
             if Pred.Hitchance >= _G.HITCHANCE_HIGH then
                 NextTick = GetTickCount() + 250
                 ORB:SetMovement(false)

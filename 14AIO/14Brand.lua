@@ -194,7 +194,8 @@ function Brand:Combo()
     target = self:GetTarget(900)
 
     if target and self.tyMenu.combo.QE:Value() and Ready(_Q) and Ready(_E) and lastQ + 350 < GetTickCount() and orbwalker:CanMove() then
-        local Pred = GetGamsteronPrediction(target, self.Q, myHero)
+        local QPrediction = GGPrediction:SpellPrediction(self.Q)
+        local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
         if Pred.Hitchance >= _G.HITCHANCE_HIGH
         and GetDistanceSquared(myHero.pos, Pred.CastPosition) >= self.tyMenu.combo.minQE:Value()^2
         and GetDistanceSquared(myHero.pos, Pred.CastPosition) < self.E.range^2
@@ -215,7 +216,8 @@ function Brand:Combo()
     target = self:GetTarget(625)
     if target and self.tyMenu.combo.EQ:Value() and Ready(_Q) and Ready(_E)
     and lastE + 350 < GetTickCount() then
-        local Pred = GetGamsteronPrediction(target, self.Q, myHero)
+        local QPrediction = GGPrediction:SpellPrediction(self.Q)
+        local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
         if Pred.Hitchance >= _G.HITCHANCE_HIGH then
             Control.CastSpell(HK_E, target)
             lastE = GetTickCount()
@@ -266,7 +268,8 @@ function Brand:Auto()
                 local hasBuff, duration = self:HasPassiveBuff(hero)
                 local time = 0.25 + distanceSqr/(1600*1600)
                 if hasBuff and duration >= time then
-                    local Pred = GetGamsteronPrediction(hero, self.Q, myHero)
+                    local QPrediction = GGPrediction:SpellPrediction(self.Q)
+                    local Pred = QPrediction:GetPrediction(hero, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
                     if Pred.Hitchance >= _G.HITCHANCE_HIGH then
                         Control.CastSpell(HK_Q, Pred.CastPosition)
                         lastQ = GetTickCount()
@@ -277,7 +280,8 @@ function Brand:Auto()
             end
 
             if self.tyMenu.auto.W:Value() and Ready(_W) and lastW + 700 < GetTickCount() and distanceSqr < 900*900 then
-                local Pred = GetGamsteronPrediction(hero, self.W, myHero)
+                local WPrediction = GGPrediction:SpellPrediction(self.W)
+                local Pred = WPrediction:GetPrediction(hero, myHero) --GetGamsteronPrediction(hero, self.W, myHero)
                 if Pred.Hitchance >= _G.HITCHANCE_IMMOBILE then
                     Control.CastSpell(HK_W, Pred.CastPosition)
                     lastW = GetTickCount()
@@ -341,7 +345,8 @@ end
 
 function Brand:CastW(target)
     if Ready(_W) and lastW + 600 < GetTickCount() and lastEQ + 550 < GetTickCount() then
-        local Pred = GetGamsteronPrediction(target, self.W, myHero)
+        local WPrediction = GGPrediction:SpellPrediction(self.W)
+        local Pred = WPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
         if Pred.Hitchance >= _G.HITCHANCE_HIGH then
             Control.CastSpell(HK_W, Pred.CastPosition)
             lastW = GetTickCount()

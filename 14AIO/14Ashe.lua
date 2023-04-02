@@ -228,7 +228,8 @@ function Ashe:AntiGap()
                     if path.isDashing and path.hasMovePath and path.dashSpeed > 0
                     and IsDashToMe(enemy)
                     then
-                        local Pred = GetGamsteronPrediction(enemy, self.R, myHero)
+                        local RPrediction = GGPrediction:SpellPrediction(self.RData)
+                        local Pred = RPrediction:GetPrediction(enemy, myHero) --GetGamsteronPrediction(enemy, self.R, myHero)
                         if Pred.Hitchance  >= self.R.Hitchance then
                             Control.CastSpell(HK_R,Pred.CastPosition)
                             lastR = GetTickCount()
@@ -242,7 +243,8 @@ end
 
 function Ashe:CastR(target)
     if IsValid(target) and Ready(_R) and lastR + 500 < GetTickCount()  then
-        local Pred = GetGamsteronPrediction(target, self.R, myHero)
+        local RPrediction = GGPrediction:SpellPrediction(self.RData)
+        local Pred = RPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.R, myHero)
         if Pred.Hitchance  >= self.R.Hitchance then
             Control.CastSpell(HK_R,Pred.CastPosition)
             lastR = GetTickCount()
@@ -253,7 +255,8 @@ end
 function Ashe:CastW(target)
     if IsValid(target) and Ready(_W) and lastW + 500 < GetTickCount()
     and orbwalker:CanMove() and GetDistanceSquared(myHero.pos,target.pos) < self.tyMenu.Setting.Wrange:Value()^2 then
-        local Pred = GetGamsteronPrediction(target, self.W, myHero)
+        local WPrediction = GGPrediction:SpellPrediction(self.W)
+        local Pred = WPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
         if Pred.Hitchance  >= self.W.Hitchance then
             Control.CastSpell(HK_W,Pred.CastPosition)
             lastW = GetTickCount()

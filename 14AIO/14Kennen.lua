@@ -293,7 +293,8 @@ function Kennen:Auto()
             if IsValid(hero) and GetDistanceSquared(hero.pos, myHero.pos) < self.Q.Range * self.Q.Range then
                 local hasbuff , duration, count = HasBuff("kennenmarkofstorm",hero)
                 if hasbuff and count == 2 then
-                    local Pred = GetGamsteronPrediction(hero, self.Q, myHero)
+                    local QPrediction = GGPrediction:SpellPrediction(self.Q)
+                    local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
                     if Pred.Hitchance >= _G.HITCHANCE_NORMAL then
                         local casted = Control.CastSpell(HK_Q, Pred.CastPosition)
                         if casted then
@@ -337,7 +338,8 @@ end
 
 function Kennen:CastQ(target)
     if Ready(_Q) and lastQ +260 < GetTickCount() and orbwalker:CanMove() then
-        local Pred = GetGamsteronPrediction(target, self.Q, myHero)
+        local QPrediction = GGPrediction:SpellPrediction(self.Q)
+        local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
         if Pred.Hitchance >= _G.HITCHANCE_NORMAL then
             local casted = Control.CastSpell(HK_Q, Pred.CastPosition)
             if casted then

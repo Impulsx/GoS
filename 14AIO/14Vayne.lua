@@ -261,7 +261,8 @@ end
 
 function Vayne:CastE(target)
     if IsValid(target) and Ready(_E) and lastE + 500 < GetTickCount() then
-        local Pred = GetGamsteronPrediction(target, self.E, myHero)
+        local EPrediction = GGPrediction:SpellPrediction(self.E)
+        local Pred = EPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.E, myHero)
         if Pred.Hitchance  >= self.E.Hitchance then
             local extendPos = Pred.CastPosition:Extended(myHero.pos,-self.tyMenu.Setting.Erange:Value())
             local lineE = LineSegment(Pred.CastPosition,extendPos)
