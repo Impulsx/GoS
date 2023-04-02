@@ -1,4 +1,4 @@
-require 'GamsteronPrediction'
+require 'GGPrediction'
 local GameHeroCount     = Game.HeroCount
 local GameHero          = Game.Hero
 local TableInsert       = _G.table.insert
@@ -38,12 +38,12 @@ end
 
 
 local function IsValid(unit)
-    if (unit 
-        and unit.valid 
-        and unit.isTargetable 
-        and unit.alive 
-        and unit.visible 
-        and unit.networkID 
+    if (unit
+        and unit.valid
+        and unit.isTargetable
+        and unit.alive
+        and unit.visible
+        and unit.networkID
         and unit.health > 0
         and not unit.dead
     ) then
@@ -53,9 +53,9 @@ local function IsValid(unit)
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -132,7 +132,7 @@ function Kennen:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 
 end
@@ -252,7 +252,7 @@ function Kennen:Combo()
         end
     end
 
-    
+
 
     if Ready(_R) and lastR +260 < GetTickCount() then
         if self:GetTargetInRange(self.R.Range) >= self.tyMenu.Combo.rCount:Value() then
@@ -352,7 +352,7 @@ function Kennen:GetQDamage(target)
     local baseDmg = ({75, 115, 155,195,235})[myHero:GetSpellData(_Q).level]
     local bonusDmg = myHero.ap * 0.75
 
-    local value = baseDmg + bonusDmg 
+    local value = baseDmg + bonusDmg
     return DamageLib:CalculateDamage(myHero, target, _G.SDK.DAMAGE_TYPE_MAGICAL ,  value )
 end
 
@@ -360,7 +360,7 @@ function Kennen:GetWDamage(target)
     local baseDmg = ({60, 85, 110,135,160})[myHero:GetSpellData(_W).level]
     local bonusDmg = myHero.ap * 0.8
 
-    local value = baseDmg + bonusDmg 
+    local value = baseDmg + bonusDmg
     return DamageLib:CalculateDamage(myHero, target, _G.SDK.DAMAGE_TYPE_MAGICAL ,  value )
 
 end
@@ -368,7 +368,7 @@ end
 function Kennen:GetRDamage(target)
     local baseDmg = ({300, 562.5, 825})[myHero:GetSpellData(_R).level]
     local bonusDmg = myHero.ap * 1.5
-    local value = baseDmg + bonusDmg 
+    local value = baseDmg + bonusDmg
     return DamageLib:CalculateDamage(myHero, target, _G.SDK.DAMAGE_TYPE_MAGICAL ,  value )
 end
 

@@ -1,6 +1,6 @@
 require 'MapPositionGOS'
 require "2DGeometry"
-require 'GamsteronPrediction'
+require 'GGPrediction'
 
 local GameHeroCount     = Game.HeroCount
 local GameHero          = Game.Hero
@@ -9,8 +9,8 @@ local TableInsert       = _G.table.insert
 local orbwalker         = _G.SDK.Orbwalker
 local TargetSelector    = _G.SDK.TargetSelector
 
-local abs = math.abs 
-local sqrt = math.sqrt 
+local abs = math.abs
+local sqrt = math.sqrt
 
 local lastQ = 0
 local lastW = 0
@@ -49,12 +49,12 @@ local function DistanceCompare(a,b)
 end
 
 local function IsValid(unit)
-    if (unit 
-        and unit.valid 
-        and unit.isTargetable 
-        and unit.alive 
-        and unit.visible 
-        and unit.networkID 
+    if (unit
+        and unit.valid
+        and unit.isTargetable
+        and unit.alive
+        and unit.visible
+        and unit.networkID
         and unit.health > 0
         and not unit.dead
     ) then
@@ -64,9 +64,9 @@ local function IsValid(unit)
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -174,7 +174,7 @@ function Graves:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 end
 
@@ -199,7 +199,7 @@ function Graves:LoadMenu()
 
     self.tyMenu:MenuElement({type = MENU, id = "Setting", name = "Setting"})
         self.tyMenu.Setting:MenuElement({id = "Emode", name ="E mode" , drop = {"To Side", "To Cursor"}})
-        self.tyMenu.Setting:MenuElement({name ="Q HitChance" , drop = {"High", "Normal"}, callback = function(value) 
+        self.tyMenu.Setting:MenuElement({name ="Q HitChance" , drop = {"High", "Normal"}, callback = function(value)
             if value == 1 then
                 self.Q.Hitchance = _G.HITCHANCE_HIGH
             end
@@ -207,7 +207,7 @@ function Graves:LoadMenu()
                 self.Q.Hitchance = _G.HITCHANCE_NORMAL
             end
         end})
-        self.tyMenu.Setting:MenuElement({name ="W HitChance" , drop = {"High", "Normal"}, callback = function(value) 
+        self.tyMenu.Setting:MenuElement({name ="W HitChance" , drop = {"High", "Normal"}, callback = function(value)
             if value == 1 then
                 self.W.Hitchance = _G.HITCHANCE_HIGH
             end
@@ -215,7 +215,7 @@ function Graves:LoadMenu()
                 self.W.Hitchance = _G.HITCHANCE_NORMAL
             end
         end})
-        self.tyMenu.Setting:MenuElement({name ="R HitChance" , drop = {"High", "Normal"}, callback = function(value) 
+        self.tyMenu.Setting:MenuElement({name ="R HitChance" , drop = {"High", "Normal"}, callback = function(value)
             if value == 1 then
                 self.R.Hitchance = _G.HITCHANCE_HIGH
             end
@@ -241,7 +241,7 @@ function Graves:OnPostAttackTick(args)
     end
 
     if self.AttackTarget and Ready(_E) and lastE + 200 < GetTickCount() then
-        if (orbwalker.Modes[0] and self.tyMenu.Combo.E:Value() and self.AttackTarget.type == Obj_AI_Hero) 
+        if (orbwalker.Modes[0] and self.tyMenu.Combo.E:Value() and self.AttackTarget.type == Obj_AI_Hero)
         or (orbwalker.Modes[3] and self.tyMenu.Jungle.E:Value() and self.AttackTarget.team == 300 ) then
             if self.tyMenu.Setting.Emode:Value() == 2 then
                 Control.CastSpell(HK_E)
@@ -251,10 +251,10 @@ function Graves:OnPostAttackTick(args)
             if self.tyMenu.Setting.Emode:Value() == 1 then
                 local root1, root2 = CircleCircleIntersection(myHero.pos, self.AttackTarget.pos, myHero.range + myHero.boundingRadius, 500)
                 if root1 and root2 then
-                    local closest = GetDistance(root1, mousePos) < GetDistance(root2, mousePos) and root1 or root2            
+                    local closest = GetDistance(root1, mousePos) < GetDistance(root2, mousePos) and root1 or root2
                     Control.CastSpell(HK_E,myHero.pos:Extended(closest, 300))
                     lastE = GetTickCount()
-                end   
+                end
             end
         end
     end
@@ -368,7 +368,7 @@ function Graves:CreateQPoly(position)
     local c2 = startPos+Vector(Vector(endPos)-startPos):Perpendicular2():Normalized()*width
     local c3 = endPos+Vector(Vector(startPos)-endPos):Perpendicular():Normalized()*width
     local c4 = endPos+Vector(Vector(startPos)-endPos):Perpendicular2():Normalized()*width
-  
+
     local poly = Polygon(c1,c2,c3,c4)
 
     return poly

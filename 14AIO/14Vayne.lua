@@ -1,4 +1,4 @@
-require 'GamsteronPrediction'
+require 'GGPrediction'
 require "2DGeometry"
 require 'MapPositionGOS'
 
@@ -9,10 +9,10 @@ local TableInsert       = _G.table.insert
 local orbwalker         = _G.SDK.Orbwalker
 local TargetSelector    = _G.SDK.TargetSelector
 
-local abs = math.abs 
-local sqrt = math.sqrt 
-local deg = math.deg 
-local acos = math.acos 
+local abs = math.abs
+local sqrt = math.sqrt
+local deg = math.deg
+local acos = math.acos
 
 local lastQ = 0
 local lastW = 0
@@ -24,7 +24,7 @@ local lastAttack = 0
 local Enemys =   {}
 local Allys  =   {}
 
-local lin = nil 
+local lin = nil
 
 local function GetDistance(a,b)
     return a:DistanceTo(b)
@@ -62,12 +62,12 @@ local function IsDashToMe(unit)
 end
 
 local function IsValid(unit)
-    if (unit 
-        and unit.valid 
-        and unit.isTargetable 
-        and unit.alive 
-        and unit.visible 
-        and unit.networkID 
+    if (unit
+        and unit.valid
+        and unit.isTargetable
+        and unit.alive
+        and unit.visible
+        and unit.networkID
         and unit.health > 0
         and not unit.dead
     ) then
@@ -77,9 +77,9 @@ local function IsValid(unit)
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -128,7 +128,7 @@ class "Vayne"
 function Vayne:__init()
     self.Q = {Range = 300, Speed = 830}
     self.E = {Hitchance = _G.HITCHANCE_HIGH, Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 1, Range = 650, Speed = 2200, Collision = true, MaxCollision = 0, CollisionTypes = { _G.COLLISION_YASUOWALL}}
-    
+
     self.AttackTarget = nil
 
     self:LoadMenu()
@@ -172,7 +172,7 @@ function Vayne:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 end
 
@@ -183,21 +183,21 @@ function Vayne:LoadMenu()
     self.tyMenu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
         self.tyMenu.Combo:MenuElement({id = "Q", name = "[Q] AA reset", value = true})
         self.tyMenu.Combo:MenuElement({id = "E", name = "[E] Stun", value = true})
-    
+
     self.tyMenu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
         self.tyMenu.Harass:MenuElement({id = "Q", name = "[Q] AA reset", value = true})
 
     self.tyMenu:MenuElement({type = MENU, id = "Setting", name = "Setting"})
         self.tyMenu.Setting:MenuElement({id = "Qmode", name ="Q mode" , drop = {"To Side", "To Cursor"}})
         self.tyMenu.Setting:MenuElement({id = "Erange", name = "E range", value = 475, min = 1, max = 475, step = 1})
-        self.tyMenu.Setting:MenuElement({name ="E HitChance" , drop = {"High", "Normal"}, callback = function(value) 
+        self.tyMenu.Setting:MenuElement({name ="E HitChance" , drop = {"High", "Normal"}, callback = function(value)
             if value == 1 then
                 self.E.Hitchance = _G.HITCHANCE_HIGH
             end
             if value == 2 then
                 self.E.Hitchance = _G.HITCHANCE_NORMAL
             end
-        end})        
+        end})
         self.tyMenu.Setting:MenuElement({id = "antiMelee", name = "[E] Anti-Melee", value = true})
         self.tyMenu.Setting:MenuElement({id = "antiMeleeRange", name = "E Anti-Melee range", value = 300, min = 1, max = 500, step = 1})
 
@@ -206,7 +206,7 @@ function Vayne:LoadMenu()
         self.tyMenu.Setting:MenuElement({type = MENU, id = "AntiGap", name = "Anti-Gap closer"})
             OnEnemyHeroLoad(function(hero) self.tyMenu.Setting.AntiGap:MenuElement({id = hero.charName, name = hero.charName, value = false}) end)
 
-    
+
     self.tyMenu:MenuElement({type = MENU, id = "Human", name = "Humanizer"})
         self.tyMenu.Human:MenuElement({id = "Move", name = "Only allow 1 movement in X Tick ", value = 180, min = 1, max = 500, step = 1})
         self.tyMenu.Human:MenuElement({id = "AA", name = "Only allow 1 AA in X Tick", value = 180, min = 1, max = 500, step = 1})
@@ -232,10 +232,10 @@ function Vayne:OnPostAttackTick(args)
             if self.tyMenu.Setting.Qmode:Value() == 1 then
                 local root1, root2 = CircleCircleIntersection(myHero.pos, self.AttackTarget.pos, myHero.range + myHero.boundingRadius, 500)
                 if root1 and root2 then
-                    local closest = GetDistance(root1, mousePos) < GetDistance(root2, mousePos) and root1 or root2            
+                    local closest = GetDistance(root1, mousePos) < GetDistance(root2, mousePos) and root1 or root2
                     Control.CastSpell(HK_Q,myHero.pos:Extended(closest, 300))
                     lastQ = GetTickCount()
-                end   
+                end
             end
         end
     end
@@ -278,32 +278,32 @@ end
 
 function Vayne:AntiGap()
     for k, enemy in pairs(Enemys) do
-        if self.tyMenu.Setting.antiMelee:Value() 
-        and GetDistanceSquared(myHero.pos, enemy.pos) < self.tyMenu.Setting.antiMeleeRange:Value()  ^2 
+        if self.tyMenu.Setting.antiMelee:Value()
+        and GetDistanceSquared(myHero.pos, enemy.pos) < self.tyMenu.Setting.antiMeleeRange:Value()  ^2
         and enemy.range < 300
         and Ready(_E) and lastE + 500 < GetTickCount()
         and IsValid(enemy)
         then
             Control.CastSpell(HK_E,enemy)
             print("anti Melee E")
-            lastE = GetTickCount()        
+            lastE = GetTickCount()
         end
         if self.tyMenu.Setting.AntiGap[enemy.charName] and self.tyMenu.Setting.AntiGap[enemy.charName]:Value() then
             if IsValid(enemy) and GetDistanceSquared(myHero.pos, enemy.pos) < self.E.Range ^2 then
                 local path = enemy.pathing
-                if path.isDashing and path.hasMovePath and path.dashSpeed > 0 
+                if path.isDashing and path.hasMovePath and path.dashSpeed > 0
                 and IsDashToMe(enemy) and not HasBuff(enemy,"VayneCondemnMissile")
                 then
                     if Ready(_E) and lastE + 500 < GetTickCount() and self.tyMenu.Setting.antiE:Value() then
                         Control.CastSpell(HK_E,enemy)
                         print("anti E")
-                        lastE = GetTickCount()        
+                        lastE = GetTickCount()
                     end
                     if Ready(_Q) and lastQ + 300 < GetTickCount() and self.tyMenu.Setting.antiQ:Value() then
                         local pos = myHero.pos:Extended(enemy.pos, -self.Q.Range)
                         Control.CastSpell(HK_Q,pos)
                         print("anti Q")
-                        lastQ = GetTickCount()        
+                        lastQ = GetTickCount()
                     end
                 end
             end

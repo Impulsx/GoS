@@ -27,16 +27,16 @@ local HK_ITEM_7 = HK_ITEM_7
 local Enemys =   {}
 local Allys  =   {}
 
-require 'GamsteronPrediction'
+require 'GGPrediction'
 
 
 local function IsValid(unit)
-    if (unit 
-        and unit.valid 
-        and unit.isTargetable 
-        and unit.alive 
-        and unit.visible 
-        and unit.networkID 
+    if (unit
+        and unit.valid
+        and unit.isTargetable
+        and unit.alive
+        and unit.visible
+        and unit.networkID
         and unit.health > 0
         and not unit.dead
     ) then
@@ -46,9 +46,9 @@ local function IsValid(unit)
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -144,7 +144,7 @@ function Lulu:__init()
 
     }
 
-    self.ChannelingBuffs =          
+    self.ChannelingBuffs =
     {
         ["Lucian"] = function(unit)
             return self:HasBuff(unit, "LucianR")
@@ -211,7 +211,7 @@ function Lulu:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 
 end
@@ -258,11 +258,11 @@ function Lulu:LoadMenu()
                     self.tyMenu.autoW.interrupt:MenuElement({id = hero.charName, name = hero.charName.." | "..self.channelingChamp[hero.charName].slot , value = true})
                 end
             end)
-        
+
         self.tyMenu.autoW:MenuElement({type = MENU, id = "onEnemy", name = "Auto Cast On Enemy if in Range"})
             OnEnemyHeroLoad(function(hero)
                 self.tyMenu.autoW.onEnemy:MenuElement({id = hero.charName, name = hero.charName, value = false})
-            end)  
+            end)
 
 
     self.tyMenu:MenuElement({type = MENU, id = "autoE", name = "Auto E Setting"})
@@ -302,7 +302,7 @@ function Lulu:LoadMenu()
                 self.tyMenu.item.type.slowm:MenuElement({id = "slow", name = "Slow", value = true})
                 self.tyMenu.item.type.slowm:MenuElement({id = "speed", name = "Maximum  Move Speed", value = 200, min = 0, max = 250, step = 10})
                 self.tyMenu.item.type.slowm:MenuElement({id = "duration", name = "Minimum duration - in ms", value = 1500, min = 1000, max = 3000, step = 50})
-        
+
         self.tyMenu.item:MenuElement({type = MENU, id = "useon", name = "Use On Ally"})
         OnAllyHeroLoad(function(hero)
             self.tyMenu.item.useon:MenuElement({id = hero.charName, name = hero.charName, value = true})
@@ -350,10 +350,10 @@ function Lulu:Tick()
         return
     end
 
-    if orbwalker.Modes[0] then 
+    if orbwalker.Modes[0] then
         self:Combo()
         self:IG()
-    elseif orbwalker.Modes[1] then 
+    elseif orbwalker.Modes[1] then
         self:Harass()
     end
 
@@ -365,7 +365,7 @@ function Lulu:Tick()
     self:UseItem()
 end
 
-function Lulu:Combo() 
+function Lulu:Combo()
     local target = TargetSelector:GetTarget(self.Q.Range, 1)
     if target and IsValid(target) then
         if self.tyMenu.combo.Q:Value() and myHero.pos:DistanceTo(target.pos) < self.tyMenu.combo.range:Value() then
@@ -374,7 +374,7 @@ function Lulu:Combo()
     end
 end
 
-function Lulu:Harass() 
+function Lulu:Harass()
     local target = TargetSelector:GetTarget(self.Q.Range, 1)
     if target and IsValid(target) then
         if self.tyMenu.harass.Q:Value() and myHero.pos:DistanceTo(target.pos) < self.tyMenu.harass.range:Value() then
@@ -413,7 +413,7 @@ end
 
 function Lulu:Interrupt()
     if not Ready(_W) or lastW +250 > GetTickCount()  then return end
-    for enemyk , enemy in pairs(Enemys) do 
+    for enemyk , enemy in pairs(Enemys) do
         if myHero.pos:DistanceTo(enemy.pos) < self.W.Range and IsValid(enemy) then
             if enemy.activeSpell.valid  and self.tyMenu.autoW.interrupt[enemy.activeSpell.name] and self.tyMenu.autoW.interrupt[enemy.activeSpell.name]:Value() then
                 Control.CastSpell(HK_W, enemy.pos)
@@ -468,11 +468,11 @@ function Lulu:AutoR()
                     lastR = GetTickCount()
                     return
                 end
-            
+
                 local count = 0
-                for enemyk , enemy in pairs(Enemys) do 
+                for enemyk , enemy in pairs(Enemys) do
                     if IsValid(enemy) and enemy.pos:DistanceTo(ally.pos) < 400 then
-                        count = count + 1 
+                        count = count + 1
                         if count >= self.tyMenu.autoR.Rcount:Value() then
                             Control.CastSpell(HK_R, ally.pos)
                             print("Knock Up cast R "..ally.charName)
@@ -482,7 +482,7 @@ function Lulu:AutoR()
                     end
                 end
             end
-        end  
+        end
     end
 
 end
@@ -498,7 +498,7 @@ function Lulu:UseItem()
     if i then
         local HKItem = ({HK_ITEM_1, HK_ITEM_2, HK_ITEM_3, HK_ITEM_4, HK_ITEM_5, HK_ITEM_6, HK_ITEM_7})[i]
         for K, ally in pairs(Allys) do
-            if IsValid(ally) and self.tyMenu.item.useon[ally.charName] 
+            if IsValid(ally) and self.tyMenu.item.useon[ally.charName]
              and self.tyMenu.item.useon[ally.charName]:Value()
              and myHero.pos:DistanceTo(ally.pos) < 650
              and self:HasMenuBuff(ally) and self:GetEnemyAround(ally) > 0  then
@@ -544,7 +544,7 @@ function Lulu:HasMenuBuff(hero)
                 return true
             end
 
-            if buffType == 10 and self.tyMenu.item.type.slowm.slow:Value() 
+            if buffType == 10 and self.tyMenu.item.type.slowm.slow:Value()
             and buffDurat > self.tyMenu.item.type.slowm.duration:Value()
             and hero.ms <= self.tyMenu.item.type.slowm.speed:Value() then
                 return true
@@ -557,7 +557,7 @@ end
 
 function Lulu:GetEnemyAround(ally)
     local counter = 0
-    for enemyk , enemy in pairs(Enemys) do 
+    for enemyk , enemy in pairs(Enemys) do
         if IsValid(enemy) and enemy.pos:DistanceTo(ally.pos) < 650 then
             counter = counter + 1
         end
@@ -569,7 +569,7 @@ function Lulu:IG()
     if myHero:GetSpellData(SUMMONER_1).name ~= "SummonerDot" and myHero:GetSpellData(SUMMONER_2).name ~= "SummonerDot" then return end
     if lastIG + 150 > GetTickCount() or not orbwalker.Modes[0] then return end
     local IGdamage = 50 + 20 * myHero.levelData.lvl
-    for enemyk , enemy in pairs(Enemys) do 
+    for enemyk , enemy in pairs(Enemys) do
         if IsValid(enemy) and enemy.pos:DistanceTo(myHero.pos) < 600 then
             if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and myHero:GetSpellData(SUMMONER_1).currentCd == 0 then
                 if IGdamage >= enemy.health then
@@ -579,9 +579,9 @@ function Lulu:IG()
                     return
                 end
             end
-            
 
-            
+
+
             if myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and myHero:GetSpellData(SUMMONER_2).currentCd == 0 then
                 if IGdamage >= enemy.health then
                     Control.CastSpell(HK_SUMMONER_2, enemy.pos)

@@ -1,4 +1,4 @@
-require 'GamsteronPrediction'
+require 'GGPrediction'
 
 
 local GameHeroCount     = Game.HeroCount
@@ -36,12 +36,12 @@ local function IsDashToMe(unit)
 end
 
 local function IsValid(unit)
-    if (unit 
-        and unit.valid 
-        and unit.isTargetable 
-        and unit.alive 
-        and unit.visible 
-        and unit.networkID 
+    if (unit
+        and unit.valid
+        and unit.isTargetable
+        and unit.alive
+        and unit.visible
+        and unit.networkID
         and unit.health > 0
         and not unit.dead
     ) then
@@ -51,9 +51,9 @@ local function IsValid(unit)
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -121,7 +121,7 @@ function Ashe:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 end
 
@@ -135,14 +135,14 @@ function Ashe:LoadMenu()
 
     self.tyMenu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
         self.tyMenu.Harass:MenuElement({id = "W", name = "[W]", value = true})
-    
+
     self.tyMenu:MenuElement({type = MENU, id = "Setting", name = "Setting"})
         self.tyMenu.Setting:MenuElement({id = "Rrange", name = "Max R range", value = 2000, min = 1, max = 5000, step = 1})
-        self.tyMenu.Setting:MenuElement({id = "Wrange", name = "Max W range", value = 1200, min = 1, max = 1200, step = 1, callback = function(value) 
+        self.tyMenu.Setting:MenuElement({id = "Wrange", name = "Max W range", value = 1200, min = 1, max = 1200, step = 1, callback = function(value)
             self.W.Range = value
         end})
 
-        self.tyMenu.Setting:MenuElement({name ="W HitChance" , drop = {"High", "Normal"}, callback = function(value) 
+        self.tyMenu.Setting:MenuElement({name ="W HitChance" , drop = {"High", "Normal"}, callback = function(value)
             if value == 1 then
                 self.W.Hitchance = _G.HITCHANCE_HIGH
             end
@@ -150,7 +150,7 @@ function Ashe:LoadMenu()
                 self.W.Hitchance = _G.HITCHANCE_NORMAL
             end
         end})
-        self.tyMenu.Setting:MenuElement({name ="R HitChance" , drop = {"High", "Normal"}, callback = function(value) 
+        self.tyMenu.Setting:MenuElement({name ="R HitChance" , drop = {"High", "Normal"}, callback = function(value)
             if value == 1 then
                 self.R.Hitchance = _G.HITCHANCE_HIGH
             end
@@ -175,7 +175,7 @@ function Ashe:LoadMenu()
 end
 
 function Ashe:OnPreAttack()
-    if orbwalker.Modes[0] and self.tyMenu.Combo.Q:Value() then 
+    if orbwalker.Modes[0] and self.tyMenu.Combo.Q:Value() then
         if Ready(_Q) and lastQ + 250 < GetTickCount() then
             Control.CastSpell(HK_Q)
             lastQ = GetTickCount()
@@ -225,8 +225,8 @@ function Ashe:AntiGap()
             if self.tyMenu.Anti[enemy.charName] and self.tyMenu.Anti[enemy.charName]:Value() then
                 if IsValid(enemy) and GetDistanceSquared(myHero.pos, enemy.pos) < self.tyMenu.Setting.Rrange:Value() ^2 then
                     local path = enemy.pathing
-                    if path.isDashing and path.hasMovePath and path.dashSpeed > 0 
-                    and IsDashToMe(enemy) 
+                    if path.isDashing and path.hasMovePath and path.dashSpeed > 0
+                    and IsDashToMe(enemy)
                     then
                         local Pred = GetGamsteronPrediction(enemy, self.R, myHero)
                         if Pred.Hitchance  >= self.R.Hitchance then
@@ -251,7 +251,7 @@ function Ashe:CastR(target)
 end
 
 function Ashe:CastW(target)
-    if IsValid(target) and Ready(_W) and lastW + 500 < GetTickCount() 
+    if IsValid(target) and Ready(_W) and lastW + 500 < GetTickCount()
     and orbwalker:CanMove() and GetDistanceSquared(myHero.pos,target.pos) < self.tyMenu.Setting.Wrange:Value()^2 then
         local Pred = GetGamsteronPrediction(target, self.W, myHero)
         if Pred.Hitchance  >= self.W.Hitchance then

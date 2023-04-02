@@ -19,7 +19,7 @@ local lastAttack = 0
 local Enemys =   {}
 local Allys  =   {}
 
-require 'GamsteronPrediction'
+require 'GGPrediction'
 
 local shellSpells = {
     ["NautilusRavageStrikeAttack"]  = {charName = "Nautilus"    ,   slot = "Passive"} ,
@@ -105,20 +105,20 @@ end
 
 
 local function IsValid(unit)
-    return  unit 
-            and unit.valid 
-            and unit.isTargetable 
-            and unit.alive 
-            and unit.visible 
-            and unit.networkID 
+    return  unit
+            and unit.valid
+            and unit.isTargetable
+            and unit.alive
+            and unit.visible
+            and unit.networkID
             and unit.health > 0
             and not unit.dead
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -189,7 +189,7 @@ function Morgana:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 
 end
@@ -232,7 +232,7 @@ function Morgana:LoadMenu()
             self.tyMenu.eSetting.useon:MenuElement({id = hero.charName, name = hero.charName, value = true})
         end)
 
-    
+
     self.tyMenu:MenuElement({type = MENU, id = "misc", name = "Misc Setting"})
         self.tyMenu.misc:MenuElement({id = "maxRange", name = "Max Q Range", value = 1175, min = 0, max = 1175, step = 10})
 
@@ -250,7 +250,7 @@ function Morgana:LoadMenu()
             self.tyMenu.item.type.slowm:MenuElement({id = "slow", name = "Slow", value = true})
             self.tyMenu.item.type.slowm:MenuElement({id = "speed", name = "Maximum  Move Speed", value = 200, min = 0, max = 250, step = 10})
             self.tyMenu.item.type.slowm:MenuElement({id = "duration", name = "Minimum duration - in ms", value = 1500, min = 1000, max = 3000, step = 50})
-    
+
     self.tyMenu.item:MenuElement({type = MENU, id = "useon", name = "Use On Ally"})
     OnAllyHeroLoad(function(hero)
         self.tyMenu.item.useon:MenuElement({id = hero.charName, name = hero.charName, value = true})
@@ -356,7 +356,7 @@ function Morgana:Auto()
                         Control.CastSpell(HK_W, Pred.CastPosition)
                         lastW = GetTickCount()
                         print("cast W")
-                    end            
+                    end
                 end
             end
         end
@@ -387,7 +387,7 @@ function Morgana:BlockSpell()
                         local spell = shellSpells[hero.activeSpell.name]
                         local speed = spell.speed or 99999
                         local hitTime = spell.delay + dt/speed
-            
+
                         DelayAction(function()
                                 Control.CastSpell(HK_E, ally.pos)
                                 print("cast E active")
@@ -491,7 +491,7 @@ function Morgana:UseItem()
     if i then
         local HKItem = ({HK_ITEM_1, HK_ITEM_2, HK_ITEM_3, HK_ITEM_4, HK_ITEM_5, HK_ITEM_6, HK_ITEM_7})[i]
         for K, ally in pairs(Allys) do
-            if IsValid(ally) and self.tyMenu.item.useon[ally.charName] 
+            if IsValid(ally) and self.tyMenu.item.useon[ally.charName]
              and self.tyMenu.item.useon[ally.charName]:Value()
              and myHero.pos:DistanceTo(ally.pos) < 650
              and self:HasMenuBuff(ally) and self:GetEnemyAround(ally) > 0  then
@@ -537,7 +537,7 @@ function Morgana:HasMenuBuff(hero)
                 return true
             end
 
-            if buffType == 10 and self.tyMenu.item.type.slowm.slow:Value() 
+            if buffType == 10 and self.tyMenu.item.type.slowm.slow:Value()
             and buffDurat > self.tyMenu.item.type.slowm.duration:Value()
             and hero.ms <= self.tyMenu.item.type.slowm.speed:Value() then
                 return true
@@ -550,7 +550,7 @@ end
 
 function Morgana:GetEnemyAround(ally)
     local counter = 0
-    for enemyk , enemy in pairs(Enemys) do 
+    for enemyk , enemy in pairs(Enemys) do
         if IsValid(enemy) and enemy.pos:DistanceTo(ally.pos) < 650 then
             counter = counter + 1
         end

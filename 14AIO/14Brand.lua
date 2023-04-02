@@ -17,7 +17,7 @@ local lastAttack = 0
 local Enemys =   {}
 local Allys  =   {}
 
-require 'GamsteronPrediction'
+require 'GGPrediction'
 
 local function GetDistanceSquared(vec1, vec2)
     local dx = vec1.x - vec2.x
@@ -26,20 +26,20 @@ local function GetDistanceSquared(vec1, vec2)
 end
 
 local function IsValid(unit)
-    return  unit 
-            and unit.valid 
-            and unit.isTargetable 
-            and unit.alive 
-            and unit.visible 
-            and unit.networkID 
+    return  unit
+            and unit.valid
+            and unit.isTargetable
+            and unit.alive
+            and unit.visible
+            and unit.networkID
             and unit.health > 0
             and not unit.dead
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -109,7 +109,7 @@ function Brand:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 end
 
@@ -137,7 +137,7 @@ function Brand:LoadMenu()
         self.tyMenu.auto:MenuElement({id = "E", name = "auto E if Buff count 2", value = true})
         self.tyMenu.auto:MenuElement({type = MENU, id = "antiDash", name = "EQ Anti Dash Target"})
         OnEnemyHeroLoad(function(hero) self.tyMenu.auto.antiDash:MenuElement({id = hero.charName, name = hero.charName, value = true}) end)
-        
+
 
     self.tyMenu:MenuElement({type = MENU, id = "Human", name = "Humanizer"})
         self.tyMenu.Human:MenuElement({id = "Move", name = "Only allow 1 movement in X Tick ", value = 180, min = 1, max = 500, step = 1})
@@ -148,7 +148,7 @@ function Brand:LoadMenu()
         self.tyMenu.Drawing:MenuElement({id = "W", name = "Draw [W] Range", value = true})
         self.tyMenu.Drawing:MenuElement({id = "E", name = "Draw [E] Range", value = true})
         self.tyMenu.Drawing:MenuElement({id = "R", name = "Draw [R] Range", value = true})
-    
+
 end
 
 function Brand:Draw()
@@ -213,7 +213,7 @@ function Brand:Combo()
     end
 
     target = self:GetTarget(625)
-    if target and self.tyMenu.combo.EQ:Value() and Ready(_Q) and Ready(_E) 
+    if target and self.tyMenu.combo.EQ:Value() and Ready(_Q) and Ready(_E)
     and lastE + 350 < GetTickCount() then
         local Pred = GetGamsteronPrediction(target, self.Q, myHero)
         if Pred.Hitchance >= _G.HITCHANCE_HIGH then
@@ -261,8 +261,8 @@ function Brand:Auto()
                 end
             end
 
-            if self.tyMenu.auto.Q:Value() and distanceSqr < self.tyMenu.auto.maxRange:Value() ^2 
-            and Ready(_Q) and lastQ + 550 < GetTickCount() then 
+            if self.tyMenu.auto.Q:Value() and distanceSqr < self.tyMenu.auto.maxRange:Value() ^2
+            and Ready(_Q) and lastQ + 550 < GetTickCount() then
                 local hasBuff, duration = self:HasPassiveBuff(hero)
                 local time = 0.25 + distanceSqr/(1600*1600)
                 if hasBuff and duration >= time then
@@ -286,7 +286,7 @@ function Brand:Auto()
                 end
             end
 
-            if self.tyMenu.auto.antiDash[hero.charName] and self.tyMenu.auto.antiDash[hero.charName]:Value() 
+            if self.tyMenu.auto.antiDash[hero.charName] and self.tyMenu.auto.antiDash[hero.charName]:Value()
             and hero.pathing.isDashing and hero.pathing.dashSpeed>0 and Ready(_Q) and Ready(_E) and lastE+350 < GetTickCount()  and distanceSqr < 625*625 then
                 Control.CastSpell(HK_E, hero)
                 lastE = GetTickCount()
@@ -314,7 +314,7 @@ function Brand:IG()
     if myHero:GetSpellData(SUMMONER_1).name ~= "SummonerDot" and myHero:GetSpellData(SUMMONER_2).name ~= "SummonerDot" then return end
     if lastIG + 250 > GetTickCount() then return end
     local IGdamage = 50 + 20 * myHero.levelData.lvl
-    for enemyk , enemy in pairs(Enemys) do 
+    for enemyk , enemy in pairs(Enemys) do
         if IsValid(enemy) and enemy.pos:DistanceTo(myHero.pos) < 600 then
             if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and myHero:GetSpellData(SUMMONER_1).currentCd == 0 then
                 if IGdamage >= enemy.health then
@@ -324,9 +324,9 @@ function Brand:IG()
                     return
                 end
             end
-            
 
-            
+
+
             if myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and myHero:GetSpellData(SUMMONER_2).currentCd == 0 then
                 if IGdamage >= enemy.health then
                     Control.CastSpell(HK_SUMMONER_2, enemy.pos)

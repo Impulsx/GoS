@@ -1,4 +1,4 @@
-require 'GamsteronPrediction'
+require 'GGPrediction'
 
 local GameHeroCount     = Game.HeroCount
 local GameHero          = Game.Hero
@@ -33,12 +33,12 @@ local function DistanceCompare(a,b)
 end
 
 local function IsValid(unit)
-    if (unit 
-        and unit.valid 
-        and unit.isTargetable 
-        and unit.alive 
-        and unit.visible 
-        and unit.networkID 
+    if (unit
+        and unit.valid
+        and unit.isTargetable
+        and unit.alive
+        and unit.visible
+        and unit.networkID
         and unit.health > 0
         and not unit.dead
     ) then
@@ -48,9 +48,9 @@ local function IsValid(unit)
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -132,7 +132,7 @@ function Kayle:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 end
 
@@ -158,9 +158,9 @@ function Kayle:LoadMenu()
     self.tyMenu.Auto:MenuElement({id = "RHP", name = "Auto R Ally HP < X %", value = 10, min = 1, max = 101, step = 1})
     self.tyMenu.Auto:MenuElement({name = "Auto R ally ", id = "autoR", type = _G.MENU})
         OnAllyHeroLoad(function(hero) self.tyMenu.Auto.autoR:MenuElement({id = hero.charName, name = hero.charName, value = true}) end)
-    
+
     self.tyMenu:MenuElement({type = MENU, id = "HitChance", name = "Hit Chance Setting"})
-        self.tyMenu.HitChance:MenuElement({name ="Q HitChance" , drop = {"High", "Normal"}, callback = function(value) 
+        self.tyMenu.HitChance:MenuElement({name ="Q HitChance" , drop = {"High", "Normal"}, callback = function(value)
             if value == 1 then
                 self.Q.Hitchance = _G.HITCHANCE_HIGH
             end
@@ -231,7 +231,7 @@ function Kayle:Tick()
     elseif orbwalker.Modes[5] then --flee
         self:Flee()
     end
-    
+
     self:Auto()
 
 end
@@ -242,9 +242,9 @@ function Kayle:CastQ(target)
         local Pred = GetGamsteronPrediction(target, self.Q, myHero)
         if Pred.Hitchance  >= self.Q.Hitchance then
             self.Q.CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
-            
+
             local Pred2 = GetGamsteronPrediction(target, self.Q, myHero)
-            
+
             if Pred2.Hitchance >= self.Q.Hitchance then
                 Control.CastSpell(HK_Q, Pred2.CastPosition)
                 lastQ = GetTickCount()
@@ -333,7 +333,7 @@ end
 
 function Kayle:GetEnemyAround(ally)
     local counter = 0
-    for enemyk , enemy in pairs(Enemys) do 
+    for enemyk , enemy in pairs(Enemys) do
         if IsValid(enemy) and enemy.pos:DistanceTo(ally.pos) < 650 then
             counter = counter + 1
         end

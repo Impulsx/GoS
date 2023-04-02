@@ -1,4 +1,4 @@
-require 'GamsteronPrediction'
+require 'GGPrediction'
 
 local GameHeroCount     = Game.HeroCount
 local GameHero          = Game.Hero
@@ -27,12 +27,12 @@ end
 
 
 local function IsValid(unit)
-    if (unit 
-        and unit.valid 
-        and unit.isTargetable 
-        and unit.alive 
-        and unit.visible 
-        and unit.networkID 
+    if (unit
+        and unit.valid
+        and unit.isTargetable
+        and unit.alive
+        and unit.visible
+        and unit.networkID
         and unit.health > 0
         and not unit.dead
     ) then
@@ -42,9 +42,9 @@ local function IsValid(unit)
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -71,7 +71,7 @@ class "Amumu"
 
 function Amumu:__init()
     self.QData = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 80, Range = 1100, Speed = 2000, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}}
-    
+
     self:LoadMenu()
 
     OnAllyHeroLoad(function(hero)
@@ -111,7 +111,7 @@ function Amumu:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 
 end
@@ -123,9 +123,9 @@ end
 
 function Amumu:LoadMenu()
     self.tyMenu = MenuElement({type = MENU, id = "14Amumu", name = "14 Amumu"})
-    
+
     --combo
-    
+
     self.tyMenu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
     self.tyMenu.Combo:MenuElement({name = "Use spell on:", id = "useon", type = _G.MENU})
     OnEnemyHeroLoad(function(hero) self.tyMenu.Combo.useon:MenuElement({id = hero.charName, name = hero.charName, value = true}) end)
@@ -227,10 +227,10 @@ function Amumu:Combo()
 
     target = self:GetTarget(targetList, self.QData.Range)
 
-    if target and IsValid(target) and self.tyMenu.Combo.UseQ:Value() 
-    and GetDistanceSquared(myHero.pos, target.pos) <= self.tyMenu.Combo.range:Value()^2 
+    if target and IsValid(target) and self.tyMenu.Combo.UseQ:Value()
+    and GetDistanceSquared(myHero.pos, target.pos) <= self.tyMenu.Combo.range:Value()^2
     and GetDistanceSquared(myHero.pos, target.pos) > self.tyMenu.Combo.minRange:Value()^2
-    then 
+    then
         self:CastQ(target)
     end
 
@@ -270,7 +270,7 @@ function Amumu:Harass()
 end
 
 function Amumu:WaveClean()
-    if self.tyMenu.WaveClean.UseE:Value() and Ready(_E) and lastE + 350 < GetTickCount() and orbwalker:CanMove() then 
+    if self.tyMenu.WaveClean.UseE:Value() and Ready(_E) and lastE + 350 < GetTickCount() and orbwalker:CanMove() then
         local target = orbwalker:GetTarget()
         if target then
             Control.CastSpell(HK_E)

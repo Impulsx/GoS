@@ -1,6 +1,6 @@
 local Version = 0.05
-    
-require 'GamsteronPrediction'
+
+require 'GGPrediction'
 
 local TableInsert       = _G.table.insert
 
@@ -36,12 +36,12 @@ end
 
 
 local function IsValid(unit)
-    if (unit 
-        and unit.valid 
-        and unit.isTargetable 
-        and unit.alive 
-        and unit.visible 
-        and unit.networkID 
+    if (unit
+        and unit.valid
+        and unit.isTargetable
+        and unit.alive
+        and unit.visible
+        and unit.networkID
         and unit.health > 0
         and not unit.dead
     ) then
@@ -51,9 +51,9 @@ local function IsValid(unit)
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -78,7 +78,7 @@ end
 local function EnemiesNear(pos)
     local N = 0
     for i = 1,Game.HeroCount()  do
-        local hero = Game.Hero(i)    
+        local hero = Game.Hero(i)
         if hero.valid and hero.isEnemy and hero.pos:DistanceTo(pos) < 260 then
             N = N + 1
         end
@@ -126,7 +126,7 @@ function Leona:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 
 end
@@ -138,9 +138,9 @@ end
 
 function Leona:LoadMenu()
     self.tyMenu = MenuElement({type = MENU, id = "14Leona", name = "14 Leona"})
-    
+
     --combo
-    
+
     self.tyMenu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
     self.tyMenu.Combo:MenuElement({name = "Use spell on:", id = "useon", type = _G.MENU})
     OnEnemyHeroLoad(function(hero) self.tyMenu.Combo.useon:MenuElement({id = hero.charName, name = hero.charName, value = true}) end)
@@ -151,7 +151,7 @@ function Leona:LoadMenu()
     self.tyMenu.Combo:MenuElement({id = "DontEQR", name = "If Target HP > %", value = 20, min = 0, max = 100})
     self.tyMenu.Combo:MenuElement({id = "UseR", name = "[R]", value = true})
     self.tyMenu.Combo:MenuElement({id = "MinR", name = "[R] Min R target", value = 1, min = 1, max = 5}) --trying to fix this
-    
+
     --Harass
     self.tyMenu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
     self.tyMenu.Harass:MenuElement({name = "Use spell on:", id = "useon", type = _G.MENU})
@@ -165,7 +165,7 @@ function Leona:LoadMenu()
     self.tyMenu:MenuElement({type = MENU, id = "Auto", name = "Auto"})
     self.tyMenu.Auto:MenuElement({id = "AutoIG", name = "Auto Ingite KS", value = true})
     self.tyMenu.Auto:MenuElement({id = "AotoEList", name = "Spell List", type = _G.MENU})
-    OnEnemyHeroLoad(function(hero) 
+    OnEnemyHeroLoad(function(hero)
         for i, spell in pairs(ESpells) do
             if not ESpells[i] then return end
                 if spell.charName == hero.charName and not self.tyMenu.Auto.AotoEList[i] then
@@ -234,7 +234,7 @@ function Leona:Combo()
 
     if IsValid(target) then
         if self.tyMenu.Combo.DontE:Value() and target.health/target.maxHealth > self.tyMenu.Combo.DontEQR:Value()/100 then
-            for i = 1, Game.TurretCount() do        
+            for i = 1, Game.TurretCount() do
                 local turret = Game.Turret(i)
                 if turret.valid and turret.isEnemy and turret.pos:DistanceTo(target.pos) < 800 then
                     return
@@ -286,8 +286,8 @@ function Leona:Combo()
         end
 
 
-        if self.tyMenu.Combo.UseQ:Value() 
-        and Ready(_Q) 
+        if self.tyMenu.Combo.UseQ:Value()
+        and Ready(_Q)
         then
             self:CastQ()
         end
@@ -314,7 +314,7 @@ function Leona:Harass()
     if IsValid(target) then
 
         if self.tyMenu.Harass.DontE:Value() then
-            for i = 1, Game.TurretCount() do        
+            for i = 1, Game.TurretCount() do
                 local turret = Game.Turret(i)
                 if turret.valid and turret.isEnemy and turret.pos:DistanceTo(target.pos) < 800 then
                     return
@@ -364,7 +364,7 @@ function Leona:Auto()
                 lastIG = GetTickCount()
             end
         end
-        
+
 
         if myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and myHero:GetSpellData(SUMMONER_2).currentCd == 0 then
             if IGdamage >= target.health then
@@ -388,7 +388,7 @@ function Leona:Auto()
                 end
             end
         end
-        
+
     end
 
 end

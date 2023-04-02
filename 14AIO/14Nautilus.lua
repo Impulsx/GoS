@@ -1,5 +1,5 @@
 require 'MapPositionGOS'
-require 'GamsteronPrediction'
+require 'GGPrediction'
 require "2DGeometry"
 
 local GameHeroCount     = Game.HeroCount
@@ -30,12 +30,12 @@ end
 
 
 local function IsValid(unit)
-    if (unit 
-        and unit.valid 
-        and unit.isTargetable 
-        and unit.alive 
-        and unit.visible 
-        and unit.networkID 
+    if (unit
+        and unit.valid
+        and unit.isTargetable
+        and unit.alive
+        and unit.visible
+        and unit.networkID
         and unit.health > 0
         and not unit.dead
     ) then
@@ -45,9 +45,9 @@ local function IsValid(unit)
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -73,7 +73,7 @@ class "Nautilus"
 
 function Nautilus:__init()
     self.QData = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 1000, Speed = 2000, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}}
-    
+
     self:LoadMenu()
 
     OnAllyHeroLoad(function(hero)
@@ -113,7 +113,7 @@ function Nautilus:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 
 end
@@ -125,9 +125,9 @@ end
 
 function Nautilus:LoadMenu()
     self.tyMenu = MenuElement({type = MENU, id = "14Nautilus", name = "Nautilus"})
-    
+
     --combo
-    
+
     self.tyMenu:MenuElement({type = MENU, id = "Combo", name = "Combo"})
         self.tyMenu.Combo:MenuElement({name = "Use spell on:", id = "useon", type = _G.MENU})
         OnEnemyHeroLoad(function(hero) self.tyMenu.Combo.useon:MenuElement({id = hero.charName, name = hero.charName, value = true}) end)
@@ -137,7 +137,7 @@ function Nautilus:LoadMenu()
 
         self.tyMenu.Combo:MenuElement({id = "UseW", name = "[W] AA reset", value = true})
         self.tyMenu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
-    
+
     --Harass
     self.tyMenu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
         self.tyMenu.Harass:MenuElement({name = "Use spell on:", id = "useon", type = _G.MENU})
@@ -233,10 +233,10 @@ function Nautilus:Combo()
 
     target = self:GetTarget(targetList, self.QData.Range)
 
-    if target and IsValid(target) and self.tyMenu.Combo.UseQ:Value() 
-    and GetDistanceSquared(myHero.pos, target.pos) <= self.tyMenu.Combo.range:Value()^2 
+    if target and IsValid(target) and self.tyMenu.Combo.UseQ:Value()
+    and GetDistanceSquared(myHero.pos, target.pos) <= self.tyMenu.Combo.range:Value()^2
     and GetDistanceSquared(myHero.pos, target.pos) > self.tyMenu.Combo.minRange:Value()^2
-    then 
+    then
         self:CastQ(target)
     end
 
@@ -279,7 +279,7 @@ function Nautilus:Auto()
     if myHero:GetSpellData(SUMMONER_1).name ~= "SummonerDot" and myHero:GetSpellData(SUMMONER_2).name ~= "SummonerDot" then return end
     if lastIG + 250 > GetTickCount() then return end
     local IGdamage = 50 + 20 * myHero.levelData.lvl
-    for enemyk , enemy in pairs(Enemys) do 
+    for enemyk , enemy in pairs(Enemys) do
         if IsValid(enemy) and enemy.pos:DistanceTo(myHero.pos) < 600 then
             if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and myHero:GetSpellData(SUMMONER_1).currentCd == 0 then
                 if IGdamage >= enemy.health then
@@ -289,9 +289,9 @@ function Nautilus:Auto()
                     return
                 end
             end
-            
 
-            
+
+
             if myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and myHero:GetSpellData(SUMMONER_2).currentCd == 0 then
                 if IGdamage >= enemy.health then
                     Control.CastSpell(HK_SUMMONER_2, enemy.pos)
@@ -325,7 +325,7 @@ function Nautilus:CreateQPoly(position)
     local c2 = startPos+Vector(Vector(endPos)-startPos):Perpendicular2():Normalized()*width
     local c3 = endPos+Vector(Vector(startPos)-endPos):Perpendicular():Normalized()*width
     local c4 = endPos+Vector(Vector(startPos)-endPos):Perpendicular2():Normalized()*width
-  
+
     local poly = Polygon(c1,c2,c3,c4)
 
     return poly

@@ -1,4 +1,4 @@
-require 'GamsteronPrediction'
+require 'GGPrediction'
 require 'GGPrediction'
 require "DamageLib"
 local EnemyLoaded = false
@@ -31,12 +31,12 @@ end
 
 
 local function IsValid(unit)
-    if (unit 
-        and unit.valid 
-        and unit.isTargetable 
-        and unit.alive 
-        and unit.visible 
-        and unit.networkID 
+    if (unit
+        and unit.valid
+        and unit.isTargetable
+        and unit.alive
+        and unit.visible
+        and unit.networkID
         and unit.health > 0
         and not unit.dead
     ) then
@@ -46,9 +46,9 @@ local function IsValid(unit)
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -122,7 +122,7 @@ function Zilean:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 
 end
@@ -140,12 +140,12 @@ function Zilean:LoadMenu()
 		self.tyMenu.Combo:MenuElement({id = "UseE2", name = "[use e right before using w", value = true, toggle=true, key=string.byte("E")})
 		self.tyMenu.Combo:MenuElement({id = "UseEflee", name = "[use e before w on self if out of e range]", value = true})
 		self.tyMenu.Combo:MenuElement({id = "Useqslow", name = "[prioritize using e before q]", value = false, toggle=true, key=string.byte("5")})
-		
+
     self.tyMenu:MenuElement({type = MENU, id = "Harass", name = "Harass"})
         self.tyMenu.Harass:MenuElement({name = "Use spell on:", id = "useon", type = _G.MENU})
         OnEnemyHeroLoad(function(hero) self.tyMenu.Harass.useon:MenuElement({id = hero.charName, name = hero.charName, value = true}) end)
         self.tyMenu.Harass:MenuElement({id = "UseQ", name = "Q", value = true})
-    
+
     self.tyMenu:MenuElement({type = MENU, id = "Auto", name = "Auto"})
         self.tyMenu.Auto:MenuElement({id = "UseQ", name = "Auto Q if enemy has boom", value = false})
         self.tyMenu.Auto:MenuElement({id = "Rhp", name = "If Ally HP < X%", value = 20, min = 1, max = 100, step = 1})
@@ -166,8 +166,8 @@ function Zilean:LoadMenu()
         self.tyMenu.draw:MenuElement({id = "Q", name = "Draw [Q] Range", value = true})
         self.tyMenu.draw:MenuElement({id = "E", name = "Draw [E] Range", value = true})
         self.tyMenu.draw:MenuElement({id = "R", name = "Draw [R] Range", value = true})
-    
-	
+
+
 	            if _G.SDK then
                 _G.SDK.Orbwalker:CanAttackEvent(
                     function()
@@ -183,19 +183,19 @@ function Zilean:LoadMenu()
                     end
                 )
             end
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 end
 
@@ -232,73 +232,73 @@ end
 		return math.sqrt(GetDistanceSqr(Pos1, Pos2))
 	end
 
-	Q2   = { range = 800 , delay = 0.8, speed = MathHuge, width = 150, collision = false, aoe = true, type = "linear" } 	
-	
+	Q2   = { range = 800 , delay = 0.8, speed = MathHuge, width = 150, collision = false, aoe = true, type = "linear" }
+
 			function Zilean:mundoEcast(target)
 				if target == nil then return end
-				 
-				
-				if ValidTarget(target, 1200) then 
+
+
+				if ValidTarget(target, 1200) then
                 local minions = _G.SDK.ObjectManager:GetMinions(900)
                 for i = 1, #minions do
                     local minion = minions[i]
-					
-					
-						if minion and not minion.dead and Zilean:HasQBuff(minion)  then 
+
+
+						if minion and not minion.dead and Zilean:HasQBuff(minion)  then
 							--local minionPos = LocalVector(myHero.pos):Extended(LocalVector(minion.pos), Q2.range)
-							if GetDistance(target.pos, minion.pos) <= 330 then 
+							if GetDistance(target.pos, minion.pos) <= 330 then
 								if Ready(_W) then
 									print("looking")
-									
+
 										if Ready(_E) and (self.tyMenu.Combo.UseE2:Value() or self.tyMenu.Combo.UseE:Value()) then
 											if  GetDistanceSquared(target.pos, myHero.pos) <= (550+myHero.boundingRadius + target.boundingRadius)^2 then
 												Control.CastSpell(HK_E,target)
-												
+
 											elseif  ((myHero.mana / myHero.maxMana)>0.75 or myHero.levelData.lvl>=6) and self.tyMenu.Combo.UseEflee:Value()  then
 											    Control.KeyDown(18)
 												Control.KeyDown(HK_E)
 												Control.KeyUp(HK_E)
 												Control.KeyUp(18)
 											end
-											
-											
-										end	
+
+
+										end
 									Control.CastSpell(HK_W)
 									lastW = GetTickCount()
 									lastm = GetTickCount()
 								end
-								
+
 								if Ready(_Q)then
 									print("shooting")
 										Control.CastSpell(HK_Q, minion.pos)
 								end
-						
+
 
 							end
 						end
-						
+
 					end
-					
+
 				    for i = 1, #Allys do
-						local ally = Allys[i]	
+						local ally = Allys[i]
 						if ally and not ally.dead and Zilean:HasQBuff(ally) then
-						
-							if GetDistance(target.pos, ally.pos) <= 290 then 
+
+							if GetDistance(target.pos, ally.pos) <= 290 then
 								if Ready(_W) and GetDistance(myHero.pos, ally.pos)<=910   then
 									--print("looking")
-									
+
 										if Ready(_E)  and self.tyMenu.Combo.UseE:Value() and GetDistanceSquared(target.pos, myHero.pos) <= (550+myHero.boundingRadius + target.boundingRadius)^2 then
 											Control.CastSpell(HK_E,target)
-										end	
+										end
 									Control.CastSpell(HK_W)
 									lastW = GetTickCount()
 									lastm = GetTickCount()
 								end
-								
+
 								if Ready(_Q) and lastQ+315<GetTickCount()then
 									local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.2, Radius = 140, Range = 900, Speed = MathHuge, Collision = true, CollisionTypes={GGPrediction.COLLISION_YASUOWALL}})
 										QPrediction:GetPrediction(ally, myHero)
-										
+
 										if QPrediction:CanHit(1) then
 											Control.CastSpell(HK_Q, QPrediction.CastPosition)
 											--print("cast Q "..GetTickCount())
@@ -310,8 +310,8 @@ end
 						end
 					end
 				end
-			
-			
+
+
 			end
 
 
@@ -327,59 +327,59 @@ end
 
 end
 
-	
+
 local function cantkill(unit,kill,ss,aa)
 	--set kill to true if you dont want to waste on undying/revive targets
 	--set ss to true if you dont want to cast on spellshield
 	--set aa to true if ability applies onhit (yone q, ez q etc)
 
 	for i = 0, unit.buffCount do
-	
+
 		local buff = unit:GetBuff(i)
 		if buff.name:lower():find("kayler") and buff.count==1 then
 			return true
 		end
-		
-	
+
+
 		if buff.name:lower():find("undyingrage") and (unit.health<100 or kill) and buff.count==1 then
 			return true
 		end
 		if buff.name:lower():find("kindredrnodeathbuff") and (kill or (unit.health / unit.maxHealth)<0.11) and buff.count==1  then
 			return true
-		end	
+		end
 		if buff.name:lower():find("chronoshift") and kill and buff.count==1 then
 			return true
-		end			
-		
+		end
+
 		if  buff.name:lower():find("willrevive") and kill and buff.count==1 then
 			return true
 		end
-		
-		
-		
+
+
+
 		if buff.name:lower():find("fioraw") or buff.name:lower():find("pantheone") and buff.count==1 then
 			return true
 		end
-		
+
 		if  buff.name:lower():find("jaxcounterstrike") and aa and buff.count==1  then
 			return true
 		end
-		
+
 		if  buff.name:lower():find("nilahw") and aa and buff.count==1  then
 			return true
 		end
-		
+
 		if  buff.name:lower():find("shenwbuff") and aa and buff.count==1  then
 			return true
 		end
-		
+
 	end
 	if HasBuffType(unit, 4) and ss then
 		return true
 	end
 
-	
-	
+
+
 	return false
 end
 
@@ -393,7 +393,7 @@ function Zilean:Draw()
 	if self.tyMenu.draw.Q:Value() and  self.tyMenu.Combo.Useqslow:Value() then
         Draw.Circle(myHero.pos, self.Q.Range,Draw.Color(255,255, 0, 000))
     end
-	
+
     if self.tyMenu.draw.E:Value() and Ready(_E) then
         Draw.Circle(myHero.pos, self.E.Range,Draw.Color(255,255, 162, 000))
     end
@@ -461,44 +461,44 @@ function Zilean:Tick()
 
 	self:AutoR()
 
-	-- local target2 = TargetSelector:GetTarget(350)	
+	-- local target2 = TargetSelector:GetTarget(350)
 	-- if self:HasQBuff(myHero) and target2 then
 		-- if Ready(_Q) then
 			-- Control.CastSpell(HK_Q,myHero)
 		-- elseif  Ready(_W) then
 			-- if  Ready(_E) and (self.tyMenu.Combo.UseE2:Value() or self.tyMenu.Combo.UseE:Value()) then
-		
+
 			-- Control.CastSpell(HK_E,target2)
 			-- end
 			-- Control.CastSpell(HK_W)
 		-- end
-	-- end	
-	local target2 = TargetSelector:GetTarget(1200)		
+	-- end
+	local target2 = TargetSelector:GetTarget(1200)
 	if lastm +600 > GetTickCount() and target2 then
 		 self:mundoEcast(target2)
 	end
-		
-	local target1 = TargetSelector:GetTarget(550+myHero.boundingRadius+40)		
+
+	local target1 = TargetSelector:GetTarget(550+myHero.boundingRadius+40)
 
     if target1 and IsValid(target1) and self.tyMenu.Combo.UseE:Value() and Ready(_E) and  GetDistanceSquared(target1.pos, myHero.pos) <= (550+myHero.boundingRadius + target1.boundingRadius)^2  then
         Control.CastSpell(HK_E,target1)
 	elseif self.tyMenu.Combo.UseE:Value() and not Ready(_E) and myHero:GetSpellData(_E).currentCd >= 3 and not Ready(_Q) and myHero:GetSpellData(_E).currentCd <= 10 and(not target1 or not HasTWS(target1)) and((target1 and IsValid(target1)) or (allycount>1)) then
 		Control.CastSpell(HK_W)
 		--Control.CastSpell(HK_E,target1)
-		
+
     end
-	
+
 	if Ready(_E) and self.tyMenu.Combo.UseE:Value() and  not (target1 and  IsValid(target1) and  GetDistanceSquared(target1.pos, myHero.pos) <= (550+myHero.boundingRadius + target1.boundingRadius)^2) then
     for i = 1, #Allys do
         local ally = Allys[i]
 					if ally and ally ~=myHero and GetDistanceSquared(myHero.pos, ally.pos) <= (550+myHero.boundingRadius + ally.boundingRadius)^2 and  self.tyMenu.Auto.Eon[ally.charName] then
 					Control.CastSpell(HK_E,ally)
-	
+
 					return
 					end
 				end
 	end
-	
+
     if orbwalker.Modes[0] then --combo
         self:Combo()
     elseif orbwalker.Modes[1] then --harass
@@ -513,7 +513,7 @@ function Zilean:Tick()
 		elseif not Ready(_E) and Ready(_W) and not HasBuff(myHero) and myHero:GetSpellData(_E).currentCd >= 3 and lastE+350< GetTickCount()  then
 		Control.CastSpell(HK_W)
 		end
-	
+
     end
 	    if EnemyLoaded == false then
         local CountEnemy = 0
@@ -527,7 +527,7 @@ function Zilean:Tick()
             PrintChat("Enemy Loaded")
         end
     end
-  
+
     self:AutoQ()
 end
 
@@ -541,7 +541,7 @@ end
 
 function Zilean:CastQ(target)
 
-    if not Ready(_Q) and lastQ +350 < GetTickCount() 
+    if not Ready(_Q) and lastQ +350 < GetTickCount()
     and Ready(_W) and lastW +250 < GetTickCount() and orbwalker:CanMove() then
        local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 140, Range = 900, Speed = MathHuge, Collision = true, CollisionTypes={GGPrediction.COLLISION_YASUOWALL}})
 	   local hasBuff , duration = self:HasQBuff(target)
@@ -563,10 +563,10 @@ function Zilean:CastQ(target)
             --print("cast WQ "..GetTickCount())
           --  lastQ = GetTickCount()
             lastW = GetTickCount()
-			
+
         end
-    end 
-	
+    end
+
 	if Ready(_Q) and lastQ + 350 < GetTickCount() and lastm + 700 < GetTickCount()  and orbwalker:CanMove() and (( myHero:GetSpellData(_W).currentCd >= 5 or myHero:GetSpellData(_W).currentCd <= 2.5) or (target.health / target.maxHealth)<0.24) and not cantkill(target,false,true,false)  then
        local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.8, Radius = 140, Range = 900, Speed = MathHuge, Collision = true, CollisionTypes={GGPrediction.COLLISION_YASUOWALL}})
 	   QPrediction:GetPrediction(target, myHero)
@@ -575,7 +575,7 @@ function Zilean:CastQ(target)
             --print("cast Q "..GetTickCount())
             lastQ = GetTickCount()
         end
-    end	
+    end
 end
 
 local function isImmobil(unit)
@@ -603,8 +603,8 @@ function Zilean:Combo()
     -- target = self:GetTarget(targetList, 900)
 
     -- if target and IsValid(target) and self.tyMenu.Combo.UseQ:Value() then
-	
-	target4=TargetSelector:GetTarget(1200)	
+
+	target4=TargetSelector:GetTarget(1200)
 	if target4 and (not Ready(_E) or isImmobil(target4) or not self.tyMenu.Combo.Useqslow:Value())  then
         self:CastQ(target4)
 	end
@@ -651,7 +651,7 @@ function Zilean:UltCalcs(unit,ally)
     local Qdmg = getdmg("Q", ally, unit)
     --local Qdmg = getdmg("Q", unit, myHero)
     local Wdmg = getdmg("W", ally, unit)
-    local AAdmg = getdmg("AA", unit) 
+    local AAdmg = getdmg("AA", unit)
     --PrintChat(Qdmg)
     --PrintChat(unit.activeSpell.name)
     --PrintChat(unit.activeSpellSlot)
@@ -685,9 +685,9 @@ function Zilean:UltCalcs(unit,ally)
     --[[
 
     check if spell is auto attack, if it is, get the target, if its us, check speed and sutff, add it to the list with an end time, the damage and so on.
-    
+
     .isChanneling = spell
-    not .isChanneling = AA    
+    not .isChanneling = AA
 
     if it's a spell however
     Find spell name, check if that slot has damage .activeSpellSlot might work, would be super easy then.
@@ -728,9 +728,9 @@ function Zilean:AutoR()
 				end
 				end
             end
-        end  
+        end
     end
-		
+
 
 end
 

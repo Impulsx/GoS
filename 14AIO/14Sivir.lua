@@ -18,7 +18,7 @@ local lastAttack = 0
 local Enemys =   {}
 local Allys  =   {}
 
-require 'GamsteronPrediction'
+require 'GGPrediction'
 
 local shellSpells = {
     ["NautilusRavageStrikeAttack"]  = {charName = "Nautilus"    ,   slot = "Passive"} ,
@@ -102,20 +102,20 @@ local missileData = {
 }
 
 local function IsValid(unit)
-    return  unit 
-            and unit.valid 
-            and unit.isTargetable 
-            and unit.alive 
-            and unit.visible 
-            and unit.networkID 
+    return  unit
+            and unit.valid
+            and unit.isTargetable
+            and unit.alive
+            and unit.visible
+            and unit.networkID
             and unit.health > 0
             and not unit.dead
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -184,7 +184,7 @@ function Sivir:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 
 
@@ -221,7 +221,7 @@ function Sivir:LoadMenu()
         OnEnemyHeroLoad(function(hero)
             self.tyMenu.eSetting.dash:MenuElement({id = hero.charName, name = hero.charName, value = false})
         end)
-    
+
     self.tyMenu:MenuElement({type = MENU, id = "Human", name = "Humanizer"})
         self.tyMenu.Human:MenuElement({id = "Move", name = "Only allow 1 movement in X Tick ", value = 180, min = 1, max = 500, step = 1})
         self.tyMenu.Human:MenuElement({id = "AA", name = "Only allow 1 AA in X Tick", value = 180, min = 1, max = 500, step = 1})
@@ -254,9 +254,9 @@ function Sivir:Tick()
         return
     end
 
-    if orbwalker.Modes[0] then 
+    if orbwalker.Modes[0] then
         self:Combo()
-    elseif orbwalker.Modes[1] then 
+    elseif orbwalker.Modes[1] then
         self:Harass()
     end
 
@@ -264,7 +264,7 @@ function Sivir:Tick()
     self:AutoQ()
 end
 
-function Sivir:Combo() 
+function Sivir:Combo()
     local target = TargetSelector:GetTarget(self.Q.Range, 0)
     if target and IsValid(target) and myHero.pos:DistanceTo(target.pos) < self.tyMenu.combo.maxRange:Value() then
         if self.tyMenu.combo.Q:Value() then
@@ -273,10 +273,10 @@ function Sivir:Combo()
     end
 end
 
-function Sivir:Harass() 
+function Sivir:Harass()
     local manaPer = myHero.mana/myHero.maxMana
     local target = TargetSelector:GetTarget(self.Q.Range, 0)
-    if target and IsValid(target) 
+    if target and IsValid(target)
         and myHero.pos:DistanceTo(target.pos) < self.tyMenu.harass.maxRange:Value()
         and  self.tyMenu.harass.mana:Value() < manaPer
     then
@@ -298,7 +298,7 @@ end
 
 function Sivir:AutoQ()
     if self.tyMenu.auto.Q:Value() and Ready(_Q) and lastQ +350 < GetTickCount() and orbwalker:CanMove() then
-        for k , hero in pairs(Enemys) do 
+        for k , hero in pairs(Enemys) do
             local Pred = GetGamsteronPrediction(hero, self.Q, myHero)
             if Pred.Hitchance == 4 then
                 Control.CastSpell(HK_Q, Pred.CastPosition)
@@ -310,13 +310,13 @@ end
 
 function Sivir:BlockSpell()
     if Ready(_E) and lastE +1050 < GetTickCount() then
-        for k , hero in pairs(Enemys) do 
+        for k , hero in pairs(Enemys) do
             if hero.activeSpell.valid and shellSpells[hero.activeSpell.name] ~= nil then
                 if hero.activeSpell.target == myHero.handle and self.tyMenu.eSetting.blockSpell[hero.activeSpell.name]:Value() then
                     local dt = hero.pos:DistanceTo(myHero.pos)
                     local spell = shellSpells[hero.activeSpell.name]
                     local hitTime = spell.delay + dt/spell.speed
-        
+
                     DelayAction(function()
                             Control.CastSpell(HK_E)
                     end, (hitTime-self.tyMenu.eSetting.eDelay:Value()))

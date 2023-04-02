@@ -1,5 +1,5 @@
 
-require 'GamsteronPrediction'
+require 'GGPrediction'
 
 local orbwalker         = _G.SDK.Orbwalker
 local TargetSelector    = _G.SDK.TargetSelector
@@ -40,12 +40,12 @@ end
 
 
 local function IsValid(unit)
-    if (unit 
-        and unit.valid 
-        and unit.isTargetable 
-        and unit.alive 
-        and unit.visible 
-        and unit.networkID 
+    if (unit
+        and unit.valid
+        and unit.isTargetable
+        and unit.alive
+        and unit.visible
+        and unit.networkID
         and unit.health > 0
         and not unit.dead
     ) then
@@ -55,9 +55,9 @@ local function IsValid(unit)
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -121,7 +121,7 @@ function Thresh:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 
 end
@@ -195,14 +195,14 @@ function Thresh:Draw()
     --[[
     local target = TS:GetTarget(1000)
     if target == nil then return end
-    local flayTowards = self:GetPosE(target.pos)      
+    local flayTowards = self:GetPosE(target.pos)
     Draw.Circle(flayTowards, 20,Draw.Color(80 ,0xFF,0xFF,0xFF))
 
     pos = target:GetPrediction(2265, 0.7)
     Draw.Circle(pos, 20,Draw.Color(80 ,0xFF,0xFF,0xFF))
     Draw.Circle(flayTowards, 20,Draw.Color(80 ,0xFF,0xFF,0xFF))
     --]]
-    
+
 
 end
 
@@ -211,7 +211,7 @@ function Thresh:Tick()
     if myHero.dead or Game.IsChatOpen() or (ExtLibEvade and ExtLibEvade.Evading == true) then
         return
     end
-    
+
     self:Auto()
 
     self:AntiE()
@@ -322,7 +322,7 @@ function Thresh:Harass()
         else
             orbwalker:SetAttack(true)
         end
-        
+
         if self.tyMenu.E.Harass:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= 450 and lastE + 1000 < GetTickCount() then
             pre = self:GetPosE(target.pos)
             Control.CastSpell(HK_E, pre)
@@ -353,9 +353,9 @@ function Thresh:Auto()
                     lastIG = GetTickCount()
                 end
             end
-            
 
-            
+
+
             if myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and myHero:GetSpellData(SUMMONER_2).currentCd == 0 and lastIG + 1000 < GetTickCount()  then
                 if IGdamage >= target.health then
                     Control.CastSpell(HK_SUMMONER_2, target.pos)
@@ -388,7 +388,7 @@ function Thresh:AntiE()
         local target = EnemyHeroes[i]
         local heroName = target.charName
         if Ready(_E) and self.tyMenu.E.AntiE[heroName] and self.tyMenu.E.AntiE[heroName]:Value() and lastE + 1000 < GetTickCount() then
-    
+
             if target.pathing.isDashing and target.pathing.dashSpeed>870 then
 
                 local delay = 0.25 + (475 - target.pos:DistanceTo())/1100
@@ -407,7 +407,7 @@ end
 
 function Thresh:GetPosE(pos, mode) --RMAN
 	local push = mode == "Push" and true or false
-	--	
+	--
 	return myHero.pos:Extended(pos, self.EData.Range * (push and 1 or -1))
 end
 

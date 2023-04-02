@@ -1,4 +1,4 @@
-require 'GamsteronPrediction'
+require 'GGPrediction'
 
 local GameHeroCount     = Game.HeroCount
 local GameHero          = Game.Hero
@@ -43,12 +43,12 @@ end
 
 
 local function IsValid(unit)
-    if (unit 
-        and unit.valid 
-        and unit.isTargetable 
-        and unit.alive 
-        and unit.visible 
-        and unit.networkID 
+    if (unit
+        and unit.valid
+        and unit.isTargetable
+        and unit.alive
+        and unit.visible
+        and unit.networkID
         and unit.health > 0
         and not unit.dead
     ) then
@@ -58,9 +58,9 @@ local function IsValid(unit)
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -137,7 +137,7 @@ function Pantheon:__init()
                     lastMove = GetTickCount()
                 end
             end
-        end 
+        end
     )
 end
 
@@ -155,11 +155,11 @@ function Pantheon:LoadMenu()
     self.tyMenu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})
 
     self.tyMenu:MenuElement({type = MENU, id = "Setting", name = "Setting"})
-    self.tyMenu.Setting:MenuElement({id = "Erange", name = "Max E range", value = 250, min = 1, max = 400, step = 1, callback = function(value) 
+    self.tyMenu.Setting:MenuElement({id = "Erange", name = "Max E range", value = 250, min = 1, max = 400, step = 1, callback = function(value)
         self.E.Range = value
     end})
 
-    self.tyMenu.Setting:MenuElement({name ="Q1 HitChance" , drop = {"High", "Normal"}, callback = function(value) 
+    self.tyMenu.Setting:MenuElement({name ="Q1 HitChance" , drop = {"High", "Normal"}, callback = function(value)
         if value == 1 then
             self.Q1.Hitchance = _G.HITCHANCE_HIGH
         end
@@ -167,7 +167,7 @@ function Pantheon:LoadMenu()
             self.Q1.Hitchance = _G.HITCHANCE_NORMAL
         end
     end})
-    self.tyMenu.Setting:MenuElement({name ="Q2 HitChance" , drop = {"High", "Normal"}, callback = function(value) 
+    self.tyMenu.Setting:MenuElement({name ="Q2 HitChance" , drop = {"High", "Normal"}, callback = function(value)
         if value == 1 then
             self.Q2.Hitchance = _G.HITCHANCE_HIGH
         end
@@ -291,7 +291,7 @@ function Pantheon:Harass()
 end
 
 function Pantheon:CastQ1(target)
-    if IsValid(target) and Ready(_Q)  and  self.Qchannel == false and lastQ + 250 < GetTickCount() 
+    if IsValid(target) and Ready(_Q)  and  self.Qchannel == false and lastQ + 250 < GetTickCount()
     and orbwalker:CanMove() and GetDistanceSquared(myHero.pos,target.pos) < self.Q1.Range ^2 then
         local Pred = GetGamsteronPrediction(target, self.Q1, myHero)
         if Pred.Hitchance  >= self.Q1.Hitchance then
@@ -302,7 +302,7 @@ function Pantheon:CastQ1(target)
 end
 
 function Pantheon:CastQ2(target)
-    if IsValid(target) and self.Qchannel == false and Ready(_Q) and lastQ + 500 < GetTickCount() 
+    if IsValid(target) and self.Qchannel == false and Ready(_Q) and lastQ + 500 < GetTickCount()
     and lastQdown + 150 < GetTickCount() and GetDistanceSquared(myHero.pos,target.pos) < self.Q2.Range ^2
     then
         ControlKeyDown(HK_Q)
@@ -311,7 +311,7 @@ function Pantheon:CastQ2(target)
         self.Qtimer = LocalGameTimer()
     end
 
-    if IsValid(target) and LocalGameTimer() > self.Qtimer + 0.35 and LocalGameTimer() < self.Qtimer + 4 
+    if IsValid(target) and LocalGameTimer() > self.Qtimer + 0.35 and LocalGameTimer() < self.Qtimer + 4
     and self.Qchannel and Ready(_Q)  and  lastQup + 150 < GetTickCount() then
         local Pred = GetGamsteronPrediction(target, self.Q2, myHero)
         if Pred.Hitchance >= self.Q2.Hitchance then
