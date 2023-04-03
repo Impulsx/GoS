@@ -1,4 +1,4 @@
-require 'GamsteronPrediction'
+require 'GGPrediction'
 
 local GameHeroCount     = Game.HeroCount
 local GameHero          = Game.Hero
