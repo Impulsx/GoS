@@ -249,9 +249,9 @@ function Thresh:Combo()
 
     if target and IsValid(target) then
         if self.tyMenu.Q.Combo:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 1000 and lastQ + 1000 < GetTickCount() and not hasBuff("ThreshQ",target) then
-            local QPrediction = GGPrediction:SpellPrediction(self.QData)
-            local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.QData, myHero)
-            if Pred.Hitchance >= _G.HITCHANCE_HIGH then
+            local Pred = GGPrediction:SpellPrediction(self.QData)
+            Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.QData, myHero)
+            if Pred.Hitchance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)             then
                 Control.CastSpell(HK_Q, Pred.CastPosition)
                 lastQ = GetTickCount()
             end
@@ -303,9 +303,9 @@ function Thresh:Harass()
 
     if target and IsValid(target) then
         if self.tyMenu.Q.Harass:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 1000 and lastQ + 1000 < GetTickCount() and not hasBuff("ThreshQ",target) then
-            local QPrediction = GGPrediction:SpellPrediction(self.QData)
-            local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.QData, myHero)
-            if Pred.Hitchance >= _G.HITCHANCE_HIGH then
+            local Pred = GGPrediction:SpellPrediction(self.QData)
+            Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.QData, myHero)
+            if Pred.Hitchance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)             then
                 Control.CastSpell(HK_Q, Pred.CastPosition)
                 lastQ = GetTickCount()
 

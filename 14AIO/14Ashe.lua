@@ -228,9 +228,9 @@ function Ashe:AntiGap()
                     if path.isDashing and path.hasMovePath and path.dashSpeed > 0
                     and IsDashToMe(enemy)
                     then
-                        local RPrediction = GGPrediction:SpellPrediction(self.RData)
-                        local Pred = RPrediction:GetPrediction(enemy, myHero) --GetGamsteronPrediction(enemy, self.R, myHero)
-                        if Pred.Hitchance  >= self.R.Hitchance then
+                    local Pred = GGPrediction:SpellPrediction(self.RData)
+                    Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.RData, myHero)
+                        if Pred.Hitchance >= self.R.Hitchance or Pred:CanHit(self.R.Hitchance or GGPrediction.HITCHANCE_HIGH) then
                             Control.CastSpell(HK_R,Pred.CastPosition)
                             lastR = GetTickCount()
                         end
@@ -243,9 +243,9 @@ end
 
 function Ashe:CastR(target)
     if IsValid(target) and Ready(_R) and lastR + 500 < GetTickCount()  then
-        local RPrediction = GGPrediction:SpellPrediction(self.RData)
-        local Pred = RPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.R, myHero)
-        if Pred.Hitchance  >= self.R.Hitchance then
+        local Pred = GGPrediction:SpellPrediction(self.RData)
+        Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.RData, myHero)
+        if Pred.Hitchance >= self.R.Hitchance or Pred:CanHit(self.R.Hitchance or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_R,Pred.CastPosition)
             lastR = GetTickCount()
         end
@@ -255,9 +255,9 @@ end
 function Ashe:CastW(target)
     if IsValid(target) and Ready(_W) and lastW + 500 < GetTickCount()
     and orbwalker:CanMove() and GetDistanceSquared(myHero.pos,target.pos) < self.tyMenu.Setting.Wrange:Value()^2 then
-        local WPrediction = GGPrediction:SpellPrediction(self.W)
-        local Pred = WPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
-        if Pred.Hitchance  >= self.W.Hitchance then
+        local Pred = GGPrediction:SpellPrediction(self.W)
+        Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
+        if Pred.Hitchance  >= self.W.Hitchance or Pred:CanHit(self.W.Hitchance or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_W,Pred.CastPosition)
             lastW = GetTickCount()
         end

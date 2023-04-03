@@ -239,14 +239,14 @@ end
 function Kayle:CastQ(target)
     if lastQ + 300 < GetTickCount() and Ready(_Q) and orbwalker:CanMove() then
         self.Q.CollisionTypes = {_G.COLLISION_YASUOWALL}
-        local QPrediction = GGPrediction:SpellPrediction(self.Q)
-        local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if Pred.Hitchance  >= self.Q.Hitchance then
+        local Pred = GGPrediction:SpellPrediction(self.Q)
+        Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
+        if Pred.Hitchance  >= self.Q.Hitchance  or Pred:CanHit(self.Q.Hitchance or GGPrediction.HITCHANCE_HIGH)         then
             self.Q.CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
-            local QPrediction2 = GGPrediction:SpellPrediction(self.Q)
-            local Pred2 = QPrediction2:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
+            local Pred2 = GGPrediction:SpellPrediction(self.Q)
+            Pred2:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
 
-            if Pred2.Hitchance >= self.Q.Hitchance then
+            if Pred2.Hitchance >= self.Q.Hitchance or Pred2:CanHit(self.Q.Hitchance or GGPrediction.HITCHANCE_HIGH)then
                 Control.CastSpell(HK_Q, Pred2.CastPosition)
                 lastQ = GetTickCount()
             else

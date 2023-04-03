@@ -179,9 +179,9 @@ end
 
 function Zilean:CastQ(target)
     if Ready(_Q) and lastQ + 350 < GetTickCount() and orbwalker:CanMove() then
-        local QPrediction = GGPrediction:SpellPrediction(self.Q)
-        local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if Pred.Hitchance >= _G.HITCHANCE_HIGH then
+        local Pred = GGPrediction:SpellPrediction(self.Q)
+        Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
+        if Pred.Hitchance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)         then
             Control.CastSpell(HK_Q, Pred.CastPosition)
             --print("cast Q "..GetTickCount())
             lastQ = GetTickCount()
@@ -190,9 +190,9 @@ function Zilean:CastQ(target)
 
     if not Ready(_Q) and lastQ +350 < GetTickCount()
     and Ready(_W) and lastW +250 < GetTickCount() and orbwalker:CanMove() then
-        local QPrediction = GGPrediction:SpellPrediction(self.Q)
-        local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if Pred.Hitchance >= _G.HITCHANCE_HIGH then
+        local Pred = GGPrediction:SpellPrediction(self.Q)
+        Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
+        if Pred.Hitchance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)         then
             Control.CastSpell(HK_W)
             Control.CastSpell(HK_Q, Pred.CastPosition)
             --print("cast WQ "..GetTickCount())

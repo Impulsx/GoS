@@ -293,9 +293,9 @@ end
 function Pantheon:CastQ1(target)
     if IsValid(target) and Ready(_Q)  and  self.Qchannel == false and lastQ + 250 < GetTickCount()
     and orbwalker:CanMove() and GetDistanceSquared(myHero.pos,target.pos) < self.Q1.Range ^2 then
-        local QPrediction = GGPrediction:SpellPrediction(self.Q1)
-        local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q1, myHero)
-        if Pred.Hitchance  >= self.Q1.Hitchance then
+        local Pred = GGPrediction:SpellPrediction(self.Q1)
+        Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q1, myHero)
+        if Pred.Hitchance  >= self.Q1.Hitchance  or Pred:CanHit(self.Q1.Hitchance or GGPrediction.HITCHANCE_HIGH)         then
             Control.CastSpell(HK_Q,Pred.CastPosition)
             lastQ = GetTickCount()
         end
@@ -314,9 +314,9 @@ function Pantheon:CastQ2(target)
 
     if IsValid(target) and LocalGameTimer() > self.Qtimer + 0.35 and LocalGameTimer() < self.Qtimer + 4
     and self.Qchannel and Ready(_Q)  and  lastQup + 150 < GetTickCount() then
-        local QPrediction = GGPrediction:SpellPrediction(self.Q2)
-        local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q2, myHero)
-        if Pred.Hitchance >= self.Q2.Hitchance then
+        local Pred = GGPrediction:SpellPrediction(self.Q2)
+        Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q2, myHero)
+        if Pred.Hitchance >= self.Q2.Hitchance  or Pred:CanHit(self.Q2.Hitchance or GGPrediction.HITCHANCE_HIGH)         then
             -- Control.SetCursorPos(Pred.CastPosition)
             -- ControlKeyUp(HK_Q)
             Control.CastSpell(HK_Q,Pred.CastPosition)

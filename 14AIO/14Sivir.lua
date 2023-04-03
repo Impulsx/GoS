@@ -288,9 +288,9 @@ end
 
 function Sivir:CastQ(target)
     if Ready(_Q) and lastQ +350 < GetTickCount() and orbwalker:CanMove() then
-        local QPrediction = GGPrediction:SpellPrediction(self.Q)
-        local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if Pred.Hitchance >= 3 then
+        local Pred = GGPrediction:SpellPrediction(self.Q)
+        Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
+        if (Pred.Hitchance or Pred.HitChance) >= 3 or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_Q, Pred.CastPosition)
             lastQ = GetTickCount()
         end
@@ -300,9 +300,9 @@ end
 function Sivir:AutoQ()
     if self.tyMenu.auto.Q:Value() and Ready(_Q) and lastQ +350 < GetTickCount() and orbwalker:CanMove() then
         for k , hero in pairs(Enemys) do
-            local QPrediction = GGPrediction:SpellPrediction(self.Q)
-            local Pred = QPrediction:GetPrediction(hero, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-            if Pred.Hitchance == 4 then
+            local Pred = GGPrediction:SpellPrediction(self.Q)
+            Pred:GetPrediction(hero, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
+            if (Pred.Hitchance or Pred.HitChance) == 4 or Pred:CanHit(4 or GGPrediction.HITCHANCE_IMMOBILE) then
                 Control.CastSpell(HK_Q, Pred.CastPosition)
                 lastQ = GetTickCount()
             end

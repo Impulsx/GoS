@@ -306,9 +306,9 @@ end
 
 function Morgana:CastQ(target, hitc)
     if Ready(_Q) and lastQ +350 < GetTickCount() and orbwalker:CanMove() then
-        local QPrediction = GGPrediction:SpellPrediction(self.Q)
-        local Pred = QPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if Pred.Hitchance >= hitc then
+        local Pred = GGPrediction:SpellPrediction(self.Q)
+        Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
+        if Pred.Hitchance >= hitc  or Pred:CanHit(hitc or GGPrediction.HITCHANCE_HIGH)         then
             Control.CastSpell(HK_Q, Pred.CastPosition)
             lastQ = GetTickCount()
             print("cast Q "..GetTickCount())
@@ -352,9 +352,9 @@ function Morgana:Auto()
 
             if self.tyMenu.auto.W:Value() and Ready(_W) and lastW +350 < GetTickCount() then
                 if self:IsCC(hero) and orbwalker:CanMove() then
-                    local WPrediction = GGPrediction:SpellPrediction(self.W)
-                    local Pred = WPrediction:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
-                    if Pred.Hitchance >= 3 then
+                    local Pred = GGPrediction:SpellPrediction(self.W)
+                    Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
+                    if Pred.Hitchance >= 3  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)                     then
                         Control.CastSpell(HK_W, Pred.CastPosition)
                         lastW = GetTickCount()
                         print("cast W")
