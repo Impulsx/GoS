@@ -207,7 +207,7 @@ function Kaisa:Combo()
         if target then
             local Pred = GGPrediction:SpellPrediction(self.W)
             Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
-            if Pred.Hitchance >= _G.HITCHANCE_HIGH or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
+            if Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
                 Control.CastSpell(HK_W, Pred.CastPosition)
                 lastW = GetTickCount()
             end
@@ -231,7 +231,7 @@ function Kaisa:Harass()
         if target then
             local Pred = GGPrediction:SpellPrediction(self.W)
             Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
-            if Pred.Hitchance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)             then
+            if Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)             then
                 Control.CastSpell(HK_W, Pred.CastPosition)
                 lastW = GetTickCount()
             end

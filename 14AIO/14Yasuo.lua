@@ -1,4 +1,4 @@
-  
+
 -- require('GamsteronPrediction')
 require "PremiumPrediction"
 
@@ -61,12 +61,12 @@ end
 
 
 local function IsValid(unit)
-    if (unit 
-        and unit.valid 
-        and unit.isTargetable 
-        and unit.alive 
-        and unit.visible 
-        and unit.networkID 
+    if (unit
+        and unit.valid
+        and unit.isTargetable
+        and unit.alive
+        and unit.visible
+        and unit.networkID
         and unit.health > 0
         and not unit.dead
     ) then
@@ -76,9 +76,9 @@ local function IsValid(unit)
 end
 
 local function Ready(spell)
-    return myHero:GetSpellData(spell).currentCd == 0 
-    and myHero:GetSpellData(spell).level > 0 
-    and myHero:GetSpellData(spell).mana <= myHero.mana 
+    return myHero:GetSpellData(spell).currentCd == 0
+    and myHero:GetSpellData(spell).level > 0
+    and myHero:GetSpellData(spell).mana <= myHero.mana
     and Game.CanUseSpell(spell) == 0
 end
 
@@ -103,7 +103,7 @@ end
 class "Yasuo"
 
 function Yasuo:__init()
-    
+
     -- self.Q = {Type = _G.SPELLTYPE_LINE, Delay = 0.35, Radius = 40, Range = 475, Speed = math.huge, Collision = false}
     -- self.Q3 = {Type = _G.SPELLTYPE_LINE, Delay = 0.35, Radius = 90, Range = 1060, Speed = 1500, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}}
     self.Q = {speed = math.huge, range = 475,Range = 475, delay = 0.35, radius = 40, type = "linear"}
@@ -134,7 +134,7 @@ function Yasuo:__init()
                 args.Process = true
                 lastMove = GetTickCount()
             end
-        end 
+        end
     )
 
     self:LoadMenu()
@@ -152,7 +152,7 @@ function Yasuo:LoadMenu()
     self.tyMenu:MenuElement({name = "Ping", id = "ping", value = 20, min = 0, max = 300, step = 1})
 
     --combo
-    
+
     self.tyMenu:MenuElement({type = MENU, id = "combo", name = "Combo"})
         self.tyMenu.combo:MenuElement({id = "useQL", name = "[Q1]/[Q2]", value = true})
         self.tyMenu.combo:MenuElement({id = "useQ3", name = "[Q3]", value = true})
@@ -161,7 +161,7 @@ function Yasuo:LoadMenu()
         self.tyMenu.combo:MenuElement({id = "Emode", name = "Q3 Mode", value = 1, drop = {"E to target", "E to cursor"}})
         self.tyMenu.combo:MenuElement({name = "E Gap Closer Range", id = "Erange", value = 800, min = 500, max = 1800, step = 100})
         self.tyMenu.combo:MenuElement({id = "ETower", name = "Stop E Into Tower Range", value = true})
-    
+
 
     self.tyMenu:MenuElement({type = MENU, id = "harass", name = "Harass"})
         self.tyMenu.harass:MenuElement({id = "useQL", name = "[Q1]/[Q2]", value = true})
@@ -176,7 +176,7 @@ function Yasuo:LoadMenu()
 
 
     self.tyMenu:MenuElement({type = MENU, id = "jungle", name = "Jungle"})
-        self.tyMenu.jungle:MenuElement({id = "useQL", name = "[Q1]/[Q2]", value = true})    
+        self.tyMenu.jungle:MenuElement({id = "useQL", name = "[Q1]/[Q2]", value = true})
         self.tyMenu.jungle:MenuElement({id = "useQ3", name = "[Q3]", value = true})
         self.tyMenu.jungle:MenuElement({id = "useE", name = "[E]", value = true})
 
@@ -189,7 +189,7 @@ function Yasuo:LoadMenu()
     self.tyMenu.windwall:MenuElement({name = "Use W Xs before Spell hit", id = "wDelay", value = 0.15, min = 0, max = 0.5, step = 0.01})
     self.tyMenu.windwall:MenuElement({type = MENU, id = "spell", name = "Targeted Spell Setting"})
 
-    OnEnemyHeroLoad(function(hero) 
+    OnEnemyHeroLoad(function(hero)
         for k, v in pairs(TargetedSpell) do
             if v.charName == hero.charName then
                 self.tyMenu.windwall.spell:MenuElement({id = k, name = v.charName.." | "..v.slot , value = true})
@@ -293,9 +293,9 @@ function Yasuo:CastR()                                                          
                     self.lastETick = GetTickCount()
                     print("E "..GetTickCount())
 
-                    SDK.Action:Add(function() 
+                    SDK.Action:Add(function()
                         print("check Q")
-                        if Ready(_Q) and self.lastQTick +100 <GetTickCount() then 
+                        if Ready(_Q) and self.lastQTick +100 <GetTickCount() then
                             Control.KeyDown(HK_Q)
                             self.lastQTick = GetTickCount()
                             print("Q "..GetTickCount())
@@ -303,10 +303,10 @@ function Yasuo:CastR()                                                          
                         end
                     end, 0.02)
 
-                    SDK.Action:Add(function() 
-                        if Ready(_R) and LastR + 2000 <GetTickCount() then 
+                    SDK.Action:Add(function()
+                        if Ready(_R) and LastR + 2000 <GetTickCount() then
                             Control.CastSpell(HK_R, enemy)
-                            SDK.Action:Add(function() 
+                            SDK.Action:Add(function()
                                 if LastR2 + 500 <GetTickCount() then
                                     Control.CastSpell(HK_R, enemy)
                                     print("R2 "..GetTickCount())
@@ -386,7 +386,7 @@ function Yasuo:Combo()
                 DelayAction(function()
                     self:CheckEQ(target)
                 end, self.Epre.Delay-0.11)
-    
+
                 self.lastETick = GetTickCount()
 
                 if inQrange then
@@ -394,7 +394,7 @@ function Yasuo:Combo()
                     self.blockQ = true
                 end
             end
-            
+
         elseif target and self.tyMenu.combo.Emode:Value() == 2 then
             Eobj, distance  = self:GetBestEObjToCursor(self.tyMenu.combo.ETower:Value())
             if Eobj and distance < mousePos:DistanceTo(target.pos) then
@@ -449,7 +449,7 @@ function Yasuo:Jungle()
     if next(jungleInrange) == nil then return  end
 
 
-    if jungleInrange[1] and not self:HasBuff(jungleInrange[1], "YasuoE") and self.tyMenu.jungle.useE:Value() 
+    if jungleInrange[1] and not self:HasBuff(jungleInrange[1], "YasuoE") and self.tyMenu.jungle.useE:Value()
        and Ready(_E) and self.lastETick + 100 < GetTickCount() and orbwalker:CanMove(myHero) and jungleInrange[1].pos:DistanceTo(myHero.pos) > myHero.range then
         print("jungle cast E")
         Control.CastSpell(HK_E, jungleInrange[1])
@@ -469,7 +469,7 @@ function Yasuo:Jungle()
             print("jungle Q1")
             Control.CastSpell(HK_Q,jungleInrange[1])
             self.lastQTick = GetTickCount()
- 
+
     end
 
     if self.tyMenu.jungle.useQ3:Value()and Ready(_Q) and not myHero.pathing.isDashing and myHero:GetSpellData(0).name == "YasuoQ3Wrapper" and self.lastETick + 100 < GetTickCount() and
@@ -499,7 +499,7 @@ function Yasuo:LastHit()
             end
         end
 
-        if self.tyMenu.lasthit.useE:Value()and Ready(_E) and not myHero.pathing.isDashing  and self.lastETick + 100 < GetTickCount() and self.lastQTick + 300 < GetTickCount() and 
+        if self.tyMenu.lasthit.useE:Value()and Ready(_E) and not myHero.pathing.isDashing  and self.lastETick + 100 < GetTickCount() and self.lastQTick + 300 < GetTickCount() and
         orbwalker:CanMove(myHero) and not self:HasBuff(minion, "YasuoE") then
             local delay = self:GetEDmgDelay(minion)
             local hpPred = healthPred:GetPrediction(minion, delay-0.3)
@@ -511,7 +511,7 @@ function Yasuo:LastHit()
                     local endPos = self:GetDashPos(minion)
                     if self:OutOfTurrents(endPos) then
                         Control.CastSpell(HK_E,minion)
-                        self.lastETick = GetTickCount()    
+                        self.lastETick = GetTickCount()
                     end
                 else
                     Control.CastSpell(HK_E,minion)
@@ -586,12 +586,12 @@ function Yasuo:CheckEQ(target)
         DelayAction(function()
             Control.KeyUp(HK_Q)
             print("EQ2 "..os.clock())
-            DelayAction(function()   
+            DelayAction(function()
                 orbwalker:SetAttack(true)
             end, 0.4)
 
         end, 0.05)
-    end    
+    end
 end
 
 function Yasuo:GetEtargetInRange()
@@ -599,19 +599,19 @@ function Yasuo:GetEtargetInRange()
     local jungleInErange = OB:GetMonsters(475)
     local heroInErange   = OB:GetEnemyHeroes(475)
 
-    for i,minion in pairs (minionInERange) do 
+    for i,minion in pairs (minionInERange) do
         if not self:HasBuff(minion, "YasuoE")  then
             return minion
         end
     end
 
-    for i,minion in pairs (jungleInErange) do 
+    for i,minion in pairs (jungleInErange) do
         if not self:HasBuff(minion, "YasuoE")  then
             return minion
         end
     end
 
-    for i,minion in pairs (heroInErange) do 
+    for i,minion in pairs (heroInErange) do
         if not self:HasBuff(minion, "YasuoE") then
             return minion
         end
@@ -626,7 +626,7 @@ function Yasuo:GetBestEObjToCursor(underTower)
     local minDistance = math.huge
     local bestMinion = nil
 
-    for i,minion in pairs (minionInERange) do 
+    for i,minion in pairs (minionInERange) do
         if not self:HasBuff(minion, "YasuoE") then
             local endPos = self:GetDashPos(minion)
             local distance = mousePos:DistanceTo(endPos)
@@ -636,7 +636,7 @@ function Yasuo:GetBestEObjToCursor(underTower)
                     minDistance = distance
                     bestMinion = minion
                 end
-                        
+
             else
                 if distance < minDistance then
                     minDistance = distance
@@ -647,17 +647,17 @@ function Yasuo:GetBestEObjToCursor(underTower)
     end
 
     if bestMinion == nil then
-        for i,minion in pairs (jungleInErange) do 
+        for i,minion in pairs (jungleInErange) do
             if not self:HasBuff(minion, "YasuoE") then
                 local endPos = self:GetDashPos(minion)
                 local distance = mousePos:DistanceTo(endPos)
-    
+
                 if underTower then
                     if self:OutOfTurrents(endPos) and distance < minDistance then
                         minDistance = distance
                         bestMinion = minion
                     end
-                            
+
                 else
                     if distance < minDistance then
                         minDistance = distance
@@ -669,17 +669,17 @@ function Yasuo:GetBestEObjToCursor(underTower)
     end
 
     if bestMinion == nil then
-        for i,minion in pairs (heroInErange) do 
+        for i,minion in pairs (heroInErange) do
             if not self:HasBuff(minion, "YasuoE") then
                 local endPos = self:GetDashPos(minion)
                 local distance = mousePos:DistanceTo(endPos)
-    
+
                 if underTower then
                     if self:OutOfTurrents(endPos) and distance < minDistance then
                         minDistance = distance
                         bestMinion = minion
                     end
-                            
+
                 else
                     if distance < minDistance then
                         minDistance = distance
@@ -708,7 +708,7 @@ function Yasuo:GetBestEObjToTarget(target, underTower)
     local minDistance = math.huge
     local bestMinion = nil
 
-    for i,minion in pairs (minionInERange) do 
+    for i,minion in pairs (minionInERange) do
         if not self:HasBuff(minion, "YasuoE") then
             local endPos = self:GetDashPos(minion)
             local distance = unitPos:DistanceTo(endPos)
@@ -739,28 +739,28 @@ function Yasuo:GetBestEObjToTarget(target, underTower)
     end
 
     if bestMinion == nil then
-        for i,minion in pairs (jungleInErange) do 
+        for i,minion in pairs (jungleInErange) do
             if not self:HasBuff(minion, "YasuoE") then
                 local endPos = self:GetDashPos(minion)
                 local distance = unitPos:DistanceTo(endPos)
-    
+
                 if underTower then
                     if self:OutOfTurrents(endPos) then
                         if distance < self.QCirWidth then
                             return minion, distance,true
                         end
-    
+
                         if distance < minDistance then
                             minDistance = distance
                             bestMinion = minion
                         end
                     end
-    
+
                 else
                     if distance < self.QCirWidth then
                         return minion, distance, true
                     end
-    
+
                     if distance < minDistance then
                         minDistance = distance
                         bestMinion = minion
@@ -771,28 +771,28 @@ function Yasuo:GetBestEObjToTarget(target, underTower)
     end
 
     if bestMinion == nil then
-        for i,minion in pairs (heroInErange) do 
+        for i,minion in pairs (heroInErange) do
             if not self:HasBuff(minion, "YasuoE") and minion ~= target then
                 local endPos = self:GetDashPos(minion)
                 local distance = unitPos:DistanceTo(endPos)
-    
+
                 if underTower then
                     if self:OutOfTurrents(endPos) then
                         if distance < self.QCirWidth then
                             return minion, distance, true
                         end
-    
+
                         if distance < minDistance then
                             minDistance = distance
                             bestMinion = minion
                         end
                     end
-    
+
                 else
                     if distance < self.QCirWidth then
                         return minion, distance, true
                     end
-    
+
                     if distance < minDistance then
                         minDistance = distance
                         bestMinion = minion
@@ -805,7 +805,7 @@ function Yasuo:GetBestEObjToTarget(target, underTower)
 
 
     if bestMinion == nil then
-        if myHero.pos:DistanceTo(target.pos) < 475 and not self:HasBuff(target, "YasuoE") then 
+        if myHero.pos:DistanceTo(target.pos) < 475 and not self:HasBuff(target, "YasuoE") then
             local endPos = self:GetDashPos(target)
             local distance = unitPos:DistanceTo(endPos)
 
@@ -814,7 +814,7 @@ function Yasuo:GetBestEObjToTarget(target, underTower)
             if distance < self.QCirWidth then
                 --print("E target")
                 return target, distance, true
-            else 
+            else
                 --print("E target")
                 return target, distance
             end
@@ -851,7 +851,7 @@ function Yasuo:CastQ(target, hitchance)
     if Ready(_Q) and not myHero.pathing.isDashing and myHero:GetSpellData(0).name ~= "YasuoQ3Wrapper" and self.lastETick + 100 < GetTickCount() and
        myHero.pos:DistanceTo(target.pos) <= self.Q.Range and orbwalker:CanMove(myHero) and self.lastQTick + 300 < GetTickCount() then
         -- local Pred = GetGamsteronPrediction(target, self.Q, myHero)
-        -- if Pred.Hitchance >= hitchance then
+        -- if Pred.Hitchance or Pred.HitChance >= hitchance then
         --     orbwalker:SetMovement(false)
         --     orbwalker:SetAttack(false)
 
@@ -869,29 +869,29 @@ function Yasuo:CastQ(target, hitchance)
             Control.CastSpell(HK_Q, pred.CastPos)
             self.lastQTick = GetTickCount()
             print("castQ")
-        end 
+        end
     end
 end
 
 function Yasuo:CastQ3(target)
-    if Ready(_Q) and not myHero.pathing.isDashing 
-    and myHero:GetSpellData(0).name == "YasuoQ3Wrapper" 
-    and self.lastETick + 100 < GetTickCount() 
-    and myHero.pos:DistanceTo(target.pos) <= self.Q3.Range 
-    and orbwalker:CanMove(myHero) 
+    if Ready(_Q) and not myHero.pathing.isDashing
+    and myHero:GetSpellData(0).name == "YasuoQ3Wrapper"
+    and self.lastETick + 100 < GetTickCount()
+    and myHero.pos:DistanceTo(target.pos) <= self.Q3.Range
+    and orbwalker:CanMove(myHero)
 
     then
         -- print(self.lastQTick)
         -- print("castQ3"..GetTickCount())
     end
-    if Ready(_Q) and not myHero.pathing.isDashing 
-    and myHero:GetSpellData(0).name == "YasuoQ3Wrapper" 
-    and self.lastETick + 100 < GetTickCount() 
-    and myHero.pos:DistanceTo(target.pos) <= self.Q3.Range 
-    and orbwalker:CanMove(myHero) 
+    if Ready(_Q) and not myHero.pathing.isDashing
+    and myHero:GetSpellData(0).name == "YasuoQ3Wrapper"
+    and self.lastETick + 100 < GetTickCount()
+    and myHero.pos:DistanceTo(target.pos) <= self.Q3.Range
+    and orbwalker:CanMove(myHero)
     and self.lastQTick + 300 < GetTickCount() then
         -- local Pred = GetGamsteronPrediction(target, self.Q3, myHero)
-        -- if Pred.Hitchance >= _G.HITCHANCE_HIGH then
+        -- if Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH then
         --     orbwalker:SetMovement(false)
         --     orbwalker:SetAttack(false)
 
@@ -905,13 +905,13 @@ function Yasuo:CastQ3(target)
         -- end
 
         local pred = _G.PremiumPrediction:GetPrediction(myHero, target, self.Q3)
-        if pred.CastPos 
-        and pred.HitChance > self.tyMenu.Setting.Q3hitchance:Value() 
+        if pred.CastPos
+        and pred.HitChance > self.tyMenu.Setting.Q3hitchance:Value()
         then
             Control.CastSpell(HK_Q, pred.CastPos)
             self.lastQTick = GetTickCount()
             print("castQ3")
-        end 
+        end
     end
 end
 
@@ -936,7 +936,7 @@ function Yasuo:CastW()
                 lastWTick = GetTickCount()
                 return
             end
-            
+
         end
     end
 end

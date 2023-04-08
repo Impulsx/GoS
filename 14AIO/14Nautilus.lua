@@ -197,7 +197,7 @@ function Nautilus:CastQ(target)
         local Pred = GGPrediction:SpellPrediction(self.QData)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.QData, myHero)
 
-        if Pred.Hitchance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)         then
+        if Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)         then
             lineQ = self:CreateQPoly(Pred.CastPosition)
             for i, lineSegment in ipairs(lineQ:__getLineSegments()) do
                 if MapPosition:intersectsWall(lineSegment) then

@@ -196,7 +196,7 @@ function Brand:Combo()
     if target and self.tyMenu.combo.QE:Value() and Ready(_Q) and Ready(_E) and lastQ + 350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GGPrediction:SpellPrediction(self.Q)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if Pred.Hitchance >= _G.HITCHANCE_HIGH or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)
+        if Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)
         and GetDistanceSquared(myHero.pos, Pred.CastPosition) >= self.tyMenu.combo.minQE:Value()^2
         and GetDistanceSquared(myHero.pos, Pred.CastPosition) < self.E.range^2
         then
@@ -218,7 +218,7 @@ function Brand:Combo()
     and lastE + 350 < GetTickCount() then
         local Pred = GGPrediction:SpellPrediction(self.Q)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if Pred.Hitchance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
+        if Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_E, target)
             lastE = GetTickCount()
             lastEQ = GetTickCount()
@@ -270,7 +270,7 @@ function Brand:Auto()
                 if hasBuff and duration >= time then
                     local Pred = GGPrediction:SpellPrediction(self.Q)
                     Pred:GetPrediction(hero, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-                    if Pred.Hitchance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
+                    if Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
                         Control.CastSpell(HK_Q, Pred.CastPosition)
                         lastQ = GetTickCount()
                         -- print("auto Q")
@@ -282,7 +282,7 @@ function Brand:Auto()
             if self.tyMenu.auto.W:Value() and Ready(_W) and lastW + 700 < GetTickCount() and distanceSqr < 900*900 then
                 local Pred = GGPrediction:SpellPrediction(self.W)
                 Pred:GetPrediction(hero, myHero) --GetGamsteronPrediction(target, self.W, myHero)
-                if Pred.Hitchance >= _G.HITCHANCE_IMMOBILE  or Pred:CanHit(4 or GGPrediction.HITCHANCE_IMMOBILE) then
+                if Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_IMMOBILE  or Pred:CanHit(4 or GGPrediction.HITCHANCE_IMMOBILE) then
                     Control.CastSpell(HK_W, Pred.CastPosition)
                     lastW = GetTickCount()
                     -- print("auto W")
@@ -347,7 +347,7 @@ function Brand:CastW(target)
     if Ready(_W) and lastW + 600 < GetTickCount() and lastEQ + 550 < GetTickCount() then
         local Pred = GGPrediction:SpellPrediction(self.W)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
-        if Pred.Hitchance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
+        if Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_W, Pred.CastPosition)
             lastW = GetTickCount()
         end

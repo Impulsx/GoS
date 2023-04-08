@@ -369,7 +369,8 @@ function Lulu:Combo()
     local target = TargetSelector:GetTarget(self.Q.Range, 1)
     if target and IsValid(target) then
         if self.tyMenu.combo.Q:Value() and myHero.pos:DistanceTo(target.pos) < self.tyMenu.combo.range:Value() then
-            self:CastQ(target, self.tyMenu.combo.hitc:Value())
+            local hitchance = self.tyMenu.combo.hitc:Value()
+            self:CastQ(target, hitchance)
         end
     end
 end
@@ -378,7 +379,8 @@ function Lulu:Harass()
     local target = TargetSelector:GetTarget(self.Q.Range, 1)
     if target and IsValid(target) then
         if self.tyMenu.harass.Q:Value() and myHero.pos:DistanceTo(target.pos) < self.tyMenu.harass.range:Value() then
-            self:CastQ(target, self.tyMenu.harass.hitc:Value())
+            local hitchance = self.tyMenu.combo.hitc:Value()
+            self:CastQ(target, hitchance)
         end
     end
 end
@@ -387,7 +389,7 @@ function Lulu:CastQ(target, hitchance)
     if Ready(_Q) and lastQ +350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GGPrediction:SpellPrediction(self.Q)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if Pred.Hitchance >= hitchance  or Pred:CanHit(hitchance or GGPrediction.HITCHANCE_HIGH)         then
+        if (Pred.Hitchance or Pred.HitChance >= hitchance) or Pred:CanHit(hitchance or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_Q, Pred.CastPosition)
             lastQ = GetTickCount()
         end
