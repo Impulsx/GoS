@@ -230,7 +230,7 @@ function Ashe:AntiGap()
                     then
                     local Pred = GGPrediction:SpellPrediction(self.RData)
                     Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.RData, myHero)
-                        if Pred.Hitchance or Pred.HitChance >= self.R.Hitchance or Pred:CanHit(self.R.Hitchance or GGPrediction.HITCHANCE_HIGH) then
+                        if (Pred.Hitchance or Pred.HitChance >= self.R.Hitchance) or Pred:CanHit(self.R.Hitchance or GGPrediction.HITCHANCE_HIGH) then
                             Control.CastSpell(HK_R,Pred.CastPosition)
                             lastR = GetTickCount()
                         end
@@ -245,7 +245,7 @@ function Ashe:CastR(target)
     if IsValid(target) and Ready(_R) and lastR + 500 < GetTickCount()  then
         local Pred = GGPrediction:SpellPrediction(self.RData)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.RData, myHero)
-        if Pred.Hitchance or Pred.HitChance >= self.R.Hitchance or Pred:CanHit(self.R.Hitchance or GGPrediction.HITCHANCE_HIGH) then
+        if (Pred.Hitchance or Pred.HitChance >= self.R.Hitchance) or Pred:CanHit(self.R.Hitchance or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_R,Pred.CastPosition)
             lastR = GetTickCount()
         end
@@ -257,7 +257,7 @@ function Ashe:CastW(target)
     and orbwalker:CanMove() and GetDistanceSquared(myHero.pos,target.pos) < self.tyMenu.Setting.Wrange:Value()^2 then
         local Pred = GGPrediction:SpellPrediction(self.W)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
-        if Pred.Hitchance or Pred.HitChance  >= self.W.Hitchance or Pred:CanHit(self.W.Hitchance or GGPrediction.HITCHANCE_HIGH) then
+        if (Pred.Hitchance or Pred.HitChance  >= self.W.Hitchance) or Pred:CanHit(self.W.Hitchance or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_W,Pred.CastPosition)
             lastW = GetTickCount()
         end

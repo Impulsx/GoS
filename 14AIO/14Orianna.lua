@@ -595,7 +595,7 @@ function Orianna:CastQ(target)
     if Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= self.QData.Range then
         local Pred = GGPrediction:SpellPrediction(self.QData)
         Pred:GetPrediction(target, self.OriannaBall.Object) --GetGamsteronPrediction(target, self.QData, ballPos)
-        if Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)
+        if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH) or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)
         and  myHero.pos:DistanceTo(Pred.CastPosition)<= 825
         then
             lastQTick = GetTickCount()

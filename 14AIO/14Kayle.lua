@@ -241,7 +241,7 @@ function Kayle:CastQ(target)
         self.Q.CollisionTypes = {_G.COLLISION_YASUOWALL}
         local Pred = GGPrediction:SpellPrediction(self.Q)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if Pred.Hitchance or Pred.HitChance  >= self.Q.Hitchance  or Pred:CanHit(self.Q.Hitchance or GGPrediction.HITCHANCE_HIGH)         then
+        if (Pred.Hitchance or Pred.HitChance  >= self.Q.Hitchance)  or Pred:CanHit(self.Q.Hitchance or GGPrediction.HITCHANCE_HIGH)         then
             self.Q.CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
             local Pred2 = GGPrediction:SpellPrediction(self.Q)
             Pred2:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)

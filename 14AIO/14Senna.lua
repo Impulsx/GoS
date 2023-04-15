@@ -365,7 +365,7 @@ function Senna:CastW(target)
     if Ready(_W) and lastW + 550 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GGPrediction:SpellPrediction(self.W)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
-        if Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)         then
+        if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)         then
             Control.CastSpell(HK_W, Pred.CastPosition)
             lastW = GetTickCount()
         end
@@ -416,7 +416,7 @@ function Senna:Harass()
         if target and IsValid(target) and orbwalker:CanMove() then
             local Pred = GGPrediction:SpellPrediction(self.Q2)
             Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q2, myHero)
-            if Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)             then
+            if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)             then
                 local targetPos = myHero.pos:Extended(Pred.CastPosition,
                                                       self.Q2.Range)
                 local minions = ObjectManager:GetMinions(self.Q1.Range())
@@ -465,7 +465,7 @@ function Senna:KS()
                 self:GetQDmg(target) then
                 local Pred = GGPrediction:SpellPrediction(self.Q2)
                 Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q2, myHero)
-                if Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)                 then
+                if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)                 then
                     local targetPos = myHero.pos:Extended(Pred.CastPosition,
                                                           self.Q2.Range)
                     local minions = ObjectManager:GetMinions(self.Q1.Range())
@@ -563,7 +563,7 @@ function Senna:KS()
                 print("can R")
                 local Pred = GGPrediction:SpellPrediction(self.R)
                 Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.R, myHero)
-                if Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)                 then
+                if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)                 then
                     Control.CastSpell(HK_R, Pred.CastPosition)
                     lastR = GetTickCount()
                 end
