@@ -86,8 +86,8 @@ end
 class "Pantheon"
 
 function Pantheon:__init()
-    self.Q1 = {Hitchance = _G.HITCHANCE_HIGH, Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 500, Speed = math.huge, Collision = false}
-    self.Q2 = {Hitchance = _G.HITCHANCE_HIGH, Type = _G.SPELLTYPE_LINE, Delay = 0, Radius = 60, Range = 1200, Speed = 1500, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}}
+    self.Q1 = {Hitchance = GGPrediction.HITCHANCE_HIGH, Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 500, Speed = math.huge, Collision = false}
+    self.Q2 = {Hitchance = GGPrediction.HITCHANCE_HIGH, Type = GGPrediction.SPELLTYPE_LINE, Delay = 0, Radius = 60, Range = 1200, Speed = 1500, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}}
     self.W = {Range = 600}
     self.E = {Range = 250}
     self.R = {Range = 5500}
@@ -161,18 +161,18 @@ function Pantheon:LoadMenu()
 
     self.tyMenu.Setting:MenuElement({name ="Q1 HitChance" , drop = {"High", "Normal"}, callback = function(value)
         if value == 1 then
-            self.Q1.Hitchance = _G.HITCHANCE_HIGH
+            self.Q1.Hitchance = GGPrediction.HITCHANCE_HIGH
         end
         if value == 2 then
-            self.Q1.Hitchance = _G.HITCHANCE_NORMAL
+            self.Q1.Hitchance = GGPrediction.HITCHANCE_NORMAL
         end
     end})
     self.tyMenu.Setting:MenuElement({name ="Q2 HitChance" , drop = {"High", "Normal"}, callback = function(value)
         if value == 1 then
-            self.Q2.Hitchance = _G.HITCHANCE_HIGH
+            self.Q2.Hitchance = GGPrediction.HITCHANCE_HIGH
         end
         if value == 2 then
-            self.Q2.Hitchance = _G.HITCHANCE_NORMAL
+            self.Q2.Hitchance = GGPrediction.HITCHANCE_NORMAL
         end
     end})
 
@@ -295,7 +295,8 @@ function Pantheon:CastQ1(target)
     and orbwalker:CanMove() and GetDistanceSquared(myHero.pos,target.pos) < self.Q1.Range ^2 then
         local Pred = GGPrediction:SpellPrediction(self.Q1)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q1, myHero)
-        if (Pred.Hitchance or Pred.HitChance >= self.Q1.Hitchance) or Pred:CanHit(self.Q1.Hitchance or GGPrediction.HITCHANCE_HIGH)         then
+        print(GGPrediction.HITCHANCE_HIGH)
+        if (Pred.Hitchance or Pred.HitChance >= self.Q1.Hitchance) or Pred:CanHit(self.Q1.Hitchance or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_Q,Pred.CastPosition)
             lastQ = GetTickCount()
         end
@@ -316,7 +317,8 @@ function Pantheon:CastQ2(target)
     and self.Qchannel and Ready(_Q)  and  lastQup + 150 < GetTickCount() then
         local Pred = GGPrediction:SpellPrediction(self.Q2)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q2, myHero)
-        if (Pred.Hitchance or Pred.HitChance >= self.Q2.Hitchance) or Pred:CanHit(self.Q2.Hitchance or GGPrediction.HITCHANCE_HIGH)         then
+        print(GGPrediction.HITCHANCE_HIGH)
+        if (Pred.Hitchance or Pred.HitChance >= self.Q2.Hitchance) or Pred:CanHit(self.Q2.Hitchance or GGPrediction.HITCHANCE_HIGH) then
             -- Control.SetCursorPos(Pred.CastPosition)
             -- ControlKeyUp(HK_Q)
             Control.CastSpell(HK_Q,Pred.CastPosition)

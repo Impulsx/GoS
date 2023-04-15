@@ -86,7 +86,7 @@ end
 class "Kayle"
 
 function Kayle:__init()
-    self.Q = {Hitchance = _G.HITCHANCE_HIGH, Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 65, Range = 830, Speed = 500, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}}
+    self.Q = {Hitchance = GGPrediction.HITCHANCE_HIGH, Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 65, Range = 830, Speed = 500, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}}
     self.W = {Range = 900}
     self.E = {Range = 625}
     self.R = {Range = 900}
@@ -162,10 +162,10 @@ function Kayle:LoadMenu()
     self.tyMenu:MenuElement({type = MENU, id = "HitChance", name = "Hit Chance Setting"})
         self.tyMenu.HitChance:MenuElement({name ="Q HitChance" , drop = {"High", "Normal"}, callback = function(value)
             if value == 1 then
-                self.Q.Hitchance = _G.HITCHANCE_HIGH
+                self.Q.Hitchance = GGPrediction.HITCHANCE_HIGH
             end
             if value == 2 then
-                self.Q.Hitchance = _G.HITCHANCE_NORMAL
+                self.Q.Hitchance = GGPrediction.HITCHANCE_NORMAL
             end
         end})
         self.tyMenu.HitChance:MenuElement({id = "Qminion", name = "[Q] minoin to hit target", value = true})

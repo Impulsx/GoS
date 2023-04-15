@@ -127,10 +127,10 @@ end
 class "Graves"
 
 function Graves:__init()
-    self.Q = {Hitchance = _G.HITCHANCE_HIGH, Type = _G.SPELLTYPE_LINE, Delay = 0.25, Speed = 3000 , Range = 925, Radius = 20, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}}
-    self.W = {Hitchance = _G.HITCHANCE_HIGH, Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Speed = 1500 , Range = 950, Radius = 250}
+    self.Q = {Hitchance = GGPrediction.HITCHANCE_HIGH, Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Speed = 3000 , Range = 925, Radius = 20, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}}
+    self.W = {Hitchance = GGPrediction.HITCHANCE_HIGH, Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Speed = 1500 , Range = 950, Radius = 250}
     self.E = {Range = 425}
-    self.R = {Hitchance = _G.HITCHANCE_HIGH, Type = _G.SPELLTYPE_LINE, Delay = 0.25, Speed = 2100 , Range = 1000, Radius = 100, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}}
+    self.R = {Hitchance = GGPrediction.HITCHANCE_HIGH, Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Speed = 2100 , Range = 1000, Radius = 100, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}}
 
     self.AttackTarget = nil
 
@@ -201,26 +201,26 @@ function Graves:LoadMenu()
         self.tyMenu.Setting:MenuElement({id = "Emode", name ="E mode" , drop = {"To Side", "To Cursor"}})
         self.tyMenu.Setting:MenuElement({name ="Q HitChance" , drop = {"High", "Normal"}, callback = function(value)
             if value == 1 then
-                self.Q.Hitchance = _G.HITCHANCE_HIGH
+                self.Q.Hitchance = GGPrediction.HITCHANCE_HIGH
             end
             if value == 2 then
-                self.Q.Hitchance = _G.HITCHANCE_NORMAL
+                self.Q.Hitchance = GGPrediction.HITCHANCE_NORMAL
             end
         end})
         self.tyMenu.Setting:MenuElement({name ="W HitChance" , drop = {"High", "Normal"}, callback = function(value)
             if value == 1 then
-                self.W.Hitchance = _G.HITCHANCE_HIGH
+                self.W.Hitchance = GGPrediction.HITCHANCE_HIGH
             end
             if value == 2 then
-                self.W.Hitchance = _G.HITCHANCE_NORMAL
+                self.W.Hitchance = GGPrediction.HITCHANCE_NORMAL
             end
         end})
         self.tyMenu.Setting:MenuElement({name ="R HitChance" , drop = {"High", "Normal"}, callback = function(value)
             if value == 1 then
-                self.R.Hitchance = _G.HITCHANCE_HIGH
+                self.R.Hitchance = GGPrediction.HITCHANCE_HIGH
             end
             if value == 2 then
-                self.R.Hitchance = _G.HITCHANCE_NORMAL
+                self.R.Hitchance = GGPrediction.HITCHANCE_NORMAL
             end
         end})
     self.tyMenu:MenuElement({type = MENU, id = "Human", name = "Humanizer"})
