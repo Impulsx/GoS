@@ -295,7 +295,6 @@ function Pantheon:CastQ1(target)
     and orbwalker:CanMove() and GetDistanceSquared(myHero.pos,target.pos) < self.Q1.Range ^2 then
         local Pred = GGPrediction:SpellPrediction(self.Q1)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q1, myHero)
-        print(GGPrediction.HITCHANCE_HIGH)
         if (Pred.Hitchance or Pred.HitChance >= self.Q1.Hitchance) or Pred:CanHit(self.Q1.Hitchance or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_Q,Pred.CastPosition)
             lastQ = GetTickCount()
@@ -317,7 +316,6 @@ function Pantheon:CastQ2(target)
     and self.Qchannel and Ready(_Q)  and  lastQup + 150 < GetTickCount() then
         local Pred = GGPrediction:SpellPrediction(self.Q2)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q2, myHero)
-        print(GGPrediction.HITCHANCE_HIGH)
         if (Pred.Hitchance or Pred.HitChance >= self.Q2.Hitchance) or Pred:CanHit(self.Q2.Hitchance or GGPrediction.HITCHANCE_HIGH) then
             -- Control.SetCursorPos(Pred.CastPosition)
             -- ControlKeyUp(HK_Q)
