@@ -1,5 +1,5 @@
 --[[
-Version: 13.13 + Naafiri
+Version: 13.14
 
 Usage:
 
@@ -1562,9 +1562,9 @@ local ItemDamageTable = {
 
 local SpellDamageTable = {
   ["Aatrox"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({10, 30, 50, 70, 90})[level] + ({0.6, 0.65, 0.7, 0.75, 0.8})[level] * source.totalDamage end},
-    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({12.5, 37.5, 62.5, 87.5, 112.5})[level] + ({0.75, 0.81, 0.87, 0.93, 1.0})[level] * source.totalDamage end},
-    {Slot = "Q", Stage = 3, DamageType = 1, Damage = function(source, target, level) return ({15, 45, 75, 105, 135})[level] + ({0.9, 0.95, 1.05, 1.12, 1.2})[level] * source.totalDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({10, 25, 40, 55, 70})[level] + ({0.65, 0.70, 0.80, 0.90, 0.100})[level] * source.totalDamage end},
+    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({12.50, 37.50, 50, 68.75, 87.50})[level] + ({0.8125, 0.875, 1, 1.125, 1.25})[level] * source.totalDamage end},
+    {Slot = "Q", Stage = 3, DamageType = 1, Damage = function(source, target, level) return ({15, 37.50, 60, 82.50, 105})[level] + ({0.975, 1.05, 1.20, 1.35, 1.50})[level] * source.totalDamage end},
     {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 40, 50, 60, 70})[level] + 0.4 * source.totalDamage end},
   },
 
@@ -1737,8 +1737,8 @@ local SpellDamageTable = {
 
   ["Diana"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 95, 130, 165, 200})[level] + 0.7 * source.ap end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({18, 30, 42, 54, 66})[level] + 0.15 * source.ap end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({50, 70, 90, 110, 130})[level] + 0.50 * source.ap end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({18, 30, 42, 54, 66})[level] + 0.18 * source.ap end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({50, 70, 90, 110, 130})[level] + 0.60 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({200, 300, 400})[level] + 0.6 * source.ap end},
   },
 
@@ -1968,8 +1968,8 @@ local SpellDamageTable = {
   },
 
   ["Karthus"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({45, 62.5, 80, 97.5, 115})[level] + 0.35 * source.ap) * 2 end},--single Target
-    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({45, 62.5, 80, 97.5, 115})[level] + 0.35 * source.ap end},--AOE
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({43, 61, 79, 97, 115})[level] + 0.35 * source.ap) * 2 end},--single Target
+    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({43, 61, 79, 97, 115})[level] + 0.35 * source.ap end},--AOE
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({30, 50, 70, 90, 110})[level] + 0.2 * source.ap end}, --DPS not per tick deals damage every 0.25sec - toggle off deals 1 tick of damage
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({200, 350, 500})[level] + 0.75 * source.ap end},
   },
@@ -2033,7 +2033,7 @@ local SpellDamageTable = {
   },
 
   ["Kindred"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 75, 100, 125, 150})[level] + (0.75 * source.bonusDamage) end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({40, 65, 90, 115, 140})[level] + (0.75 * source.bonusDamage) end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) local buff = GetBuffData(source, "kindredmarkofthekindredstackcounter"); return ({25, 30, 35, 40, 45})[level] + (0.20 * source.bonusDamage) + (0.20 * source.ap) + (0.015 + (0.01 * buff.stacks) * target.health) end},
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) local buff = GetBuffData(source, "kindredmarkofthekindredstackcounter"); return ({80, 100, 120, 140, 160})[level] + (0.80 * source.bonusDamage) + (0.08 + (0.005 * buff.stacks) * GetMissingHP(target)) end},
   },
@@ -2310,9 +2310,9 @@ local SpellDamageTable = {
   ["Reksai"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({21, 27, 30, 39, 45})[level] + 0.5 * source.bonusDamage end},--UNBURROWED min per attack
     {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({60, 95, 130, 165, 200})[level] + (0.5 * source.bonusDamage) + (0.7 * source.ap) end},--BURROWED
-    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({55, 70, 85, 100, 115})[level] + 0.8 * source.bonusDamage end},--BURROWED
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({55, 60, 65, 70, 75})[level] + 0.85 * source.bonusDamage end},--UNBURROWED
-    {Slot = "E", Stage = 2, DamageType = 3, Damage = function(source, target, level) return ({110, 120, 130, 140, 150})[level] + 1.7 * source.bonusDamage end},--UNBURROWED + Max FURY
+    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 65, 80, 95, 110})[level] + 0.8 * source.bonusDamage end},--BURROWED
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({5, 10, 15, 20, 25})[level] + 0.70 * source.bonusDamage end},--UNBURROWED
+    {Slot = "E", Stage = 2, DamageType = 3, Damage = function(source, target, level) return (({5, 10, 15, 20, 25})[level] + 0.70 * source.bonusDamage) * 2 end},--UNBURROWED + Max FURY
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({100, 250, 400})[level] + (1.75 * source.bonusDamage) + ({20, 25, 30})[level] / 100 * GetMissingHP(target) end},
   },
 
@@ -2407,7 +2407,7 @@ local SpellDamageTable = {
   },
 
   ["Shaco"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({25, 35, 45, 55, 65})[level] + 0.40 * source.bonusDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({25, 35, 45, 55, 65})[level] + 0.60 * source.bonusDamage end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({10, 1540, 20, 25, 30})[level] + 0.12 * source.ap end},
     {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({25, 40, 55, 70, 85})[level] + 0.18 * source.ap end}, -- if 1 target
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (GetPercentHP(target) < 30 and ({105, 142.5, 180, 217.5, 255})[level] + (0.90 * source.ap) + (1.125 * source.bonusDamage) or ({70, 95, 120, 145, 170})[level] + (0.60 * source.ap) + (0.75 * source.bonusDamage)) end},
@@ -2421,7 +2421,7 @@ local SpellDamageTable = {
   },
 
   ["Shyvana"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (({20, 35, 50, 65, 80})[level] / 100 * source.totalDamage) + (0.25 * source.ap) end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (({20, 40, 60, 80, 100})[level] / 100 * source.totalDamage) + (0.25 * source.ap) end},
     {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return (1 * source.totalDamage) + (0.35 * source.ap) end}, --Dragon Form
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({10, 16.25, 22.5, 28.75, 35})[level] + (0.15 * source.bonusDamage) end},--per Second
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 100, 140, 180, 220})[level] + (0.90 * source.ap) + (0.40 * source.totalDamage) end},
@@ -2762,7 +2762,7 @@ local SpellDamageTable = {
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 95, 130, 165, 200})[level] + 0.6 * source.ap end}, -- Base damage
     {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({100, 158.4, 216.7, 275, 333.3})[level] + 1.02 * source.ap end}, --Center blast
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + 0.45 * source.ap end},
-    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({200, 250, 300})[level] + 0.43 * source.ap end},
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({180, 230, 280})[level] + 0.40 * source.ap end},
   },
 
   ["XinZhao"] = {
