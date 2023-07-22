@@ -2172,10 +2172,10 @@ local SpellDamageTable = {
   },
 
   ["Naafiri"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({35, 45, 55, 65, 27595})[level] + 0.20 * source.bonusDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({35, 45, 55, 65, 75})[level] + 0.20 * source.bonusDamage end},
     {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 70, 110, 150, 190})[level] + 0.80 * source.bonusDamage end},
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({100, 160, 220, 280, 340})[level] + 1.70 * source.bonusDamage end}, --dash + aoe flurry
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({10, 20, 30})[level] + ({15, 20, 25})[level] * source.totalDamage end},
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({100, 150, 200, 250, 300})[level] + 1.50 * source.bonusDamage end}, --dash + aoe flurry
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({5, 15, 25})[level] + ({8, 16, 24})[level]/100 * source.totalDamage end},
   },
 
   ["Nami"] = {
