@@ -207,7 +207,7 @@ end
 DevTool.Tick = function()
 	Obj_AI_Bases = {};
 	handleToNetworkID = {};
-	for i = 0, GameHeroCount() do
+	for i = 1, GameHeroCount() do
 		local obj = GameHero(i);
 		if isValidTarget(obj) then
 			if isObj_AI_Base(obj) then
@@ -218,7 +218,7 @@ DevTool.Tick = function()
 			end
 		end
 	end
-	for i = 0, GameMinionCount() do
+	for i = 1, GameMinionCount() do
 		local obj = GameMinion(i);
 		if isValidTarget(obj) then
 			if isObj_AI_Base(obj) then
@@ -229,7 +229,7 @@ DevTool.Tick = function()
 			end
 		end
 	end
-	for i = 0, GameTurretCount() do
+	for i = 1, GameTurretCount() do
 		local obj = GameTurret(i);
 		if isValidTarget(obj) then
 			if isObj_AI_Base(obj) then
