@@ -1,16 +1,22 @@
 --[[
 
-	_________                _____ __________                _________      
-	______  /____  ____________  /____  ____/___   ________ _______  /_____ 
+	_________                _____ __________                _________
+	______  /____  ____________  /____  ____/___   ________ _______  /_____
 	___ _  / _  / / /__  ___/_  __/__  __/   __ | / /_  __ `/_  __  / _  _ \
 	/ /_/ /  / /_/ / _(__  ) / /_  _  /___   __ |/ / / /_/ / / /_/ /  /  __/
-	\____/   \__,_/  /____/  \__/  /_____/   _____/  \__,_/  \__,_/   \___/ 
+	\____/   \__,_/  /____/  \__/  /_____/   _____/  \__,_/  \__,_/   \___/
                                                            Powered by GoS!
 
 	Author: Ark223
-	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu
+	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu, Impuls, Icebear, Hightail
 
 	Changelog:
+	v1.2.0
+	+ Vex Q added
+	+ Naafiri Q added
+	+ Milio Q added
+	+ K'Sante Q/Q3 added
+
 	v1.1.9 //
 	+ Naliah (TEST)
 	+ Rell spell types (stops error waiting on rework)
@@ -23,12 +29,12 @@
 	+ Fixing Rell (TESTING and Adjustment/recode possibly needed)
 	+ Fixed usage of Flash and added Danger Level: added some logic for Flash Range
 		If it uses flash it'll try at max flash distance for less sus smol flashes (TESTED, walls may still cause smol flash but still dodge spell just "/all worth" ? ^^ )
-		Edited up some of the flash coding, now fits in more with JustEvade and gets Flash.range data 
+		Edited up some of the flash coding, now fits in more with JustEvade and gets Flash.range data
 	+ Updated and added support for evade skill movementspeed modifiers (TESTING)
-		[ AnnieE, AkaliW, AhriW, BlitzcrankW, DravenW, GarenQ, KaisaE, KayleW, KatarinaW, RumbleW, ShyvanaW, SkarnerW, SonaE, TeemoW, UdyrE, VolibearQ ] 
+		[ AnnieE, AkaliW, AhriW, BlitzcrankW, DravenW, GarenQ, KaisaE, KayleW, KatarinaW, RumbleW, ShyvanaW, SkarnerW, SonaE, TeemoW, UdyrE, VolibearQ ]
 	+ Updated and added support for channelbuffs: not to dodge while in example = Xerath R, Katarina R, Vladimir W
 		[ Warwick R	,MissFortune R, Beveth E]
-		Testing or info needed for 
+		Testing or info needed for
 		[ Caitlyn R, , FiddleSticks W and R (DISABLED), VelkozR, Vladimir W]
 	 Buff names and champ skills getting reworked or updated // A lib for this would be nice.
 	+ Forced Dodge sets skill.Danger >= 2 (you wont use flash even is set to >=4 in my testing, just ensures you try to dodge)
@@ -120,7 +126,7 @@ local function ReadFile(file)
 	txt:close(); return result
 end
 
-local Version, IntVer = 1.19, "1.1.9"
+local Version, IntVer = 1.20, "1.2.0"
 local function AutoUpdate()
 	DownloadFile("https://raw.githubusercontent.com/Impulsx/GoS/master/JustEvade.version", SCRIPT_PATH .. "JustEvade.version")
 	if tonumber(ReadFile(SCRIPT_PATH .. "JustEvade.version")) > Version then
@@ -149,8 +155,8 @@ local SpellDatabase = {
 		["AatroxW"] = {icon = Icons.."AatroxW"..Png, displayName = "Infernal Chains", missileName = "AatroxW", slot = _W, type = "linear", speed = 1800, range = 825, delay = 0.25, radius = 80, danger = 2, cc = true, collision = true, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
 	},
 	["Ahri"] = {
-		["AhriOrbofDeception"] = {icon = Icons.."AhriQ"..Png, missileName = "AhriOrbMissile", displayName = "Orb of Deception", slot = _Q, type = "linear", speed = 2500, range = 880, delay = 0.25, radius = 100, danger = 2, cc = false, collision = false, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
-		["AhriSeduce"] = {icon = Icons.."AhriE"..Png, displayName = "Seduce",  missileName = "AhriSeduceMissile", slot = _E, type = "linear", speed = 1500, range = 975, delay = 0.25, radius = 60, danger = 1, cc = true, collision = true, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
+		["AhriQ"] = {icon = Icons.."AhriQ"..Png, missileName = "AhriOrbMissile", displayName = "Orb of Deception", slot = _Q, type = "linear", speed = 2500, range = 880, delay = 0.25, radius = 100, danger = 2, cc = false, collision = false, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
+		["AhriE"] = {icon = Icons.."AhriE"..Png, displayName = "Seduce",  missileName = "AhriSeduceMissile", slot = _E, type = "linear", speed = 1500, range = 975, delay = 0.25, radius = 60, danger = 1, cc = true, collision = true, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
 	},
 	["Akali"] = {
 		["AkaliQ"] = {icon = Icons.."AkaliQ"..Png, displayName = "Five Point Strike", slot = _Q, type = "conic", speed = 3200, range = 550, delay = 0.25, radius = 60, angle = 45, danger = 2, cc = false, collision = false, windwall = true, hitbox = false, fow = false, exception = false, extend = true},
@@ -375,6 +381,10 @@ local SpellDatabase = {
 		["KogMawVoidOozeMissile"] = {icon = Icons.."KogMawE"..Png, displayName = "Void Ooze", missileName = "KogMawVoidOozeMissile", slot = _E, type = "linear", speed = 1400, range = 1360, delay = 0.25, radius = 120, danger = 2, cc = true, collision = false, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
 		["KogMawLivingArtillery"] = {icon = Icons.."KogMawR"..Png, displayName = "Living Artillery", slot = _R, type = "circular", speed = MathHuge, range = 1300, delay = 1.1, radius = 200, danger = 1, cc = false, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = false},
 	},
+	["KSante"] = {
+		["KSanteQ"] = {icon = Icons.."KsanteQ1"..Png, displayName = "KSante Q", missileName = "KSanteQ", slot = _Q, type = "linear", speed = 1800, range = 465, delay = 0.25, radius = 75, danger = 1, cc = false, collision = false, windwall = false, hitbox = true, fow = false, exception = false, extend = true},
+		["KSanteQ3"] = {icon = Icons.."KsanteQ3"..Png, displayName = "KSante Q3", missileName = "KSanteQ3", slot = _Q, type = "linear", speed = 1100, range = 750, delay = 0.34, radius = 70, danger = 3, cc = false, collision = false, windwall = true, hitbox = true, fow = false, exception = false, extend = true},
+	},
 	["Leblanc"] = {
 		["LeblancE"] = {icon = Icons.."LeblancE"..Png, displayName = "Ethereal Chains [Standard]", missileName = "LeblancEMissile", slot = _E, type = "linear", speed = 1750, range = 925, delay = 0.25, radius = 55, danger = 1, cc = true, collision = true, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
 		["LeblancRE"] = {icon = Icons.."LeblancRE"..Png, displayName = "Ethereal Chains [Ultimate]", missileName = "LeblancREMissile", slot = _E, type = "linear", speed = 1750, range = 925, delay = 0.25, radius = 55, danger = 1, cc = true, collision = true, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
@@ -415,6 +425,9 @@ local SpellDatabase = {
 	["MissFortune"] = {
 		["MissFortuneBulletTime"] = {icon = Icons.."MissFortuneR"..Png, displayName = "Bullet Time", slot = _R, type = "conic", speed = 2000, range = 1400, delay = 0.25, radius = 100, angle = 34, danger = 4, cc = false, collision = false, windwall = true, hitbox = false, fow = false, exception = false, extend = true},
 	},
+	["Milio"] = {
+        ["MilioQ"] = {icon = Icons.."MilioQ"..Png, displayName = "Fire Kick", missileName = "MilioQMissile", slot = _Q, type = "linear", speed = 1200, range = 1000, delay = 0, radius = 60, danger = 1, cc = true, collision = false, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
+    },
 	["Mordekaiser"] = {
 		["MordekaiserQ"] = {icon = Icons.."MordekaiserQ"..Png, displayName = "Obliterate", slot = _Q, type = "polygon", speed = MathHuge, range = 675, delay = 0.4, radius = 200, danger = 2, cc = false, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = true},
 		["MordekaiserE"] = {icon = Icons.."MordekaiserE"..Png, displayName = "Death's Grasp", slot = _E, type = "polygon", speed = MathHuge, range = 900, delay = 0.9, radius = 140, danger = 3, cc = true, collision = false, windwall = true, hitbox = true, fow = false, exception = false, extend = false},
@@ -422,6 +435,10 @@ local SpellDatabase = {
 	["Morgana"] = {
 		["MorganaQ"] = {icon = Icons.."MorganaQ"..Png, displayName = "Dark Binding", missileName = "MorganaQ", slot = _Q, type = "linear", speed = 1200, range = 1250, delay = 0.25, radius = 70, danger = 1, cc = true, collision = true, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
 	},
+	["Naafiri"] = {
+        ["NaafiriQ"] = {icon = Icons.."NaafiriQ"..Png, displayName = "Naafiri",  slot = _Q, type = "linear", speed = 1200, range = 900, delay = 0.25, radius = 50, danger = 1, cc = false, collision = false, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
+        ["NaafiriQRecast"] = {icon = Icons.."NaafiriQ"..Png, displayName = "Naafiri Recast", slot = _Q, type = "linear", speed = 1200, range = 900, delay = 0.25, radius = 50, danger = 2, cc = false, collision = false, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
+    },
 	["Nami"] = {
 		["NamiQ"] = {icon = Icons.."NamiQ"..Png, displayName = "Aqua Prison", missileName = "NamiQMissile", slot = _Q, type = "circular", speed = MathHuge, range = 875, delay = 1, radius = 180, danger = 1, cc = true, collision = false, windwall = true, hitbox = false, fow = true, exception = false, extend = false},
 		["NamiRMissile"] = {icon = Icons.."NamiR"..Png, displayName = "Tidal Wave", missileName = "NamiRMissile", slot = _R, type = "linear", speed = 850, range = 2750, delay = 0.5, radius = 250, danger = 3, cc = true, collision = false, windwall = true, hitbox = true, fow = true, exception = false, extend = true},
@@ -611,6 +628,9 @@ local SpellDatabase = {
 	["Veigar"] = {
 		["VeigarBalefulStrike"] = {icon = Icons.."VeigarQ"..Png, displayName = "Baleful Strike", missileName = "VeigarBalefulStrikeMis", slot = _Q, type = "linear", speed = 2200, range = 900, delay = 0.25, radius = 70, danger = 2, cc = false, collision = false, windwall = true, hitbox = false, fow = true, exception = false, extend = true},
 		["VeigarDarkMatter"] = {icon = Icons.."VeigarW"..Png, displayName = "Dark Matter", slot = _W, type = "circular", speed = MathHuge, range = 900, delay = 1.25, radius = 200, danger = 1, cc = false, collision = false, windwall = false, hitbox = false, fow = false, exception = false, extend = false},
+	},
+	["Vex"] = {
+		["VexQ"] = {icon = Icons.."VexQ"..Png, displayName = "Vex Q Bolt", missileName = "VexQ", slot = _Q, type = "polygon", speed = 2200, range = 1200, delay = 0.15, radius = 80, danger = 3, cc = true, collision = false, windwall = true, hitbox = false, fow = true, exception = false, extend = true},
 	},
 	["Velkoz"] = {
 		["VelkozQMissileSplit"] = {icon = Icons.."VelkozQ2"..Png, displayName = "Plasma Fission [Split]", missileName = "VelkozQMissileSplit", slot = _Q, type = "linear", speed = 2100, range = 1100, radius = 45, danger = 2, cc = true, collision = true, windwall = true, hitbox = false, fow = true, exception = true, extend = false},
@@ -911,19 +931,19 @@ local Minions = {
 	["HA_OrderMinionSiege"] = true
 }
 
-local function Class()		
-	local cls = {}; cls.__index = cls		
-	return setmetatable(cls, {__call = function (c, ...)		
-		local instance = setmetatable({}, cls)		
-		if cls.__init then cls.__init(instance, ...) end		
-		return instance		
-	end})		
+local function Class()
+	local cls = {}; cls.__index = cls
+	return setmetatable(cls, {__call = function (c, ...)
+		local instance = setmetatable({}, cls)
+		if cls.__init then cls.__init(instance, ...) end
+		return instance
+	end})
 end
 
 --[[
 	┌─┐┌─┐┬┌┐┌┌┬┐
-	├─┘│ │││││ │ 
-	┴  └─┘┴┘└┘ ┴ 
+	├─┘│ │││││ │
+	┴  └─┘┴┘└┘ ┴
 --]]
 
 local function IsPoint(p)
@@ -1274,11 +1294,13 @@ end
 
 --[[
 	┬┌┐┌┬┌┬┐
-	│││││ │ 
-	┴┘└┘┴ ┴ 
+	│││││ │
+	┴┘└┘┴ ┴
 --]]
 
 local JEvade = Class()
+
+JEvade.SafePos = nil
 
 function JEvade:__init()
 	self.DoD, self.Evading, self.InsidePath, self.Loaded = false, false, false, false
@@ -1449,7 +1471,15 @@ function JEvade:__init()
 			self:AddSpell(bp1, p1, sP, eP, data, data.speed, data.range, 0.25, data.radius, "ZiggsQ")
 			self:AddSpell(bp2, p2, sP, eP, data, data.speed, data.range, 0.75, data.radius, "ZiggsQ")
 			self:AddSpell(bp3, p3, sP, eP, data, data.speed, data.range, 1.25, data.radius, "ZiggsQ")
-			return nil, nil end
+			return nil, nil end,
+		["VexQ"] = function(sP, eP, data)
+			local quality = self.JEMenu.Core.CQ:Value()
+			local vec1 = sP:Extended(eP, 500)
+			local p1, p2 = self:RectangleToPolygon(sP, vec1, 160), self:RectangleToPolygon(sP, vec1, 160, self.boundingRadius)
+			local p1Skinnyy, p2Skinny = self:RectangleToPolygon(vec1, eP, 80), self:RectangleToPolygon(vec1, eP, 80, self.boundingRadius)
+			self:AddSpell(p1, p2, sP, eP, data, 600, 500, 0.15, 160, "VexQ")
+			self:AddSpell(p1Skinnyy, p2Skinny, sP, eP, data, 3200, data.range, 0.93, 80, "VexQ")
+			return nil, nil end,
 	}
 	self.SpellTypes = {
 		["linear"] = function(sP, eP, data)
@@ -1484,6 +1514,7 @@ function JEvade:__init()
 			end
 		end, 0.05)
 		self.Loaded = true
+		self.SafePos = 0
 	end, 0.05)
 end
 
@@ -1516,7 +1547,7 @@ end
 --[[
 	┌─┐┌─┐┌─┐┌┬┐┌─┐┌┬┐┬─┐┬ ┬
 	│ ┬├┤ │ ││││├┤  │ ├┬┘└┬┘
-	└─┘└─┘└─┘┴ ┴└─┘ ┴ ┴└─ ┴ 
+	└─┘└─┘└─┘┴ ┴└─┘ ┴ ┴└─ ┴
 --]]
 
 function JEvade:AppendVector(pos1, pos2, dist)
@@ -1913,7 +1944,7 @@ end
 
 --[[
 	┌─┐┬  ┬┌─┐┌┬┐┌─┐
-	├┤ └┐┌┘├─┤ ││├┤ 
+	├┤ └┐┌┘├─┤ ││├┤
 	└─┘ └┘ ┴ ┴─┴┘└─┘
 --]]
 
@@ -2211,7 +2242,7 @@ function OnLoad()
 	DelayAction(function()
 		JEvade:__init()
 		print("JustEvade successfully loaded!")
-		ReleaseEvadeAPI(); --AutoUpdate()
+		ReleaseEvadeAPI(); AutoUpdate();
 	end, MathMax(0.07, 30 - GameTimer()))
 end
 
