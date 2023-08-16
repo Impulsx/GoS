@@ -3539,14 +3539,15 @@ CalcDamage = function(source, target, DamageType, amount, IsAA)
   local dmgmod = DamageReductionMod(source, target, DamageType, ppmod * (amount + flatPassive))
   local dmg = math_max(math_floor(bonusPercent * dmgmod + flatreduction), 0)
   if isARAM() then
-    local dmgD = ARAM[source.charName].dmgDealt
-    if dmgD == nil then dmgD = 1 end
+    local dmgD = 1
     local dmgR = 1
+    if ARAM[source.charName].dmgDealt then
+      local dmgD = ARAM[source.charName].dmgDealt
+    end
     local targetType = target.type
     local targetIsHero = targetType == Obj_AI_Hero;
-    if targetIsHero then
+    if ARAM[target.charName].dmgReceived and targetIsHero then
       dmgR = ARAM[target.charName].dmgReceived
-      if dmgR == nil then dmgR = 1 end
     end
     dmg = dmg * dmgD * dmgR
   end
@@ -3572,14 +3573,15 @@ getrawdmg= function(spell, target, source, stage, level)
       if spells.Stage == stage then
         local dmg = spells.Damage(source, target, level)
         if isARAM() then
-          local dmgD = ARAM[source.charName].dmgDealt
-          if dmgD == nil then dmgD = 1 end
+          local dmgD = 1
           local dmgR = 1
+          if ARAM[source.charName].dmgDealt then
+            local dmgD = ARAM[source.charName].dmgDealt
+          end
           local targetType = target.type
           local targetIsHero = targetType == Obj_AI_Hero;
-          if targetIsHero then
+          if ARAM[target.charName].dmgReceived and targetIsHero then
             dmgR = ARAM[target.charName].dmgReceived
-            if dmgR == nil then dmgR = 1 end
           end
           dmg = dmg * dmgD * dmgR
         end
