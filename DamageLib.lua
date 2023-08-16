@@ -3541,11 +3541,11 @@ CalcDamage = function(source, target, DamageType, amount, IsAA)
   if isARAM() then
     local dmgD = 1
     local dmgR = 1
-    if ARAM[source.charName] then
+    if ARAM[source.charName] or (targetIsHero and ARAM[target.charName]) then
       if ARAM[source.charName].dmgDealt then
         dmgD = ARAM[source.charName].dmgDealt
       end
-      if targetIsHero and ARAM[target.charName].dmgReceived then
+      if ARAM[target.charName].dmgReceived then
         dmgR = ARAM[target.charName].dmgReceived
       end
     end
@@ -3573,14 +3573,14 @@ getrawdmg= function(spell, target, source, stage, level)
       if spells.Stage == stage then
         local dmg = spells.Damage(source, target, level)
         if isARAM() then
+          local targetType = target.type
+          local targetIsHero = targetType == Obj_AI_Hero;
           local dmgD = 1
           local dmgR = 1
-          if ARAM[source.charName] then
+          if ARAM[source.charName] or (targetIsHero and ARAM[target.charName]) then
             if ARAM[source.charName].dmgDealt then
               dmgD = ARAM[source.charName].dmgDealt
             end
-            local targetType = target.type
-            local targetIsHero = targetType == Obj_AI_Hero;
             if targetIsHero and ARAM[target.charName].dmgReceived then
               dmgR = ARAM[target.charName].dmgReceived
             end
