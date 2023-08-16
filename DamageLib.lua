@@ -3419,16 +3419,16 @@ end
 
 -- Global Function --
 GetAADamage = function(source, target, respectPassives)
-  local targetType = target.type
-  local sourceType = source.type
-  local targetIsMinion = targetType == Obj_AI_Minion;
-  local sourceIsHero = sourceType == Obj_AI_Hero;
   if respectPassives == nil then
     respectPassives = true
   end
   if source == nil or target == nil then
     return 0
   end
+  local targetType = target.type
+  local sourceType = source.type
+  local targetIsMinion = targetType == Obj_AI_Minion;
+  local sourceIsHero = sourceType == Obj_AI_Hero;
   if respectPassives and sourceIsHero then
     return GetHeroAADamage(source, target, GetSpecialAADamage(source, target,targetIsMinion))
   end
