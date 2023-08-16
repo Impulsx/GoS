@@ -3542,7 +3542,7 @@ CalcDamage = function(source, target, DamageType, amount, IsAA)
     local dmgD = 1
     local dmgR = 1
     if ARAM[source.charName].dmgDealt then
-      local dmgD = ARAM[source.charName].dmgDealt
+      dmgD = ARAM[source.charName].dmgDealt
     end
     if ARAM[target.charName].dmgReceived and targetIsHero then
       dmgR = ARAM[target.charName].dmgReceived
@@ -3574,7 +3574,7 @@ getrawdmg= function(spell, target, source, stage, level)
           local dmgD = 1
           local dmgR = 1
           if ARAM[source.charName].dmgDealt then
-            local dmgD = ARAM[source.charName].dmgDealt
+            dmgD = ARAM[source.charName].dmgDealt
           end
           local targetType = target.type
           local targetIsHero = targetType == Obj_AI_Hero;
