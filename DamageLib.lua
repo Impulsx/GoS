@@ -3201,7 +3201,8 @@ local PassivePercentMod = function(source, target, DamageType, amount)
   local targetIsHero = target.type == Obj_AI_Hero;
   local sourceIsHero = source.type == Obj_AI_Hero;
   if sourceIsHero then
-    if Buff:HasBuffContainsName(source, "SRX_DragonSoulBuffChemtech") and GetPercentHP(source) < 50 then
+    local chemTech = Buff:HasBuff(source, "SRX_DragonSoulBuffChemtech") --HasBuffContainsName
+    if chemTech and GetPercentHP(source) < 50 then
       amount = amount * (1 + 0.10)
     end
     if targetIsHero then
