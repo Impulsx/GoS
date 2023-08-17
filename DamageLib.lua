@@ -3239,7 +3239,7 @@ local DamageReductionMod = function(source, target, DamageType, amount)
       if buff.name == "SRX_DragonSoulBuffChemtech" and GetPercentHP(target) < 50 then
         amount = amount * (1 + 0.11)
       elseif buff.name == "s5_dragonvengeance" then
-        local count = Buff:GetBuffCount(source, "SRX_DragonBuff")  --HasBuffContainsNameCount
+        local count = Buff:HasBuffContainsNameCount(source, "SRX_DragonBuff")
         amount = amount * (1 - 0.07 * count)
       end
       local charName = target.charName
