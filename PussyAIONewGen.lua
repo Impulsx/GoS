@@ -1,3 +1,5 @@
+require "DamageLib"
+
 if _G.PussyMain then
 	return
 end

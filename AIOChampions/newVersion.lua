@@ -1,7 +1,7 @@
 Data = {
 
     Loader = {
-        Version = 0.22,
+        Version = 0.23,
     },
     Core = {
         Changelog = "Auto Version ChangeLog Here",
