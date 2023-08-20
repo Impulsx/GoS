@@ -251,7 +251,7 @@ Data = {
         },
            Azir = {
             Changelog = "Azir Changelog Here",
-           Version = 0.04,
+           Version = 0.05,
         },
            Janna = {
             Changelog = "Janna Changelog Here",

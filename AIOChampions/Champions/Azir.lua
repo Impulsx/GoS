@@ -363,7 +363,7 @@ local function SoldierDmg(unit)
 	local LvL = myHero.levelData.lvl
 
 	if LvL < 8 then
-		return CalcDamage(myHero, unit, 2, (58 + (2 * LvL)) + 0.6 * myHero.ap,)
+		return CalcDamage(myHero, unit, 2, (58 + (2 * LvL)) + 0.6 * myHero.ap)
 	elseif LvL < 12 then
 		return CalcDamage(myHero, unit, 2, (35 + (5 * LvL)) + 0.6 * myHero.ap)
 	else
