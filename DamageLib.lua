@@ -3311,46 +3311,6 @@ local DamageReductionMod = function(source, target, DamageType, amount)
   return amount
 end
 
---[[ local DamageFlatReductionMod = function(source, target, DamageType, amount)
-  local targetIsHero = target.type == Obj_AI_Hero;
-  local sourceIsHero = source.type == Obj_AI_Hero;
-  if sourceIsHero then
-    --if buff then reduce flat
-  end
-
-  if targetIsHero then
-    for i = 0, target.buffCount do --buff flat reduction table
-
-      if target:GetBuff(i).count > 0 then
-        local buff = target:GetBuff(i)
-
-        if DamageFlatReductionBuffsTable[target.charName] then
-          if buff.name == DamageFlatReductionBuffsTable[target.charName].buff and (not DamageFlatReductionBuffsTable[target.charName].DamageType or DamageFlatReductionBuffsTable[target.charName].DamageType == DamageType) then
-            amount = amount * DamageFlatReductionBuffsTable[target.charName].amount(source, target, DamageType, amount)
-          end
-        end
-      end
-    end
-    for i = 1, #ItemSlots do --item flat reduction table
-      local slot = ItemSlots[i]
-      local item = target:GetItemData(slot)
-
-      if item ~= nil and item.itemID > 0 then
-        if DamageFlatReductionItemsTable[item.itemID] then
-          if item.itemID == DamageFlatReductionItemsTable[item.itemID] and (not DamageReductionItemsTable[item.itemID].DamageType or DamageFlatReductionItemsTable[item.itemID].DamageType == DamageType) then
-            amount = amount * DamageFlatReductionItemsTable[item.itemID].amount(source, target, DamageType, amount)
-          end
-        end
-      end
-    end
-
-    if target.charName == "Kassadin" and DamageType == 2 then
-      amount = amount * (1 - 0.10)
-    end
-  end
-  return amount
-end ]]
-
 local GetHeroAADamage = function(source, target, SpecialAA)
   local args = {
     source = source,
