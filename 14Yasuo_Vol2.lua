@@ -1,4 +1,5 @@
 local Heroes = {"Yasuo"}
+require"DamageLib"
 
 if not table.contains(Heroes, myHero.charName) then return end
 
@@ -20,7 +21,7 @@ local DrawInfo = false
 -- [ AutoUpdate ]
 do
 
-    local Version = 0.10
+    local Version = 0.11
 
     local Files = {
         Lua = {
