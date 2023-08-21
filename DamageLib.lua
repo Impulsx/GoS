@@ -1361,7 +1361,7 @@ local GetMissingHP = function(unit)
   return (unit.maxHealth - unit.health)
 end
 
-local function getSummonerSpell(spellName)
+local getSummonerSpell = function(spellName)
   local summonerSpell = (myHero:GetSpellData(SUMMONER_1).name:lower():find(spellName) and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:lower():find(spellName) and SUMMONER_2) or nil
   return summonerSpell
 end
@@ -3543,10 +3543,12 @@ CalcDamage = function(source, target, DamageType, amount, IsAA)
   if isARAM() then
     local dmgD = 1
     local dmgR = 1
-    if ARAM[source.charName] or targetIsHero and ARAM[target.charName] then
+    if ARAM[source.charName] then
       if ARAM[source.charName].dmgDealt ~= nil then
         dmgD = ARAM[source.charName].dmgDealt
       end
+    end
+    if targetIsHero and ARAM[target.charName] then
       if ARAM[target.charName].dmgReceived ~= nil then
         dmgR = ARAM[target.charName].dmgReceived
       end
@@ -3579,10 +3581,12 @@ getrawdmg= function(spell, target, source, stage, level)
           local targetIsHero = targetType == Obj_AI_Hero;
           local dmgD = 1
           local dmgR = 1
-          if ARAM[source.charName] or targetIsHero and ARAM[target.charName] then
+          if ARAM[source.charName] then
             if ARAM[source.charName].dmgDealt ~= nil then
               dmgD = ARAM[source.charName].dmgDealt
             end
+          end
+          if targetIsHero and ARAM[target.charName] then
             if ARAM[target.charName].dmgReceived ~= nil then
               dmgR = ARAM[target.charName].dmgReceived
             end
@@ -3638,12 +3642,12 @@ getdmg = function(spell, target, source, stage, level)
     local MarkandDashDamage = 10+5*source.levelData.lvl
     return MarkandDashDamage
   end
-  local SmiteUnleashed = getSummonerSpell("ganker")
-  local SmiteDuel = getSummonerSpell("duel")
-  local SmiteAvatar = getSummonerSpell("avatar")
-  if spell == "SMITE" or (spell == Smite or SmiteUnleashed or SmiteAvatar) then
+  local Smite = getSummonerSpell("smite")
+  if spell == "SMITE" or (spell == Smite) then
     local targetIsHero = targetType == Obj_AI_Hero;
-
+    local SmiteUnleashed = getSummonerSpell("ganker")
+    local SmiteDuel = getSummonerSpell("duel")
+    local SmiteAvatar = getSummonerSpell("avatar")
     local SmiteDamage = 600
     local SmiteUnleashedDamage = 900
     local SmitePrimalDamage = 1200
@@ -3748,13 +3752,12 @@ Callback.Add("Load", function()
   end)
 end)
 
-
 _G.DamageLib = {
   ItemID = ItemID,
   MeleeHeros = Hero[1],
   ARAM = ARAM,
   --monsterType = Monstertable,
+  IsMelee = function(unit)
+    return IsMelee(unit) --returns bool
+  end,
 }
-function DamageLib:IsMelee(unit)
-  return IsMelee(unit) --returns bool
-end
