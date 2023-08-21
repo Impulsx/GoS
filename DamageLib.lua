@@ -176,11 +176,7 @@ GetCriticalStrikePercent:
      ~~            \/__/         \/__/         \/__/         \/__/         \/__/         \/__/                 ~~
 --]]
 
-----------------------------------------------------
---|                    AUTO UPDATE               |--
-----------------------------------------------------
-
-do --Update
+--[[ do --Update
 
 	local Version = damageLibVersion
 	local gitHub = "https://raw.githubusercontent.com/Impulsx/GoS/master/"
@@ -219,6 +215,7 @@ do --Update
     end
    AutoUpdate()
 end
+]]
 
 local DAMAGE_TYPE_PHYSICAL = 1
 local DAMAGE_TYPE_MAGICAL = 2
