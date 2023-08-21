@@ -1,6 +1,6 @@
---[[
-Version: 13.16
+local damageLibVersion = 13.161
 
+--[[
 Usage:
 
 require "DamageLib"
@@ -161,7 +161,7 @@ OnDisabling = {
 GetCriticalStrikePercent:
 {toggle crit for spells/champs, further crit scale to add?}
 ]]
-print("DamageLib Loaded")
+
 --[[
       ___           ___           ___           ___           ___           ___           ___                   ___
      /\  \         /\  \         /\__\         /\  \         /\  \         /\  \         /\__\      ___        /\  \
@@ -175,6 +175,50 @@ print("DamageLib Loaded")
     \::/__/        /:/  /        /:/  /        /:/  /       \::/  /       \:\__\        \:\__\   \/__/        \::/__/
      ~~            \/__/         \/__/         \/__/         \/__/         \/__/         \/__/                 ~~
 --]]
+
+----------------------------------------------------
+--|                    AUTO UPDATE               |--
+----------------------------------------------------
+
+do --Update
+
+	local Version = damageLibVersion
+	local gitHub = "https://raw.githubusercontent.com/Impulsx/GoS/master/"
+    local Files = {
+        Lua = {
+            Path = COMMON_PATH,
+            Name = "DamageLib.lua",
+        },
+        Version = {
+            Path = COMMON_PATH,
+            Name = "DamageLib.version",
+        }
+    }
+
+    local function AutoUpdate()
+        local function DownloadFile(path, fileName)
+            DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
+            while not FileExist(path .. fileName) do end
+        end
+
+        local function ReadFile(path, fileName)
+            local file = assert(io.open(path .. fileName, "r"))
+            local result = file:read()
+            file:close()
+            return result
+        end
+
+        DownloadFile(Files.Version.Path, Files.Version.Name)
+        local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
+        if NewVersion > Version then
+            DownloadFile(Files.Lua.Path, Files.Lua.Name)
+            print("*WARNING* New DamageLib Downloaded - Please RELOAD with [ F6 ]")
+		else
+			print("| DamageLib | [ver. "..tostring(damageLibVersion).."] loaded!")
+        end
+    end
+   AutoUpdate()
+end
 
 local DAMAGE_TYPE_PHYSICAL = 1
 local DAMAGE_TYPE_MAGICAL = 2
