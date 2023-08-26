@@ -1,4 +1,4 @@
-local damageLibVersion = 13.161
+local damageLibVersion = 13.162
 
 --[[
 Usage:
@@ -176,7 +176,7 @@ GetCriticalStrikePercent:
      ~~            \/__/         \/__/         \/__/         \/__/         \/__/         \/__/                 ~~
 --]]
 
---[[ do --Update
+do --Update
 
 	local Version = damageLibVersion
 	local gitHub = "https://raw.githubusercontent.com/Impulsx/GoS/master/"
@@ -215,7 +215,7 @@ GetCriticalStrikePercent:
     end
    AutoUpdate()
 end
-]]
+
 
 local DAMAGE_TYPE_PHYSICAL = 1
 local DAMAGE_TYPE_MAGICAL = 2
@@ -241,7 +241,18 @@ local ItemSlots = { ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6, ITEM_7 }
 local ItemKeys = { HK_ITEM_1, HK_ITEM_2, HK_ITEM_3, HK_ITEM_4, HK_ITEM_5, HK_ITEM_6, HK_ITEM_7 }
 
 -- SDK
-local Item, Buff, Target, Orbwalker, Damage, Spell, Object, Attack, Data, Cursor, IsRecalling
+local Item = _G.SDK.ItemManager
+local Buff = _G.SDK.BuffManager
+
+local Target = _G.SDK.TargetSelector
+local Orbwalker = _G.SDK.Orbwalker
+local Damage = _G.SDK.Damage
+local Spell = _G.SDK.Spell
+local Object = _G.SDK.ObjectManager
+local Attack = _G.SDK.Attack
+local Data = _G.SDK.Data
+local Cursor = _G.SDK.Cursor
+local IsRecalling = _G.SDK.IsRecalling
 
 -- Minion Info --
 local MeleeMinionList = {"SRU_ChaosMinionMelee", "SRU_OrderMinionMelee", "HA_ChaosMinionMelee", "HA_OrderMinionMelee", }
@@ -3734,18 +3745,18 @@ getdmg = function(...) return getcacheddmg(...) end
 -- Callbacks --
 Callback.Add("Load", function()
 --
-  Item = _G.SDK.ItemManager
-  Buff = _G.SDK.BuffManager
+Item = _G.SDK.ItemManager
+Buff = _G.SDK.BuffManager
 
-  Target = _G.SDK.TargetSelector
-  Orbwalker = _G.SDK.Orbwalker
-  Damage = _G.SDK.Damage
-  Spell = _G.SDK.Spell
-  Object = _G.SDK.ObjectManager
-  Attack = _G.SDK.Attack
-  Data = _G.SDK.Data
-  Cursor = _G.SDK.Cursor
-  IsRecalling = _G.SDK.IsRecalling
+Target = _G.SDK.TargetSelector
+Orbwalker = _G.SDK.Orbwalker
+Damage = _G.SDK.Damage
+Spell = _G.SDK.Spell
+Object = _G.SDK.ObjectManager
+Attack = _G.SDK.Attack
+Data = _G.SDK.Data
+Cursor = _G.SDK.Cursor
+IsRecalling = _G.SDK.IsRecalling
   Callback.Add("Tick", function()
   --
     table_insert(_G.SDK.OnTick, function()
