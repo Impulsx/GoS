@@ -175,7 +175,7 @@ GetCriticalStrikePercent:
     \::/__/        /:/  /        /:/  /        /:/  /       \::/  /       \:\__\        \:\__\   \/__/        \::/__/
      ~~            \/__/         \/__/         \/__/         \/__/         \/__/         \/__/                 ~~
 --]]
-
+--[[
 do --Update
 
 	local Version = damageLibVersion
@@ -215,7 +215,7 @@ do --Update
     end
    AutoUpdate()
 end
-
+]]
 
 local DAMAGE_TYPE_PHYSICAL = 1
 local DAMAGE_TYPE_MAGICAL = 2
