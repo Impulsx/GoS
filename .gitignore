@@ -7,3 +7,4 @@ luac.out
 # Compiled Dynamic libraries / Shared objects (inc. Windows DLLs)
 *.dll
 .vscode/settings.json
+GoS.code-workspace
