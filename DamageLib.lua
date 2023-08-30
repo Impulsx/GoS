@@ -176,47 +176,6 @@ GetCriticalStrikePercent:
      ~~            \/__/         \/__/         \/__/         \/__/         \/__/         \/__/                 ~~
 --]]
 
-do --Update
-
-	local Version = damageLibVersion
-	local gitHub = "https://raw.githubusercontent.com/Impulsx/GoS/master/"
-    local Files = {
-        Lua = {
-            Path = COMMON_PATH,
-            Name = "DamageLib.lua",
-        },
-        Version = {
-            Path = COMMON_PATH,
-            Name = "DamageLib.version",
-        }
-    }
-
-    local function AutoUpdate()
-        local function DownloadFile(path, fileName)
-            DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
-            while not FileExist(path .. fileName) do end
-        end
-
-        local function ReadFile(path, fileName)
-            local file = assert(io.open(path .. fileName, "r"))
-            local result = file:read()
-            file:close()
-            return result
-        end
-
-        DownloadFile(Files.Version.Path, Files.Version.Name)
-        local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
-        if NewVersion > Version then
-            DownloadFile(Files.Lua.Path, Files.Lua.Name)
-            print("*WARNING* New DamageLib Downloaded - Please RELOAD with [ F6 ]")
-		else
-			print("| DamageLib | [ver. "..tostring(damageLibVersion).."] loaded!")
-        end
-    end
-   AutoUpdate()
-end
-
-
 local DAMAGE_TYPE_PHYSICAL = 1
 local DAMAGE_TYPE_MAGICAL = 2
 local DAMAGE_TYPE_TRUE = 3
@@ -3764,6 +3723,44 @@ IsRecalling = _G.SDK.IsRecalling
     end)
   end)
 end)
+
+do
+	local gitHub = "https://raw.githubusercontent.com/Impulsx/GoS/master/"
+    local Files = {
+        Lua = {
+            Path = COMMON_PATH,
+            Name = "DamageLib.lua",
+        },
+        Version = {
+            Path = COMMON_PATH,
+            Name = "DamageLib.version",
+        }
+    }
+
+    local function update()
+        local function DownloadFile(path, fileName)
+            DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
+            while not FileExist(path .. fileName) do end
+        end
+
+        local function ReadFile(path, fileName)
+            local file = assert(io.open(path .. fileName, "r"))
+            local result = file:read()
+            file:close()
+            return result
+        end
+
+        DownloadFile(Files.Version.Path, Files.Version.Name)
+        local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
+        if NewVersion > damageLibVersion then
+            DownloadFile(Files.Lua.Path, Files.Lua.Name)
+            print("*WARNING* New DamageLib [ver. "..tostring(NewVersion).."] Downloaded - Please RELOAD with [ F6 ]")
+		else
+			print("| DamageLib | [ver. "..tostring(damageLibVersion).."] loaded!")
+        end
+    end
+   update()
+end
 
 _G.DamageLib = {
   ItemID = ItemID,
