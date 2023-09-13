@@ -1,4 +1,4 @@
-local damageLibVersion = 13.170
+local damageLibVersion = 13.18
 
 --[[
 Usage:
@@ -299,6 +299,7 @@ local Hero = {
   Blitzcrank = { true, 0.625 },
   Brand = { false, 0.625 },
   Braum = { true, 0.644 },
+  Briar = { true, 0.664 },
   Caitlyn = { false, 0.681 },
   Camille = { true, 0.644 },
   Cassiopeia = { false, 0.647 },
@@ -2001,6 +2002,15 @@ local SpellDamageTable = {
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 300, 450})[level] + 0.6 * source.ap end},
   },
 
+  ["Briar"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 100, 140, 180, 220})[level] + (0.60 * source.bonusDamage) end},
+    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 70, 80, 90, 100})[level]/100 * source.totalDamage end},
+    {Slot = "W", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({5, 20, 35, 50, 65})[level] + (1.05 * source.totalDamage) + ((0.10 + (0.04 * math_floor(source.bonusDamage / 100))) * GetMissingHP(target)) end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 115, 150, 185, 220})[level] + (source.bonusDamage) + (source.ap) end},
+    {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({220, 330, 440, 550, 660})[level] + (3.40 * source.bonusDamage) + (3.4 * source.ap) end}, -- if into wall
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({150, 325, 500})[level] + (1.10 * source.bonusDamage) + (1.10 * source.ap) end},
+  },
+
   ["Caitlyn"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({50, 90, 130, 170, 210})[level] + (({1.25, 1.45, 1.65, 1.85, 2.05})[level] * source.totalDamage) end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 130, 180, 230, 280})[level] + (0.8 * source.ap) end},
@@ -2288,8 +2298,8 @@ local SpellDamageTable = {
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 95, 120, 145, 170})[level] + 0.8 * source.ap end},
     {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return 20 + 0.1 * source.ap end}, --Added AAatack damage
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 105, 130, 155, 180})[level] + 0.8 * source.ap end},
-    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 100, 120})[level] + 0.4 * source.ap + 0.02 * source.mana end},
-    {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({40, 50, 60})[level] + 0.1 * source.ap + 0.01 * source.mana end},-- bonus dmg per stack
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 90, 110})[level] + 0.60 * source.ap + 0.02 * source.mana end},
+    {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({35, 45, 55})[level] + 0.10 * source.ap + 0.01 * source.mana end},-- bonus dmg per stack
   },
 
   ["Katarina"] = {
@@ -2312,10 +2322,11 @@ local SpellDamageTable = {
   },
 
   ["Kayn"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({75, 95, 115, 135, 155})[level] + 0.65 * source.bonusDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({75, 95, 115, 135, 155})[level] + 0.80 * source.bonusDamage end},
     {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({75, 95, 115, 135, 155})[level] + 0.65 * source.bonusDamage + (0.05 + (0.035 * math_floor(source.bonusDamage/100)) * target.maxHealth) end}, --darkin
     {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({90, 135, 180, 225, 270})[level] + 1.10 * source.bonusDamage end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({150, 250, 350})[level] + 1.75 * source.bonusDamage end},
+    {Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({150, 250, 350})[level] + (1.75 * source.bonusDamage) + (0.15 + (0.10 * math_floor(source.bonusDamage/100)) * target.maxHealth) end}, --darkin
   },
 
   ["Kennen"] = {
