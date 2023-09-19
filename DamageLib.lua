@@ -1,4 +1,4 @@
-local damageLibVersion = 13.18
+local damageLibVersion = 13.181
 
 --[[
 Usage:
@@ -734,6 +734,10 @@ local ARAM = {
     dmgDealt = 0.94,
     dmgReceived = 1.05,
     other = nil,},
+  ["Naafiri"] = {
+    dmgDealt = 1.05,
+    dmgReceived = nil,
+    other = nil,},
   ["Nami"] = {
     dmgDealt = nil,
     dmgReceived = 1.05,
@@ -872,7 +876,7 @@ local ARAM = {
     other = nil,},
   ["Sylas"] = {
     dmgDealt = 1.05,
-    dmgReceived = 0.95,
+    dmgReceived = nil,
     other = nil,},
   ["Syndra"] = {
     dmgDealt = 1.05,
@@ -912,7 +916,7 @@ local ARAM = {
     other = nil,},
   ["Tryndamere"] = {
     dmgDealt = 1.10,
-    dmgReceived = 0.85,
+    dmgReceived = 0.90,
     other = nil,},
   ["Twitch"] = {
     dmgDealt = nil,
@@ -1445,6 +1449,7 @@ local DamageReductionBuffsTable = {
   --MOVED is flatreduction["Amumu"] = {buff = "Tantrum", DamageType = 1, amount = function(target) return (({5, 7, 9, 11, 13})[target:GetSpellData(_E).level] + (0.03 * target.bonusMagicResist) + (0.03 * target.bonusArmor)) end}, --max 50%
   ["Belveth"] = {buff = "BelvethE", amount = function(target) return 1 - 0.7 end},
   ["Braum"] = {buff = "BraumShieldRaise", amount = function(target) return 1 - ({0.3, 0.325, 0.35, 0.375, 0.4})[target:GetSpellData(_E).level] end},
+  ["Briar"] = {buff = "BriarE", amount = function(target) return 1 - 0.40 end}, -- check buff name
   ["Galio"] = {buff = "galiowpassivedefense", DamageType = 2, amount = function(target) return 1 - ({0.25, 0.30, 0.35, 0.40, 0.45})[target:GetSpellData(_W).level] + (0.05 * (target.ap / 100)) + (0.12 * (target.bonusMagicResist / 100)) end},
   ["Galio"] = {buff = "galiowpassivedefense", DamageType = 1, amount = function(target) return 1 - ({0.125, 0.15, 0.175, 0.20, 0.225})[target:GetSpellData(_W).level] + (0.025 * (target.ap / 100)) + (0.6 * (target.bonusMagicResist / 100)) end},
   ["Garen"] = {buff = "GarenW", amount = function(target) return 1 - 0.3 end},
