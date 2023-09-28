@@ -3740,7 +3740,7 @@ Callback.Add("Load", function()
 
   Callback.Add("Tick", function()
   --
-    table_insert(self.OnTick, function()
+    table_insert(_G.SDK.OnTick, function()
     end)
   end)
 end)
