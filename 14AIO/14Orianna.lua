@@ -72,12 +72,12 @@ class "Orianna"
 function Orianna:__init()
 
     self.QData = {
-        Type = _G.SPELLTYPE_LINE,
+        Type = GGPrediction.SPELLTYPE_LINE,
         Delay = 0, Radius = 130,
         Range = 1250, Speed = 1400,
         Collision = true,
         MaxCollision = 0,
-        CollisionTypes = {_G.COLLISION_YASUOWALL}
+        CollisionTypes = {GGPrediction.COLLISION_YASUOWALL}
 
 
     }
@@ -483,7 +483,7 @@ function Orianna:Combo()
         --GetCollision = function(source (Object), castPos (Vector), predPos (Vector), speed (integer), delay (float (seconds)), radius (integer), collisionTypes (table), skipID (integer))
 
         if TY.combo.UseE:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) <= self.EData.Range and myHero.pos:DistanceTo(ballPos.pos) > 10 then
-            local isWall , collisionObjects , collisionCount   = GetCollision(ballPos.pos,  myHero.pos , myHero.pos, self.EData.speed, 0, 40, {_G.COLLISION_ENEMYHERO})
+            local isWall , collisionObjects , collisionCount   = GetCollision(ballPos.pos,  myHero.pos , myHero.pos, self.EData.speed, 0, 40, {GGPrediction.COLLISION_ENEMYHERO})
 
             if collisionCount >= 1 then
                 lastEWTick = GetTickCount()
@@ -582,7 +582,7 @@ function Orianna:AutoR()
         if count >= TY.AutoR.Count:Value() and canR then
             lastRTick = GetTickCount()
             Control.CastSpell(HK_R)
-            print("Auto R")
+            -- print("Auto R")
 
         end
 
@@ -595,7 +595,7 @@ function Orianna:CastQ(target)
     if Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= self.QData.Range then
         local Pred = GGPrediction:SpellPrediction(self.QData)
         Pred:GetPrediction(target, self.OriannaBall.Object) --GetGamsteronPrediction(target, self.QData, ballPos)
-        if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH) or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)
+        if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)
         and  myHero.pos:DistanceTo(Pred.CastPosition)<= 825
         then
             lastQTick = GetTickCount()
@@ -609,7 +609,7 @@ function Orianna:CastQ(target)
                 end, ballPos.pos:DistanceTo(Pred.CastPosition)/1400 )
                 ballPos.pos = Pred.CastPosition
                 ballPos.canW = false
-                print("cast Q")
+                -- print("cast Q")
                 DelayAction(function()
                     self:LoadBallMissile()
                 end, 0.1)

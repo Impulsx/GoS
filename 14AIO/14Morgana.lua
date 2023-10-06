@@ -145,8 +145,8 @@ class "Morgana"
 function Morgana:__init()
     print("Morgana init")
 
-    self.Q = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1175, Speed = 1200, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}}
-    self.W = {Type = _G.SPELLTYPE_CIRCLE, Collision = false, Delay = 0.25, Radius = 150, Range = 900, Speed = math.huge}
+    self.Q = {Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1175, Speed = 1200, Collision = true, MaxCollision = 0, CollisionTypes = {GGPrediction.COLLISION_MINION, GGPrediction.COLLISION_YASUOWALL}}
+    self.W = {Type = GGPrediction.SPELLTYPE_CIRCLE, Collision = false, Delay = 0.25, Radius = 150, Range = 900, Speed = math.huge}
     self.E = {Range = 800}
     self.R = {Range = 625}
 
@@ -308,10 +308,10 @@ function Morgana:CastQ(target, hitc)
     if Ready(_Q) and lastQ +350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GGPrediction:SpellPrediction(self.Q)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if (Pred.Hitchance or Pred.HitChance >= hitc)  or Pred:CanHit(hitc or GGPrediction.HITCHANCE_HIGH)         then
+        if Pred:CanHit(hitc or GGPrediction.HITCHANCE_HIGH)         then
             Control.CastSpell(HK_Q, Pred.CastPosition)
             lastQ = GetTickCount()
-            print("cast Q "..GetTickCount())
+            -- print("cast Q "..GetTickCount())
         end
     end
 end
@@ -328,7 +328,7 @@ function Morgana:Combo()
         if self:GetTargetAround(625) >= self.tyMenu.combo.minComboR:Value() then
             Control.CastSpell(HK_R)
             lastR = GetTickCount()
-            print("cast R")
+            -- print("cast R")
         end
     end
 end
@@ -354,10 +354,10 @@ function Morgana:Auto()
                 if self:IsCC(hero) and orbwalker:CanMove() then
                     local Pred = GGPrediction:SpellPrediction(self.W)
                     Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
-                    if (Pred.Hitchance or Pred.HitChance >= 3)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)                     then
+                    if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)                     then
                         Control.CastSpell(HK_W, Pred.CastPosition)
                         lastW = GetTickCount()
-                        print("cast W")
+                        -- print("cast W")
                     end
                 end
             end
@@ -368,7 +368,7 @@ function Morgana:Auto()
         if self:GetTargetAround(625) >= self.tyMenu.auto.minR:Value() then
             Control.CastSpell(HK_R)
             lastR = GetTickCount()
-            print("cast R")
+            -- print("cast R")
         end
     end
 end
@@ -392,7 +392,7 @@ function Morgana:BlockSpell()
 
                         DelayAction(function()
                                 Control.CastSpell(HK_E, ally.pos)
-                                print("cast E active")
+                                -- print("cast E active")
                         end, (hitTime-self.tyMenu.eSetting.eDelay:Value()))
                         lastE = GetTickCount()
                         return
@@ -409,7 +409,7 @@ function Morgana:BlockSpell()
                     if vct:DistanceTo(ally.pos) < 172 and self.tyMenu.eSetting.useon[ally.charName]:Value() then
                         Control.CastSpell(HK_E,ally.pos)
                         lastE = GetTickCount()
-                        print("cast E dash")
+                        -- print("cast E dash")
                         return
                     end
                 end
@@ -498,7 +498,7 @@ function Morgana:UseItem()
              and myHero.pos:DistanceTo(ally.pos) < 650
              and self:HasMenuBuff(ally) and self:GetEnemyAround(ally) > 0  then
                 Control.CastSpell(HKItem, ally.pos)
-                print('use item')
+                -- print('use item')
                 lastItem = GetTickCount()
                 return
             end

@@ -93,8 +93,7 @@ class "Kaisa"
 
 function Kaisa:__init()
     self.Q = {Range = 630}
-    self.W = {Type = _G.SPELLTYPE_LINE, Delay = 0.4, Radius = 100, Range = 3000, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}}
-
+    self.W = {Type = _G.SPELLTYPE_LINE, Delay = 0.4, Radius = 100, Range = 3000, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {GGPrediction.COLLISION_MINION, GGPrediction.COLLISION_YASUOWALL}}
     self:LoadMenu()
 
     OnAllyHeroLoad(function(hero)
@@ -203,11 +202,10 @@ function Kaisa:Combo()
 
     if self.tyMenu.Combo.UseW:Value() and lastW + 500 < GetTickCount() and Ready(_W) and orbwalker:CanMove() then
         local target = TargetSelector:GetTarget(self.W.Range)
-
         if target then
             local Pred = GGPrediction:SpellPrediction(self.W)
             Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
-            if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH) or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
+            if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
                 Control.CastSpell(HK_W, Pred.CastPosition)
                 lastW = GetTickCount()
             end
@@ -231,7 +229,7 @@ function Kaisa:Harass()
         if target then
             local Pred = GGPrediction:SpellPrediction(self.W)
             Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
-            if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)             then
+            if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
                 Control.CastSpell(HK_W, Pred.CastPosition)
                 lastW = GetTickCount()
             end

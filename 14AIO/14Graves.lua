@@ -127,10 +127,10 @@ end
 class "Graves"
 
 function Graves:__init()
-    self.Q = {Hitchance = GGPrediction.HITCHANCE_HIGH, Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Speed = 3000 , Range = 925, Radius = 20, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}}
+    self.Q = {Hitchance = GGPrediction.HITCHANCE_HIGH, Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Speed = 3000 , Range = 925, Radius = 20, Collision = true, MaxCollision = 0, CollisionTypes = {GGPrediction.COLLISION_YASUOWALL}}
     self.W = {Hitchance = GGPrediction.HITCHANCE_HIGH, Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0.25, Speed = 1500 , Range = 950, Radius = 250}
     self.E = {Range = 425}
-    self.R = {Hitchance = GGPrediction.HITCHANCE_HIGH, Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Speed = 2100 , Range = 1000, Radius = 100, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL}}
+    self.R = {Hitchance = GGPrediction.HITCHANCE_HIGH, Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Speed = 2100 , Range = 1000, Radius = 100, Collision = true, MaxCollision = 0, CollisionTypes = {GGPrediction.COLLISION_YASUOWALL}}
 
     self.AttackTarget = nil
 
@@ -280,8 +280,8 @@ function Graves:CastQ(target)
     if Ready(_Q) and lastQ + 550 < GetTickCount() and orbwalker:CanMove() and not orbwalker:CanAttack() then
         local Pred = GGPrediction:SpellPrediction(self.Q)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if (Pred.Hitchance or Pred.HitChance >= self.Q.Hitchance)  or Pred:CanHit(self.Q.Hitchance or GGPrediction.HITCHANCE_HIGH) then
-            lineQ = self:CreateQPoly(Pred.CastPosition)
+        if Pred:CanHit(self.Q.Hitchance or GGPrediction.HITCHANCE_HIGH) then
+            local lineQ = self:CreateQPoly(Pred.CastPosition)
             for i, lineSegment in ipairs(lineQ:__getLineSegments()) do
                 if MapPosition:intersectsWall(lineSegment) then
                     return
@@ -300,7 +300,7 @@ function Graves:Combo()
         if self.tyMenu.Combo.W:Value() and orbwalker:CanMove() then
         local Pred = GGPrediction:SpellPrediction(self.W)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
-                if (Pred.Hitchance or Pred.HitChance >= self.W.Hitchance)  or Pred:CanHit(self.W.Hitchance or GGPrediction.HITCHANCE_HIGH) then
+                if Pred:CanHit(self.W.Hitchance or GGPrediction.HITCHANCE_HIGH) then
                 Control.CastSpell(HK_W, Pred.CastPosition)
                 lastW = GetTickCount()
             end
@@ -335,7 +335,7 @@ function Graves:Auto()
             GetDistanceSquared(myHero.pos, target.pos) < self.R.Range ^2 then
             local Pred = GGPrediction:SpellPrediction(self.R)
             Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.R, myHero)
-                if (Pred.Hitchance or Pred.HitChance >= self.R.Hitchance)  or Pred:CanHit(self.R.Hitchance or GGPrediction.HITCHANCE_HIGH) then
+                if Pred:CanHit(self.R.Hitchance or GGPrediction.HITCHANCE_HIGH) then
                     Control.CastSpell(HK_R, Pred.CastPosition)
                     lastR = GetTickCount()
                 end

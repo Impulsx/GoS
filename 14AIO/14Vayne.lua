@@ -127,7 +127,7 @@ class "Vayne"
 
 function Vayne:__init()
     self.Q = {Range = 300, Speed = 830}
-    self.E = {Hitchance = _G.HITCHANCE_HIGH, Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 1, Range = 650, Speed = 2200, Collision = true, MaxCollision = 0, CollisionTypes = { _G.COLLISION_YASUOWALL}}
+    self.E = {Hitchance = GGPrediction.HITCHANCE_HIGH, Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 1, Range = 650, Speed = 2200, Collision = true, MaxCollision = 0, CollisionTypes = { GGPrediction.COLLISION_YASUOWALL}}
 
     self.AttackTarget = nil
 
@@ -152,7 +152,7 @@ function Vayne:__init()
             if args.Process then
                 if lastAttack + self.tyMenu.Human.AA:Value() > GetTickCount() then
                     args.Process = false
-                    print("block aa")
+                    -- print("block aa")
                 else
                     args.Process = true
                     self.AttackTarget = args.Target
@@ -192,10 +192,10 @@ function Vayne:LoadMenu()
         self.tyMenu.Setting:MenuElement({id = "Erange", name = "E range", value = 475, min = 1, max = 475, step = 1})
         self.tyMenu.Setting:MenuElement({name ="E HitChance" , drop = {"High", "Normal"}, callback = function(value)
             if value == 1 then
-                self.E.Hitchance = _G.HITCHANCE_HIGH
+                self.E.Hitchance = GGPrediction.HITCHANCE_HIGH
             end
             if value == 2 then
-                self.E.Hitchance = _G.HITCHANCE_NORMAL
+                self.E.Hitchance = GGPrediction.HITCHANCE_NORMAL
             end
         end})
         self.tyMenu.Setting:MenuElement({id = "antiMelee", name = "[E] Anti-Melee", value = true})
@@ -263,7 +263,7 @@ function Vayne:CastE(target)
     if IsValid(target) and Ready(_E) and lastE + 500 < GetTickCount() then
         local Pred = GGPrediction:SpellPrediction(self.E)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.E, myHero)
-        if (Pred.Hitchance or Pred.HitChance  >= self.E.Hitchance)  or Pred:CanHit(self.E.Hitchance or GGPrediction.HITCHANCE_HIGH)         then
+        if Pred:CanHit(self.E.Hitchance or GGPrediction.HITCHANCE_HIGH)         then
             local extendPos = Pred.CastPosition:Extended(myHero.pos,-self.tyMenu.Setting.Erange:Value())
             local lineE = LineSegment(Pred.CastPosition,extendPos)
 
@@ -286,7 +286,7 @@ function Vayne:AntiGap()
         and IsValid(enemy)
         then
             Control.CastSpell(HK_E,enemy)
-            print("anti Melee E")
+            -- print("anti Melee E")
             lastE = GetTickCount()
         end
         if self.tyMenu.Setting.AntiGap[enemy.charName] and self.tyMenu.Setting.AntiGap[enemy.charName]:Value() then
@@ -297,13 +297,13 @@ function Vayne:AntiGap()
                 then
                     if Ready(_E) and lastE + 500 < GetTickCount() and self.tyMenu.Setting.antiE:Value() then
                         Control.CastSpell(HK_E,enemy)
-                        print("anti E")
+                        -- print("anti E")
                         lastE = GetTickCount()
                     end
                     if Ready(_Q) and lastQ + 300 < GetTickCount() and self.tyMenu.Setting.antiQ:Value() then
                         local pos = myHero.pos:Extended(enemy.pos, -self.Q.Range)
                         Control.CastSpell(HK_Q,pos)
-                        print("anti Q")
+                        -- print("anti Q")
                         lastQ = GetTickCount()
                     end
                 end

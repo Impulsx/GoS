@@ -79,8 +79,8 @@ end
 class "Ashe"
 
 function Ashe:__init()
-    self.W = {Hitchance = _G.HITCHANCE_NORMAL,Type = _G.SPELLTYPE_CONE, Delay = 0.25, Radius = 20, Range = 1200, Speed = 1500, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}}
-    self.R = {Hitchance = _G.HITCHANCE_HIGH,Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 130, Range = math.huge, Speed = 1600, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_ENEMYHERO, _G.COLLISION_YASUOWALL}}
+    self.W = {Hitchance = GGPrediction.HITCHANCE_NORMAL,Type = GGPrediction.SPELLTYPE_CONE, Delay = 0.25, Radius = 20, Range = 1200, Speed = 1500, Collision = true, MaxCollision = 0, CollisionTypes = {GGPrediction.COLLISION_MINION, GGPrediction.COLLISION_YASUOWALL}}
+    self.R = {Hitchance = GGPrediction.HITCHANCE_HIGH,Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 130, Range = math.huge, Speed = 1600, Collision = true, MaxCollision = 0, CollisionTypes = {GGPrediction.COLLISION_ENEMYHERO, GGPrediction.COLLISION_YASUOWALL}}
 
     self:LoadMenu()
 
@@ -230,7 +230,7 @@ function Ashe:AntiGap()
                     then
                     local Pred = GGPrediction:SpellPrediction(self.RData)
                     Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.RData, myHero)
-                        if (Pred.Hitchance or Pred.HitChance >= self.R.Hitchance) or Pred:CanHit(self.R.Hitchance or GGPrediction.HITCHANCE_HIGH) then
+                        if Pred:CanHit(self.R.Hitchance or GGPrediction.HITCHANCE_HIGH) then
                             Control.CastSpell(HK_R,Pred.CastPosition)
                             lastR = GetTickCount()
                         end
@@ -245,7 +245,7 @@ function Ashe:CastR(target)
     if IsValid(target) and Ready(_R) and lastR + 500 < GetTickCount()  then
         local Pred = GGPrediction:SpellPrediction(self.RData)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.RData, myHero)
-        if (Pred.Hitchance or Pred.HitChance >= self.R.Hitchance) or Pred:CanHit(self.R.Hitchance or GGPrediction.HITCHANCE_HIGH) then
+        if Pred:CanHit(self.R.Hitchance or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_R,Pred.CastPosition)
             lastR = GetTickCount()
         end
@@ -257,7 +257,7 @@ function Ashe:CastW(target)
     and orbwalker:CanMove() and GetDistanceSquared(myHero.pos,target.pos) < self.tyMenu.Setting.Wrange:Value()^2 then
         local Pred = GGPrediction:SpellPrediction(self.W)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
-        if (Pred.Hitchance or Pred.HitChance  >= self.W.Hitchance) or Pred:CanHit(self.W.Hitchance or GGPrediction.HITCHANCE_HIGH) then
+        if Pred:CanHit(self.W.Hitchance or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_W,Pred.CastPosition)
             lastW = GetTickCount()
         end

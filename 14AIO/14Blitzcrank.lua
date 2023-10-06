@@ -70,7 +70,7 @@ end
 class "Blitzcrank"
 
 function Blitzcrank:__init()
-    self.Q = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1100, Speed = 1800, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}}
+    self.Q = {Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1100, Speed = 1800, Collision = true, MaxCollision = 0, CollisionTypes = {GGPrediction.COLLISION_MINION, GGPrediction.COLLISION_YASUOWALL}}
     self.R = {range = 600}
 
     self:LoadMenu()
@@ -196,7 +196,7 @@ function Blitzcrank:CastQ(target)
     if Ready(_Q) and lastQ +350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GGPrediction:SpellPrediction(self.Q)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
+        if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_Q, Pred.CastPosition)
             lastQ = GetTickCount()
         end

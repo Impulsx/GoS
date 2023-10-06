@@ -78,7 +78,7 @@ class "Ryze"
 
 
 function Ryze:__init()
-    self.Q = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 1000, Speed = 1700, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}}
+    self.Q = {Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 55, Range = 1000, Speed = 1700, Collision = true, MaxCollision = 0, CollisionTypes = {GGPrediction.COLLISION_MINION, GGPrediction.COLLISION_YASUOWALL}}
     self.W = {Range = 615}
     self.E = {Range = 615}
 
@@ -222,7 +222,7 @@ function Ryze:CastQ(target)
     if Ready(_Q) and lastQ +260 < GetTickCount() then
         local Pred = GGPrediction:SpellPrediction(self.Q)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if Pred.Hitchance or( Pred.HitChance >= _G.HITCHANCE_NORMAL)  or Pred:CanHit(2 or GGPrediction.HITCHANCE_NORMAL)         then
+        if Pred:CanHit(2 or GGPrediction.HITCHANCE_NORMAL)         then
             if HasBuff("RyzeW",target) then
                 local casted = Control.CastSpell(HK_Q, target)
                 if casted then

@@ -72,7 +72,7 @@ end
 class "Nautilus"
 
 function Nautilus:__init()
-    self.QData = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 1000, Speed = 2000, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}}
+    self.QData = {Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 1000, Speed = 2000, Collision = true, MaxCollision = 0, CollisionTypes = {GGPrediction.COLLISION_MINION, GGPrediction.COLLISION_YASUOWALL}}
 
     self:LoadMenu()
 
@@ -93,7 +93,7 @@ function Nautilus:__init()
             if args.Process then
                 if lastAttack + self.tyMenu.Human.AA:Value() > GetTickCount() then
                     args.Process = false
-                    print("block aa")
+                    -- print("block aa")
                 else
                     args.Process = true
                     self.AttackTarget = args.Target
@@ -197,7 +197,7 @@ function Nautilus:CastQ(target)
         local Pred = GGPrediction:SpellPrediction(self.QData)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.QData, myHero)
 
-        if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)         then
+        if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
             lineQ = self:CreateQPoly(Pred.CastPosition)
             for i, lineSegment in ipairs(lineQ:__getLineSegments()) do
                 if MapPosition:intersectsWall(lineSegment) then
@@ -205,7 +205,7 @@ function Nautilus:CastQ(target)
                 end
             end
             Control.CastSpell(HK_Q, Pred.CastPosition)
-            print("cast Q")
+            -- print("cast Q")
             lastQ = GetTickCount()
         end
     end

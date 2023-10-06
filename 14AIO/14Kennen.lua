@@ -82,14 +82,14 @@ class "Kennen"
 
 function Kennen:__init()
     self.Q = {
-        Type = _G.SPELLTYPE_LINE,
+        Type = GGPrediction.SPELLTYPE_LINE,
         Delay = 0.175,
         Radius = 50,
         Range = 950,
         Speed = 1700,
         Collision = true,
         MaxCollision = 0,
-        CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}}
+        CollisionTypes = {GGPrediction.COLLISION_MINION, GGPrediction.COLLISION_YASUOWALL}}
     self.W = {Range = 770}
     self.R = {Range = 550}
 
@@ -295,7 +295,7 @@ function Kennen:Auto()
                 if hasbuff and count == 2 then
                     local Pred = GGPrediction:SpellPrediction(self.Q)
                     Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-                    if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_NORMAL)  or Pred:CanHit(2 or GGPrediction.HITCHANCE_NORMAL)                     then
+                    if Pred:CanHit(2 or GGPrediction.HITCHANCE_NORMAL) then
                         local casted = Control.CastSpell(HK_Q, Pred.CastPosition)
                         if casted then
                             lastQ = GetTickCount()
@@ -340,7 +340,7 @@ function Kennen:CastQ(target)
     if Ready(_Q) and lastQ +260 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GGPrediction:SpellPrediction(self.Q)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_NORMAL)  or Pred:CanHit(2 or GGPrediction.HITCHANCE_NORMAL)         then
+        if Pred:CanHit(2 or GGPrediction.HITCHANCE_NORMAL)         then
             local casted = Control.CastSpell(HK_Q, Pred.CastPosition)
             if casted then
                 lastQ = GetTickCount()

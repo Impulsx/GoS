@@ -84,9 +84,9 @@ end
 class "Thresh"
 
 function Thresh:__init()
-    self.QData = {Type = _G.SPELLTYPE_LINE, Delay = 0.5, Radius = 70, Range = 1000, Speed = 1900, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL} }
+    self.QData = {Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.5, Radius = 70, Range = 1000, Speed = 1900, Collision = true, MaxCollision = 0, CollisionTypes = {GGPrediction.COLLISION_MINION, GGPrediction.COLLISION_YASUOWALL} }
     --Q range 1100 cant hit
-    self.EData = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 150, Range = 450, Speed = 1100, Collision = false}
+    self.EData = {Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 150, Range = 450, Speed = 1100, Collision = false}
     self:LoadMenu()
 
     OnAllyHeroLoad(function(hero) TableInsert(Allys, hero); end)
@@ -251,7 +251,7 @@ function Thresh:Combo()
         if self.tyMenu.Q.Combo:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 1000 and lastQ + 1000 < GetTickCount() and not hasBuff("ThreshQ",target) then
             local Pred = GGPrediction:SpellPrediction(self.QData)
             Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.QData, myHero)
-            if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)             then
+            if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)             then
                 Control.CastSpell(HK_Q, Pred.CastPosition)
                 lastQ = GetTickCount()
             end
@@ -305,7 +305,7 @@ function Thresh:Harass()
         if self.tyMenu.Q.Harass:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) <= 1000 and lastQ + 1000 < GetTickCount() and not hasBuff("ThreshQ",target) then
             local Pred = GGPrediction:SpellPrediction(self.QData)
             Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.QData, myHero)
-            if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)             then
+            if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)             then
                 Control.CastSpell(HK_Q, Pred.CastPosition)
                 lastQ = GetTickCount()
 

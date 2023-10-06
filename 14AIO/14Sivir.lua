@@ -142,7 +142,7 @@ class "Sivir"
 function Sivir:__init()
     print("Sivir init")
 
-    self.Q = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 1250, Speed = 1350, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL} }
+    self.Q = {Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 90, Range = 1250, Speed = 1350, Collision = true, MaxCollision = 0, CollisionTypes = {GGPrediction.COLLISION_YASUOWALL} }
 
     self:LoadMenu()
 
@@ -290,7 +290,7 @@ function Sivir:CastQ(target)
     if Ready(_Q) and lastQ +350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GGPrediction:SpellPrediction(self.Q)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if (Pred.Hitchance or Pred.HitChance) >= 3 or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
+        if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_Q, Pred.CastPosition)
             lastQ = GetTickCount()
         end
@@ -302,7 +302,7 @@ function Sivir:AutoQ()
         for k , hero in pairs(Enemys) do
             local Pred = GGPrediction:SpellPrediction(self.Q)
             Pred:GetPrediction(hero, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-            if (Pred.Hitchance or Pred.HitChance) == 4 or Pred:CanHit(4 or GGPrediction.HITCHANCE_IMMOBILE) then
+            if Pred:CanHit(4 or GGPrediction.HITCHANCE_IMMOBILE) then
                 Control.CastSpell(HK_Q, Pred.CastPosition)
                 lastQ = GetTickCount()
             end

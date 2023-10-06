@@ -72,8 +72,8 @@ class "Khazix"
 function Khazix:__init()
 
     self.Q = {Range = 325}
-    self.W = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1000, Speed = 1650, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}}
-    self.E = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0, Radius = 120, Range = 700, Speed = 1000, Collision = false}
+    self.W = {Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 70, Range = 1000, Speed = 1650, Collision = true, MaxCollision = 0, CollisionTypes = {GGPrediction.COLLISION_MINION, GGPrediction.COLLISION_YASUOWALL}}
+    self.E = {Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 0, Radius = 120, Range = 700, Speed = 1000, Collision = false}
 
     self:LoadMenu()
 
@@ -198,7 +198,7 @@ function Khazix:UpdateSpell()
     end
 
     if myHero:GetSpellData(1).name == "KhazixWLong" then
-        self.W.Type = _G.SPELLTYPE_CONE
+        self.W.Type = GGPrediction.SPELLTYPE_CONE
     end
 
     if myHero:GetSpellData(2).name == "KhazixELong" then
@@ -268,7 +268,7 @@ function Khazix:CastW(target)
     if not Ready(_W) or lastW + 350 > GetTickCount() then return end
     local Pred = GGPrediction:SpellPrediction(self.W)
     Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.W, myHero)
-    if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)
+    if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)
     and orbwalker:CanMove() then
             Control.CastSpell(HK_W, Pred.CastPosition)
             lastW = GetTickCount()
@@ -282,7 +282,7 @@ function Khazix:CastE(target)
     if not Ready(_E) or lastE + 350 >GetTickCount() then return end
     local Pred = GGPrediction:SpellPrediction(self.E)
     Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.E, myHero)
-    if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)
+    if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)
     and orbwalker:CanMove() then
         Control.CastSpell(HK_E, Pred.CastPosition)
         lastE = GetTickCount()

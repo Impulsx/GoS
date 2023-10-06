@@ -75,10 +75,10 @@ end
 class "Lulu"
 
 function Lulu:__init()
-    print("Lulu init")
+    -- print("Lulu init")
 
 
-    self.Q = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 880, Speed = 1400, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_YASUOWALL} }
+    self.Q = {Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 880, Speed = 1400, Collision = true, MaxCollision = 0, CollisionTypes = {GGPrediction.COLLISION_YASUOWALL} }
     self.W = {Range = 650}
     self.E = {Range = 650}
     self.R = {Range = 900}
@@ -389,7 +389,7 @@ function Lulu:CastQ(target, hitchance)
     if Ready(_Q) and lastQ +350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GGPrediction:SpellPrediction(self.Q)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if (Pred.Hitchance or Pred.HitChance >= hitchance) or Pred:CanHit(hitchance or GGPrediction.HITCHANCE_HIGH) then
+        if Pred:CanHit(hitchance or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_Q, Pred.CastPosition)
             lastQ = GetTickCount()
         end
@@ -404,7 +404,7 @@ function Lulu:AntiDash()
         if hero.isEnemy and IsValid(hero) and myHero.pos:DistanceTo(hero.pos) < self.W.Range then
             if  self.tyMenu.autoW.antiDash[hero.charName] and self.tyMenu.autoW.antiDash[hero.charName]:Value() then
                 if hero.pathing.isDashing and hero.pathing.dashSpeed>0 then
-                    print('dash')
+                    -- print('dash')
                     Control.CastSpell(HK_W, hero.pos)
                     lastW = GetTickCount()
                     return
@@ -421,13 +421,13 @@ function Lulu:Interrupt()
             if enemy.activeSpell.valid  and self.tyMenu.autoW.interrupt[enemy.activeSpell.name] and self.tyMenu.autoW.interrupt[enemy.activeSpell.name]:Value() then
                 Control.CastSpell(HK_W, enemy.pos)
                 lastW = GetTickCount()
-                print("active spell interrupt")
+                -- print("active spell interrupt")
                 return
             end
 
             if self.tyMenu.autoW.interrupt[enemy.charName] and self.tyMenu.autoW.interrupt[enemy.charName]:Value() and self.ChannelingBuffs[enemy.charName]  then
                 Control.CastSpell(HK_W, enemy.pos)
-                print("ChannelingBuffs interrupt")
+                -- print("ChannelingBuffs interrupt")
 
                 lastW = GetTickCount()
                 return
@@ -449,7 +449,7 @@ function Lulu:AutoE()
             if ally.health / ally.maxHealth * 100 < self.tyMenu.autoE.Ehp:Value() then
                 if IsValid(ally) and myHero.pos:DistanceTo(ally.pos) < self.E.Range and self:GetEnemyAround(ally) > 0 then
                     Control.CastSpell(HK_E, ally.pos)
-                    print("cast E "..ally.charName)
+                    -- print("cast E "..ally.charName)
                     lastE = GetTickCount()
                     return
                 end
@@ -467,7 +467,7 @@ function Lulu:AutoR()
             if IsValid(ally) and myHero.pos:DistanceTo(ally.pos) < self.R.Range then
                 if ally.health / ally.maxHealth * 100 < self.tyMenu.autoR.Rhp:Value() and self:GetEnemyAround(ally) > 0 then
                     Control.CastSpell(HK_R, ally.pos)
-                    print("low Health cast R "..ally.charName)
+                    -- print("low Health cast R "..ally.charName)
                     lastR = GetTickCount()
                     return
                 end
@@ -478,7 +478,7 @@ function Lulu:AutoR()
                         count = count + 1
                         if count >= self.tyMenu.autoR.Rcount:Value() then
                             Control.CastSpell(HK_R, ally.pos)
-                            print("Knock Up cast R "..ally.charName)
+                            -- print("Knock Up cast R "..ally.charName)
                             lastR = GetTickCount()
                             return
                         end
@@ -506,7 +506,7 @@ function Lulu:UseItem()
              and myHero.pos:DistanceTo(ally.pos) < 650
              and self:HasMenuBuff(ally) and self:GetEnemyAround(ally) > 0  then
                 Control.CastSpell(HKItem, ally.pos)
-                print('use item')
+                -- print('use item')
                 lastItem = GetTickCount()
                 return
             end
@@ -577,7 +577,7 @@ function Lulu:IG()
             if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and myHero:GetSpellData(SUMMONER_1).currentCd == 0 then
                 if IGdamage >= enemy.health then
                     Control.CastSpell(HK_SUMMONER_1, enemy.pos)
-                    print("IG")
+                    -- print("IG")
                     lastIG = GetTickCount()
                     return
                 end

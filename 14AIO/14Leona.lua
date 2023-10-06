@@ -90,8 +90,8 @@ end
 class "Leona"
 
 function Leona:__init()
-    self.EData = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 80, Range = 875, Speed = 1200, Collision = false}
-    self.RData = {Type = _G.SPELLTYPE_CIRCLE, Delay = 1, Radius = 250, Range = 1200, Speed = math.huge, Collision = false}
+    self.EData = {Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 80, Range = 875, Speed = 1200, Collision = false}
+    self.RData = {Type = GGPrediction.SPELLTYPE_CIRCLE, Delay = 1, Radius = 250, Range = 1200, Speed = math.huge, Collision = false}
 
     self:LoadMenu()
 
@@ -245,17 +245,17 @@ function Leona:Combo()
         if self.tyMenu.Combo.UseE:Value() and Ready(_E) and lastE +550 < GetTickCount() and myHero.pos:DistanceTo(target.pos) <= 875 then
             local Pred = GGPrediction:SpellPrediction(self.EData)
             Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.EData, myHero)
-            if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)             then
+            if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
                 ORB:SetMovement(false)
                 Control.CastSpell(HK_E, Pred.CastPosition)
-                print("cast E combo")
+                -- print("cast E combo")
                 lastE = GetTickCount()
             end
         end
 
         if self.tyMenu.Combo.UseW:Value() and Ready(_W) and lastW +750 < GetTickCount() and myHero.pos:DistanceTo(target.pos) <= 325 then
             Control.CastSpell(HK_W)
-            print("cast W combo")
+            -- print("cast W combo")
             lastW = GetTickCount()
         end
 
@@ -263,12 +263,12 @@ function Leona:Combo()
             if myHero.pos:DistanceTo(target.pos) < 850 and not Ready(_E) and not Ready(_Q) then
                 local Pred = GGPrediction:SpellPrediction(self.RData)
                 Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.RData, myHero)
-                if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)                         then
+                if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
                     if EnemiesNear(Pred.CastPosition) >= self.tyMenu.Combo.MinR:Value() then
                         NextTick = GetTickCount() + 250
                         ORB:SetMovement(false)
                         Control.CastSpell(HK_R, Pred.CastPosition)
-                        print("cast R combo")
+                        -- print("cast R combo")
                         lastR = GetTickCount()
                     end
                 end
@@ -276,12 +276,12 @@ function Leona:Combo()
             if myHero.pos:DistanceTo(target.pos) > 800 and Ready(_E) and Ready(_Q) then
                 local Pred = GGPrediction:SpellPrediction(self.RData)
                 Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.RData, myHero)
-                if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)                 then
+                if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
                     if EnemiesNear(Pred.CastPosition) >= self.tyMenu.Combo.MinR:Value() then
                         NextTick = GetTickCount() + 250
                         ORB:SetMovement(false)
                         Control.CastSpell(HK_R, Pred.CastPosition)
-                        print("cast R combo")
+                        -- print("cast R combo")
                         lastR = GetTickCount()
                     end
                 end
@@ -328,11 +328,11 @@ function Leona:Harass()
         if self.tyMenu.Harass.UseE:Value() and Ready(_E) and lastE +550 < GetTickCount() and myHero.pos:DistanceTo(target.pos) <= 875 then
             local Pred = GGPrediction:SpellPrediction(self.EData)
             Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.EData, myHero)
-            if (Pred.Hitchance or Pred.HitChance >= _G.HITCHANCE_HIGH)  or Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)             then
+            if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH)             then
                 NextTick = GetTickCount() + 250
                 ORB:SetMovement(false)
                 Control.CastSpell(HK_E, Pred.CastPosition)
-                print("cast E harass")
+                -- print("cast E harass")
                 lastE = GetTickCount()
             end
         end
@@ -340,7 +340,7 @@ function Leona:Harass()
 
         if self.tyMenu.Harass.UseW:Value() and lastW +550 < GetTickCount() and Ready(_W) and myHero.pos:DistanceTo(target.pos) <= 325 then
             Control.CastSpell(HK_W)
-            print("cast W harass")
+            -- print("cast W harass")
             lastW = GetTickCount()
         end
 
@@ -363,7 +363,7 @@ function Leona:Auto()
         if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and myHero:GetSpellData(SUMMONER_1).currentCd == 0 then
             if IGdamage >= target.health then
                 Control.CastSpell(HK_SUMMONER_1, target.pos)
-                print("cast ig")
+                -- print("cast ig")
 
                 lastIG = GetTickCount()
             end
@@ -374,7 +374,7 @@ function Leona:Auto()
             if IGdamage >= target.health then
                 Control.CastSpell(HK_SUMMONER_2, target.pos)
                 lastIG = GetTickCount()
-                print("cast ig")
+                -- print("cast ig")
 
             end
         end
@@ -387,7 +387,7 @@ function Leona:Auto()
             if ESpells[hero.activeSpell.name] ~= nil then
                 if self.tyMenu.Auto.AotoEList[hero.charName]:Value() and lastE +350 < GetTickCount() and hero.activeSpell.target == myHero.handle then
                     Control.CastSpell(HK_E, hero.pos)
-                    print("cast E")
+                    -- print("cast E")
                     lastE = GetTickCount()
                 end
             end
@@ -402,14 +402,14 @@ function Leona:CastQ()
         local EnemyHeroes = OB:GetEnemyHeroes(275, false)
         if EnemyHeroes ~= nil  and myHero.attackData.state == STATE_WINDDOWN then
             Control.CastSpell(HK_Q)
-            print("cast Q")
+            -- print("cast Q")
             ORB:__OnAutoAttackReset()
             lastQ = GetTickCount()
         end
 
         if myHero.pathing.isDashing then
             Control.CastSpell(HK_Q)
-            print("cast Q dash")
+            -- print("cast Q dash")
             lastQ = GetTickCount()
 
         end

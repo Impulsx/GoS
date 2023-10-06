@@ -86,7 +86,7 @@ end
 class "Kayle"
 
 function Kayle:__init()
-    self.Q = {Hitchance = GGPrediction.HITCHANCE_HIGH, Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 65, Range = 830, Speed = 500, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}}
+    self.Q = {Hitchance = GGPrediction.HITCHANCE_HIGH, Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 65, Range = 830, Speed = 500, Collision = true, MaxCollision = 0, CollisionTypes = {GGPrediction.COLLISION_MINION, GGPrediction.COLLISION_YASUOWALL}}
     self.W = {Range = 900}
     self.E = {Range = 625}
     self.R = {Range = 900}
@@ -238,19 +238,19 @@ end
 
 function Kayle:CastQ(target)
     if lastQ + 300 < GetTickCount() and Ready(_Q) and orbwalker:CanMove() then
-        self.Q.CollisionTypes = {_G.COLLISION_YASUOWALL}
+        self.Q.CollisionTypes = {GGPrediction.COLLISION_YASUOWALL}
         local Pred = GGPrediction:SpellPrediction(self.Q)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if (Pred.Hitchance or Pred.HitChance  >= self.Q.Hitchance)  or Pred:CanHit(self.Q.Hitchance or GGPrediction.HITCHANCE_HIGH)         then
-            self.Q.CollisionTypes = {_G.COLLISION_MINION, _G.COLLISION_YASUOWALL}
+        if Pred:CanHit(self.Q.Hitchance or GGPrediction.HITCHANCE_HIGH) then
+            self.Q.CollisionTypes = {GGPrediction.COLLISION_MINION, GGPrediction.COLLISION_YASUOWALL}
             local Pred2 = GGPrediction:SpellPrediction(self.Q)
             Pred2:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
 
-            if Pred2.Hitchance >= self.Q.Hitchance or Pred2:CanHit(self.Q.Hitchance or GGPrediction.HITCHANCE_HIGH)then
+            if Pred2.HitChance >= self.Q.Hitchance or Pred2:CanHit(self.Q.Hitchance or GGPrediction.HITCHANCE_HIGH)then
                 Control.CastSpell(HK_Q, Pred2.CastPosition)
                 lastQ = GetTickCount()
             else
-                if Pred2.Hitchance == 1 and self.tyMenu.HitChance.Qminion:Value() then
+                if Pred2.HitChance == 1 and self.tyMenu.HitChance.Qminion:Value() then
                     if #Pred2.CollisionObjects > 0 then
                         table.sort(Pred2.CollisionObjects, DistanceCompare)
                         if GetDistanceSquared(Pred2.CastPosition, Pred2.CollisionObjects[1].pos) < 400*400 then
