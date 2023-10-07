@@ -1,4 +1,4 @@
-local version = 0.27
+local version = 0.28
 
 local champName = myHero.charName
 
@@ -101,8 +101,8 @@ end
 local function DownloadALLChampScripts()
     for k,v in pairs(SupportChampion) do
         --if not FileExists(AIO_CHAMPS..k..dotlua) then
-            AIOScriptDownload(AIO_CHAMPS, "14"..k..dotlua)
-            AIOScriptDownload(AIO_CHAMPS, "14"..k..dotversion)
+        AIOScriptDownload(AIO_CHAMPS, "14"..k..dotlua)
+        AIOScriptDownload(AIO_CHAMPS, "14"..k..dotversion)
         --end
     end
     print("| 14AIO | Downloading All Champion Scripts - Please RELOAD with [ F6 ]")
@@ -113,8 +113,9 @@ local function CheckSupportedChamp()
     if (result == true) then
         return result
     else
-        local tryDownload = AIOScriptDownload(AIO_CHAMPS, champFile)
-        if (tryDownload) == true then return true end
+        local champDownload = AIOScriptDownload(AIO_CHAMPS, champFile)
+        local verDownload = AIOScriptDownload(AIO_CHAMPS, champVersion)
+        if (champDownload) == true and (verDownload) == true then return true end
         return result
     end
 end
@@ -132,18 +133,6 @@ if SupportChampion[champName] then
                 Name = AIO_VERSION,
             }
         }
-
-    --[[     local function DownloadFile(path, fileName)
-            DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
-            while not FileExist(path .. fileName) do end
-        end
-
-        local function ReadFile(path, fileName)
-            local file = assert(io.open(path .. fileName, "r"))
-            local result = file:read()
-            file:close()
-            return result
-        end ]]
 
         local function update()
             DownloadFile(Files.Version.Path, Files.Version.Name)
@@ -163,7 +152,6 @@ if SupportChampion[champName] then
         print("New 14AIO " .. champName .. " Version - Please RELOAD with [ F6 ]")
         return
     else
-        --print("| 14AIO | " .. champName .. " Loaded! Enjoy :)")
         print("| 14AIO | [ver. " .. tostring(version) .. "] for " .. champName .. " loaded!")
 
     end
@@ -181,17 +169,3 @@ if SupportChampion[champName] then
         Init14AIO()
     end)
 end
---[[
-if SupportChampion[champName] then
-
-    Callback.Add("Load", function()
-        require(AIO_CHAMPS..champFile)
-    end)
-
-else
-    print("| 14AIO | - " .. champName .. " is not supported!")
-end
-
-Callback.Add("Load", function()
-    require(AIOPath.."source\\" .. lua)
-end) ]]
