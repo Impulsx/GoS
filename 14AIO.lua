@@ -98,13 +98,13 @@ local function CheckUpdateHeroScript()
 end
 
 local function DownloadALLChampScripts()
-    print("| 14AIO | Downloading All Champion Scripts")
     for k,v in pairs(SupportChampion) do
         --if not FileExists(AIO_CHAMPS..k..dotlua) then
             DownloadFile(champgitHub, "14"..k..dotlua)
             DownloadFile(champgitHub, "14"..k..dotversion)
         --end
     end
+    print("| 14AIO | Downloading All Champion Scripts - Please RELOAD with [ F6 ]")
 end
 
 local function CheckSupportedChamp()
