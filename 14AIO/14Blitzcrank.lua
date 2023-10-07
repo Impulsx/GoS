@@ -196,7 +196,7 @@ function Blitzcrank:CastQ(target)
     if Ready(_Q) and lastQ +350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GGPrediction:SpellPrediction(self.Q)
         Pred:GetPrediction(target, myHero) --GetGamsteronPrediction(target, self.Q, myHero)
-        if Pred:CanHit(3 or GGPrediction.HITCHANCE_HIGH) then
+        if Pred:CanHit(2 or GGPrediction.HITCHANCE_HIGH) then
             Control.CastSpell(HK_Q, Pred.CastPosition)
             lastQ = GetTickCount()
         end
