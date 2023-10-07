@@ -1,6 +1,5 @@
 local version = 0.25
 
-
 local champName = myHero.charName
 
 local SupportChampion = {
@@ -41,8 +40,8 @@ local dotlua = ".lua"
 local dotversion = ".version"
 local AIO = "14AIO.lua"
 local AIO_VERSION = "14AIO.version"
-local champFile = "14" .. champName .. ".lua"
-local champVersion = "14" .. champName .. ".version"
+local champFile = "14" .. champName..dotlua
+local champVersion = "14" .. champName..dotversion
 local champgitHub = "https://raw.githubusercontent.com/Impulsx/GoS/master/14AIO/"
 local gitHub = "https://raw.githubusercontent.com/Impulsx/GoS/master/"
 
@@ -97,8 +96,11 @@ end
 
 local function DownloadALLChampScripts()
     for k,v in pairs(SupportChampion) do
-        DownloadFile(champgitHub, AIO_CHAMPS, k..dotlua)
-        DownloadFile(champgitHub, AIO_CHAMPS, k..dotversion)
+        --if not FileExists(AIO_CHAMPS..k..dotlua) then
+            print("Downloading Champion Script: " .. k)
+            DownloadFile(champgitHub, "14"..k..dotlua)
+            DownloadFile(champgitHub, "14"..k..dotversion)
+        --end
     end
 end
 
