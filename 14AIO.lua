@@ -1,4 +1,4 @@
-local version = 0.24
+local version = 0.25
 
 local champName = myHero.charName
 
