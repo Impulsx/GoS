@@ -100,8 +100,8 @@ end
 local function DownloadALLChampScripts()
     for k,v in pairs(SupportChampion) do
         --if not FileExists(AIO_CHAMPS..k..dotlua) then
-            DownloadFile(champgitHub, "14"..k..dotlua)
-            DownloadFile(champgitHub, "14"..k..dotversion)
+            AIOScriptDownload(AIO_CHAMPS, "14"..k..dotlua)
+            AIOScriptDownload(AIO_CHAMPS, "14"..k..dotversion)
         --end
     end
     print("| 14AIO | Downloading All Champion Scripts - Please RELOAD with [ F6 ]")
