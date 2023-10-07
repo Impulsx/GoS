@@ -1,4 +1,4 @@
-local version = 0.24
+local version = 0.25
 
 
 local champName = myHero.charName
@@ -45,44 +45,6 @@ local champFile = "14" .. champName .. ".lua"
 local champVersion = "14" .. champName .. ".version"
 local champgitHub = "https://raw.githubusercontent.com/Impulsx/GoS/master/14AIO/"
 local gitHub = "https://raw.githubusercontent.com/Impulsx/GoS/master/"
-
-do
-    --local AIOPath = "14AIO\\"
-    local Files = {
-        Lua = {
-            Path = SCRIPT_PATH,
-            Name = AIO,
-        },
-        Version = {
-            Path = SCRIPT_PATH,
-            Name = AIO_VERSION,
-        }
-    }
-    local function DownloadFile(path, fileName)
-        DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
-        while not FileExist(path .. fileName) do end
-    end
-
-    local function ReadFile(path, fileName)
-        local file = assert(io.open(path .. fileName, "r"))
-        local result = file:read()
-        file:close()
-        return result
-    end
-
-    local function update()
-        DownloadFile(Files.Version.Path, Files.Version.Name)
-        local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
-        if NewVersion > version then
-            DownloadFile(Files.Lua.Path, Files.Lua.Name)
-            DownloadALLChampScripts()
-            print("*WARNING* New 14AIO [ver. " .. tostring(NewVersion) .. "] Downloaded - Please RELOAD with [ F6 ]")
-        else
-            print("| 14AIO | [ver. " .. tostring(version) .. "] loaded!")
-        end
-    end
-    update()
-end
 
 local function FileExists(path)
     local file = io.open(path, "r")
@@ -151,6 +113,43 @@ local function CheckSupportedChamp()
     end
 end
 
+do
+    --local AIOPath = "14AIO\\"
+    local Files = {
+        Lua = {
+            Path = SCRIPT_PATH,
+            Name = AIO,
+        },
+        Version = {
+            Path = SCRIPT_PATH,
+            Name = AIO_VERSION,
+        }
+    }
+    local function DownloadFile(path, fileName)
+        DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
+        while not FileExist(path .. fileName) do end
+    end
+
+    local function ReadFile(path, fileName)
+        local file = assert(io.open(path .. fileName, "r"))
+        local result = file:read()
+        file:close()
+        return result
+    end
+
+    local function update()
+        DownloadFile(Files.Version.Path, Files.Version.Name)
+        local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
+        if NewVersion > version then
+            DownloadFile(Files.Lua.Path, Files.Lua.Name)
+            DownloadALLChampScripts()
+            print("*WARNING* New 14AIO [ver. " .. tostring(NewVersion) .. "] Downloaded - Please RELOAD with [ F6 ]")
+        else
+            print("| 14AIO | [ver. " .. tostring(version) .. "] loaded!")
+        end
+    end
+    update()
+end
 
 if SupportChampion[champName] then
     if (CheckUpdateHeroScript()) then
