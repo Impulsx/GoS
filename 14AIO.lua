@@ -1,4 +1,4 @@
-local version = 0.26
+local version = 0.27
 
 local champName = myHero.charName
 
@@ -91,6 +91,7 @@ local function CheckUpdateHeroScript()
     local NewVersion = tonumber(ReadFile(AIO_CHAMPS, champVersion))
     if NewVersion > scriptVersion then
         AIOScriptDownload(AIO_CHAMPS, champFile)
+        AIOScriptDownload(AIO_CHAMPS, champVersion)
         return true
     else
         return false
