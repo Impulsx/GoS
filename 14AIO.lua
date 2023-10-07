@@ -34,7 +34,8 @@ local SupportChampion = {
     ["Yasuo"]      = true,
     ["Zilean"]     = true,
 }
-local AIO_CHAMPS = COMMON_PATH .. "14AIO/"
+local AIOPath = "14AIO\\"
+local AIO_CHAMPS = COMMON_PATH.."14AIO/"
 local dotlua = ".lua"
 local dotversion = ".version"
 local AIO_name = "14AIO"
@@ -62,6 +63,17 @@ local function DownloadFile(path, fileName)
     repeat until os.clock() - startTime > 3 or FileExists(path .. fileName)
 end
 
+local function AIOScriptDownload(path, fileName)
+    local startTime = os.clock()
+    DownloadFileAsync(champgitHub .. fileName, path .. fileName, function() end)
+    repeat until os.clock() - startTime > 3 or FileExists(path .. fileName)
+    if (FileExists(path .. fileName)) then
+        return true
+    else
+        return false
+    end
+end
+
 local function ReadFile(path, fileName)
     local file = io.open(path .. fileName, "r")
     local result = file:read()
@@ -73,22 +85,14 @@ local function CheckUpdateHeroScript()
     local scriptVersion = 0
     if FileExists(AIO_CHAMPS..champVersion) then
         scriptVersion = tonumber(ReadFile(AIO_CHAMPS, champVersion))
-    end
-    DownloadFile(AIO_CHAMPS, champVersion)
-    local NewVersion = tonumber(ReadFile(AIO_CHAMPS, champVersion))
-    if NewVersion > scriptVersion then
-        DownloadFile(AIO_CHAMPS, champFile)
-        return true
     else
-        return false
+        AIOScriptDownload(AIO_CHAMPS, champVersion)
     end
-end
-
-local function TryChampScriptDownload()
-    local startTime = os.clock()
-    DownloadFileAsync(gitHub .. "14AIO/" .. champFile, AIO_CHAMPS .. champFile, function() end)
-    repeat until os.clock() - startTime > 3 or FileExists(AIO_CHAMPS .. champFile)
-    if (FileExists(AIO_CHAMPS .. champFile)) then
+    print("check sv: ".. scriptVersion)
+    local NewVersion = tonumber(ReadFile(AIO_CHAMPS, champVersion))
+    print("check nv: ".. NewVersion)
+    if NewVersion > scriptVersion then
+        AIOScriptDownload(AIO_CHAMPS, champFile)
         return true
     else
         return false
@@ -110,14 +114,13 @@ local function CheckSupportedChamp()
     if (result == true) then
         return result
     else
-        local tryDownload = TryChampScriptDownload()
+        local tryDownload = AIOScriptDownload(AIO_CHAMPS, champFile)
         if (tryDownload) == true then return true end
         return result
     end
 end
 
 do
-    --local AIOPath = "14AIO\\"
     local Files = {
         Lua = {
             Path = SCRIPT_PATH,
@@ -128,7 +131,8 @@ do
             Name = AIO_VERSION,
         }
     }
-    local function DownloadFile(path, fileName)
+
+--[[     local function DownloadFile(path, fileName)
         DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
         while not FileExist(path .. fileName) do end
     end
@@ -138,7 +142,7 @@ do
         local result = file:read()
         file:close()
         return result
-    end
+    end ]]
 
     local function update()
         DownloadFile(Files.Version.Path, Files.Version.Name)
@@ -163,7 +167,7 @@ if SupportChampion[champName] then
 
     local function Init14AIO()
         if (CheckSupportedChamp()) then --redundent
-            require(AIO_CHAMPS .. champName)
+            require("14AIO\\14"..champName)
         else
             DownloadALLChampScripts()
             print("| 14AIO | - " .. champName .. " missing and downloaded - Please RELOAD with [ F6 ]")
