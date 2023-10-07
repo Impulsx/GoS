@@ -1,4 +1,4 @@
-local version = 0.25
+local version = 0.24
 
 local champName = myHero.charName
 
@@ -88,9 +88,7 @@ local function CheckUpdateHeroScript()
     else
         AIOScriptDownload(AIO_CHAMPS, champVersion)
     end
-    print("check sv: ".. scriptVersion)
     local NewVersion = tonumber(ReadFile(AIO_CHAMPS, champVersion))
-    print("check nv: ".. NewVersion)
     if NewVersion > scriptVersion then
         AIOScriptDownload(AIO_CHAMPS, champFile)
         return true
@@ -103,8 +101,8 @@ local function DownloadALLChampScripts()
     for k,v in pairs(SupportChampion) do
         --if not FileExists(AIO_CHAMPS..k..dotlua) then
             print("| 14AIO | Downloading All Champion Scripts")
-            DownloadFile(champgitHub, "14"..k..dotlua)
-            DownloadFile(champgitHub, "14"..k..dotversion)
+            AIOScriptDownload(AIO_CHAMPS, "14"..k..dotlua)
+            AIOScriptDownload(AIO_CHAMPS, "14"..k..dotversion)
         --end
     end
 end
