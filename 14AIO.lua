@@ -98,7 +98,7 @@ end
 local function DownloadALLChampScripts()
     for k,v in pairs(SupportChampion) do
         --if not FileExists(AIO_CHAMPS..k..dotlua) then
-            print("Downloading Champion Script: " .. k)
+            print("| 14AIO | Downloading All Champion Scripts")
             DownloadFile(champgitHub, "14"..k..dotlua)
             DownloadFile(champgitHub, "14"..k..dotversion)
         --end
