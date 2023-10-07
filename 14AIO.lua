@@ -34,14 +34,15 @@ local SupportChampion = {
     ["Yasuo"]      = true,
     ["Zilean"]     = true,
 }
-local SCRIPT_FULL_PATH = SCRIPT_PATH .. "14AIO.lua"
 local AIO_CHAMPS = COMMON_PATH .. "14AIO/"
 local dotlua = ".lua"
 local dotversion = ".version"
-local AIO = "14AIO.lua"
-local AIO_VERSION = "14AIO.version"
-local champFile = "14" .. champName..dotlua
-local champVersion = "14" .. champName..dotversion
+local AIO_name = "14AIO"
+local AIO = AIO_name..dotlua
+local AIO_VERSION = AIO_name..dotversion
+local SCRIPT_FULL_PATH = SCRIPT_PATH .. AIO
+local champFile = "14"..champName..dotlua
+local champVersion = "14"..champName..dotversion
 local champgitHub = "https://raw.githubusercontent.com/Impulsx/GoS/master/14AIO/"
 local gitHub = "https://raw.githubusercontent.com/Impulsx/GoS/master/"
 
