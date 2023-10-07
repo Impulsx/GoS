@@ -118,50 +118,53 @@ local function CheckSupportedChamp()
     end
 end
 
-do
-    local Files = {
-        Lua = {
-            Path = SCRIPT_PATH,
-            Name = AIO,
-        },
-        Version = {
-            Path = SCRIPT_PATH,
-            Name = AIO_VERSION,
-        }
-    }
-
---[[     local function DownloadFile(path, fileName)
-        DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
-        while not FileExist(path .. fileName) do end
-    end
-
-    local function ReadFile(path, fileName)
-        local file = assert(io.open(path .. fileName, "r"))
-        local result = file:read()
-        file:close()
-        return result
-    end ]]
-
-    local function update()
-        DownloadFile(Files.Version.Path, Files.Version.Name)
-        local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
-        if NewVersion > version then
-            DownloadFile(Files.Lua.Path, Files.Lua.Name)
-            DownloadALLChampScripts()
-            print("*WARNING* New 14AIO [ver. " .. tostring(NewVersion) .. "] Downloaded - Please RELOAD with [ F6 ]")
-        else
-            print("| 14AIO | [ver. " .. tostring(version) .. "] loaded!")
-        end
-    end
-    update()
-end
 
 if SupportChampion[champName] then
+    do
+        local Files = {
+            Lua = {
+                Path = SCRIPT_PATH,
+                Name = AIO,
+            },
+            Version = {
+                Path = SCRIPT_PATH,
+                Name = AIO_VERSION,
+            }
+        }
+
+    --[[     local function DownloadFile(path, fileName)
+            DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
+            while not FileExist(path .. fileName) do end
+        end
+
+        local function ReadFile(path, fileName)
+            local file = assert(io.open(path .. fileName, "r"))
+            local result = file:read()
+            file:close()
+            return result
+        end ]]
+
+        local function update()
+            DownloadFile(Files.Version.Path, Files.Version.Name)
+            local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
+            if NewVersion > version then
+                DownloadFile(Files.Lua.Path, Files.Lua.Name)
+                DownloadALLChampScripts()
+                print("*WARNING* New 14AIO [ver. " .. tostring(NewVersion) .. "] Downloaded - Please RELOAD with [ F6 ]")
+            else
+                return
+            end
+        end
+        update()
+    end
+
     if (CheckUpdateHeroScript()) then
         print("New 14AIO " .. champName .. " Version - Please RELOAD with [ F6 ]")
         return
     else
-        print("| 14AIO | " .. champName .. " Loaded! Enjoy :)")
+        --print("| 14AIO | " .. champName .. " Loaded! Enjoy :)")
+        print("| 14AIO | [ver. " .. tostring(version) .. "] for " .. champName .. " loaded!")
+
     end
 
     local function Init14AIO()
