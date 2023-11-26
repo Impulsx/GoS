@@ -1,4 +1,4 @@
-local damageLibVersion = 13.22
+local damageLibVersion = 13.23
 
 --[[
 Usage:
@@ -664,7 +664,7 @@ local ARAM = {
 },
   ["KSante"] = {
     dmgDealt = nil,
-    dmgReceived = 0.95,
+    dmgReceived = nil,
     other = nil,
 },
   ["KaiSa"] = {
@@ -685,6 +685,11 @@ local ARAM = {
   ["Karthus"] = {
     dmgDealt = 0.90,
     dmgReceived = 1.05,
+    other = nil,
+},
+  ["Kassadin"] = {
+    dmgDealt = nil,
+    dmgReceived = 0.95,
     other = nil,
 },
   ["Katarina"] = {
@@ -899,7 +904,7 @@ local ARAM = {
 },
   ["Rumble"] = {
     dmgDealt = nil,
-    dmgReceived = 0.95,
+    dmgReceived = nil,
     other = nil,
 },
   ["Ryze"] = {
@@ -989,7 +994,7 @@ local ARAM = {
 },
   ["TahmKench"] = {
     dmgDealt = nil,
-    dmgReceived = 0.95,
+    dmgReceived = nil,
     other = nil,
 },
   ["Taliyah"] = {
@@ -1096,6 +1101,11 @@ local ARAM = {
     dmgDealt = 1.05,
     dmgReceived = 0.95,
     other = nil,
+},
+  ["Xayah"] = {
+   dmgDealt = 1.05,
+   dmgReceived = nil,
+   other = nil,
 },
   ["Xerath"] = {
     dmgDealt = 0.90,
@@ -1979,7 +1989,7 @@ local HeroPassiveDamageTable = {
     args.RawPhysical = args.RawPhysical - args.source.totalDamage * 0.1
   end, ]]
 
-  ["KSante"] = function(args) --KSanteMark?
+  ["KSante"] = function(args) --KSanteMark + KSanteRTransform
     local level = args.source.levelData.lvl
     local hplvl = 1
     if Buff:HasBuff(args.Target, "KSantePMark") then
@@ -1991,8 +2001,9 @@ local HeroPassiveDamageTable = {
       local markdmg = ((5 + 15 / 17 * (level - 1)) + ({1.00, 1.33, 1.66, 2.00})[hplvl]/100 * args.Target.maxHealth)
       if Buff:HasBuff(args.source, "KSanteRTransform") then
         --local allOutDamageMod = 0.35 + (0.20 * math.floor(args.source.bonusArmor/100)) + (0.20 * math.floor(args.source.bonusMagicResist/100)) --removed 13.20
-        local allOutDamageMod = 1 + (({45, 60, 75})[hplvl]/100)
-        args.RawPhysical = args.RawPhysical --* allOutDamageMod
+        local allouthplvl = 0.30 + (0.04 * math.min(level,18))
+        local allOutDamageMod = 1 + allouthplvl --(({45, 60, 75})[hplvl]/100)
+        args.RawPhysical = args.RawPhysical * allOutDamageMod
         args.CalculatedTrue = args.CalculatedTrue + markdmg * allOutDamageMod
       else
         args.RawPhysical = args.RawPhysical + markdmg
@@ -2206,8 +2217,8 @@ local SpellDamageTable = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 80, 100, 120, 140})[level] + 0.35 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level)
       local azirLevel = source.levelData.lvl
-      local wDmg = ({0, 0, 0, 0, 0 ,0 ,0 ,0, 0, 2, 7, 12, 17, 32, 47, 62, 77, 92})(azirLevel)
-      return wDmg + ({50, 67, 84, 101, 118})[level] + 0.60 * source.ap end},
+      local wDmg = ({0, 0, 0, 0, 0 ,0 ,0 ,0, 0, 2, 7, 12, 17, 29, 41, 53, 65, 77})(azirLevel)
+      return wDmg + ({50, 65, 80, 95, 110})[level] + 0.55 * source.ap end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 100, 140, 180, 220})[level] + 0.40 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({200, 400, 600})[level] + 0.75 * source.ap end},
   },
@@ -2245,7 +2256,7 @@ local SpellDamageTable = {
   ["Briar"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 95, 130, 165, 200})[level] + (0.80 * source.bonusDamage) end},
     {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 70, 80, 90, 100})[level]/100 * source.totalDamage end},
-    {Slot = "W", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({5, 20, 35, 50, 65})[level] + (0.05 * source.totalDamage) + (0.10 + (0.035 * math.floor(source.bonusDamage / 100)) * GetMissingHP(target)) end},
+    {Slot = "W", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({5, 20, 35, 50, 65})[level] + (0.05 * source.totalDamage) + (0.9 + (0.025 * math.floor(source.bonusDamage / 100)) * GetMissingHP(target)) end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 115, 150, 185, 220})[level] + (source.bonusDamage) + (source.ap) end},
     {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({220, 330, 440, 550, 660})[level] + (3.40 * source.bonusDamage) + (3.4 * source.ap) end}, -- if into wall
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({150, 300, 450})[level] + (0.75 * source.bonusDamage) + (1.10 * source.ap) end},
@@ -2640,7 +2651,7 @@ local SpellDamageTable = {
   },
 
   ["KSante"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 60, 90, 120, 150})[level] + (0.40 * source.totalDamage) + (0.30 * source.bonusArmor) + (0.30 * source.bonusMagicResist) end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 55, 80, 105, 130})[level] + (0.40 * source.totalDamage) + (0.30 * source.bonusArmor) + (0.30 * source.bonusMagicResist) end},
     {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level)
       -- local dmg = ((({4.25, 4.50, 4.75, 5.00, 5.25})[level]/100) * target.maxHealth)
       local dmg = ({20, 40, 60, 80, 100})[level] + (0.50 * source.totalDamage) + (0.30 * source.bonusArmor) + (0.30 * source.bonusMagicResist) + ((({6, 7, 8, 9, 10})[level]/100) * target.maxHealth)
@@ -2775,11 +2786,11 @@ local SpellDamageTable = {
   },
 
   ["Naafiri"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 45, 60, 75, 90})[level] + 0.20 * source.bonusDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({35, 45, 55, 65, 75})[level] + 0.20 * source.bonusDamage end},
     {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({30, 45, 60, 75, 90})[level] + (0.40 * source.bonusDamage) * (0.01 * (GetPercentMissingHP(target))) end},
     {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 70, 110, 150, 190})[level] + 0.80 * source.bonusDamage end},
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({100, 150, 200, 250, 300})[level] + 1.30 * source.bonusDamage end}, --dash + aoe flurry
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({5, 15, 25})[level] + ({8, 16, 24})[level]/100 * source.totalDamage end},
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({95, 140, 185, 230, 275})[level] + 1.30 * source.bonusDamage end}, --dash + aoe flurry
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({5, 15, 25})[level] + (({8, 16, 24})[level]/100 * source.totalDamage) end},
   },
 
   ["Nami"] = {
@@ -2951,9 +2962,9 @@ local SpellDamageTable = {
   },
 
   ["Riven"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({15, 35, 55, 75, 95})[level] + ((({45, 50, 55, 60, 65})[level] / 100) * source.totalDamage) end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({15, 35, 55, 75, 95})[level] + ((({50, 55, 60, 65, 70})[level] / 100) * source.totalDamage) end},
     {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({55, 85, 115, 145, 175})[level] + source.bonusDamage end},
-    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (({100, 150, 200})[level] + 0.6 * source.bonusDamage) * math.max(0.02667 * math.min(100 - GetPercentHP(target), 75), 1) end},
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (({100, 150, 200})[level] + 0.60 * source.bonusDamage) * math.max(0.02667 * math.min(100 - GetPercentHP(target), 75), 2) end},
   },
 
   ["Rumble"] = {
@@ -3432,7 +3443,7 @@ local SpellDamageTable = {
   },
 
   ["Ziggs"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({95, 145, 195, 245, 295})[level] + 0.65 * source.ap end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({85, 135, 185, 235, 285})[level] + 0.65 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 105, 140, 175, 210})[level] + 0.50 * source.ap end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 75, 110, 145, 180})[level] + 0.30 * source.ap end}, --per mine
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({300, 450, 600})[level] + 1.10 * source.ap end}, --center damage
