@@ -4068,7 +4068,7 @@ do
 			print("| DamageLib | [ver. "..tostring(damageLibVersion).."] loaded!")
         end
     end
-   update()
+   --update()
 end
 
 _G.DamageLib = {
