@@ -2032,7 +2032,7 @@ local SpecialAADamageTable = {
   ["Kayle"] = function(args) --KayleE
     local elevel = args.source:GetSpellData(_E).level
     local level = args.source.levelData.lvl
-    local kaylePassive = (20 + (3 * level) + 0.10 + args.source.bonusDamage + 0.25 * args.source.ap)
+    local kaylePassive = (20 + (3 * math.max(level-11,0)) + 0.10 * args.source.bonusDamage + 0.25 * args.source.ap)
     --Buff:HasBuff(args.source, "KayleE") e active
     --Buff:HasBuff(args.source, "KayleEPassive") e passive dmg
     --Buff:HasBuff(args.source, "kaylepassiverank0-3")
@@ -2040,13 +2040,13 @@ local SpecialAADamageTable = {
     --Buff:HasBuff(args.source, "kayleenrage") @ 5 passive dmg unless kaylepassiverank3
     if elevel >= 1 then
       local kayleEPassive = (10 + (5 * elevel) + 0.10 * args.source.bonusDamage + 0.20 * args.source.ap)
-      if Buff:HasBuff(args.source, "kayleenrage") or Buff:HasBuff(args.source, "kaylepassiverank3") then --Buff:HasBuff(args.source, "JudicatorRighteousFury")
+      if args.source.levelData.lvl>=16 or args.source.levelData.lvl>11 and  Buff:HasBuff(args.source, "kayleenrage") then --Buff:HasBuff(args.source, "JudicatorRighteousFury")
         args.RawMagical = args.RawMagical + kaylePassive + kayleEPassive-- Kayle Passive
       else
         args.RawMagical = args.RawMagical + kayleEPassive -- E passive
       end
       if Buff:HasBuff(args.source, "KayleE") then
-        local eActiveBonusDmg = (({8, 8.5, 9, 9.5, 10})[elevel]/100 + 0.015*args.source.ap) * GetMissingHP(args.Target)
+        local eActiveBonusDmg = (({8, 8.5, 9, 9.5, 10})[elevel]+ 0.015*args.source.ap)/100  * GetMissingHP(args.Target)
         if args.Target.type == Obj_AI_Camp then
           eActiveBonusDmg = math.max(eActiveBonusDmg, math.min(400, eActiveBonusDmg))
         end
