@@ -1,4 +1,4 @@
-local damageLibVersion = 14.1
+local damageLibVersion = 14.4
 
 --[[
 Usage:
@@ -440,6 +440,7 @@ local Hero = {
   Sion = { true, 0.679 },
   Sivir = { false, 0.625 },
   Skarner = { true, 0.625 },
+  Smolder = { false, 0.638},
   Sona = { false, 0.644 },
   Soraka = { false, 0.625 },
   Swain = { false, 0.625 },
@@ -454,7 +455,7 @@ local Hero = {
   Tristana = { false, 0.656 },
   Trundle = { true, 0.67 },
   Tryndamere = { true, 0.67 },
-  TwistedFate = { false, 0.651 },
+  TwistedFate = { false, 0.625 },
   Twitch = { false, 0.679 },
   Udyr = { true, 0.65 },
   Urgot = { true, 0.625 },
@@ -666,7 +667,7 @@ local ARAM = {
     dmgReceived = 1.10,
     other = nil,
 },
-["Hwei"] = {
+  ["Hwei"] = {
     dmgDealt = nil,
     dmgReceived = nil,
     other = nil,
@@ -727,7 +728,7 @@ local ARAM = {
     other = nil,
 },
   ["Karma"] = {
-    dmgDealt = 1.05,
+    dmgDealt = nil,
     dmgReceived = nil,
     other = nil,
 },
@@ -748,7 +749,7 @@ local ARAM = {
 },
   ["Kayle"] = {
     dmgDealt = 0.95,
-    dmgReceived = 1.05,
+    dmgReceived = 1.10,
     other = nil,
 },
   ["Kayn"] = {
@@ -848,7 +849,7 @@ local ARAM = {
 },
   ["Mordekaiser"] = {
     dmgDealt = 0.95,
-    dmgReceived = nil,
+    dmgReceived = 1.05,
     other = nil,
 },
   ["Morgana"] = {
@@ -1012,7 +1013,7 @@ local ARAM = {
     other = nil,
 },
   ["Sivir"] = {
-    dmgDealt = 0.85,
+    dmgDealt = 0.92,
     dmgReceived = 1.05,
     other = nil,
 },
@@ -1089,6 +1090,11 @@ local ARAM = {
   ["Twitch"] = {
     dmgDealt = nil,
     dmgReceived = 0.95,
+    other = nil,
+},
+  ["TwistedFate"] = {
+    dmgDealt = nil,
+    dmgReceived = nil,
     other = nil,
 },
   ["Udyr"] = {
@@ -1182,7 +1188,7 @@ local ARAM = {
     other = nil,
 },
   ["Zed"] = {
-    dmgDealt = nil,
+    dmgDealt = 1.05,
     dmgReceived = 0.95,
     other = nil,
 },
@@ -1211,6 +1217,66 @@ local ARAM = {
     dmgReceived = 1.05,
     other = nil,
 },
+
+--[[ ITEMS
+Hubris Hubris
+  Eminence base bonus attack damage reduced to 10 from 15.
+  Eminence bonus attack damage per statue rank reduced to 1 from 2.
+  Eminence duration reduced to 45 seconds from 90.
+
+Malignance
+  Hatefog base damage per tick reduced to 10 from 15.
+  Hatefog AP ratio per tick reduced to 0.7% AP from 1.5% AP.
+
+Sundered Sky
+  Lightshield Strike heal AD ratio reduced to 120% base AD from 140%.
+  Lightshield Strike heal health ratio reduced to 4% of missing health from 6%.
+
+Stormsurge
+  Squall base damage reduced to (Melee role 100 / Ranged role 75) at all levels from (Melee role 100 − 200 / Ranged role 75 − 150) (based on level).
+  Squall AP ratio reduced to (Melee role 15% / Ranged role 11.25%) AP from (Melee role 20% / Ranged role 15%) AP.
+]]
+}
+
+local URF = {
+  --[[ February 9th Hotfix
+URF-specific balancing
+Anivia Anivia
+Outgoing damage modifier changed to +15% from +10%.
+Annie Annie
+Incoming damage modifier changed to +5% from 0%.
+Aurelion Sol Aurelion Sol
+Incoming damage modifier changed to -10% from -5%.
+Outgoing damage modifier changed to +10% from +5%.
+Illaoi Illaoi
+Outgoing damage modifier changed to 0% from +5%.
+Kayle Kayle
+Incoming damage modifier changed to +10% from 0%.
+K'Sante K'Sante
+Outgoing damage modifier changed to +5% from 0%.
+Nidalee Nidalee
+Incoming damage modifier changed to -5% from 0%.
+Outgoing damage modifier changed to +5% from 0%.
+Tahm Kench Tahm Kench
+Outgoing damage modifier changed to +20% from +15%.
+Shen Shen
+Incoming damage modifier changed to +5% from 0%.
+Syndra Syndra
+Outgoing damage modifier changed to -10% from -15%.
+Shyvana Shyvana
+Outgoing damage modifier changed to -15% from -10%.
+Vayne Vayne
+Incoming damage modifier changed to +5% from 0%.
+Vex Vex
+Incoming damage modifier changed to 0% from +5%.
+Volibear Volibear
+Incoming damage modifier changed to +10% from +5%.
+Heartsteel Heartsteel
+Per-target cooldown increased to 40 seconds from 30.
+Sundered Sky Sundered Sky
+Base heal reduced to 110% base AD from 140% base AD.
+Heal health ratio reduced to 4% missing health from 6%.
+  ]]
 }
 
 local HeroSpecialMelees = {
@@ -1253,505 +1319,202 @@ end,
   end
 ]]
 
-local ItemID = { --14.1 update
-    Boots = 1001,
-    FaerieCharm = 1004,
-    RejuvenationBead = 1006,
-    GiantsBelt = 1011,
-    CloakofAgility = 1018,
-    BlastingWand = 1026,
-    SapphireCrystal = 1027,
-    RubyCrystal = 1028,
-    ClothArmor = 1029,
-    ChainVest = 1031,
-    NullMagicMantle = 1033,
-    Emberknife = 1035,
-    LongSword = 1036,
-    Pickaxe = 1037,
-    BFSword = 1038,
-    Hailblade = 1039,
-    ObsidianEdge = 1040,
-    Dagger = 1042,
-    RecurveBow = 1043,
-    AmplifyingTome = 1052,
-    VampiricScepter = 1053,
-    DoransShield = 1054,
-    DoransBlade = 1055,
-    DoransRing = 1056,
-    NegatronCloak = 1057,
-    NeedlesslyLargeRod = 1058,
-    DarkSeal = 1082,
-    Cull = 1083,
-    ScorchclawPup = 1101,
-    GustwalkerHatchling = 1102,
-    MosstomperSeedling = 1103,
-    EyeoftheHerald = 1104,
-    PenetratingBullets = 1500,
-    Fortification = 1501,
-    ReinforcedArmor = 1502,
-    WardensEye = 1503,
-    Vanguard = 1504,
-    ReinforcedArmor = 1506,
-    Overcharged = 1507,
-    AntitowerSocks = 1508,
-    Gusto = 1509,
-    PhreakishGusto = 1510,
-    SuperMechArmor = 1511,
-    SuperMechPowerField = 1512,
-    TurretPlating = 1515,
-    StructureBounty = 1516,
-    StructureBounty = 1517,
-    StructureBounty = 1518,
-    StructureBounty = 1519,
-    OvererchargedHA = 1520,
-    Fortification = 1521,
-    TowerPowerUp = 1522,
-    HealthPotion = 2003,
-    TotalBiscuitofEverlastingWill = 2010,
-    KircheisShard = 2015,
-    SteelSigil = 2019,
-    TheBrutalizer = 2020,
-    Tunneler = 2021,
-    GlowingMote = 2022,
-    RefillablePotion = 2031,
-    CorruptingPotion = 2033,
-    GuardiansAmulet = 2049,
-    GuardiansShroud = 2050,
-    GuardiansHorn = 2051,
-    PoroSnax = 2052,
-    ControlWard = 2055,
-    StealthWard = 2056,
-    ShurelyasBattlesong = 2065,
-    ElixirofIron = 2138,
-    ElixirofSorcery = 2139,
-    ElixirofWrath = 2140,
-    CappaJuice = 2141,
-    JuiceofPower = 2142,
-    JuiceofVitality = 2143,
-    JuiceofHaste = 2144,
-    ElixirofSkill = 2150,
-    ElixirofAvarice = 2151,
-    ElixirofForce = 2152,
-    BFSword = 221038,
-    VampiricScepter = 221053,
-    NeedlesslyLargeRod = 221058,
-    GuardiansHorn = 222051,
-    ShurelyasBattlesong = 222065,
-    Evenshroud = 223001,
-    ArchangelsStaff = 223003,
-    Manamune = 223004,
-    Ghostcrawlers = 223005,
-    BerserkersGreaves = 223006,
-    BootsofSwiftness = 223009,
-    ChemtechPutrifier = 223011,
-    SorcerersShoes = 223020,
-    GuardianAngel = 223026,
-    InfinityEdge = 223031,
-    MortalReminder = 223033,
-    LordDominiksRegards = 223036,
-    AtmasReckoning = 223039,
-    SeraphsEmbrace = 223040,
-    Muramana = 223042,
-    PhantomDancer = 223046,
-    PlatedSteelcaps = 223047,
-    ZekesConvergence = 223050,
-    SteraksGage = 223053,
-    Sheen = 223057,
-    SpiritVisage = 223065,
-    Kindlegem = 223067,
-    SunfireAegis = 223068,
-    BlackCleaver = 223071,
-    Bloodthirster = 223072,
-    RavenousHydra = 223074,
-    Thornmail = 223075,
-    TrinityForce = 223078,
-    Heartsteel = 223084,
-    RunaansHurricane = 223085,
-    StatikkShiv = 223087,
-    RabadonsDeathcap = 223089,
-    WitsEnd = 223091,
-    RapidFirecannon = 223094,
-    Stormrazor = 223095,
-    LichBane = 223100,
-    BansheesVeil = 223102,
-    AegisoftheLegion = 223105,
-    Redemption = 223107,
-    KnightsVow = 223109,
-    FrozenHeart = 223110,
-    MercurysTreads = 223111,
-    GuardiansOrb = 223112,
-    NashorsTooth = 223115,
-    RylaisCrystalScepter = 223116,
-    WintersApproach = 223119,
-    Fimbulwinter = 223121,
-    GuinsoosRageblade = 223124,
-    VoidStaff = 223135,
-    MercurialScimitar = 223139,
-    YoumuusGhostblade = 223142,
-    RanduinsOmen = 223143,
-    HextechGunblade = 223146,
-    HextechRocketbelt = 223152,
-    BladeofTheRuinedKing = 223153,
-    MawofMalmortius = 223156,
-    ZhonyasHourglass = 223157,
-    IonianBootsofLucidity = 223158,
-    SpearofShojin = 223161,
-    Morellonomicon = 223165,
-    Zephyr = 223172,
-    GuardiansBlade = 223177,
-    Hullbreaker = 223181,
-    GuardiansHammer = 223184,
-    GuardiansDirk = 223185,
-    LocketoftheIronSolari = 223190,
-    GargoyleStoneplate = 223193,
-    MikaelsBlessing = 223222,
-    ArdentCenser = 223504,
-    EssenceReaver = 223508,
-    DeadMansPlate = 223742,
-    TitanicHydra = 223748,
-    EdgeofNight = 223814,
-    SpectralCutlass = 224004,
-    ImperialMandate = 224005,
-    ForceofNature = 224401,
-    TheGoldenSpatula = 224403,
-    HorizonFocus = 224628,
-    CosmicDrive = 224629,
-    Riftmaker = 224633,
-    NightHarvester = 224636,
-    DemonicEmbrace = 224637,
-    CrownoftheShatteredQueen = 224644,
-    Shadowflame = 224645,
-    SilvermereDawn = 226035,
-    DeathsDance = 226333,
-    ChempunkChainsword = 226609,
-    StaffofFlowingWater = 226616,
-    MoonstoneRenewer = 226617,
-    EchoesofHelia = 226620,
-    Goredrinker = 226630,
-    Stridebreaker = 226631,
-    DivineSunderer = 226632,
-    LiandrysAnguish = 226653,
-    LudensTempest = 226655,
-    Everfrost = 226656,
-    RodofAges = 226657,
-    IcebornGauntlet = 226662,
-    TurboChemtank = 226664,
-    JakShoTheProtean = 226665,
-    RadiantVirtue = 226667,
-    Galeforce = 226671,
-    KrakenSlayer = 226672,
-    ImmortalShieldbow = 226673,
-    NavoriQuickblades = 226675,
-    TheCollector = 226676,
-    DuskbladeofDraktharr = 226691,
-    Eclipse = 226692,
-    ProwlersClaw = 226693,
-    SeryldasGrudge = 226694,
-    SerpentsFang = 226695,
-    AxiomArc = 226696,
-    Syzygy = 227001,
-    DraktharrsShadowcarver = 227002,
-    FrozenFist = 227005,
-    Typhoon = 227006,
-    IcathiasCurse = 227009,
-    Vespertide = 227010,
-    UpgradedAeropack = 227011,
-    LiandrysLament = 227012,
-    ForceofArms = 227013,
-    EternalWinter = 227014,
-    CeaselessHunger = 227015,
-    Dreamshatter = 227016,
-    Deicide = 227017,
-    InfinityForce = 227018,
-    ReliquaryoftheGoldenDawn = 227019,
-    ShurelyasRequiem = 227020,
-    Starcaster = 227021,
-    Equinox = 227023,
-    Caesura = 227024,
-    Leviathan = 227025,
-    TheUnspokenParasite = 227026,
-    PrimordialDawn = 227027,
-    InfiniteConvergence = 227028,
-    YoumuusWake = 227029,
-    SeethingSorrow = 227030,
-    EdgeofFinality = 227031,
-    Flicker = 227032,
-    CryoftheShriekingCity = 227033,
-    AnathemasChains = 228001,
-    WoogletsWitchcap = 228002,
-    Deathblade = 228003,
-    AdaptiveHelm = 228004,
-    ObsidianCleaver = 228005,
-    SanguineBlade = 228006,
-    Runeglaive = 228008,
-    AbyssalMask = 228020,
-    MinionDematerializer = 2403,
-    CommencingStopwatch = 2419,
-    SeekersArmguard = 2420,
-    ShatteredArmguard = 2421,
-    SlightlyMagicalFootwear = 2422,
-    PerfectlyTimedStopwatch = 2423,
-    UnendingDespair = 2502,
-    KaenicRookern = 2504,
-    Evenshroud = 3001,
-    Trailblazer = 3002,
-    ArchangelsStaff = 3003,
-    Manamune = 3004,
-    Ghostcrawlers = 3005,
-    BerserkersGreaves = 3006,
-    BootsofSwiftness = 3009,
-    ChemtechPutrifier = 3011,
-    ChaliceofBlessing = 3012,
-    SorcerersShoes = 3020,
-    LifewellPendant = 3023,
-    GlacialBuckler = 3024,
-    GuardianAngel = 3026,
-    InfinityEdge = 3031,
-    MortalReminder = 3033,
-    LastWhisper = 3035,
-    LordDominiksRegards = 3036,
-    AtmasReckoning = 3039,
-    SeraphsEmbrace = 3040,
-    MejaisSoulstealer = 3041,
-    Muramana = 3042,
-    Phage = 3044,
-    PhantomDancer = 3046,
-    PlatedSteelcaps = 3047,
-    ZekesConvergence = 3050,
-    HearthboundAxe = 3051,
-    SteraksGage = 3053,
-    Sheen = 3057,
-    SpiritVisage = 3065,
-    WingedMoonplate = 3066,
-    Kindlegem = 3067,
-    SunfireAegis = 3068,
-    TearoftheGoddess = 3070,
-    BlackCleaver = 3071,
-    Bloodthirster = 3072,
-    ExperimentalHexplate = 3073,
-    RavenousHydra = 3074,
-    Thornmail = 3075,
-    BrambleVest = 3076,
-    Tiamat = 3077,
-    TrinityForce = 3078,
-    WardensMail = 3082,
-    WarmogsArmor = 3083,
-    Heartsteel = 3084,
-    RunaansHurricane = 3085,
-    Zeal = 3086,
-    StatikkShiv = 3087,
-    RabadonsDeathcap = 3089,
-    WitsEnd = 3091,
-    RapidFirecannon = 3094,
-    Stormrazor = 3095,
-    LichBane = 3100,
-    BansheesVeil = 3102,
-    AegisoftheLegion = 3105,
-    Redemption = 3107,
-    FiendishCodex = 3108,
-    KnightsVow = 3109,
-    FrozenHeart = 3110,
-    MercurysTreads = 3111,
-    GuardiansOrb = 3112,
-    AetherWisp = 3113,
-    ForbiddenIdol = 3114,
-    NashorsTooth = 3115,
-    RylaisCrystalScepter = 3116,
-    MobilityBoots = 3117,
-    Malignance = 3118,
-    WintersApproach = 3119,
-    Fimbulwinter = 3121,
-    ExecutionersCalling = 3123,
-    GuinsoosRageblade = 3124,
-    DeathfireGrasp = 3128,
-    SwordoftheDivine = 3131,
-    CaulfieldsWarhammer = 3133,
-    SerratedDirk = 3134,
-    VoidStaff = 3135,
-    Cryptbloom = 3137,
-    MercurialScimitar = 3139,
-    QuicksilverSash = 3140,
-    YoumuusGhostblade = 3142,
-    RanduinsOmen = 3143,
-    HextechAlternator = 3145,
-    HextechGunblade = 3146,
-    HauntingGuise = 3147,
-    HextechRocketbelt = 3152,
-    BladeofTheRuinedKing = 3153,
-    Hexdrinker = 3155,
-    MawofMalmortius = 3156,
-    ZhonyasHourglass = 3157,
-    IonianBootsofLucidity = 3158,
-    SpearofShojin = 3161,
-    Morellonomicon = 3165,
-    Zephyr = 3172,
-    GuardiansBlade = 3177,
-    UmbralGlaive = 3179,
-    Hullbreaker = 3181,
-    GuardiansHammer = 3184,
-    LocketoftheIronSolari = 3190,
-    GargoyleStoneplate = 3193,
-    SpectresCowl = 3211,
-    MikaelsBlessing = 3222,
-    Terminus = 3302,
-    ScarecrowEffigy = 3330,
-    StealthWard = 3340,
-    ArcaneSweeper = 3348,
-    LucentSingularity = 3349,
-    FarsightAlteration = 3363,
-    OracleLens = 3364,
-    YourCut = 3400,
-    RiteOfRuin = 3430,
-    ArdentCenser = 3504,
-    EssenceReaver = 3508,
-    EyeoftheHerald = 3513,
-    KalistasBlackSpear = 3599,
-    KalistasBlackSpear = 3600,
-    DeadMansPlate = 3742,
-    TitanicHydra = 3748,
-    CrystallineBracer = 3801,
-    LostChapter = 3802,
-    CatalystofAeons = 3803,
-    EdgeofNight = 3814,
-    SpellthiefsEdge = 3850,
-    Frostfang = 3851,
-    ShardofTrueIce = 3853,
-    SteelShoulderguards = 3854,
-    RunesteelSpaulders = 3855,
-    PauldronsofWhiterock = 3857,
-    RelicShield = 3858,
-    TargonsBuckler = 3859,
-    BulwarkoftheMountain = 3860,
-    SpectralSickle = 3862,
-    HarrowingCrescent = 3863,
-    BlackMistScythe = 3864,
-    WorldAtlas = 3865,
-    RunicCompass = 3866,
-    BountyofWorlds = 3867,
-    CelestialOpposition = 3869,
-    DreamMaker = 3870,
-    ZazZaksRealmspike = 3871,
-    SolsticeSleigh = 3876,
-    Bloodsong = 3877,
-    FireatWill = 3901,
-    DeathsDaughter = 3902,
-    RaiseMorale = 3903,
-    OblivionOrb = 3916,
-    Lifeline = 4003,
-    SpectralCutlass = 4004,
-    ImperialMandate = 4005,
-    BloodlettersCurse = 4010,
-    SwordofBlossomingDawn = 4011,
-    SinEater = 4012,
-    LightningBraid = 4013,
-    FrozenMallet = 4014,
-    Perplexity = 4015,
-    WordlessPromise = 4016,
-    HellfireHatchet = 4017,
-    ForceofNature = 4401,
-    InnervatingLocket = 4402,
-    TheGoldenSpatula = 4403,
-    HorizonFocus = 4628,
-    CosmicDrive = 4629,
-    BlightingJewel = 4630,
-    VerdantBarrier = 4632,
-    Riftmaker = 4633,
-    LeechingLeer = 4635,
-    NightHarvester = 4636,
-    DemonicEmbrace = 4637,
-    WatchfulWardstone = 4638,
-    StirringWardstone = 4641,
-    BandleglassMirror = 4642,
-    VigilantWardstone = 4643,
-    CrownoftheShatteredQueen = 4644,
-    Shadowflame = 4645,
-    Stormsurge = 4646,
-    IronspikeWhip = 6029,
-    SilvermereDawn = 6035,
-    DeathsDance = 6333,
-    ChempunkChainsword = 6609,
-    SunderedSky = 6610,
-    StaffofFlowingWater = 6616,
-    MoonstoneRenewer = 6617,
-    EchoesofHelia = 6620,
-    Dawncore = 6621,
-    Goredrinker = 6630,
-    Stridebreaker = 6631,
-    DivineSunderer = 6632,
-    LiandrysTorment = 6653,
-    LudensCompanion = 6655,
-    Everfrost = 6656,
-    RodofAges = 6657,
-    BamisCinder = 6660,
-    IcebornGauntlet = 6662,
-    HollowRadiance = 6664,
-    JakShoTheProtean = 6665,
-    RadiantVirtue = 6667,
-    Noonquiver = 6670,
-    Galeforce = 6671,
-    KrakenSlayer = 6672,
-    ImmortalShieldbow = 6673,
-    NavoriQuickblades = 6675,
-    TheCollector = 6676,
-    Rageknife = 6677,
-    Rectrix = 6690,
-    DuskbladeofDraktharr = 6691,
-    Eclipse = 6692,
-    ProwlersClaw = 6693,
-    SeryldasGrudge = 6694,
-    SerpentsFang = 6695,
-    AxiomArc = 6696,
-    Hubris = 6697,
-    ProfaneHydra = 6698,
-    VoltaicCyclosword = 6699,
-    ShieldoftheRakkor = 6700,
-    Opportunity = 6701,
-    SandshrikesClaw = 7000,
-    Syzygy = 7001,
-    DraktharrsShadowcarver = 7002,
-    RabadonsDeathcrown = 7003,
-    EnmityoftheMasses = 7004,
-    FrozenFist = 7005,
-    Typhoon = 7006,
-    Swordnado = 7007,
-    Ataraxia = 7008,
-    IcathiasCurse = 7009,
-    Vespertide = 7010,
-    UpgradedAeropack = 7011,
-    LiandrysLament = 7012,
-    ForceofArms = 7013,
-    EternalWinter = 7014,
-    CeaselessHunger = 7015,
-    Dreamshatter = 7016,
-    Deicide = 7017,
-    InfinityForce = 7018,
-    ReliquaryoftheGoldenDawn = 7019,
-    ShurelyasRequiem = 7020,
-    Starcaster = 7021,
-    Certainty = 7022,
-    Equinox = 7023,
-    Caesura = 7024,
-    Leviathan = 7025,
-    TheUnspokenParasite = 7026,
-    PrimordialDawn = 7027,
-    InfiniteConvergence = 7028,
-    YoumuusWake = 7029,
-    SeethingSorrow = 7030,
-    EdgeofFinality = 7031,
-    Flicker = 7032,
-    CryoftheShriekingCity = 7033,
-    HopeAdrift = 7034,
-    Daybreak = 7035,
-    TURBO = 7036,
-    ObsidianCleaver = 7037,
-    ShojinsResolve = 7038,
-    Heavensfall = 7039,
-    EyeoftheStorm = 7040,
-    WyrmfallenSacrifice = 7041,
-    TheBaronsGift = 7042,
-    GangplankPlaceholder = 7050,
-    AnathemasChains = 8001,
-    AbyssalMask = 8020,
+local ItemID = { --14.2.1 update
+  Boots = 1001,
+  FaerieCharm = 1004,
+  RejuvenationBead = 1006,
+  GiantsBelt = 1011,
+  CloakofAgility = 1018,
+  BlastingWand = 1026,
+  SapphireCrystal = 1027,
+  RubyCrystal = 1028,
+  ClothArmor = 1029,
+  ChainVest = 1031,
+  NullMagicMantle = 1033,
+  Emberknife = 1035,
+  LongSword = 1036,
+  Pickaxe = 1037,
+  BFSword = 1038,
+  Hailblade = 1039,
+  ObsidianEdge = 1040,
+  Dagger = 1042,
+  RecurveBow = 1043,
+  AmplifyingTome = 1052,
+  VampiricScepter = 1053,
+  DoransShield = 1054,
+  DoransBlade = 1055,
+  DoransRing = 1056,
+  NegatronCloak = 1057,
+  NeedlesslyLargeRod = 1058,
+  DarkSeal = 1082,
+  Cull = 1083,
+  ScorchclawPup = 1101,
+  GustwalkerHatchling = 1102,
+  MosstomperSeedling = 1103,
+  EyeoftheHerald = 1104,
+  PenetratingBullets = 1500,
+  Fortification1 = 1501,
+  ReinforcedArmor = 1502,
+  WardensEye = 1503,
+  Vanguard = 1504,
+  Fortification2 = 1506,
+  Overcharged = 1507,
+  AntitowerSocks = 1508,
+  Gusto = 1509,
+  PhreakishGusto = 1510,
+  SuperMechArmor = 1511,
+  SuperMechPowerField = 1512,
+  TurretPlating = 1515,
+  StructureBounty1 = 1516,
+  StructureBounty2 = 1517,
+  StructureBounty3 = 1518,
+  StructureBounty4 = 1519,
+  OvererchargedHA = 1520,
+  Fortification3 = 1521,
+  TowerPowerUp = 1522,
+  HealthPotion = 2003,
+  TotalBiscuitofEverlastingWill = 2010,
+  KircheisShard = 2015,
+  SteelSigil = 2019,
+  TheBrutalizer = 2020,
+  Tunneler = 2021,
+  GlowingMote = 2022,
+  RefillablePotion = 2031,
+  CorruptingPotion = 2033,
+  GuardiansAmulet = 2049,
+  GuardiansShroud = 2050,
+  GuardiansHorn = 2051,
+  PoroSnax = 2052,
+  ControlWard = 2055,
+  StealthWard = 2056,
+  ShurelyasBattlesong = 2065,
+  ElixirofIron = 2138,
+  ElixirofSorcery = 2139,
+  ElixirofWrath = 2140,
+  CappaJuice = 2141,
+  JuiceofPower = 2142,
+  JuiceofVitality = 2143,
+  JuiceofHaste = 2144,
+  ElixirofSkill = 2150,
+  ElixirofAvarice = 2151,
+  ElixirofForce = 2152,
+  BFSword2 = 221038,
+  VampiricScepter2 = 221053,
+  NeedlesslyLargeRod2 = 221058,
+  GuardiansHorn2 = 222051,
+  ShurelyasBattlesong2 = 222065,
+  Evenshroud = 223001,
+  ArchangelsStaff = 223003,
+  Manamune2 = 223004,
+  Ghostcrawlers2 = 223005,
+  BerserkersGreaves2 = 223006,
+  BootsofSwiftness2 = 223009,
+  ChemtechPutrifier2 = 223011,
+  SorcerersShoes2 = 223020,
+  GuardianAngel2 = 223026,
+  InfinityEdge2 = 223031,
+  MortalReminder2 = 223033,
+  LordDominiksRegards2 = 223036,
+  AtmasReckoning2 = 223039,
+  SeraphsEmbrace2 = 223040,
+  Muramana2 = 223042,
+  PhantomDancer2 = 223046,
+  PlatedSteelcaps2 = 223047,
+  ZekesConvergence2 = 223050,
+  SteraksGage2 = 223053,
+  Sheen2 = 223057,
+  SpiritVisage2 = 223065,
+  Kindlegem2 = 223066,
+  EssenceReaver2 = 223068,
+  QuicksilverSash2 = 223070,
+  TheCollector2 = 223074,
+  SerratedDirk2 = 223075,
+  RapidFirecannon2 = 223076,
+  CaulfieldsWarhammer2 = 223079,
+  NavoriQuickblades2 = 223080,
+  Bloodthirster2 = 223081,
+  LichBane2 = 223083,
+  Galeforce2 = 223086,
+  WitEnd2 = 223087,
+  InfinityForce2 = 223088,
+  FrozenMallet2 = 223089,
+  MercurialScimitar2 = 223091,
+  HextechGLP8002 = 223092,
+  MawofMalmortius2 = 223094,
+  Galeforce3 = 224086,
+  WitEnd3 = 224087,
+  InfinityForce3 = 224088,
+  FrozenMallet3 = 224089,
+  MercurialScimitar3 = 224091,
+  HextechGLP8003 = 224092,
+  MawofMalmortius3 = 224094,
+  BrawlersGloves2 = 223096,
+  ClothArmor2 = 223098,
+  LongSword2 = 223099,
+  Dagger2 = 223102,
+  AmplifyingTome2 = 223105,
+  ControlWard2 = 223106,
+  SteelShoulderguards2 = 223307,
+  Mageseeker2 = 223308,
+  RelicShield2 = 223309,
+  SpectralSickle2 = 223310,
+  Hailblade2 = 223311,
+  Overheal = 2350,
+  Ghostwalkers = 2422,
+  Dematerializer = 2403,
+  IronspikeWhip = 3751,
+  Goredrinker = 6630,
+  ProwlersClaw = 6691,
+  DivineSunderer = 6632,
+  Eclipse = 6692,
+  Goredrinker2 = 6662,
+  DivineSunderer2 = 6632,
+  Eclipse2 = 6692,
+  ProwlersClaw = 6691,
+  Galeforce = 6671,
+  KrakenSlayer = 6672,
+  Shieldbow = 6673,
+  ImmortalShieldbow = 6674,
+  KrakenSlayer = 6672,
+  Shieldbow2 = 6673,
+  ImmortalShieldbow2 = 6674,
+  TurboChemtank = 6664,
+  Stridebreaker = 6631,
+  FrostfireGauntlet = 6663,
+  TurboChemtank = 6664,
+  Stridebreaker2 = 6631,
+  FrostfireGauntlet = 6663,
+  SunfireAegis = 6660,
+  ChemtechPutrifier = 3916,
+  ImperialMandate = 4005,
+  MoonstoneRenewer = 6616,
+  LocketoftheIronSolari = 3190,
+  ShurelyasRequiem = 2065,
+  ForceofNature = 4401,
+  ZekesConvergence = 3050,
+  ArdentCenser = 3504,
+  Redemption = 3107,
+  IronspikeWhip = 6631,
+  Goredrinker = 6632,
+  ProwlersClaw = 6691,
+  DivineSunderer = 6633,
+  Eclipse = 6692,
+  Galeforce = 6671,
+  KrakenSlayer = 6672,
+  Shieldbow = 6673,
+  ImmortalShieldbow = 6674,
+  TurboChemtank = 6664,
+  Stridebreaker = 6635,
+  FrostfireGauntlet = 6666,
+  SunfireAegis = 6667,
+  ChemtechPutrifier = 6695,
+  ImperialMandate = 6696,
+  MoonstoneRenewer = 6697,
+  LocketoftheIronSolari = 6698,
+  ForceofNature = 6699,
+  ZekesConvergence = 6694,
+  ArdentCenser = 6693,
+  Redemption2 = 6692
 }
 
 local RuneID = { --13.20 update
@@ -2016,7 +1779,7 @@ local DamageReductionItemsTable = {
 ]]
 local SpecialAADamageTable = {
   --Spell/Skills
-  ["Blitzcrank"] = function(args) --BlitzcrankW
+  ["Blitzcrank"] = function(args) --BlitzcrankW Overdrive
     if Buff:HasBuff(args.source, "Overdrive") then
       local unitLevel = args.source.levelData.lvl
       local maxHealth = (1 / 100 * args.Target.maxHealth)
@@ -2523,12 +2286,12 @@ local SpellDamageTable = {
 
   ["Blitzcrank"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({105, 155, 205, 255, 305290})[level] + 1.20 * source.ap end},
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) local dmg = source.totalDamage + (0.25 * source.ap); return dmg end}, -- if target.type == Obj_AI_Minion then dmg = (2.5 * source.totalDamage) + (1.25 * source.ap) end;
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) local dmg = (0.80 * source.totalDamage) + (0.25 * source.ap); return dmg end}, -- if target.type == Obj_AI_Minion then dmg = (2.5 * source.totalDamage) + (1.25 * source.ap) end;
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({275, 400, 525})[level] + (1.00 * source.ap) end},
   },
 
   ["Brand"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + 0.60 * source.ap end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 100, 130, 160, 190})[level] + 0.65 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) local buff = Buff:Hasbuff(target, "BrandAblaze"); local dmg = ({75, 120, 165, 210, 255})[level] + 0.60 * source.ap; if buff then  dmg = dmg * 1.25 end; return dmg end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 90, 120, 150, 180})[level] + 0.60 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({100, 200, 300})[level] + 0.25 * source.ap end},
@@ -2540,7 +2303,7 @@ local SpellDamageTable = {
   },
 
   ["Briar"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 90, 120, 150, 180})[level] + (0.80 * source.bonusDamage) end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 90, 120, 150, 180})[level] + (0.80 * source.bonusDamage) + (0.60 * source.ap) end},
     {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({60, 70, 80, 90, 100})[level]/100 * source.totalDamage end},
     {Slot = "W", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({5, 20, 35, 50, 65})[level] + (0.05 * source.totalDamage) + (0.9 + (0.025 * math.floor(source.bonusDamage / 100)) * GetMissingHP(target)) end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 115, 150, 185, 220})[level] + (source.bonusDamage) + (source.ap) end},
@@ -2578,7 +2341,7 @@ local SpellDamageTable = {
 
   ["Corki"] = {
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({75, 120, 165, 210, 255})[level] + 0.50 * source.ap + 0.70 * source.bonusDamage end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({15, 22.5, 30, 37.5, 45})[level] + 0.10 * source.ap end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({15, 22.5, 30, 37.5, 45})[level] + 0.15 * source.ap end},
     {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 8.75, 10, 11.25, 12.5, 13.75, 15, 16.25, 17.5, 20, 22.5, 25})[source.levelData.lvl] + (0.50 * source.bonusDamage) + (0.06 * source.ap) end}, --Special Delivery / package
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({7.5, 10.625, 13.75, 16.875, 20})[level] + 0.15 * source.bonusDamage end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 115, 150})[level] + 0.12 * source.ap + ({0.25, 0.50, 0.75})[level] * source.totalDamage end},
@@ -2633,10 +2396,10 @@ local SpellDamageTable = {
   },
 
   ["Ezreal"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 45, 70, 95, 120})[level] + 0.15 * source.ap + 1.3 * source.totalDamage end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 135, 190, 245, 300})[level] + (({0.7, 0.75, 0.8, 0.85, 0.9})[level] * source.ap) + 0.6 * source.bonusDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 45, 70, 95, 120})[level] + 0.15 * source.ap + 1.30 * source.totalDamage end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 135, 190, 245, 300})[level] + (({0.7, 0.75, 0.8, 0.85, 0.9})[level] * source.ap) + 1.00 * source.bonusDamage end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 130, 180, 230, 280})[level] + 0.75 * source.ap + 0.5 * source.bonusDamage end},
-    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({350, 500, 650})[level] + 0.9 * source.ap + source.bonusDamage end},
+    {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({350, 500, 650})[level] + 0.9 * source.ap + 1.00 * source.bonusDamage end},
   },
 
   ["Fiddlesticks"] = {
@@ -2652,7 +2415,7 @@ local SpellDamageTable = {
   },
 
   ["Fizz"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({10, 25, 40, 55, 70})[level] + 0.50 * source.ap end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({10, 25, 40, 55, 70})[level] + 0.45 * source.ap end},
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({50, 70, 90, 110, 130})[level] + 0.40 * source.ap end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 130, 180, 230, 280})[level] + 0.90 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({150, 250, 350})[level] + 0.80 * source.ap end}, --GUPPY (<455)
@@ -2678,7 +2441,7 @@ local SpellDamageTable = {
 
   ["Garen"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 60, 90, 120, 150})[level] + 0.5 * source.totalDamage end},
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({4, 8, 12, 16, 20})[level] + ({0, 0.8, 1.6, 2.4, 3.2, 4, 4.8, 5.6, 6.4, 6.6, 6.6, 7, 7.2, 7.4, 7.6, 7.8, 8, 8.2})[myHero.levelData.lvl] + ({32, 34, 36, 38, 40})[level] / 100 * source.totalDamage end},
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({4, 8, 12, 16, 20})[level] + ({0, 0.8, 1.6, 2.4, 3.2, 4, 4.8, 5.6, 6.4, 6.6, 6.6, 7, 7.2, 7.4, 7.6, 7.8, 8, 8.2})[myHero.levelData.lvl] + ({36, 37, 38, 39, 40})[level] / 100 * source.totalDamage end},
     {Slot = "R", Stage = 1, DamageType = 3, Damage = function(source, target, level) return ({150, 300, 450})[level] + (({25, 30, 35})[level] / 100) * GetMissingHP(target) end},
   },
 
@@ -2707,7 +2470,7 @@ local SpellDamageTable = {
     {Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({200, 320, 440})[level] + 1.2 * source.bonusDamage end},
   },
 
-  ["Gwen"] = { --TODO: Center 50% true dmg conversion
+  ["Gwen"] = { --TODO: Center 50% true dmg conversion + Passive Thousand Cuts %hp
     {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 100, 130, 160, 190})[level] + 0.40 * source.ap  end},--+ (0.02 + math.floor(0.016 * source.ap / 100) * target.maxHealth) end}, --min center damage
     {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + 0.35 * source.ap  end},--+ (0.01 + math.floor(0.008 * source.ap / 100) * target.maxHealth) end}, --Final center damage
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (15 + 0.20 * source.ap) end}, --onhit
@@ -2864,14 +2627,14 @@ local SpellDamageTable = {
   },
 
   ["Karma"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 120, 170, 220, 270})[level] + 0.50 * source.ap end},
-    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({70, 120, 170, 220, 270})[level] + ({40, 100, 160, 220})[source:GetSpellData(_R).level] + 0.30 * source.ap end}, --Ult Q
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 120, 170, 220, 270})[level] + 0.70 * source.ap end},
+    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return (({70, 120, 170, 220, 270})[level] + 0.70 * source.ap) + (({40, 100, 160, 220})[source:GetSpellData(_R).level] + 0.30 * source.ap) end}, --Ult Q
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 130, 180, 230, 280})[level] + 0.90 * source.ap end}, -- full tether damage
   },
 
   ["Karthus"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({43, 61, 79, 97, 115})[level] + 0.35 * source.ap) * 2 end},--single Target
-    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({43, 61, 79, 97, 115})[level] + 0.35 * source.ap end},--AOE
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({45, 65, 85, 105, 125})[level] + 0.35 * source.ap) * 2 end},--single Target
+    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({45, 65, 85, 105, 125})[level] + 0.35 * source.ap end},--AOE
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({30, 50, 70, 90, 110})[level] + 0.2 * source.ap end}, --DPS not per tick deals damage every 0.25sec - toggle off deals 1 tick of damage
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({200, 350, 500})[level] + 0.75 * source.ap end},
   },
@@ -2998,11 +2761,11 @@ local SpellDamageTable = {
   },
 
   ["Lillia"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 50, 60, 70, 80})[level] + 0.40 * source.ap end}, --Q Area
-    {Slot = "Q", Stage = 1, DamageType = 3, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.80 * source.ap end}, --Q Edge TODO: mixed damage Magical + True
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 50, 60, 70, 80})[level] + 0.35 * source.ap end}, --Q Area
+    {Slot = "Q", Stage = 1, DamageType = 3, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.70 * source.ap end}, --Q Edge TODO: mixed damage Magical + True
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 100, 120, 140, 160})[level] + 0.35 * source.ap end}, --W Area
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({240, 300, 360, 420, 480})[level] + 1.05 * source.ap end}, --W Center
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 95, 120, 145, 170})[level] + 0.45 * source.ap end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 95, 120, 145, 170})[level] + 0.60 * source.ap end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({100, 150, 200})[level] + 0.40 * source.ap end},
   },
 
@@ -3071,7 +2834,7 @@ local SpellDamageTable = {
   },
 
   ["MonkeyKing"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 45, 70, 95, 120})[level] + 0.45 * source.bonusDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 45, 70, 95, 120})[level] + 0.55 * source.bonusDamage end},
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({80, 110, 140, 170, 200})[level] + source.ap end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({0.01, 0.015, 0.02})[level] * target.maxHealth + ((34.375/100) * source.totalDamage) end}, --Per Tick
     {Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({0.08, 0.12, 0.16})[level] * target.maxHealth + (2.75 * source.totalDamage) end}, --Total
@@ -3195,8 +2958,8 @@ local SpellDamageTable = {
   },
 
   ["Pyke"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({85, 135, 185, 235, 285})[level] + 0.6 * source.bonusDamage end},
-    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({105, 135, 165, 195, 225})[level] + source.bonusDamage end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({85, 135, 185, 235, 285})[level] + 0.75 * source.bonusDamage end},
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({100, 150, 200, 250, 300})[level] + source.bonusDamage end},
     {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) local heroLevel = myHero.levelData.lvl; return ({250, 250, 250, 250, 250, 250, 290, 330, 370, 400, 430, 450, 470, 490, 510, 530, 540, 550})[heroLevel] + (0.8 * source.bonusDamage) + 1.5 * source.armorPen end},
   },
 
@@ -3256,8 +3019,8 @@ local SpellDamageTable = {
   },
 
   ["Rengar"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 60, 90, 120, 150})[level] + ((({0, 5, 10, 15, 20})[level] / 100) * source.totalDamage) end},
-    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({30, 45, 60, 75, 90, 105, 120, 135, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240})[source.levelData.lvl] + 0.4 * source.totalDamage end},--EMPOWERED ACTIVE
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 60, 90, 120, 150})[level] + ((({0, 3.75, 7.5, 11.25, 15})[level] / 100) * source.totalDamage) end},
+    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({30, 45, 60, 75, 90, 105, 120, 135, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240})[source.levelData.lvl] + 0.30 * source.totalDamage end},--EMPOWERED ACTIVE
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({50, 80, 110, 140, 170})[level] + 0.8 * source.ap end},
     {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return (40 + 10 * source.levelData.lvl) + 0.8 * source.ap end},--EMPOWERED ACTIVE
     {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({55, 100, 145, 190, 235})[level] + 0.8 * source.bonusDamage end},
@@ -3272,10 +3035,10 @@ local SpellDamageTable = {
   },
 
   ["Rumble"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({135, 150, 165, 180, 195})[level] + 1.10 * source.ap + ({6, 7, 8, 9, 10})[level] * target.maxHealth end},
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({125, 140, 155, 170, 185})[level] + 1.10 * source.ap + ({6, 7, 8, 9, 10})[level] * target.maxHealth end},
     {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({202.5, 225, 247.5, 270, 292.5})[level] + 1.65 * source.ap + ({9, 10.5, 12, 13.5, 15})[level] * target.maxHealth end}, --enhanced
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + 0.40 * source.ap end},
-    {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({90, 127.5, 165, 202.5, 240})[level] + 0.60 * source.ap end}, --enhanced
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 85, 110, 135, 160})[level] + 0.50 * source.ap end},
+    {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({90, 127.5, 165, 202.5, 240})[level] + 0.75 * source.ap end}, --enhanced
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({70, 105, 140})[level] + 0.175 * source.ap end},--per half Second
     {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({840, 1260, 1680})[level] + 2.1 * source.ap end},--full Damage
   },
@@ -3344,7 +3107,7 @@ local SpellDamageTable = {
 
   ["Shyvana"] = {
     {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (({20, 40, 60, 80, 100})[level] / 100 * source.totalDamage) + (0.25 * source.ap) end},
-    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return (1 * source.totalDamage) + (0.35 * source.ap) end}, --Dragon Form
+    {Slot = "Q", Stage = 2, DamageType = 1, Damage = function(source, target, level) return (1 * source.totalDamage) + (0.50 * source.ap) end}, --Dragon Form
     {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({10, 15, 20, 25, 30})[level] + (0.10 * source.bonusDamage) end},--per Second
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 100, 140, 180, 220})[level] + (0.90 * source.ap) + (0.40 * source.totalDamage) end},
     {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) local lvldmg = ({75, 75, 75, 75, 75, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135})[source.levelData.lvl] return (lvldmg) + ({60, 100, 140, 180, 220})[level] + source.ap + (0.6 * source.totalDamage) end},--Dragon Form per Second
@@ -3375,6 +3138,13 @@ local SpellDamageTable = {
     {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 65, 90, 115, 140})[level] + (0.2 * source.ap) end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({20, 60, 100})[level] + 0.5 * source.ap end}, --initial damage
     {Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({40, 120, 200})[level] + source.ap + (1.2 * source.totalDamage) end}, --damage on succeed impale
+  },
+
+  ["Smolder"] = {
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (({15, 25, 35, 45, 55})[level] + (1.00 * source.totalDamage) + (0.15 * source.ap)) * (0.30 * source.critChance) end},
+    {Slot = "W", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({70, 90, 110, 130, 150})[level] + (0.25 * source.totalDamage) + (0.35 * source.ap) end},
+    {Slot = "E", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (({15, 20, 25, 30, 35})[level] + (0.10 * source.totalDamage) * (5 * (1 + (source.critChance/20)))) end}, --initial damage
+    {Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({225, 350, 475})[level] + (1.10 * source.bonusDamage) + (1.00 * source.ap) end}, --damage on succeed impale
   },
 
   ["Sona"] = {
@@ -3517,11 +3287,11 @@ local SpellDamageTable = {
   },
 
   ["Taliyah"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({50, 70, 90, 110, 130})[level] + 0.50 * source.ap end}, --for total dmg = dmg + 4(0.40*dmg) 5 hits susequent hits deal 40%
-    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({76, 114, 152, 190, 228})[level] + 0.95 * source.ap end}, --Empowered Single
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 78, 96, 114, 132})[level] + 0.50 * source.ap end}, --for total dmg = dmg + 4(0.40*dmg) 5 hits susequent hits deal 40%
+    {Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({114, 148.2, 182.4, 216.6, 250.8})[level] + 0.95 * source.ap end}, --Empowered Single
     --{Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 80, 100, 120, 140})[level] + 0.4 * source.ap end}, --No longer deals damage
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 105, 150, 195, 240})[level] + 0.40 * source.ap end},
-    {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({62.5, 112.5, 162.5, 212.5, 262.5})[level] + 0.825 * source.ap end}, --max trigger damage
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 105, 150, 195, 240})[level] + 0.60 * source.ap end},
+    {Slot = "E", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({62.5, 112.5, 162.5, 212.5, 262.5})[level] + 0.75 * source.ap end}, --max trigger damage
   },
 
   ["Taric"] = {
@@ -3554,7 +3324,7 @@ local SpellDamageTable = {
   },
 
   ["Trundle"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({20, 40, 60, 80, 100})[level] + (({0.15, 0.25, 0.35, 0.45, 0.55})[level] * source.totalDamage) end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({10, 30, 50, 70, 90})[level] + (({0.15, 0.25, 0.35, 0.45, 0.55})[level] * source.totalDamage) end},
     {Slot = "R", Stage = 1, DamageType = 2, Damage = function(source, target, level) return (({20, 25, 30})[level]/100 + 0.02 * math.floor(source.ap/100)) * target.maxHealth end},
   },
 
@@ -3563,11 +3333,11 @@ local SpellDamageTable = {
   },
 
   ["TwistedFate"] = {
-    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 100, 140, 180, 220})[level] + 0.90 * source.ap end},
-    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 60, 80, 100, 120})[level] + source.totalDamage + (0.9 * source.ap) end},--Blue Card
-    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({30, 45, 60, 75, 90})[level] + source.totalDamage + (0.6 * source.ap) end},--Red Card
-    {Slot = "W", Stage = 3, DamageType = 2, Damage = function(source, target, level) return ({15, 22.5, 30, 37.5, 45})[level] + source.totalDamage + (0.5 * source.ap) end},--Gold Card
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) local count = Buff:GetBuffCount(source, "cardmasterstackparticle") if count > 0 then return (({65, 90, 115, 140, 165})[level] + 0.5 * source.ap) end ; return 0 end}, --calc damage only if at 3 stacks for empowered AA
+    {Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({60, 100, 140, 180, 220})[level] + 0.90 * source.ap + 0.50 * source.bonusDamage end},
+    {Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({40, 60, 80, 100, 120})[level] + source.totalDamage + (0.9 * source.ap) + (0.575 * source.critChance) end},--Blue Card
+    {Slot = "W", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({30, 45, 60, 75, 90})[level] + source.totalDamage + (0.6 * source.ap) + (0.35 * source.critChance) end},--Red Card
+    {Slot = "W", Stage = 3, DamageType = 2, Damage = function(source, target, level) return ({15, 22.5, 30, 37.5, 45})[level] + source.totalDamage + (0.5 * source.ap) + (0.25 * source.critChance) end},--Gold Card
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) local count = Buff:GetBuffCount(source, "cardmasterstackparticle") if count > 0 then return (({65, 90, 115, 140, 165})[level] + (0.75 * source.bonusDamage) + 0.50 * source.ap) end ; return 0 end}, --calc damage only if at 3 stacks for empowered AA
   },
 
   ["Twitch"] = {
@@ -3711,8 +3481,8 @@ local SpellDamageTable = {
   },
 
   ["Yorick"] = {
-    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 55, 80, 105, 130})[level] + 0.4 * source.totalDamage end},
-    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return math.max(({70, 105, 140, 175, 210})[level] + (0.7 * source.ap), 0.15 * target.health) end},
+    {Slot = "Q", Stage = 1, DamageType = 1, Damage = function(source, target, level) return ({30, 55, 80, 105, 130})[level] + 0.40 * source.totalDamage end},
+    {Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return math.max(({70, 105, 140, 175, 210})[level] + (0.70 * source.ap), 0.15 * target.health) end},
   },
 
   ["Yuumi"] = {
@@ -4380,8 +4150,10 @@ end
 
 _G.DamageLib = {
   ItemID = ItemID,
-  RuneID= RuneID,
-  MeleeHeros = Hero[1],
+  RuneID = RuneID,
+  Heros = Hero,
+    MeleeHeros = Hero[1],
+    HerosBaseAS = Hero[2],
   ARAM = ARAM,
   --monsterType = Monstertable,
   IsMelee = function(unit)
