@@ -235,7 +235,8 @@ local ItemSlots = { ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6, ITEM_7 }
 local ItemKeys = { HK_ITEM_1, HK_ITEM_2, HK_ITEM_3, HK_ITEM_4, HK_ITEM_5, HK_ITEM_6, HK_ITEM_7 }
 
 -- SDK
-local Item = _G.SDK.ItemManager
+local Item, Buff, Target, Orbwalker, Damage, Spell, Object, Attack, Data, Cursor, IsRecalling
+--[[ local Item = _G.SDK.ItemManager
 local Buff = _G.SDK.BuffManager
 
 local Target = _G.SDK.TargetSelector
@@ -246,7 +247,7 @@ local Object = _G.SDK.ObjectManager
 local Attack = _G.SDK.Attack
 local Data = _G.SDK.Data
 local Cursor = _G.SDK.Cursor
-local IsRecalling = _G.SDK.IsRecalling
+local IsRecalling = _G.SDK.IsRecalling ]]
 
 -- Minion Info --
 local MeleeMinionList = {"SRU_ChaosMinionMelee", "SRU_OrderMinionMelee", "HA_ChaosMinionMelee", "HA_OrderMinionMelee", }
