@@ -1,4 +1,4 @@
-local damageLibVersion = 14.31
+local damageLibVersion = 14.32
 
 --[[
 Usage:
@@ -4982,7 +4982,7 @@ local GetSpecialAADamage = function(source, target, targetIsMinion)
 end
 
 -- Global Function --
-GetAADamage = function(source, target, respectPassives)
+GetAADamage = function(source, target, respectPassives, IsAA)
   if respectPassives == nil then
     respectPassives = true
   end
@@ -5004,7 +5004,7 @@ GetAADamage = function(source, target, respectPassives)
       return 1
     end
   end
-  return CalcDamage(source, target, DAMAGE_TYPE_PHYSICAL, source.totalDamage, true)
+  return CalcDamage(source, target, DAMAGE_TYPE_PHYSICAL, source.totalDamage, IsAA)
 end
 
 CalcDamage = function(source, target, DamageType, amount, IsAA)
@@ -5201,7 +5201,7 @@ getdmg = function(spell, target, source, stage, level)
   if spell == "AA" then
     local targetIsMinion = targetType == Obj_AI_Minion;
     local SpecialAADamage = GetSpecialAADamage(source, targetIsMinion)
-    return GetAADamage(source, target, SpecialAADamage)
+    return GetAADamage(source, target, SpecialAADamage, true)
   end
   local Ignite = getSummonerSpell("dot")
   if spell == "IGNITE" or (spell == Ignite) then
@@ -5284,7 +5284,7 @@ local function createKey(spell, target, source, stage)
 end
 
 function getcacheddmg(spell, target, source, stage, level, refreshtime)
-  refreshtime = refreshtime or 0.33 --tick 0.033 --5tick 0.165
+  refreshtime = refreshtime or 0.033 --0.33 --tick 0.033 --5tick 0.165
   source = source or myHero
   stage = stage or 1
   local key = createKey(spell, target, source, stage)
@@ -5301,7 +5301,7 @@ function getcacheddmg(spell, target, source, stage, level, refreshtime)
 end
 
 -- getdmg call overrides
-getdmg = function(...) return getcacheddmg(...) end
+-- getdmg = function(...) return getcacheddmg(...) end
 --
 
 -- Callbacks --
@@ -5319,7 +5319,6 @@ Callback.Add("Load", function()
   Data = _G.SDK.Data
   Cursor = _G.SDK.Cursor
   IsRecalling = _G.SDK.IsRecalling
-
   Callback.Add("Tick", function()
     --
     table.insert(_G.SDK.OnTick, function() end)
