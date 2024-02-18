@@ -1,9 +1,9 @@
 ----------------------------------------------------------------------
 
-local Heroes = {"MasterYi", "LeeSin", "Elise", "Jinx", "Leona", "Braum", "Blitzcrank", "Nami", "Sona", "DrMundo", "Nocturne", "Zed", "Olaf", "Hecarim", "Annie", "Garen", "Malphite", "Chogath", "Jax", "Amumu", "Warwick", "Gragas"}								
+local Heroes = {"MasterYi", "LeeSin", "Elise", "Jinx", "Leona", "Braum", "Blitzcrank", "Nami", "Sona", "DrMundo", "Nocturne", "Zed", "Olaf", "Hecarim", "Annie", "Garen", "Malphite", "Chogath", "Jax", "Amumu", "Warwick", "Gragas"}
 
-if not table.contains(Heroes, myHero.charName) then                 -- < ----- On first lines you must check your supported Champs,,,
-	print('Impuls AIO does not support ' .. myHero.charName)				-- otherwise all functions will be loaded until the first champ check although no champ is supported
+if not table.contains(Heroes, myHero.charName) then
+	print('Impuls AIO does not support ' .. myHero.charName)
 return end
 ----------------------------------------------------------------------
 local GameHeroCount = Game.HeroCount
@@ -15,12 +15,14 @@ local GameMissile = Game.Missile
 local GameMissileCount = Game.MissileCount
 
 local lastQ = 0
-castedWard = false
 local lastW = 0
 local lastE = 0
 local lastR = 0
+
 local lastIG = 0
 local lastMove = 0
+local castedWard = false
+
 local HITCHANCE_NORMAL = 2
 local HITCHANCE_HIGH = 3
 local HITCHANCE_IMMOBILE = 4
@@ -34,9 +36,9 @@ local ItemHotKey = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2,[ITEM_3] = HK_ITE
 --[[
 -- [ AutoUpdate ] --
 do
-    
+
     local Version = 0.8
-    
+
     local Files = {
         Lua = {
             Path = SCRIPT_PATH,
@@ -49,21 +51,21 @@ do
             Url = "https://raw.githubusercontent.com/Impuls/GoS/master/ImpulsAIO.version"    -- check if Raw Adress correct pls.. after you have create the version file on Github
         }
     }
-    
+
     local function AutoUpdate()
-        
+
         local function DownloadFile(url, path, fileName)
             DownloadFileAsync(url, path .. fileName, function() end)
             while not FileExist(path .. fileName) do end
         end
-        
+
         local function ReadFile(path, fileName)
             local file = io.open(path .. fileName, "r")
             local result = file:read()
             file:close()
             return result
         end
-        
+
         DownloadFile(Files.Version.Url, Files.Version.Path, Files.Version.Name)
         local textPos = myHero.pos:To2D()
         local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
@@ -73,9 +75,9 @@ do
         else
             print(Files.Version.Name .. ": No Updates Found")   --  <-- here too
         end
-    
+
     end
-    
+
     AutoUpdate()
 
 end
@@ -100,10 +102,9 @@ Callback.Add("Load", function()
         print("GGPrediction installed Press 2x F6")
         return
     end
-end	
 
-    require('damagelib')
-    require('GGPrediction');
+    require('DamageLib')
+    require('GGPrediction')
     require('PremiumPrediction')
     require('2DGeometry')
 
@@ -120,24 +121,30 @@ local function IsValid(unit)
         and unit.networkID
         and unit.health > 0
         and not unit.dead
-    ) then
-    return true;
+    ) then return true; end
+    return false;
 end
-return false;
+
+local function GetDistanceSqr(p1, p2)
+    if not p1 then return math.huge end
+    p2 = p2 or myHero
+    local dx = p1.x - p2.x
+    local dz = (p1.z or p1.y) - (p2.z or p2.y)
+    return dx*dx + dz*dz
 end
 
 local function MinionsNear(pos,range)
     local pos = pos.pos
     local N = 0
-        for i = 1, Game.MinionCount() do 
+        for i = 1, Game.MinionCount() do
         local Minion = Game.Minion(i)
         local Range = range * range
         if IsValid(Minion, 800) and Minion.team == TEAM_ENEMY and GetDistanceSqr(pos, Minion.pos) < Range then
             N = N + 1
         end
     end
-    return N    
-end 
+    return N
+end
 
 local function CheckBuffs(unit, buffname)
 	for i = 0, unit.buffCount do
@@ -147,7 +154,7 @@ local function CheckBuffs(unit, buffname)
 	return 0
 end
 
-local function GetAllyHeroes() 
+local function GetAllyHeroes()
     AllyHeroes = {}
     for i = 1, Game.HeroCount() do
         local Hero = Game.Hero(i)
@@ -180,15 +187,7 @@ local function OnEnemyHeroLoad(cb)
     end
 end
 
-function GetDistanceSqr(p1, p2)
-    if not p1 then return math.huge end
-    p2 = p2 or myHero
-    local dx = p1.x - p2.x
-    local dz = (p1.z or p1.y) - (p2.z or p2.y)
-    return dx*dx + dz*dz
-end
-
-function CountEnemiesNear(pos, range)
+local function CountEnemiesNear(pos, range)
     local pos = pos.pos
     local N = 0
     for i = 1, Game.HeroCount() do
@@ -200,7 +199,7 @@ function CountEnemiesNear(pos, range)
     return N
 end
 
-function GetCastLevel(unit, slot)
+local function GetCastLevel(unit, slot)
     return unit:GetSpellData(slot).level == 0 and 1 or unit:GetSpellData(slot).level
 end
 
@@ -210,50 +209,33 @@ local function GetStatsByRank(slot1, slot2, slot3, spell)
     local slot3 = 0
     return (({slot1, slot2, slot3})[myHero:GetSpellData(spell).level or 1])
 end
---[[----------------------------------------------------------------------------------------------------------------------------------------------
-   _   _   _   _   _      
-  / \ / \ / \ / \ / \     
- ( S | T | A | R | T )    
-  \_/ \_/ \_/ \_/ \_/     
-   _   _                  
-  / \ / \                 
- ( O | F )                
-  \_/ \_/                 
-   _   _   _   _   _   _  
-  / \ / \ / \ / \ / \ / \ 
- ( J | U | N | G | L | E )
-  \_/ \_/ \_/ \_/ \_/ \_/ 
-]]---------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 --[[
-   _   _   _   _   _   _   _   _  
-  / \ / \ / \ / \ / \ / \ / \ / \ 
- ( M | a | s | t | e | r | Y | i )
-  \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/  
-                                                                    
+
+MasterYi
+
 ]]
 
 
 --local Heroes = {"MasterYi"}											<--- remove this 2 lines,,, you end this script with this, if myHero not MasterYi
 --if not table.contains(Heroes, myHero.charName) then return end       		  I have added check on line 1 with explain why i do this....
-        
+
 class "MasterYi"
 function MasterYi:__init()
-    
+
     self.Q = {_G.SPELLTYPE_CIRCLE, Delay = 0.225, Radius = 0, Range = 600, Speed = 4000, Collision = false}
-    
+
 
     OnAllyHeroLoad(function(hero)
         Allys[hero.networkID] = hero
     end)
-    
+
     OnEnemyHeroLoad(function(hero)
         Enemys[hero.networkID] = hero
-    end)    
+    end)
     Callback.Add("Tick", function() self:Tick() end)
     Callback.Add("Draw", function() self:Draw() end)
-    
+
     orbwalker:OnPreMovement(function(args)
         if lastMove + 180 > GetTickCount() then
             args.Process = false
@@ -312,7 +294,7 @@ function MasterYi:Draw()
                 Draw.Text("ON", 18, 290, 30, Draw.Color(255, 0, 255, 0))
                 else
                     Draw.Text("OFF", 18, 290, 30, Draw.Color(255, 255, 0, 0))
-            end 
+            end
     end
 
     if self.ImpulsMenu.drawings.drawAutoW:Value() then
@@ -321,7 +303,7 @@ function MasterYi:Draw()
                 Draw.Text("ON", 18, 370, 60, Draw.Color(255, 0, 255, 0))
                 else
                     Draw.Text("OFF", 18, 370, 60, Draw.Color(255, 255, 0, 0))
-            end 
+            end
     end
 end
 
@@ -335,12 +317,12 @@ function MasterYi:Tick()
     elseif orbwalker.Modes[3] then
         self:jungleclear()
     elseif orbwalker.Modes[1] then
-        
+
     end
 end
 
 function MasterYi:autoW()
-  	
+
         if self.ImpulsMenu.autow.usew:Value() and Ready(_W) then
             if myHero.health/myHero.maxHealth <= self.ImpulsMenu.autow.usewhealth:Value()/100 then
                 Control.CastSpell(HK_W)
@@ -363,7 +345,7 @@ function MasterYi:jungleclear()
                     end
                 end
             end
-            
+
         end
 
 end
@@ -375,7 +357,7 @@ function MasterYi:Combo()
     if Ready(_Q) and target and IsValid(target) then
         if self.ImpulsMenu.combo.useq:Value() then
            self:CastQ(target)
-        end														
+        end
     end
 
     local target = TargetSelector:GetTarget(self.Q.Range, 1)
@@ -383,7 +365,7 @@ function MasterYi:Combo()
     if Ready(_E) and target and IsValid(target) then
         if self.ImpulsMenu.combo.usee:Value() then
            Control.CastSpell(HK_E)
-        end														
+        end
     end
 
     local target = TargetSelector:GetTarget(self.Q.Range, 1)
@@ -392,7 +374,7 @@ function MasterYi:Combo()
             if self.ImpulsMenu.combo.user:Value() then
                 Control.CastSpell(HK_R)
             end
-        end   
+        end
 
 end
 
@@ -415,16 +397,14 @@ function MasterYi:CastQ(target)
     end
 end
 --[[
-   _   _   _   _   _   _  
-  / \ / \ / \ / \ / \ / \ 
- ( L | e | e | S | i | n )
-  \_/ \_/ \_/ \_/ \_/ \_/ 
+
+LeeSin
 
 --]]
-   
+
 class "LeeSin"
 function LeeSin:__init()
-    
+
     self.Q = {_G.SPELLTYPE_LINE, Delay = 0.225, Radius = 60, Range = 1200, Speed = 1800, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
     self.Q2 = {_G.SPELLTYPE_CIRCLE, Delay = 0.225, Range = 1300}
 
@@ -439,13 +419,13 @@ function LeeSin:__init()
     OnAllyHeroLoad(function(hero)
         Allys[hero.networkID] = hero
     end)
-    
+
     OnEnemyHeroLoad(function(hero)
         Enemys[hero.networkID] = hero
-    end)    
+    end)
     Callback.Add("Tick", function() self:Tick() end)
     Callback.Add("Draw", function() self:Draw() end)
-    
+
     orbwalker:OnPreMovement(function(args)
         if lastMove + 180 > GetTickCount() then
             args.Process = false
@@ -511,7 +491,7 @@ function LeeSin:Draw()
                 Draw.Text("ON", 18, 370, 30, Draw.Color(255, 0, 255, 0))
                 else
                     Draw.Text("OFF", 18, 370, 30, Draw.Color(255, 255, 0, 0))
-            end 
+            end
     end
 
     if self.ImpulsMenu.drawings.drawAutoRkillable:Value() then
@@ -520,7 +500,7 @@ function LeeSin:Draw()
                 Draw.Text("ON", 18, 370, 60, Draw.Color(255, 0, 255, 0))
                 else
                     Draw.Text("OFF", 18, 370, 60, Draw.Color(255, 255, 0, 0))
-            end 
+            end
     end
 
     if self.ImpulsMenu.drawings.drawAutoRpanic:Value() then
@@ -529,7 +509,7 @@ function LeeSin:Draw()
                 Draw.Text("ON", 18, 370, 90, Draw.Color(255, 0, 255, 0))
                 else
                     Draw.Text("OFF", 18, 370, 90, Draw.Color(255, 255, 0, 0))
-            end 
+            end
     end
 end
 
@@ -544,7 +524,7 @@ function LeeSin:Tick()
     elseif orbwalker.Modes[3] then
         self:jungleclear()
     elseif orbwalker.Modes[1] then
-        
+
     end
 end
 
@@ -594,7 +574,7 @@ function LeeSin:jungleclear()
                     end
                 end
             end
-            
+
         end
 
 end
@@ -606,11 +586,11 @@ function LeeSin:Combo()
     if Ready(_Q) and target and IsValid(target) then
         if self.ImpulsMenu.combo.useq:Value() then
            self:CastQ(target)
-        end														
+        end
     end
 
     local target = TargetSelector:GetTarget(self.W.Range, 1)
-    if target == nil then return end 
+    if target == nil then return end
     if Ready(_W) and target and IsValid(target) then
         print(castedWard)
         if castedWard == false then
@@ -625,7 +605,7 @@ function LeeSin:Combo()
         if castedWard == true then
             Control.CastSpell(HK_W, castwPos)
         end
-    end 
+    end
 
 
     local target = TargetSelector:GetTarget(self.R.Range, 1)
@@ -633,7 +613,7 @@ function LeeSin:Combo()
     if Ready(_R) and target and IsValid(target) then
         if self.ImpulsMenu.combo.userinsec:Value() then
         DelayAction(function() self:CastR(target) end, 0.05)
-        end														
+        end
     end
 
     local target = TargetSelector:GetTarget(self.E.Range, 1)
@@ -641,7 +621,7 @@ function LeeSin:Combo()
     if Ready(_E) and target and IsValid(target) then
         if self.ImpulsMenu.combo.usee:Value() then
            self:CastE(target)
-        end														
+        end
     end
 end
 
@@ -685,33 +665,32 @@ function LeeSin:CastE(target)
 end
 
 --[[
-   _   _   _   _   _  
-  / \ / \ / \ / \ / \ 
- ( E | L | I | S | E )
-  \_/ \_/ \_/ \_/ \_/ 
+
+Elise
+
 ]]
 
 class "Elise"
 function Elise:__init()
-    
+
     self.QH = {Type = _G.SPELLTYPE_CIRCLE, Range = 625, Radius = 0, Speed = 2200, Collision = false}
     self.WH = {Type = _G.SPELLTYPE_LINE, Range = 950, Radius = 100, Speed = 5000, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
     self.EH = {Type = _G.SPELLTYPE_LINE, Range = 1075, Radius = 55, Speed = 1600, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
 
     self.QS = {Type = _G.SPELLTYPE_CIRCLE, Range = 475, Radius = 0, Speed = 20, Collision = false}
     self.ES = {Type = _G.SPELLTYPE_LINE, Range = 750, Radius = 0, Speed = 20}
-    
+
 
     OnAllyHeroLoad(function(hero)
         Allys[hero.networkID] = hero
     end)
-    
+
     OnEnemyHeroLoad(function(hero)
         Enemys[hero.networkID] = hero
-    end)    
+    end)
     Callback.Add("Tick", function() self:Tick() end)
     Callback.Add("Draw", function() self:Draw() end)
-    
+
     orbwalker:OnPreMovement(function(args)
         if lastMove + 180 > GetTickCount() then
             args.Process = false
@@ -775,7 +754,7 @@ function Elise:Draw()
                 Draw.Text("ON", 18, 285, 30, Draw.Color(255, 0, 255, 0))
                 else
                     Draw.Text("OFF", 18, 285, 30, Draw.Color(255, 255, 0, 0))
-            end 
+            end
     end
 
     if self.ImpulsMenu.drawings.drawAutoForm:Value() then
@@ -784,7 +763,7 @@ function Elise:Draw()
                 Draw.Text("ON", 18, 365, 55, Draw.Color(255, 0, 255, 0))
                 else
                     Draw.Text("OFF", 18, 365, 55, Draw.Color(255, 255, 0, 0))
-            end 
+            end
     end
 
     if self.ImpulsMenu.drawings.drawManualE:Value() then
@@ -793,7 +772,7 @@ function Elise:Draw()
                 Draw.Text("ON", 18, 390, 80, Draw.Color(255, 0, 255, 0))
                 else
                     Draw.Text("OFF", 18, 390, 80, Draw.Color(255, 255, 0, 0))
-            end 
+            end
     end
 
 end
@@ -839,9 +818,9 @@ end
 
 function Elise:jungleclear()
 
-   -- if (myHero:GetSpellData(_R).name == "EliseRSpider") 
+   -- if (myHero:GetSpellData(_R).name == "EliseRSpider")
 
-    if self.ImpulsMenu.jungleclear.combo1:Value() then 
+    if self.ImpulsMenu.jungleclear.combo1:Value() then
         for i = 1, Game.MinionCount() do
             local obj = Game.Minion(i)
             if obj.team ~= myHero.team then
@@ -864,7 +843,7 @@ function Elise:jungleclear()
                     end
                 end
             end
-            
+
         end
     end
 
@@ -877,7 +856,7 @@ function Elise:Combo()
     if Ready(_E) and target and IsValid(target) then
         if self.ImpulsMenu.combo.combo1:Value() and (myHero:GetSpellData(_E).name == "EliseHumanE") then
            self:CastEH(target)
-        end														
+        end
     end
 
     local target = TargetSelector:GetTarget(self.WH.Range, 1)
@@ -886,7 +865,7 @@ function Elise:Combo()
     if Ready(_W) and target and IsValid(target) then
         if self.ImpulsMenu.combo.combo1:Value() and (myHero:GetSpellData(_W).name == "EliseHumanW") then
            self:CastWH(target)
-        end														
+        end
     end
 
     local target = TargetSelector:GetTarget(self.QH.Range, 1)
@@ -894,14 +873,14 @@ function Elise:Combo()
     if Ready(_Q) and target and IsValid(target) then
         if self.ImpulsMenu.combo.combo1:Value() and (myHero:GetSpellData(_Q).name == "EliseHumanQ") then
            Control.CastSpell(HK_Q, target)
-        end														
+        end
     end
 
     if Ready(_R) then
         if self.ImpulsMenu.combo.combor:Value() and (myHero:GetSpellData(_R).name == "EliseR") then
             Control.CastSpell(HK_R)
         end
-    end 
+    end
 
  -- SPIDER --
 
@@ -911,16 +890,16 @@ function Elise:Combo()
         if self.ImpulsMenu.combo.combo1:Value() and (myHero:GetSpellData(_E).name == "EliseSpiderEInitial") then
             Control.CastSpell(HK_E)
             Control.CastSpell(HK_E, target)
-        end														
+        end
     end
 
-    
+
     local target = TargetSelector:GetTarget(self.QS.Range, 1)
     if target == nil then return end
     if Ready(_Q) and target and IsValid(target) then
         if self.ImpulsMenu.combo.combo1:Value() and (myHero:GetSpellData(_Q).name == "EliseSpiderQCast") then
             Control.CastSpell(HK_Q, target)
-        end														
+        end
     end
 
     local target = TargetSelector:GetTarget(self.QS.Range, 1)
@@ -928,7 +907,7 @@ function Elise:Combo()
     if Ready(_W) and target and IsValid(target) then
         if self.ImpulsMenu.combo.combo1:Value() and (myHero:GetSpellData(_W).name == "EliseSpiderW") then
             Control.CastSpell(HK_W)
-        end														
+        end
     end
 
 
@@ -936,7 +915,7 @@ function Elise:Combo()
 end
 
 function Elise:junglekillsteal()
-    if self.ImpulsMenu.junglekillsteal.W:Value() then 
+    if self.ImpulsMenu.junglekillsteal.W:Value() then
         for i = 1, Game.MinionCount() do
             local obj = Game.Minion(i)
             if obj.team ~= myHero.team then
@@ -1013,28 +992,28 @@ function Elise:CastR(target)
 end
 
 --[[
-   _   _   _   _   _   _   _   _  
-  / \ / \ / \ / \ / \ / \ / \ / \ 
- ( D | r | . | M | u | n | d | o )
-  \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ 
+
+DrMundo
+
 ]]
+
 class "DrMundo"
 function DrMundo:__init()
-    
+
     self.Q = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 60, Range = 975, Speed = 1850, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
     self.W = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0, Radius = 162.5, Range = 800, Speed = 0}
-    
+
 
     OnAllyHeroLoad(function(hero)
         Allys[hero.networkID] = hero
     end)
-    
+
     OnEnemyHeroLoad(function(hero)
         Enemys[hero.networkID] = hero
-    end)    
+    end)
     Callback.Add("Tick", function() self:Tick() end)
     Callback.Add("Draw", function() self:Draw() end)
-    
+
     orbwalker:OnPreMovement(function(args)
         if lastMove + 180 > GetTickCount() then
             args.Process = false
@@ -1094,13 +1073,13 @@ function DrMundo:LoadMenu()
     if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
         self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
     elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
     end
 
     if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
         self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
     elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
     end
 
 end
@@ -1114,7 +1093,7 @@ function DrMundo:Draw()
                 Draw.Text("ON", 18, 370, 30, Draw.Color(255, 0, 255, 0))
                 else
                     Draw.Text("OFF", 18, 370, 30, Draw.Color(255, 255, 0, 0))
-            end 
+            end
     end
 
 end
@@ -1131,7 +1110,7 @@ function DrMundo:Tick()
     elseif orbwalker.Modes[3] then
         self:jungleclear()
     elseif orbwalker.Modes[1] then
-        
+
     end
 end
 
@@ -1189,7 +1168,7 @@ function DrMundo:jungleclear()
                     end
                 end
             end
-            
+
         end
 
 end
@@ -1201,7 +1180,7 @@ function DrMundo:Combo()
     if Ready(_Q) and target and IsValid(target) then
         if self.ImpulsMenu.combo.useq:Value() then
            self:CastQ(target)
-        end														
+        end
     end
 
     local target = TargetSelector:GetTarget(self.W.Range, 1)
@@ -1209,7 +1188,7 @@ function DrMundo:Combo()
     if Ready(_W) and target and IsValid(target) and myHero:GetSpellData(_W).toogleState ~= 2 then
         if self.ImpulsMenu.combo.usew:Value() then
            Control.CastSpell(HK_W)
-        end														
+        end
     end
 
     local target = TargetSelector:GetTarget(self.Q.Range, 1)
@@ -1217,7 +1196,7 @@ function DrMundo:Combo()
     if Ready(_E) and target and IsValid(target) then
         if self.ImpulsMenu.combo.usee:Value() then
            Control.CastSpell(HK_E)
-        end														
+        end
     end
 
 
@@ -1263,29 +1242,29 @@ function DrMundo:CastE(target)
 end
 --[[
 
-
+Nocturne
 
 ]]
 
 class "Nocturne"
 function Nocturne:__init()
-    
+
     self.Q = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 100, Range = 1200, Speed = 1600, Collision = false}
     self.W = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 800, Range = 800, Speed = 1400, Collision = false}
     self.E = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 0, Range = 475, Speed = 0, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
     self.R = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0.50, Radius = 10000, Range = ({2500, 3250, 4000})[GetCastLevel(myHero, _R)], Speed = 2000}
-    
+
 
     OnAllyHeroLoad(function(hero)
         Allys[hero.networkID] = hero
     end)
-    
+
     OnEnemyHeroLoad(function(hero)
         Enemys[hero.networkID] = hero
-    end)    
+    end)
     Callback.Add("Tick", function() self:Tick() end)
     Callback.Add("Draw", function() self:Draw() end)
-    
+
     orbwalker:OnPreMovement(function(args)
         if lastMove + 180 > GetTickCount() then
             args.Process = false
@@ -1340,7 +1319,7 @@ function Nocturne:Tick()
     elseif orbwalker.Modes[3] then
         self:jungleclear()
     elseif orbwalker.Modes[1] then
-        
+
     end
 end
 
@@ -1358,7 +1337,7 @@ function Nocturne:jungleclear()
                     end
                 end
             end
-            
+
         end
 
 end
@@ -1370,7 +1349,7 @@ function Nocturne:Combo()
     if Ready(_Q) and target and IsValid(target) then
         if self.ImpulsMenu.combo.useq:Value() then
            self:CastQ(target)
-        end														
+        end
     end
 
     local target = TargetSelector:GetTarget(self.E.Range, 1)
@@ -1378,7 +1357,7 @@ function Nocturne:Combo()
     if Ready(_E) and target and IsValid(target) then
         if self.ImpulsMenu.combo.usee:Value() then
            Control.CastSpell(HK_E, target)
-        end														
+        end
     end
 
     local target = TargetSelector:GetTarget(2000, 1)
@@ -1388,7 +1367,7 @@ function Nocturne:Combo()
             if self.ImpulsMenu.combo.user:Value() and (d >= 1200) then
                 Control.CastSpell(HK_R, target)
             end
-        end   
+        end
 
 end
 
@@ -1422,60 +1401,33 @@ function Nocturne:CastR(target)
     end
 end
 
-
-
-
-
-
-
-
-
-
-
-
---[[-------------------------------------------------------------------------------------------------------------------------
-_   _   _              
-/ \ / \ / \             
-( E | N | D )            
-\_/ \_/ \_/             
- _   _                  
-/ \ / \                 
-( O | F )                
-\_/ \_/                 
- _   _   _   _   _   _  
-/ \ / \ / \ / \ / \ / \ 
-( J | U | N | G | L | E )
-\_/ \_/ \_/ \_/ \_/ \_/ 
-
---]]-------------------------------------------------------------------------------------------------------------------------
 --[[
-   _   _   _   _  
-  / \ / \ / \ / \ 
- ( J | I | N | X )
-  \_/ \_/ \_/ \_/ 
+
+Jinx
+
 ]]
 
 class "Jinx"
 function Jinx:__init()
-    
+
     self.Q = {speed = 2000, range = 600, delay = 0.25, radius = 0, type = "circular"}
     self.W = {speed = 1200, range = 10000, delay = 0.25, radius = 60, type = "linear", collision = {"minion"}}
     self.E = {speed = 1750, range = 900, delay = 0.25, radius = 50, type = "circular"}
     self.R = {speed = 1700, range = 25000, delay = 0.55, radius = 140, type = "linear"}
 
-    
+
 
     OnAllyHeroLoad(function(hero)
         Allys[hero.networkID] = hero
     end)
-    
+
     OnEnemyHeroLoad(function(hero)
         Enemys[hero.networkID] = hero
     end)
-                                      --- you need Load here your Menu        
+                                      --- you need Load here your Menu
     Callback.Add("Tick", function() self:Tick() end)
     Callback.Add("Draw", function() self:Draw() end)
-    
+
     orbwalker:OnPreMovement(function(args)
         if lastMove + 180 > GetTickCount() then
             args.Process = false
@@ -1540,7 +1492,7 @@ function Jinx:Draw()
 
     if self.ImpulsMenu.Drawing.drawr:Value() and Ready(_R) then
 		Draw.Circle(myHero, 1500, 1, Draw.Color(255, 0, 0))
-		end                                                 
+		end
 		if self.ImpulsMenu.Drawing.drawe:Value() and Ready(_E) then
 		Draw.Circle(myHero, 900, 1, Draw.Color(235, 147, 52))
 		end
@@ -1549,14 +1501,14 @@ function Jinx:Draw()
         end
         if self.ImpulsMenu.Drawing.rdebug:Value() and Ready(_R) then
             Draw.Circle(myHero, 3000, 1, Draw.Color(255, 255, 0, 0))
-            end   
+            end
         if self.ImpulsMenu.Drawing.drawrtoogle:Value() then
             Draw.Text("R Useage Toogle: ", 18, myHero.pos2D.x - 50, myHero.pos2D.y + 60, Draw.Color(255, 225, 255, 255))
                 if self.ImpulsMenu.rsettings.usermanual:Value() then
                     Draw.Text("ON", 18, myHero.pos2D.x + 80, myHero.pos2D.y + 60, Draw.Color(255, 0, 255, 0))
                     else
                         Draw.Text("OFF", 18, myHero.pos2D.x + 80, myHero.pos2D.y + 60, Draw.Color(255, 255, 0, 0))
-                end 
+                end
             end
 
     for i = 1,Game.HeroCount() do
@@ -1603,7 +1555,7 @@ function IsImmobileTarget(unit)
 			return true
 		end
 	end
-	return false	
+	return false
 end
 
 function Jinx:autor()
@@ -1617,8 +1569,8 @@ function Jinx:autor()
             if (d <= self.ImpulsMenu.rsettings.usermanualdistance:Value()) and (d >= 500) and (target.health < rdmg) then
                 self:CastR(target)
             end
-        end    
-    end 
+        end
+    end
 
 end
 
@@ -1628,7 +1580,7 @@ function Jinx:Clear()
         if minion.team ~= myHero.team then
             if minion ~= nil and minion.valid and minion.visible and not minion.dead then
                 if minion == nil and self:HasSecondQ() then
-                     Control.CastSpell(HK_Q) 
+                     Control.CastSpell(HK_Q)
                 end
                 local d = myHero.pos:DistanceTo(minion.pos)
                 if self.ImpulsMenu.clear.Q:Value() and d < 600 then
@@ -1651,7 +1603,7 @@ function Jinx:autoe()
 end
 function Jinx:killsteal()
     local target = TargetSelector:GetTarget(self.R.Range, 1)
-    if target and IsValid(target) then      
+    if target and IsValid(target) then
     local d = myHero.pos:DistanceTo(target.pos)
     local wdmg = getdmg("W", target, myHero)
     local rdmg = getdmg("R", target, myHero)
@@ -1670,7 +1622,7 @@ function Jinx:Combo()
     local pred = _G.PremiumPrediction:GetPrediction(myHero, target, self.W)
     if Ready(_W) and target and IsValid(target) then
         if self.ImpulsMenu.combo.W:Value() and pred.HitChance then
-            self:CastW(target) 
+            self:CastW(target)
         end														---- you have "end" forget
     end
 
@@ -1681,17 +1633,17 @@ function Jinx:Combo()
             self:CastE(target)
         end
     end
-    
+
     local target = TargetSelector:GetTarget(self.W.Range, 1)
     if target == nil then return end
-    local distance = target.pos:DistanceTo(myHero.pos) 
+    local distance = target.pos:DistanceTo(myHero.pos)
     if Ready(_Q) and target and IsValid(target)then
         if self.ImpulsMenu.combo.Q:Value() then
             if distance > 525 and not self:HasSecondQ() or (distance < 525 and self:HasSecondQ()) then
                 Control.CastSpell(HK_Q)
             end
-        end    
-    end 
+        end
+    end
 
 end
 
@@ -1733,241 +1685,222 @@ function Jinx:CastR(target)
     end
 end
 
-    --[[
-    _   _   _   _   _   _   _   _   _   _  
-    / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ 
-    ( B | L | I | T | Z | C | R | A | N | K )
-    \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ 
-                                                                        
-    ]]
-
-        class "Blitzcrank"
-        function Blitzcrank:__init()
-            
-            self.Q = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 140, Range = 1150, Speed = 1800, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
-            self.R = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0, Radius = 600, Range = 600, Speed = 0, Collision = false}
-            
-
-            OnAllyHeroLoad(function(hero)
-                Allys[hero.networkID] = hero
-            end)
-            
-            OnEnemyHeroLoad(function(hero)
-                Enemys[hero.networkID] = hero
-            end)
-            
-            Callback.Add("Tick", function() self:Tick() end)
-            Callback.Add("Draw", function() self:Draw() end)
-            
-            orbwalker:OnPreMovement(
-                function(args)
-                    if lastMove + 180 > GetTickCount() then
-                        args.Process = false
-                    else
-                        args.Process = true
-                        lastMove = GetTickCount()
-                    end
-                end
-            )
-        end
-        
-        local Icons = {
-            ["BlitzIcon"] = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/ac/Blitzcrank_OriginalSquare.png",
-            ["Q"] = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e2/Rocket_Grab.png",
-            ["W"] = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/ab/Overdrive.png",
-            ["E"] = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/98/Power_Fist.png",
-            ["R"] = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/a6/Static_Field.png",
-            ["EXH"] = "https://vignette.wikia.nocookie.net/leagueoflegends/images/4/4a/Exhaust.png",
-            ["IGN"] = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/f4/Ignite.png"
-            }
-
-
-        function Blitzcrank:LoadMenu()
-            self.ImpulsMenu = MenuElement({type = MENU, id = "ImpulsBlitzcrank", name = "Impuls Blitzcrank", leftIcon = Icons.BlitzIcon})
-
-            -- COMBO --
-            self.ImpulsMenu:MenuElement({type = MENU, id = "combo", name = "Combo"})
-            self.ImpulsMenu.combo:MenuElement({id = "Q", name = "Use Q in Combo", value = true, leftIcon = Icons.Q})
-            self.ImpulsMenu.combo:MenuElement({id = "W", name = "Use W in Combo", value = true, leftIcon = Icons.W})
-            self.ImpulsMenu.combo:MenuElement({id = "E", name = "Use E in  Combo", value = true, leftIcon = Icons.E})
-            self.ImpulsMenu.combo:MenuElement({id = "R", name = "Use R in  Combo", value = true, leftIcon = Icons.R})
-
-            -- AUTO R --
-            self.ImpulsMenu:MenuElement({type = MENU, id = "autor", name = "Auto R Settings"})
-            self.ImpulsMenu.autor:MenuElement({id = "useautor", name = "Use auto [R]", value = true})
-            self.ImpulsMenu.autor:MenuElement({id = "autorammount", name = "Activate [R] when x enemies around", value = 1, min = 1, max = 5, identifier = "#"})
-
-            -- SUMMONER SETTINGS --
-            self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summoner Settings"})
-
-            if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
-                self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
-            elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-                self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
-            end
-
-            
-            if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
-                self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
-            elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-                self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
-            end
-
-        end
-
-        
-        function Blitzcrank:Draw()
-            
-        end
-        
-        function Blitzcrank:Tick()
-            if myHero.dead or Game.IsChatOpen() or (ExtLibEvade and ExtLibEvade.Evading == true) then
-                return
-            end
-            self:AutoR()
-            self:AutoSummoners()
-            if orbwalker.Modes[0] then
-                self:Combo()
-            elseif orbwalker.Modes[3] then
-            end
-        end
-        
-        
-        function Blitzcrank:AutoSummoners()
-
-            -- IGNITE --
-            local target = TargetSelector:GetTarget(self.Q.Range, 1)
-            if target and IsValid(target) then
-            local ignDmg = getdmg("IGNITE", target, myHero)
-            if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) and (target.health < ignDmg ) then
-                Control.CastSpell(HK_SUMMONER_1, target)
-            elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) and (target.health < ignDmg ) then
-                Control.CastSpell(HK_SUMMONER_2, target)
-            end
-
-
-        end
-
-
-        end
-        function Blitzcrank:Combo()
-            local QPred = GamsteronPrediction:GetPrediction(target, self.Q, myHero)
-            local target = TargetSelector:GetTarget(self.Q.Range, 1)
-            if Ready(_Q) and target and IsValid(target) then
-                if self.ImpulsMenu.combo.Q:Value() then
-                    self:CastQ(target)
-                end
-            end
-            local target = TargetSelector:GetTarget(2000, 1)
-            if Ready(_W) and target and IsValid(target) then
-                local d = myHero.pos:DistanceTo(target.pos)
-                if self.ImpulsMenu.combo.W:Value() and d >= 1150 then
-                    Control.CastSpell(HK_W)
-                end
-            end
-            
-            local target = TargetSelector:GetTarget(self.Q.Range, 1)
-            if Ready(_E) and target and IsValid(target) then
-                if self.ImpulsMenu.combo.E:Value() then
-                    Control.CastSpell(HK_E)
-                    --self:CastSpell(HK_Etarget)
-                end
-            end
-        
-        end
-        
-        function Blitzcrank:jungleclear()
-        if self.ImpulsMenu.jungleclear.UseQ:Value() then 
-            for i = 1, Game.MinionCount() do
-                local obj = Game.Minion(i)
-                if obj.team ~= myHero.team then
-                    if obj ~= nil and obj.valid and obj.visible and not obj.dead then
-                        if Ready(_Q) and self.ImpulsMenu.jungleclear.UseQ:Value() and obj and obj.team == 300 and obj.valid and obj.visible and not obj.dead and (obj.pos:DistanceTo(myHero.pos) < 800) then
-                            Control.CastSpell(HK_Q, obj);
-                        end
-                        if Ready(_E) and self.ImpulsMenu.jungleclear.UseE:Value() and obj and obj.team == 300 and obj.valid and obj.visible and not obj.dead and obj.pos:DistanceTo(myHero.pos) < 800 then
-                            Control.CastSpell(HK_E);
-                        end
-                        if Ready(_W) and self.ImpulsMenu.jungleclear.UseW:Value() and myHero:GetSpellData(_W).toogleState ~= 2 and obj and obj.team == 300 and obj.valid and obj.visible and not obj.dead and obj.pos:DistanceTo(myHero.pos) < 800 then
-                            Control.CastSpell(HK_W);
-                        end
-                    end
-                    end
-                end
-        end
-        end
-
-        function Blitzcrank:AutoR()
-
-        local target = TargetSelector:GetTarget(self.R.Range, 1)
-            if target and IsValid(target) then
-                if self.ImpulsMenu.autor.useautor:Value() and CountEnemiesNear(target, 600) >= self.ImpulsMenu.autor.autorammount:Value() and Ready(_R) then
-                    Control.CastSpell(HK_R)
-                end
-            end
-        end
-
-        function Blitzcrank:laneclear()
-            for i = 1, Game.MinionCount() do
-                local minion = Game.Minion(i)
-                if minion.team ~= myHero.team then 
-                    local dist = myHero.pos:DistanceTo(minion.pos)
-                    if self.ImpulsMenu.laneclear.UseQLane:Value() and Ready(_Q) and dist <= self.Q.Range then 
-                        Control.CastSpell(HK_Q, minion.pos)
-                    end
-
-                end
-            end
-        end
-        
-        function Blitzcrank:CastQ(target)
-            if Ready(_Q) and lastQ + 350 < GetTickCount() and orbwalker:CanMove() then
-                local Pred = GamsteronPrediction:GetPrediction(target, self.Q, myHero)
-                if Pred.Hitchance >= _G.HITCHANCE_HIGH then
-                    Control.CastSpell(HK_Q, Pred.CastPosition)
-                    lastQ = GetTickCount()
-                end
-            end
-        end
-
-
-        
-        function Blitzcrank:CastR(target)
-            if Ready(_R) and lastR + 350 < GetTickCount() and orbwalker:CanMove() then
-                local Pred = GamsteronPrediction:GetPrediction(target, self.R, myHero)
-                if Pred.Hitchance >= _G.HITCHANCE_NORMAL then
-                    Control.CastSpell(HK_R, Pred.CastPosition)
-                    lastR = GetTickCount()
-                end
-            end
-        end
 --[[
-        _   _   _   _  
-        / \ / \ / \ / \ 
-    ( N | A | M | I )
-        \_/ \_/ \_/ \_/ 
+
+Blitzcrank
+
+]]
+
+class "Blitzcrank"
+function Blitzcrank:__init()
+    self.Q = {Type = _G.SPELLTYPE_LINE, Delay = 0.25, Radius = 140, Range = 1150, Speed = 1800, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
+    self.R = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0, Radius = 600, Range = 600, Speed = 0, Collision = false}
+    OnAllyHeroLoad(function(hero)
+        Allys[hero.networkID] = hero
+    end)
+    OnEnemyHeroLoad(function(hero)
+        Enemys[hero.networkID] = hero
+    end)
+
+    Callback.Add("Tick", function() self:Tick() end)
+    Callback.Add("Draw", function() self:Draw() end)
+
+    orbwalker:OnPreMovement(
+        function(args)
+            if lastMove + 180 > GetTickCount() then
+                args.Process = false
+            else
+                args.Process = true
+                lastMove = GetTickCount()
+            end
+        end
+    )
+    end
+
+local Icons = {
+    ["BlitzIcon"] = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/ac/Blitzcrank_OriginalSquare.png",
+    ["Q"] = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e2/Rocket_Grab.png",
+    ["W"] = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/ab/Overdrive.png",
+    ["E"] = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/98/Power_Fist.png",
+    ["R"] = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/a6/Static_Field.png",
+    ["EXH"] = "https://vignette.wikia.nocookie.net/leagueoflegends/images/4/4a/Exhaust.png",
+    ["IGN"] = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/f4/Ignite.png"
+    }
+
+function Blitzcrank:LoadMenu()
+    self.ImpulsMenu = MenuElement({type = MENU, id = "ImpulsBlitzcrank", name = "Impuls Blitzcrank", leftIcon = Icons.BlitzIcon})
+    -- COMBO --
+    self.ImpulsMenu:MenuElement({type = MENU, id = "combo", name = "Combo"})
+    self.ImpulsMenu.combo:MenuElement({id = "Q", name = "Use Q in Combo", value = true, leftIcon = Icons.Q})
+    self.ImpulsMenu.combo:MenuElement({id = "W", name = "Use W in Combo", value = true, leftIcon = Icons.W})
+    self.ImpulsMenu.combo:MenuElement({id = "E", name = "Use E in  Combo", value = true, leftIcon = Icons.E})
+    self.ImpulsMenu.combo:MenuElement({id = "R", name = "Use R in  Combo", value = true, leftIcon = Icons.R})
+    -- AUTO R --
+    self.ImpulsMenu:MenuElement({type = MENU, id = "autor", name = "Auto R Settings"})
+    self.ImpulsMenu.autor:MenuElement({id = "useautor", name = "Use auto [R]", value = true})
+    self.ImpulsMenu.autor:MenuElement({id = "autorammount", name = "Activate [R] when x enemies around", value = 1, min = 1, max = 5, identifier = "#"})
+    -- SUMMONER SETTINGS --
+    self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summoner Settings"})
+    if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
+        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
+    elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
+        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
+    end
+    if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
+        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
+    elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
+        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
+    end
+end
+
+
+function Blitzcrank:Draw()
+end
+
+function Blitzcrank:Tick()
+    if myHero.dead or Game.IsChatOpen() or (ExtLibEvade and ExtLibEvade.Evading == true) then
+        return
+    end
+    self:AutoR()
+    self:AutoSummoners()
+    if orbwalker.Modes[0] then
+        self:Combo()
+    elseif orbwalker.Modes[3] then
+    end
+end
+
+
+function Blitzcrank:AutoSummoners()
+    -- IGNITE --
+    local target = TargetSelector:GetTarget(self.Q.Range, 1)
+    if target and IsValid(target) then
+        local ignDmg = getdmg("IGNITE", target, myHero)
+        if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) and (target.health < ignDmg ) then
+            Control.CastSpell(HK_SUMMONER_1, target)
+        elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) and (target.health < ignDmg ) then
+            Control.CastSpell(HK_SUMMONER_2, target)
+        end
+    end
+end
+function Blitzcrank:Combo()
+    local QPred = GamsteronPrediction:GetPrediction(target, self.Q, myHero)
+    local target = TargetSelector:GetTarget(self.Q.Range, 1)
+    if Ready(_Q) and target and IsValid(target) then
+        if self.ImpulsMenu.combo.Q:Value() then
+            self:CastQ(target)
+        end
+    end
+    local target = TargetSelector:GetTarget(2000, 1)
+    if Ready(_W) and target and IsValid(target) then
+        local d = myHero.pos:DistanceTo(target.pos)
+        if self.ImpulsMenu.combo.W:Value() and d >= 1150 then
+            Control.CastSpell(HK_W)
+        end
+    end
+
+    local target = TargetSelector:GetTarget(self.Q.Range, 1)
+    if Ready(_E) and target and IsValid(target) then
+        if self.ImpulsMenu.combo.E:Value() then
+            Control.CastSpell(HK_E)
+            --self:CastSpell(HK_Etarget)
+        end
+    end
+
+end
+
+function Blitzcrank:jungleclear()
+    if self.ImpulsMenu.jungleclear.UseQ:Value() then
+        for i = 1, Game.MinionCount() do
+            local obj = Game.Minion(i)
+            if obj.team ~= myHero.team then
+                if obj ~= nil and obj.valid and obj.visible and not obj.dead then
+                    if Ready(_Q) and self.ImpulsMenu.jungleclear.UseQ:Value() and obj and obj.team == 300 and obj.valid and obj.visible and not obj.dead and (obj.pos:DistanceTo(myHero.pos) < 800) then
+                        Control.CastSpell(HK_Q, obj);
+                    end
+                    if Ready(_E) and self.ImpulsMenu.jungleclear.UseE:Value() and obj and obj.team == 300 and obj.valid and obj.visible and not obj.dead and obj.pos:DistanceTo(myHero.pos) < 800 then
+                        Control.CastSpell(HK_E);
+                    end
+                    if Ready(_W) and self.ImpulsMenu.jungleclear.UseW:Value() and myHero:GetSpellData(_W).toogleState ~= 2 and obj and obj.team == 300 and obj.valid and obj.visible and not obj.dead and obj.pos:DistanceTo(myHero.pos) < 800 then
+                        Control.CastSpell(HK_W);
+                    end
+                end
+            end
+        end
+    end
+end
+
+function Blitzcrank:AutoR()
+
+local target = TargetSelector:GetTarget(self.R.Range, 1)
+    if target and IsValid(target) then
+        if self.ImpulsMenu.autor.useautor:Value() and CountEnemiesNear(target, 600) >= self.ImpulsMenu.autor.autorammount:Value() and Ready(_R) then
+            Control.CastSpell(HK_R)
+        end
+    end
+end
+
+function Blitzcrank:laneclear()
+    for i = 1, Game.MinionCount() do
+        local minion = Game.Minion(i)
+        if minion.team ~= myHero.team then
+            local dist = myHero.pos:DistanceTo(minion.pos)
+            if self.ImpulsMenu.laneclear.UseQLane:Value() and Ready(_Q) and dist <= self.Q.Range then
+                Control.CastSpell(HK_Q, minion.pos)
+            end
+
+        end
+    end
+end
+
+function Blitzcrank:CastQ(target)
+    if Ready(_Q) and lastQ + 350 < GetTickCount() and orbwalker:CanMove() then
+        local Pred = GamsteronPrediction:GetPrediction(target, self.Q, myHero)
+        if Pred.Hitchance >= _G.HITCHANCE_HIGH then
+            Control.CastSpell(HK_Q, Pred.CastPosition)
+            lastQ = GetTickCount()
+        end
+    end
+end
+
+
+
+function Blitzcrank:CastR(target)
+    if Ready(_R) and lastR + 350 < GetTickCount() and orbwalker:CanMove() then
+        local Pred = GamsteronPrediction:GetPrediction(target, self.R, myHero)
+        if Pred.Hitchance >= _G.HITCHANCE_NORMAL then
+            Control.CastSpell(HK_R, Pred.CastPosition)
+            lastR = GetTickCount()
+        end
+    end
+end
+
+
+--[[
+
+Nami
+
 ]]
 
 class "Nami"
 function Nami:__init()
-    
+
     self.Q = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0, Radius = 0, Range = 875, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
     self.W = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0, Radius = 0, Range = 725, Speed = 1800, Collision = false}
     self.E = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0, Radius = 800, Range = 800, Speed = 1800, Collision = false}
     self.R = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0, Radius = 325, Range = 2750, Speed = 1200, Collision = false}
-    
+
 
     OnAllyHeroLoad(function(hero)
         Allys[hero.networkID] = hero
     end)
-    
+
     OnEnemyHeroLoad(function(hero)
         Enemys[hero.networkID] = hero
     end)
-    
+
     Callback.Add("Tick", function() self:Tick() end)
     Callback.Add("Draw", function() self:Draw() end)
-    
+
     orbwalker:OnPreMovement(
         function(args)
             if lastMove + 180 > GetTickCount() then
@@ -2014,20 +1947,20 @@ function Nami:LoadMenu()
     if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
         self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
     elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
     end
 
-    
+
     if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
         self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
     elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
     end
 
 end
 
 function Nami:Draw()
-    
+
 end
 
 function Nami:Tick()
@@ -2071,12 +2004,12 @@ function Nami:Combo()
     end
 
     local target = TargetSelector:GetTarget(self.W.Range, 1)
-    if Ready(_W) and target and IsValid(target) then               
+    if Ready(_W) and target and IsValid(target) then
         if self.ImpulsMenu.combo.W:Value() then
             Control.CastSpell(HK_W, target)
         end
     end
-   
+
     local target = TargetSelector:GetTarget(self.Q.Range, 1)
     if Ready(_E) and target and IsValid(target) then
         if self.ImpulsMenu.combo.E:Value() then
@@ -2096,7 +2029,7 @@ function Nami:Combo()
 end
 
 function Nami:jungleclear()
-if self.ImpulsMenu.jungleclear.UseQ:Value() then 
+if self.ImpulsMenu.jungleclear.UseQ:Value() then
     for i = 1, Game.MinionCount() do
         local obj = Game.Minion(i)
         if obj.team ~= myHero.team then
@@ -2119,9 +2052,9 @@ end
 function Nami:laneclear()
     for i = 1, Game.MinionCount() do
         local minion = Game.Minion(i)
-        if minion.team ~= myHero.team then 
+        if minion.team ~= myHero.team then
             local dist = myHero.pos:DistanceTo(minion.pos)
-            if self.ImpulsMenu.laneclear.UseQLane:Value() and Ready(_Q) and dist <= self.Q.Range then 
+            if self.ImpulsMenu.laneclear.UseQLane:Value() and Ready(_Q) and dist <= self.Q.Range then
                 Control.CastSpell(HK_Q, minion.pos)
             end
         end
@@ -2149,31 +2082,30 @@ function Nami:CastR(target)
 end
 
 --[[
-_   _   _   _  
-/ \ / \ / \ / \ 
-( S | O | N | A )
-\_/ \_/ \_/ \_/ 
+
+Sona
+
 ]]
 class "Sona"
 function Sona:__init()
-    
+
     self.Q = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 0, Range = 825, Speed = 1500, Collision = false}
     self.W = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0, Radius = 0, Range = 1000, Speed = 1500, Collision = false}
     self.E = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0, Radius = 0, Range = 430, Speed = 1500, Collision = false}
     self.R = {Type = _G.SPELLTYPE_LINE, Delay = 0, Radius = 140, Range = 900, Speed = 2400, Collision = false}
-    
+
 
     OnAllyHeroLoad(function(hero)
         Allys[hero.networkID] = hero
     end)
-    
+
     OnEnemyHeroLoad(function(hero)
         Enemys[hero.networkID] = hero
     end)
-    
+
     Callback.Add("Tick", function() self:Tick() end)
     Callback.Add("Draw", function() self:Draw() end)
-    
+
     orbwalker:OnPreMovement(
         function(args)
             if lastMove + 180 > GetTickCount() then
@@ -2211,7 +2143,7 @@ function Sona:LoadMenu()
     self.ImpulsMenu.autor:MenuElement({id = "useautor", name = "Use auto [R]", value = true})
     self.ImpulsMenu.autor:MenuElement({id = "autorammount", name = "Activate [R] when x enemies around", value = 1, min = 1, max = 5, identifier = "#"})
 
-    -- AUTO W -- 
+    -- AUTO W --
     self.ImpulsMenu:MenuElement({type = MENU, id = "autow", name = "Auto W Settings"})
     self.ImpulsMenu.autow:MenuElement({id = "useautow", name = "Use auto [W] on ally?", value = true})
 
@@ -2221,19 +2153,19 @@ function Sona:LoadMenu()
     if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
         self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
     elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
     end
 
-    
+
     if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
         self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
     elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+        self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
     end
 end
 
 function Sona:Draw()
-    
+
 end
 
 function Sona:Tick()
@@ -2264,8 +2196,8 @@ function Sona:AutoSummoners()
 end
 
 function Sona:AutoW()
-local target = TargetSelector:GetTarget(800)     	
-if target == nil then return end	
+local target = TargetSelector:GetTarget(800)
+if target == nil then return end
 
 if self.ImpulsMenu.autow.useautow:Value() and Ready(_W) then
     for i, ally in pairs(GetAllyHeroes()) do
@@ -2291,7 +2223,7 @@ function Sona:Combo()
             Control.CastSpell(HK_W)
         end
     end
-    
+
     local target = TargetSelector:GetTarget(self.Q.Range, 1)
     if Ready(_E) and target and IsValid(target) then
         if self.ImpulsMenu.combo.E:Value() then
@@ -2302,7 +2234,7 @@ function Sona:Combo()
 end
 
 function Sona:jungleclear()
-if self.ImpulsMenu.jungleclear.UseQ:Value() then 
+if self.ImpulsMenu.jungleclear.UseQ:Value() then
     for i = 1, Game.MinionCount() do
         local obj = Game.Minion(i)
         if obj.team ~= myHero.team then
@@ -2334,9 +2266,9 @@ end
 function Sona:laneclear()
     for i = 1, Game.MinionCount() do
         local minion = Game.Minion(i)
-        if minion.team ~= myHero.team then 
+        if minion.team ~= myHero.team then
             local dist = myHero.pos:DistanceTo(minion.pos)
-            if self.ImpulsMenu.laneclear.UseQLane:Value() and Ready(_Q) and dist <= self.Q.Range then 
+            if self.ImpulsMenu.laneclear.UseQLane:Value() and Ready(_Q) and dist <= self.Q.Range then
                 Control.CastSpell(HK_Q, minion.pos)
             end
 
@@ -2364,10 +2296,9 @@ function Sona:CastR(target)
     end
 end
 --[[
-_   _   _   _   _  
-/ \ / \ / \ / \ / \ 
-( B | R | A | U | M )
-\_/ \_/ \_/ \_/ \_/ 
+
+Braum
+
 ]]
 class "Braum"
 function Braum:__init()
@@ -2426,7 +2357,7 @@ self.ImpulsMenu:MenuElement({type = MENU, id = "autor", name = "Auto R Settings"
 self.ImpulsMenu.autor:MenuElement({id = "useautor", name = "Use auto [R]", value = true})
 self.ImpulsMenu.autor:MenuElement({id = "autorammount", name = "Activate [R] when x enemies around", value = 1, min = 1, max = 5, identifier = "#"})
 
--- AUTO W -- 
+-- AUTO W --
 self.ImpulsMenu:MenuElement({type = MENU, id = "autow", name = "Auto Jump on Ally Settings"})
 self.ImpulsMenu.autow:MenuElement({id = "useautow", name = "Use auto [W] and [E] on ally?", value = true})
 self.ImpulsMenu.autow:MenuElement({id = "useautowhp", name = "Use auto [W] and [E] on ally hp %", value = 30, min = 0, max = 100, identifier = "%"})
@@ -2442,13 +2373,13 @@ self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summo
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 end
 
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 end
 
 end
@@ -2462,7 +2393,7 @@ if self.ImpulsMenu.drawings.drawAutoR:Value() then
             Draw.Text("ON", 15, 85, 30, Draw.Color(255, 0, 255, 0))
             else
                 Draw.Text("OFF", 15, 85, 30, Draw.Color(255, 255, 0, 0))
-        end 
+        end
 end
 
 if self.ImpulsMenu.drawings.drawAutoWE:Value() then
@@ -2471,7 +2402,7 @@ if self.ImpulsMenu.drawings.drawAutoWE:Value() then
             Draw.Text("ON", 15, 115, 60, Draw.Color(255, 0, 255, 0))
             else
             Draw.Text("OFF", 15, 115, 60, Draw.Color(255, 255, 0, 0))
-        end 
+        end
 end
 
 end
@@ -2506,8 +2437,8 @@ end
 end
 
 function Braum:AutoW()
-local target = TargetSelector:GetTarget(800)     	
-if target == nil then return end	
+local target = TargetSelector:GetTarget(800)
+if target == nil then return end
 
 if self.ImpulsMenu.autow.useautow:Value() and Ready(_W) then
 for i, ally in pairs(GetAllyHeroes()) do
@@ -2553,7 +2484,7 @@ end
 end
 
 function Braum:jungleclear()
-if self.ImpulsMenu.jungleclear.UseQ:Value() then 
+if self.ImpulsMenu.jungleclear.UseQ:Value() then
 for i = 1, Game.MinionCount() do
     local obj = Game.Minion(i)
     if obj.team ~= myHero.team then
@@ -2602,10 +2533,9 @@ if Ready(_R) and lastR + 350 < GetTickCount() and orbwalker:CanMove() then
 end
 end
 --[[
-_   _   _   _   _  
-/ \ / \ / \ / \ / \ 
-( T | A | R | I | C )
-\_/ \_/ \_/ \_/ \_/ 
+
+Leona
+
 ]]
 class "Leona"
 function Leona:__init()
@@ -2677,13 +2607,13 @@ self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summo
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 end
 
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 end
 
 end
@@ -2697,7 +2627,7 @@ if self.ImpulsMenu.drawings.drawAutoR:Value() then
             Draw.Text("ON", 15, 85, 30, Draw.Color(255, 0, 255, 0))
             else
                 Draw.Text("OFF", 15, 85, 30, Draw.Color(255, 255, 0, 0))
-        end 
+        end
 end
 
 end
@@ -2763,7 +2693,7 @@ end
 end
 
 function Leona:jungleclear()
-if self.ImpulsMenu.jungleclear.UseQ:Value() then 
+if self.ImpulsMenu.jungleclear.UseQ:Value() then
 for i = 1, Game.MinionCount() do
     local obj = Game.Minion(i)
     if obj.team ~= myHero.team then
@@ -2812,10 +2742,9 @@ if Ready(_R) and lastR + 350 < GetTickCount() and orbwalker:CanMove() then
 end
 end
 --[[
-   _   _   _  
-  / \ / \ / \ 
- ( Z | E | D )
-  \_/ \_/ \_/ 
+
+Zed
+
 ]]
 class "Zed"
 function Zed:__init()
@@ -2897,13 +2826,13 @@ self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summo
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 end
 
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 end
 
 end
@@ -3076,14 +3005,6 @@ function Zed:Combo()
     end
 end
 
-
---[[
-
-Cast Spells Below
-
-
-]]
-
 function Zed:CastQ(target)
     if Ready(_Q) and lastQ + 350 < GetTickCount() and orbwalker:CanMove() then
         local pred = _G.PremiumPrediction:GetPrediction(myHero, target, self.Q)
@@ -3115,10 +3036,9 @@ function Zed:CastR(target)
 end
 
 --[[
-   _   _   _  
-  / \ / \ / \ 
- ( Z | E | D )
-  \_/ \_/ \_/ 
+
+Olaf
+
 ]]
 class "Olaf"
 function Olaf:__init()
@@ -3197,13 +3117,13 @@ self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summo
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 end
 
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 end
 
 end
@@ -3272,7 +3192,7 @@ function Olaf:jungleclear()
                     Control.CastSpell(HK_E);
                 end
             end
-        end        
+        end
     end
 end
 
@@ -3295,13 +3215,6 @@ function Olaf:Combo()
     end
 end
 
-
---[[
-
-Cast Spells Below
-
-]]
-
 function Olaf:CastQ(target)
     if Ready(_Q) and lastQ + 350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GamsteronPrediction:GetPrediction(target, self.Q, myHero)
@@ -3313,10 +3226,9 @@ function Olaf:CastQ(target)
 end
 
 --[[
-   _   _   _   _   _   _   _  
-  / \ / \ / \ / \ / \ / \ / \ 
- ( h | e | c | a | r | i | m )
-  \_/ \_/ \_/ \_/ \_/ \_/ \_/ 
+
+Hecarim
+
 ]]
 
 class "Hecarim"
@@ -3325,7 +3237,7 @@ function Hecarim:__init()
     self.Q = {_G.SPELLTYPE_CIRCLE, Delay = 0.225, Radius = 350, Range = 350, Speed = 1750, Collision = true, MaxCollision = 0, CollisionTypes = {_G.COLLISION_MINION}}
     self.W = {_G.SPELLTYPE_CIRCLE, Delay = 0.1, Radius = 575, Range = 575, Speed = 1800, Collision = false}
     self.R = {_G.SPELLTYPE_CIRCLE, Delay = 0.1, Radius = 1000, Range = 1000, Speed = 1800, Collision = false}
-    
+
 
 
 OnAllyHeroLoad(function(hero)
@@ -3393,13 +3305,13 @@ self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summo
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 end
 
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 end
 
 end
@@ -3501,11 +3413,6 @@ function Hecarim:Combo()
     end
 end
 
-
---[[
-Cast Spells Below
-]]
-
 function Hecarim:CastR(target)
     if Ready(_R) and lastR + 350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GamsteronPrediction:GetPrediction(target, self.R, myHero)
@@ -3517,10 +3424,9 @@ function Hecarim:CastR(target)
 end
 
 --[[
-   _   _   _   _   _  
-  / \ / \ / \ / \ / \ 
- ( A | N | N | I | E )
-  \_/ \_/ \_/ \_/ \_/ 
+
+Annie
+
 ]]
 
 class "Annie"
@@ -3529,7 +3435,7 @@ function Annie:__init()
     self.Q = {_G.SPELLTYPE_CIRCLE, Delay = 0.225, Range = 625, Speed = 1400, Collision = true, MaxCollision = 1, CollisionTypes = {_G.COLLISION_MINION}}
     self.W = {_G.SPELLTYPE_CONE, Delay = 0.25, Range = 600, Collision = false}
     self.R = {_G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 250, Range = 600, Collision = false}
-    
+
 
 
 OnAllyHeroLoad(function(hero)
@@ -3607,13 +3513,13 @@ self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summo
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 end
 
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 end
 
 end
@@ -3690,7 +3596,7 @@ function Annie:autoQ()
             if mtarget == nil or minion.health < mtarget.health then
                 mtarget = minion
                 Control.CastSpell(HK_Q, mtarget)
-            end			
+            end
         end
     end
 
@@ -3758,13 +3664,8 @@ function Annie:Combo()
             Control.KeyUp(HK_W)
             --self:CastSpell(HK_Etarget)
         end
-    end   
+    end
 end
-
-
---[[
-Cast Spells Below
-]]
 
 function Annie:CastR(target)
     if Ready(_R) and lastR + 350 < GetTickCount() and orbwalker:CanMove() then
@@ -3777,10 +3678,9 @@ function Annie:CastR(target)
 end
 
 --[[
-   _   _   _   _   _  
-  / \ / \ / \ / \ / \ 
- ( A | N | N | I | E )
-  \_/ \_/ \_/ \_/ \_/ 
+
+Garen
+
 ]]
 
 class "Garen"
@@ -3789,7 +3689,7 @@ function Garen:__init()
     self.Q = {_G.SPELLTYPE_CIRCLE, Delay = 0.225, Range = 600, Collision = false}
     self.E = {_G.SPELLTYPE_CIRCLE, Delay = 0.1, Radius = 160, Range = 660, Speed = 700, Collision = false}
     self.R = {_G.SPELLTYPE_CIRCLE, Delay = 0.1, Range = 400, Speed = 900, Collision = false}
-    
+
 
 
 OnAllyHeroLoad(function(hero)
@@ -3860,13 +3760,13 @@ self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summo
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 end
 
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 end
 
 end
@@ -3987,11 +3887,6 @@ function Garen:Combo()
     end
 end
 
-
---[[
-Cast Spells Below
-]]
-
 function Garen:CastR(target)
     if Ready(_R) and lastR + 350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GamsteronPrediction:GetPrediction(target, self.R, myHero)
@@ -4003,10 +3898,9 @@ function Garen:CastR(target)
 end
 
 --[[
-   _   _   _   _   _  
-  / \ / \ / \ / \ / \ 
- ( A | N | N | I | E )
-  \_/ \_/ \_/ \_/ \_/ 
+
+ Malphite
+
 ]]
 
 class "Malphite"
@@ -4015,7 +3909,7 @@ function Malphite:__init()
     self.Q = {_G.SPELLTYPE_CIRCLE, Delay = 0.225, Range = 625, Speed = 1200, Collision = false}
     self.E = {_G.SPELLTYPE_CIRCLE, Delay = 0.1, Range = 400, Collision = false}
     self.R = {_G.SPELLTYPE_CIRCLE, Delay = 0.1, Range = 1000, Radius = 160, Speed = 700, Collision = false}
-    
+
 
 OnAllyHeroLoad(function(hero)
     Allys[hero.networkID] = hero
@@ -4086,13 +3980,13 @@ self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summo
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 end
 
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 end
 
 end
@@ -4220,11 +4114,6 @@ function Malphite:Combo()
     end
 end
 
-
---[[
-Cast Spells Below
-]]
-
 function Malphite:CastR(target)
     if Ready(_R) and lastR + 350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GamsteronPrediction:GetPrediction(target, self.R, myHero)
@@ -4236,10 +4125,9 @@ function Malphite:CastR(target)
 end
 
 --[[
-   _   _   _   _   _  
-  / \ / \ / \ / \ / \ 
- ( A | N | N | I | E )
-  \_/ \_/ \_/ \_/ \_/ 
+
+Chogath
+
 ]]
 
 class "Chogath"
@@ -4248,7 +4136,7 @@ function Chogath:__init()
     self.Q = {_G.SPELLTYPE_CIRCLE, Delay =1.2, Range = 950, Radius = 250, Speed = math.huge, Collision = false}
     self.W = {_G.SPELLTYPE_CONE, Delay = 0.25, Range = 650, Radius = 60, Speed = math.huge, Collision = false}
     self.R = {_G.SPELLTYPE_CIRCLE, Delay = 0.1, Range = 175, Speed = 500, Collision = false}
-    
+
 
 OnAllyHeroLoad(function(hero)
     Allys[hero.networkID] = hero
@@ -4318,13 +4206,13 @@ self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summo
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 end
 
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 end
 
 end
@@ -4459,11 +4347,6 @@ function Chogath:Combo()
     end
 end
 
-
---[[
-Cast Spells Below
-]]
-
 function Chogath:CastR(target)
     if Ready(_R) and lastR + 350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GamsteronPrediction:GetPrediction(target, self.R, myHero)
@@ -4495,10 +4378,9 @@ function Chogath:CastW(target)
 end
 
 --[[
-   _   _   _   _   _  
-  / \ / \ / \ / \ / \ 
- ( A | N | N | I | E )
-  \_/ \_/ \_/ \_/ \_/ 
+
+Jax
+
 ]]
 
 class "Jax"
@@ -4574,13 +4456,13 @@ self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summo
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 end
 
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 end
 
 end
@@ -4647,7 +4529,7 @@ function Jax:jungleclear()
                 end
             end
         end
-        
+
     end
 
 end
@@ -4685,11 +4567,6 @@ function Jax:Combo()
     end
 end
 
-
---[[
-Cast Spells Below
-]]
-
 function Jax:CastR(target)
     if Ready(_R) and lastR + 350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GamsteronPrediction:GetPrediction(target, self.R, myHero)
@@ -4701,10 +4578,9 @@ function Jax:CastR(target)
 end
 
 --[[
-   _   _   _   _   _  
-  / \ / \ / \ / \ / \ 
- ( A | N | N | I | E )
-  \_/ \_/ \_/ \_/ \_/ 
+
+Amumu
+
 ]]
 
 class "Amumu"
@@ -4786,13 +4662,13 @@ self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summo
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 end
 
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 end
 
 end
@@ -4858,7 +4734,7 @@ function Amumu:JungleClear()
                 end
             end
         end
-        
+
     end
 
 end
@@ -4938,11 +4814,6 @@ function Amumu:Combo()
     end
 end
 
-
---[[
-Cast Spells Below
-]]
-
 function Amumu:CastR(target)
     if Ready(_R) and lastR + 350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GamsteronPrediction:GetPrediction(target, self.R, myHero)
@@ -4964,10 +4835,9 @@ function Amumu:CastQ(target)
 end
 
 --[[
-   _   _   _   _   _  
-  / \ / \ / \ / \ / \ 
- ( A | N | N | I | E )
-  \_/ \_/ \_/ \_/ \_/ 
+
+Warwick
+
 ]]
 
 class "Warwick"
@@ -4975,7 +4845,7 @@ function Warwick:__init()
 
     self.Q = {_G.SPELLTYPE_CIRCLE, Delay = 0.225, Radius = 600, Range = 600, Speed = 1750, Collision = false}
     self.R = {_G.SPELLTYPE_CIRCLE, Delay = 0.1, Radius = 55, Range = 2.5 * myHero.ms, Speed = 1800, Collision = false}
-    
+
 
 OnAllyHeroLoad(function(hero)
     Allys[hero.networkID] = hero
@@ -5047,13 +4917,13 @@ self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summo
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 end
 
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 end
 
 end
@@ -5119,7 +4989,7 @@ function Warwick:JungleClear()
                 end
             end
         end
-        
+
     end
 
 end
@@ -5193,11 +5063,6 @@ function Warwick:Combo()
     end
 end
 
-
---[[
-Cast Spells Below
-]]
-
 function Warwick:CastR(target)
     if Ready(_R) and lastR + 350 < GetTickCount() and orbwalker:CanMove() then
         local Pred = GamsteronPrediction:GetPrediction(target, self.R, myHero)
@@ -5209,10 +5074,9 @@ function Warwick:CastR(target)
 end
 
 --[[
-   _   _   _   _   _  
-  / \ / \ / \ / \ / \ 
- ( A | N | N | I | E )
-  \_/ \_/ \_/ \_/ \_/ 
+
+Gragas
+
 ]]
 
 class "Gragas"
@@ -5222,8 +5086,8 @@ function Gragas:__init()
     self.W = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0.75, Radius = 175, Range = myHero:GetSpellData(_W).range, Speed = 0, Collision = false}
     self.E = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0, Radius = 180, Range = myHero:GetSpellData(_E).range, Speed = 1400, Collision = false}
     self.R = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0.55, Radius = 400, Range = myHero:GetSpellData(_R).range, Speed = 1000, Collision = false}
-    
-    
+
+
 
 OnAllyHeroLoad(function(hero)
     Allys[hero.networkID] = hero
@@ -5296,13 +5160,13 @@ self.ImpulsMenu:MenuElement({type = MENU, id = "SummonerSettings", name = "Summo
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseIgnite", name = "Use [Ignite] if killable?", value = true, leftIcon = Icons.IGN})
 end
 
 if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" then
     self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" then
-    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH}) 
+    self.ImpulsMenu.SummonerSettings:MenuElement({id = "UseExhaust", name = "Use [Exhaust] on engage?", value = true, leftIcon = Icons.EXH})
 end
 
 end
@@ -5369,7 +5233,7 @@ function Gragas:JungleClear()
                 end
             end
         end
-        
+
     end
 
 end
@@ -5453,11 +5317,6 @@ function Gragas:Combo()
         end
     end
 end
-
-
---[[
-Cast Spells Below
-]]
 
 function Gragas:CastR(target)
     if Ready(_R) and lastR + 350 < GetTickCount() and orbwalker:CanMove() then
