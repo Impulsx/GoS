@@ -1,4 +1,4 @@
-local damageLibVersion = 14.3
+local damageLibVersion = 14.31
 
 --[[
 Usage:
@@ -2718,7 +2718,7 @@ local SpellDamageTable = {
     { Slot = "Q", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({ 70, 100, 130, 160, 190 })
       [level] + 0.65 * source.ap end },
     { Slot = "W", Stage = 1, DamageType = 2, Damage = function(source, target, level)
-      local buff = Buff:Hasbuff(target, "BrandAblaze"); local dmg = ({ 75, 120, 165, 210, 255 })[level] +
+      local buff = Buff:HasBuff(target, "BrandAblaze"); local dmg = ({ 75, 120, 165, 210, 255 })[level] +
       0.60 * source.ap; if buff then dmg = dmg * 1.25 end; return dmg
     end },
     { Slot = "E", Stage = 1, DamageType = 2, Damage = function(source, target, level) return ({ 60, 90, 120, 150, 180 })
@@ -5322,8 +5322,7 @@ Callback.Add("Load", function()
 
   Callback.Add("Tick", function()
     --
-    table.insert(_G.SDK.OnTick, function()
-    end)
+    table.insert(_G.SDK.OnTick, function() end)
   end)
 end)
 
