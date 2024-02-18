@@ -32,7 +32,7 @@ Data = {
         XinZhao = {
             Changelog = "XinZhao Changelog Here",
             Version = 0.07,
-        }, 
+        },
         Nidalee = {
             Changelog = "Nidalee Changelog Here",
             Version = 0.09,
@@ -40,11 +40,11 @@ Data = {
         Ryze = {
             Changelog = "Ryze Changelog Here",
             Version = 0.13,
-        }, 
+        },
          Neeko = {
             Changelog = "Neeko Changelog Here",
             Version = 0.08,
-        }, 
+        },
         Warwick = {
             Changelog = "Warwick Changelog Here",
             Version = 0.07,
@@ -56,11 +56,11 @@ Data = {
         Tristana = {
             Changelog = "Tristana Changelog Here",
             Version = 0.11,
-        }, 
+        },
         Sona = {
             Changelog = "Sona Changelog Here",
             Version = 0.06,
-        }, 
+        },
         Morgana = {
             Changelog = "Morgana Changelog Here",
             Version = 0.09,
@@ -76,7 +76,7 @@ Data = {
         Malzahar = {
             Changelog = "Malzahar Changelog Here",
             Version = 0.10,
-        }, 
+        },
         Camille = {
             Changelog = "Camille Changelog Here",
             Version = 0.11,
@@ -92,15 +92,15 @@ Data = {
          Ekko = {
             Changelog = "Ekko Changelog Here",
             Version = 0.10,
-        }, 
+        },
          LeeSin = {
             Changelog = "LeeSin Changelog Here",
-            Version = 0.06,
+            Version = 0.07,
         },
          Sylas = {
             Changelog = "Sylas Changelog Here",
             Version = 0.08,
-        }, 
+        },
          Zoe = {
             Changelog = "Zoe Changelog Here",
             Version = 0.12,
@@ -144,15 +144,15 @@ Data = {
           Nocturne = {
             Changelog = "Nocturne Changelog Here",
             Version = 0.05,
-        }, 
+        },
           Garen = {
             Changelog = "Garen Changelog Here",
             Version = 0.06,
-        }, 
+        },
           Pyke = {
             Changelog = "Pyke Changelog Here",
             Version = 0.05,
-        }, 
+        },
           Renekton = {
             Changelog = "Renekton Changelog Here",
             Version = 0.03,
@@ -164,11 +164,11 @@ Data = {
           Blitzcrank = {
             Changelog = "Blitzcrank Changelog Here",
             Version = 0.04,
-        }, 
+        },
            FiddleSticks = {
             Changelog = "Fiddlesticks Changelog Here",
             Version = 0.05,
-        }, 
+        },
            Zed = {
             Changelog = "Zed Changelog Here",
             Version = 0.08,
@@ -176,11 +176,11 @@ Data = {
            Volibear = {
             Changelog = "Volibear Changelog Here",
             Version = 0.04,
-        }, 
+        },
            Karthus = {
             Changelog = "Karthus Changelog Here",
             Version = 0.03,
-        }, 
+        },
            Leona = {
             Changelog = "Leona Changelog Here",
             Version = 0.06,
@@ -208,7 +208,7 @@ Data = {
         Velkoz = {
             Changelog = "Velkoz Changelog Here",
             Version = 0.05,
-        }, 
+        },
         Illaoi = {
             Changelog = "Illaoi Changelog Here",
             Version = 0.03,
@@ -224,7 +224,7 @@ Data = {
          Graves = {
             Changelog = "Graves Changelog Here",
             Version = 0.05,
-        }, 
+        },
          Shen = {
             Changelog = "Shen Changelog Here",
             Version = 0.02,
@@ -244,7 +244,7 @@ Data = {
            Khazix = {
             Changelog = "Khazix Changelog Here",
             Version = 0.02,
-        }, 
+        },
            Aatrox = {
             Changelog = "Aatrox Changelog Here",
            Version = 0.03,
@@ -280,7 +280,7 @@ Data = {
           Viego = {
             Changelog = "Viego Changelog Here",
           Version = 0.03,
-        }, 
+        },
            Xayah = {
             Changelog = "Xayah Changelog Here",
           Version = 0.05,
@@ -292,7 +292,7 @@ Data = {
           Riven = {
             Changelog = "Riven Changelog Here",
           Version = 0.05,
-        }, 
+        },
           Anivia = {
             Changelog = "Anivia Changelog Here",
           Version = 0.03,
@@ -300,11 +300,11 @@ Data = {
           Lulu = {
             Changelog = "Lulu Changelog Here",
           Version = 0.02,
-        }, 
+        },
            Syndra = {
             Changelog = "Syndra Changelog Here",
           Version = 0.04,
-        },        
+        },
     },
 }
 
