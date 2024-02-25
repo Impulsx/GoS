@@ -566,7 +566,7 @@ DevTool.DrawBuff = function ()
 	end
 end
 
-DevTool.ActiveSpell = function()
+DevTool.DrawActiveSpell = function()
 	for i, obj in ipairs(Obj_AI_Bases) do
 		if isOnScreen(obj) then
 						drawText(obj, getValue("activeSpell", function()
@@ -749,7 +749,7 @@ DevTool.Draw = function()
 	end
 
 	if menu.activeSpell:Value() then
-		DevTool.ActiveSpell()
+		DevTool.DrawActiveSpell()
 	end
 
 	if menu.item:Value() then
