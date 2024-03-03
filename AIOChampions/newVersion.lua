@@ -167,7 +167,7 @@ Data = {
         },
            FiddleSticks = {
             Changelog = "Fiddlesticks Changelog Here",
-            Version = 0.05,
+            Version = 0.06,
         },
            Zed = {
             Changelog = "Zed Changelog Here",
@@ -259,11 +259,11 @@ Data = {
         },
            Hecarim = {
             Changelog = "Hecarim Changelog Here",
-           Version = 0.02,
+           Version = 0.03,
         },
            Malphite = {
             Changelog = "Malphite Changelog Here",
-           Version = 0.03,
+           Version = 0.04,
         },
            Karma = {
             Changelog = "Karma Changelog Here",
@@ -275,7 +275,7 @@ Data = {
         },
            Brand = {
             Changelog = "Brand Changelog Here",
-           Version = 0.02,
+           Version = 0.03,
         },
           Viego = {
             Changelog = "Viego Changelog Here",
