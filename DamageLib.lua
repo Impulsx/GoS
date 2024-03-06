@@ -1,4 +1,4 @@
-local damageLibVersion = 14.33
+local damageLibVersion = 14.331
 
 --[[
 Usage:
@@ -5359,7 +5359,7 @@ do
       print("| DamageLib | [ver. " .. tostring(damageLibVersion) .. "] loaded!")
     end
   end
-  --update()
+  update()
 end
 
 _G.DamageLib = {
