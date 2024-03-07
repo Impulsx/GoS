@@ -1,4 +1,4 @@
-local damageLibVersion = 14.4
+local damageLibVersion = 14.5
 
 --[[
 Usage:
@@ -511,7 +511,7 @@ local ARAM = {
   },
   ["Anivia"] = {
     dmgDealt = 1.05,
-    dmgReceived = 0.95,
+    dmgReceived = nil,
     other = nil,
   },
   ["Annie"] = {
@@ -586,7 +586,7 @@ local ARAM = {
   },
   ["DrMundo"] = {
     dmgDealt = 0.90,
-    dmgReceived = 1.10,
+    dmgReceived = 1.05,
     other = nil,
   },
   ["Draven"] = {
@@ -730,7 +730,7 @@ local ARAM = {
     other = nil,
   },
   ["Karma"] = {
-    dmgDealt = nil,
+    dmgDealt = 0.95,
     dmgReceived = nil,
     other = nil,
   },
@@ -871,7 +871,7 @@ local ARAM = {
   },
   ["Nasus"] = {
     dmgDealt = 0.90,
-    dmgReceived = 1.10,
+    dmgReceived = 1.05,
     other = nil,
   },
   ["Nautilus"] = {
@@ -1967,7 +1967,7 @@ local GetPercentHP = function(unit)
 end
 
 local GetPercentMissingHP = function(unit)
-  return (1 - (unit.health / unit.maxHealth)) * 100
+  return (1 - (unit.health / unit.maxHealth))
 end
 
 local GetMissingHP = function(unit)
@@ -2051,7 +2051,7 @@ local DamageReductionBuffsTable = {
     end
   },
   --MOVED is flatreduction["Amumu"] = {buff = "Tantrum", DamageType = 1, amount = function(target) return (({5, 7, 9, 11, 13})[target:GetSpellData(_E).level] + (0.03 * target.bonusMagicResist) + (0.03 * target.bonusArmor)) end}, --max 50%
-  ["Belveth"] = { buff = "BelvethE", amount = function(source, target) return 1 - 0.7 end },
+  ["Belveth"] = { buff = "BelvethE", amount = function(source, target) return 1 - (({35, 40, 45, 50, 55})[target:GetSpellData(_E).level]/100) end },
   ["Braum"] = {
     buff = "BraumShieldRaise",
     amount = function(source, target)
@@ -2087,7 +2087,7 @@ local DamageReductionBuffsTable = {
     end
   },
   -- ["KSante"] = {buff = "KSanteW", amount = function(source, target) return 1 - 0.25 + (0.10 * math.floor(target.bonusArmor/100)) + (0.10 * math.floor(target.bonusMagicResist/100)) + (0.10 * math.floor((target.maxHealth - GetBaseHealth(target))/100)) end},
-  ["KSante"] = { buff = "KSanteW", amount = function(source, target) return 0.40 + 0.25 / 17 * (target.levelData.lvl - 1) end },
+  ["KSante"] = { buff = "KSanteW", amount = function(source, target) return 1 - (0.40 + 0.25 / 17 * (target.levelData.lvl - 1)) end },
   ["Malzahar"] = { buff = "malzaharpassiveshield", amount = function(source, target) return 1 - 0.9 end },
   ["MasterYi"] = {
     buff = "Meditate",
@@ -2706,7 +2706,7 @@ local SpellDamageTable = {
       DamageType = 2,
       Damage = function(source, target, level)
         return ({ 60, 130, 200 })[level] +
-            (0.30 * source.ap) * (0.0286 * (math.min(GetPercentMissingHP(target), 70)))
+            (0.30 * source.ap) * (0.0286 * (math.min(GetPercentHP(target), 70)))
       end
     },
   },
@@ -2745,7 +2745,7 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         return ({ 20, 25, 30 })[level] +
-            (0.10 * source.totalDamage) + (1 + (0.50 * source.critChance)) * (0.03 * (GetPercentMissingHP(target)))
+            (0.10 * source.totalDamage) + (1 + (0.50 * source.critChance)) * (0.03 * (GetPercentHP(target)))
       end
     },                                                                                                               -- min per bullet stored
     {
@@ -2754,7 +2754,7 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         return ({ 80, 100, 120 })[level] +
-            (0.40 * source.totalDamage) + (1 + (0.50 * source.critChance)) * (0.03 * (GetPercentMissingHP(target)))
+            (0.40 * source.totalDamage) + (1 + (0.50 * source.critChance)) * (0.03 * (GetPercentHP(target)))
       end
     },                                                                                                               -- max per bullet stored
     {
@@ -2764,7 +2764,7 @@ local SpellDamageTable = {
       Damage = function(source, target, level)
         return ({ 100, 150, 210 })[level] +
             (({ 0.50, 0.60, 0.70 })[level] * source.totalDamage) +
-            (1 + (0.50 * source.critChance)) * (0.03 * (GetPercentMissingHP(target)))
+            (1 + (0.50 * source.critChance)) * (0.03 * (GetPercentHP(target)))
       end
     },                                                                                 -- minimum charged damage
   },
@@ -3179,7 +3179,7 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 1,
       Damage = function(source, target, level)
-        local dmg = ({ 6, 7, 8, 9, 10 })[level] + (0.08 * source.totalDamage) * (0.03 * (GetPercentMissingHP(target))); if target.type == Obj_AI_Camp then dmg = (dmg * 1.50) end; return
+        local dmg = ({ 6, 7, 8, 9, 10 })[level] + (0.08 * source.totalDamage) * (0.03 * (GetPercentHP(target))); if target.type == Obj_AI_Camp then dmg = (dmg * 1.50) end; return
             dmg
       end
     },     --minimum
@@ -3189,7 +3189,7 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         local dmg = ({ 24, 28, 32, 36, 40 })[level] +
-        (0.32 * source.totalDamage) * (0.03 * (GetPercentMissingHP(target))); if target.type == Obj_AI_Camp then dmg = (dmg * 1.50) end; return
+        (0.32 * source.totalDamage) * (0.03 * (GetPercentHP(target))); if target.type == Obj_AI_Camp then dmg = (dmg * 1.50) end; return
             dmg
       end
     },     --maximum over 1.5 seconds
@@ -3266,7 +3266,7 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 100, 200, 300 })[level] +
+        return ({ 100, 175, 250 })[level] +
             0.25 * source.ap
       end
     },
@@ -3675,7 +3675,7 @@ local SpellDamageTable = {
         return ({ 5, 15, 25, 35, 45 })
             [level] +
             (0.07 * (source.maxHealth - GetBaseHealth(source))) *
-            (1 + math.min(0.0057 * GetPercentMissingHP(source), 0.40))
+            (1 + math.min(0.0057 * GetPercentHP(source), 0.40))
       end
     },                                                                                                                        --Passive TODO: Move to AA table
     {
@@ -3684,7 +3684,7 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         local dmg = (({ 5, 15, 25, 35, 45 })[level] + (0.07 * (source.maxHealth - GetBaseHealth(source)))) *
-            (1 + math.min(0.0057 * GetPercentMissingHP(source), 0.40))
+            (1 + math.min(0.0057 * GetPercentHP(source), 0.40))
         if target.type == Obj_AI_Minion then return dmg * 2 end; return dmg
       end
     },     --Active
@@ -3796,7 +3796,7 @@ local SpellDamageTable = {
       DamageType = 2,
       Damage = function(source, target, level)
         return ({ 25, 30, 35, 40, 45 })
-            [level] + 0.3 * source.ap
+            [level] + 0.25 * source.ap
       end
     },                                                                                   --TODO: bonus damage next 3 AA or spells
     {
@@ -3824,7 +3824,7 @@ local SpellDamageTable = {
       DamageType = 2,
       Damage = function(source, target, level)
         local dmg = ({ 125, 250, 375 })[level] + 0.75 * source.ap
-        if GetPercentMissingHP(target) > 30 then return dmg * 1.4 end; return dmg
+        if GetPercentHP(target) > 30 then return dmg * 1.4 end; return dmg
       end
     },
   },
@@ -4411,10 +4411,10 @@ local SpellDamageTable = {
       Stage = 2,
       DamageType = 2,
       Damage = function(source, target, level) -- Delayed 1 sec AOE	--TODO: Cap dmg 300 to monsters & 50% dmg to minions and non-epic monsters
-        local dmg = (({ 80, 100, 120, 140, 160 })[source:GetSpellData(_Q).level] + (0.25 * source.ap))
-        local scalar = (1 - target.health / target.maxHealth)
-        local multiplier = ({ 200, 237.50, 275, 312.50, 350 })[source:GetSpellData(_Q).level] *
-            (GetPercentMissingHP(target) / 100)
+        local dmg = (({ 80, 100, 120, 140, 160 })[level] + (0.25 * source.ap))
+        local scalar = ({20, 23.75, 27.5, 31.25, 35})[level]
+          --(1 - target.health / target.maxHealth)
+        local multiplier = scalar * (GetPercentMissingHP(target) / 10)
         --if isolated or immobilized return (dmg * multiplier) else return dmg end},
         --cap at 300 vs monsters
         return (dmg * multiplier)
@@ -4764,7 +4764,7 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         return ({ 64, 154, 244 })[level] +
-            (0.25 * source.totalDamage) + (0.03 * GetPercentMissingHP(target))
+            (0.25 * source.totalDamage) + (0.03 * GetPercentHP(target))
       end
     },                                                                          -- Min
     {
@@ -4773,7 +4773,7 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         return ({ 256, 616, 976 })[level] +
-            (1.00 * source.totalDamage) + (0.03 * GetPercentMissingHP(target))
+            (1.00 * source.totalDamage) + (0.03 * GetPercentHP(target))
       end
     }                                                                           -- max
   },
@@ -5268,14 +5268,14 @@ local SpellDamageTable = {
             [level] + 0.70 * source.ap
       end
     },
-    {
+  {
       Slot = "W",
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        local dmg = ((({ 3, 3.75, 4.50, 5.25, 6.00 })[level] / 100) * target.maxHealth) +
-            (0.01 * math.floor(source.ap / 100)); if target.type == Obj_AI_Minion or target.type == Obj_AI_Camp and dmg > 100 then dmg = 100 end; return
-            dmg
+        local dmg = ((({ 3, 3.75, 4.50, 5.25, 6.00 })[level] / 100) * target.maxHealth) + (0.01 * math.floor(source.ap / 100))
+        if target.type == Obj_AI_Minion or target.type == Obj_AI_Camp and dmg > 100 then dmg = 100 end;
+        return dmg
       end
     },
     {
@@ -5292,8 +5292,8 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        return (({ 100, 140, 180 })[level] + 0.65 * source.bonusDamage + 0.35 * source.ap) *
-            (GetPercentHP(target) < 40 and 2) or (1 + math.min(0.833 * GetPercentMissingHP(target) / 100, .50))
+        return (({ 100, 140, 180 })[level] + 0.75 * source.bonusDamage + 0.35 * source.ap) *
+            (GetPercentHP(target) < 40 and 2) or (1 + math.min(0.833 * GetPercentMissingHP(target), .50))
       end
     },
   },
@@ -6356,9 +6356,8 @@ local SpellDamageTable = {
       Stage = 2,
       DamageType = 2,
       Damage = function(source, target, level)
-        local dmg = (({ 5, 30, 55, 80 })[source:GetSpellData(_R).level] + 0.40 * source.ap + 0.75 * source.totalDamage) *
-            ((target.maxHealth - target.health) / target.maxHealth * 1.5 + 1)
-        dmg = dmg * (Buff:HasBuff(target, "nidaleepassivehunted") and 1.4 or 1)
+        local dmg = (({ 5, 30, 55, 80 })[source:GetSpellData(_R).level] + 0.75 * source.totalDamage + 0.40 * source.ap) * (1+(({ 1, 1.25, 1.5, 1.75 })[source:GetSpellData(_R).level]/100) * GetPercentHP(target))
+        dmg = dmg * (Buff:HasBuff(target, "nidaleepassivehunted") and 1.3 or 1)
         return dmg
       end
     },
@@ -6387,7 +6386,7 @@ local SpellDamageTable = {
       DamageType = 2,
       Damage = function(source, target, level)
         return ({ 80, 140, 200, 260 })
-            [source:GetSpellData(_R).level] + 0.45 * source.ap + 0.40 * source.bonusDamage
+            [source:GetSpellData(_R).level] + 0.40 * source.bonusDamage + 0.45 * source.ap
       end
     },
   },
@@ -7263,10 +7262,7 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 1,
       Damage = function(source, target, level)
-        -- local lethality = (0.6222 + 0.3778 / 17 * (source.levelData.lvl-1))
-        -- local flatPen = source.armorPen * lethality
-        return ({ 30, 50, 60, 70, 80 })[level] + 0.30 * source.bonusDamage + (0.40 * source.ap) +
-            (1.6 * math.floor(source.armorPen))
+        return ({ 30, 60, 90, 120, 150 })[level] + 0.40 * source.bonusDamage
       end
     },
     {
@@ -7295,26 +7291,26 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 55, 80, 105, 130, 155 })
-            [level] + (0.50 * source.ap)
+        return ({ 60, 85, 110, 135, 160 })
+            [level] + (0.50 * source.ap) * (1 + (0.06 * (math.min(GetMissingHP(target), 75)/7.5)))
       end
     },                                    --min damage
     {
       Slot = "Q",
-      Stage = 1,
+      Stage = 2,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 82.5, 120, 157.5, 195, 232.5 })
-            [level] + (0.75 * source.ap)
+        return ({ 96, 136, 176, 216, 256 })
+            [level] + (0.80 * source.ap) * (1 + (0.06 * (math.min(GetMissingHP(target), 75)/7.5)))
       end
-    },                                    --max
+    },                                    --enchanced dmg
     {
       Slot = "E",
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 60, 95, 130, 165, 200 })
-            [level] + 0.35 * source.ap
+        return ({ 70, 100, 130, 160, 190 })
+            [level] + 0.50 * source.ap
       end
     },
     {
@@ -7323,7 +7319,7 @@ local SpellDamageTable = {
       DamageType = 2,
       Damage = function(source, target, level)
         return ({ 150, 200, 250 })[level] +
-            0.60 * source.ap
+            0.40 * source.ap
       end
     },
   },
@@ -8733,8 +8729,8 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        return (0.015 * GetPercentHP(target) + 1) *
-            ({ 175, 250, 325 })[level] + (({ 0.65, 0.70, 0.75 })[level] * source.ap)
+        return ({ 175, 250, 325 })[level] + (({ 0.65, 0.70, 0.75 })[level] * source.ap) *
+          (1 + (0.015 * (math.max(GetMissingHP(target), 66.66))))
       end
     },
   },
@@ -8838,7 +8834,7 @@ local SpellDamageTable = {
             [level] + source.ap
       end
     },
-    { Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (((({ 12, 16, 20 })[level] / 100) + (0.05 * math.floor(source.bonusDamage / 100))) * (GetPercentMissingHP(target))) end },
+    { Slot = "R", Stage = 1, DamageType = 1, Damage = function(source, target, level) return (((({ 12, 16, 20 })[level] / 100) + (0.05 * math.floor(source.bonusDamage / 100))) * (GetMissingHP(target))) end },
     {
       Slot = "R",
       Stage = 1,
@@ -9342,7 +9338,7 @@ local SpellDamageTable = {
       DamageType = 2,
       Damage = function(source, target, level)
         return ({ 40, 55, 70, 85, 100 })
-            [level] + (0.3 * source.ap) + (0.025 * source.maxHealth)
+            [level] + (0.3 * source.ap) + (0.004 * source.maxHealth)
       end
     },
     {
@@ -9350,8 +9346,8 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 35, 50, 65, 80, 95 })
-            [level] + ((({ 4, 5, 6, 7, 8 })[level] / 100 + (0.04 * math.floor(source.ap / 100))) * target.maxHealth)
+        return ({ 40, 50, 60, 70, 80 })
+            [level] + ((({ 4, 5, 6, 7, 8 })[level] / 100 + (0.003 * math.floor(source.ap / 100))) * target.maxHealth)
       end
     },
     {
@@ -9359,8 +9355,8 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 60, 110, 160, 210, 260 })
-            [level] + 0.9 * source.ap
+        return ({ 60, 105, 150, 195, 240 })
+            [level] + 0.80 * source.ap
       end
     },
     {
@@ -9377,7 +9373,7 @@ local SpellDamageTable = {
       Stage = 2,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 350, 525, 700 })[level] +
+        return ({ 350, 525, 700 })[level] + 1.00 *
             source.ap
       end
     },                 --max single target
@@ -10095,8 +10091,7 @@ getdmg = function(spell, target, source, stage, level)
   end
   if spell == "GALEFORCE" then
     return CalcDamage(source, target, 2,
-      (({ 60, 60, 60, 60, 60, 60, 60, 60, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105 })[source.levelData.lvl] + (0.15 * source.bonusDamage)) *
-      1 + math.min(0.5, 0.05 * math.floor(GetPercentMissingHP(target) / 7, 7)) * 3)
+      ((({ 60, 60, 60, 60, 60, 60, 60, 60, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105 })[source.levelData.lvl] + (0.15 * source.bonusDamage)) * 3) * (1 + (0.05 * (GetPercentHP(target) / 7.5))))
     --750 range radius to most wounded enemy + 3 arrows and missing hp dmg
   end
   if spell == "IRONSPIKE" then
