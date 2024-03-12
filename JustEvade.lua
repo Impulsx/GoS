@@ -7,11 +7,15 @@
 	\____/   \__,_/  /____/  \__/  /_____/   _____/  \__,_/  \__,_/   \___/
                                                            Powered by GoS!
 
-	Author: Ark223
-	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu, Impuls, Icebear, Hightail
+	Gigachad: Ark223
+	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu, Icebear, Hightail
 
 	Changelog:
-	v1.2.0
+	v1.2.1 //
+	+ ZeriE.png fix
+	+ (TODO: ? [SpellDatabase][EvadeSpells][Buffs]) Naafiri, Briar, Hwei, Smolder [iconlib updated]
+
+	v1.2.0 //
 	+ Vex Q added
 	+ Naafiri Q added
 	+ Milio Q added
@@ -126,7 +130,7 @@ local function ReadFile(file)
 	txt:close(); return result
 end
 
-local Version, IntVer = 1.20, "1.2.0"
+local Version, IntVer = 1.21, "1.2.1"
 local function AutoUpdate()
 	DownloadFile("https://raw.githubusercontent.com/Impulsx/GoS/master/JustEvade.version", SCRIPT_PATH .. "JustEvade.version")
 	if tonumber(ReadFile(SCRIPT_PATH .. "JustEvade.version")) > Version then
@@ -855,7 +859,7 @@ local EvadeSpells = {
 		[3] = {icon = Icons.."ZedR"..Png, type = 4, displayName = "Death Mark", name = "ZedR-", range = 625, danger = 4, slot = _R, slot2 = HK_R},
 	},
 	["Zeri"] = {
-		[2] = {icon = Icons.."ZeriE", type = 1, displayName = "Spark Surge", name = "ZeriE-", range = 300, danger = 2, slot = _E, slot2 = HK_E},
+		[2] = {icon = Icons.."ZeriE"..Png, type = 1, displayName = "Spark Surge", name = "ZeriE-", range = 300, danger = 2, slot = _E, slot2 = HK_E},
 	},
 	["Zilean"] = {
 		[2] = {icon = Icons.."ZileanE"..Png, type = 2, displayName = "Time Warp", name = "ZileanE-", danger = 3, slot = _E, slot2 = HK_E},
@@ -874,7 +878,8 @@ local Buffs = {
 	["Warwick"] = "warwickrsound"
 }
 
---[[ ["CaitlynAceintheHole"] = {Name = "Caitlyn", displayname = "R | Ace in the Hole", spellname = "CaitlynAceintheHole"},
+--[[ TODO: ImmobileSpell/local Buffs ?
+["CaitlynAceintheHole"] = {Name = "Caitlyn", displayname = "R | Ace in the Hole", spellname = "CaitlynAceintheHole"},
 ["Crowstorm"] = {Name = "FiddleSticks", displayname = "R | Crowstorm", spellname = "Crowstorm"},
 ["DrainChannel"] = {Name = "FiddleSticks", displayname = "W | Drain", spellname = "DrainChannel"},
 ["GalioIdolOfDurand"] = {Name = "Galio", displayname = "R | Idol of Durand", spellname = "GalioIdolOfDurand"},
@@ -895,6 +900,7 @@ local Buffs = {
 ["VelkozR"] = {Name = "Velkoz", displayname = "R | Lifeform Disintegration Ray", spellname = "VelkozR"},
 ["InfiniteDuress"] = {Name = "Warwick", displayname = "R | Infinite Duress", spellname = "InfiniteDuress"},
 
+TODO: Ults?
 ["CaitlynAceintheHole"] 	= {charName = "Caitlyn", 		slot = _R, 	 	displayName = "Ace in the Hole"},
 ["Crowstorm"] 				= {charName = "Fiddlesticks", 	slot = _R, 	 	displayName = "Crowstorm"},
 ["GalioR"] 					= {charName = "Galio", 			slot = _R, 	 	displayName = "Hero's Entrance"},
@@ -931,7 +937,7 @@ local Minions = {
 	["HA_OrderMinionSiege"] = true
 }
 
-local function Class()
+function Class()
 	local cls = {}; cls.__index = cls
 	return setmetatable(cls, {__call = function (c, ...)
 		local instance = setmetatable({}, cls)
@@ -2242,7 +2248,7 @@ function OnLoad()
 	DelayAction(function()
 		JEvade:__init()
 		print("JustEvade successfully loaded!")
-		ReleaseEvadeAPI(); AutoUpdate();
+		ReleaseEvadeAPI(); AutoUpdate()
 	end, MathMax(0.07, 30 - GameTimer()))
 end
 
