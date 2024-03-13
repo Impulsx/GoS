@@ -23,7 +23,7 @@ Data = {
         },
         Soraka = {
             Changelog = "Soraka Changelog Here",
-            Version = 0.09,
+            Version = 0.10,
         },
         Zyra = {
             Changelog = "Zyra Changelog Here",
@@ -43,7 +43,7 @@ Data = {
         },
          Neeko = {
             Changelog = "Neeko Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         },
         Warwick = {
             Changelog = "Warwick Changelog Here",
@@ -59,11 +59,11 @@ Data = {
         },
         Sona = {
             Changelog = "Sona Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         },
         Morgana = {
             Changelog = "Morgana Changelog Here",
-            Version = 0.11,
+            Version = 0.12,
         },
         Kassadin = {
             Changelog = "Kassadin Changelog Here",
@@ -127,7 +127,7 @@ Data = {
         },
          Sett = {
             Changelog = "Sett Changelog Here",
-            Version = 0.08,
+            Version = 0.09,
         },
          Rengar = {
             Changelog = "Rengar Changelog Here",
