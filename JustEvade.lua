@@ -1,5 +1,5 @@
-local Version = 1.27
-	local IntVer = "1.2.7"
+local Version = 1.28
+	local IntVer = "1.2.8"
 --[[
 
 	_________                _____ __________                _________
@@ -158,7 +158,7 @@ local function AutoUpdate()
 		DownloadFile("https://raw.githubusercontent.com/Impulsx/GoS/master/JustEvade.lua", SCRIPT_PATH .. "JustEvade.lua")
 		print("*WARNING* New JustEvade [ver. " .. tostring(newVersion) .. "] Downloaded - Please RELOAD with [ F6 ]")
 	else
-		print("| JustEvade |" .. "[ver." .. tostring(IntVer) .. "] successfully loaded!")
+		print("| JustEvade | [ver." .. tostring(IntVer) .. "] successfully loaded!")
 	end
 end
 
