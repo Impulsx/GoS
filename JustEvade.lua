@@ -1,5 +1,5 @@
-local Version = 1.28
-	local IntVer = "1.2.8"
+local Version = 1.29
+local IntVer = "1.2.9"
 --[[
 
 	_________                _____ __________                _________
@@ -13,8 +13,8 @@ local Version = 1.28
 	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu, Hightail, Icebear, zgjfjfl
 
 	Changelog:
-	v1.2.8
-	+
+	v1.2.8 + 9
+	+ Formating
 
 	v1.2.6 + 7 //
 	+ Updated load & update structure & console text
@@ -164,13 +164,15 @@ end
 
 
 local MathAbs, MathAtan, MathAtan2, MathAcos, MathCeil, MathCos, MathDeg, MathFloor, MathHuge, MathMax, MathMin, MathPi, MathRad, MathSin, MathSqrt =
-math.abs, math.atan, math.atan2, math.acos, math.ceil, math.cos, math.deg, math.floor, math.huge, math.max, math.min,
+	math.abs, math.atan, math.atan2, math.acos, math.ceil, math.cos, math.deg, math.floor, math.huge, math.max, math.min,
 	math.pi, math.rad, math.sin, math.sqrt
 local GameCanUseSpell, GameLatency, GameTimer, GameHeroCount, GameHero, GameMinionCount, GameMinion, GameMissileCount, GameMissile =
-Game.CanUseSpell, Game.Latency, Game.Timer, Game.HeroCount, Game.Hero, Game.MinionCount, Game.Minion, Game.MissileCount,
+	Game.CanUseSpell, Game.Latency, Game.Timer, Game.HeroCount, Game.Hero, Game.MinionCount, Game.Minion,
+	Game.MissileCount,
 	Game.Missile
 local DrawCircle, DrawColor, DrawLine, DrawText, ControlKeyUp, ControlKeyDown, ControlMouseEvent, ControlSetCursorPos =
-Draw.Circle, Draw.Color, Draw.Line, Draw.Text, Control.KeyUp, Control.KeyDown, Control.mouse_event, Control.SetCursorPos
+	Draw.Circle, Draw.Color, Draw.Line, Draw.Text, Control.KeyUp, Control.KeyDown, Control.mouse_event,
+	Control.SetCursorPos
 local TableInsert, TableRemove, TableSort = table.insert, table.remove, table.sort
 local Icons, Png = "https://raw.githubusercontent.com/Impulsx/LoL-Icons/master/", ".png"
 local FlashIcon = Icons .. "Flash" .. Png
@@ -974,6 +976,7 @@ function Class()
 		end
 	})
 end
+
 function class()
 	local cls = {}; cls.__index = cls
 	return setmetatable(cls, {
@@ -1375,7 +1378,7 @@ function JEvade:__init()
 	self.ExtendedPos, self.Flash, self.Flash2, self.FlashRange, self.MousePos, self.MyHeroPos, self.SafePos = nil, nil,
 		nil, nil, nil, nil, nil
 	self.Debug, self.DodgeableSpells, self.DetectedSpells, self.Enemies, self.EvadeSpellData, self.OnCreateMisCBs, self.OnImpDodgeCBs, self.OnProcSpellCBs =
-	{}, {}, {}, {}, {}, {}, {}, {}
+		{}, {}, {}, {}, {}, {}, {}, {}
 	self.DDTimer, self.DebugTimer, self.MoveTimer, self.MissileID, self.OldTimer, self.NewTimer = 0, 0, 0, 0, 0, 0
 	self.SpellSlot = { [_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R" }
 	for i = 1, GameHeroCount() do
@@ -1412,13 +1415,22 @@ function JEvade:__init()
 			if SpellDatabase[enemy] then
 				for j, spell in pairs(SpellDatabase[enemy]) do
 					if not self.JEMenu.Spells[j] then
-						self.JEMenu.Spells:MenuElement({ id = j, name = "" ..
-						enemy .. " " .. self.SpellSlot[spell.slot] .. " - " .. spell.displayName, leftIcon = spell.icon, type =
-						MENU })
+						self.JEMenu.Spells:MenuElement({
+							id = j,
+							name = "" ..
+								enemy .. " " .. self.SpellSlot[spell.slot] .. " - " .. spell.displayName,
+							leftIcon = spell.icon,
+							type =
+								MENU
+						})
 						self.JEMenu.Spells[j]:MenuElement({ id = "Dodge" .. j, name = "Dodge Spell", value = true })
 						self.JEMenu.Spells[j]:MenuElement({ id = "Draw" .. j, name = "Draw Spell", value = true })
-						self.JEMenu.Spells[j]:MenuElement({ id = "Force" .. j, name = "Force To Dodge", value = spell
-						.danger >= 2 })
+						self.JEMenu.Spells[j]:MenuElement({
+							id = "Force" .. j,
+							name = "Force To Dodge",
+							value = spell
+								.danger >= 2
+						})
 						if spell.fow then self.JEMenu.Spells[j]:MenuElement({ id = "FOW" .. j, name = "FOW Detection", value = true }) end
 						self.JEMenu.Spells[j]:MenuElement({ id = "HP" .. j, name = "%HP To Dodge Spell", value = 100, min = 0, max = 100, step = 5 })
 						self.JEMenu.Spells[j]:MenuElement({ id = "ER" .. j, name = "Extra Radius", value = 5, min = 0, max = 100, step = 5 })
@@ -1432,9 +1444,14 @@ function JEvade:__init()
 		if eS then
 			for i = 0, 3 do
 				if eS[i] then
-					self.JEMenu.Spells:MenuElement({ id = eS[i].name, name = "" ..
-					myHero.charName .. " " .. self.SpellSlot[eS[i].slot] .. " - " .. eS[i].displayName, leftIcon = eS[i]
-					.icon, type = MENU })
+					self.JEMenu.Spells:MenuElement({
+						id = eS[i].name,
+						name = "" ..
+							myHero.charName .. " " .. self.SpellSlot[eS[i].slot] .. " - " .. eS[i].displayName,
+						leftIcon = eS[i]
+							.icon,
+						type = MENU
+					})
 					self.JEMenu.Spells[eS[i].name]:MenuElement({ id = "US" .. eS[i].name, name = "Use Spell", value = true })
 					self.JEMenu.Spells[eS[i].name]:MenuElement({ id = "Danger" .. eS[i].name, name = "Danger Level > ", value = (eS[i].danger or 1), min = 1, max = 5, step = 1 })
 				end
@@ -1607,8 +1624,13 @@ function JEvade:__init()
 		self:LoadEvadeSpells()
 		DelayAction(function()
 			if self.Flash then
-				self.JEMenu.Spells:MenuElement({ id = "Flash", name = myHero.charName .. " - Summoner Flash", leftIcon =
-				FlashIcon, type = MENU })
+				self.JEMenu.Spells:MenuElement({
+					id = "Flash",
+					name = myHero.charName .. " - Summoner Flash",
+					leftIcon =
+						FlashIcon,
+					type = MENU
+				})
 				self.JEMenu.Spells.Flash:MenuElement({ id = "US", name = "Use Flash", value = true })
 				self.JEMenu.Spells.Flash:MenuElement({ id = "Danger", name = "Danger Level > ", value = 4, min = 1, max = 5, step = 1 })
 			end
@@ -1626,9 +1648,9 @@ end
 
 function JEvade:DrawArrow(startPos, endPos, color)
 	local p1 = endPos - (Point2D(startPos - endPos):Normalized() * 30):Perpendicular() +
-	Point2D(startPos - endPos):Normalized() * 30
+		Point2D(startPos - endPos):Normalized() * 30
 	local p2 = endPos - (Point2D(startPos - endPos):Normalized() * 30):Perpendicular2() +
-	Point2D(startPos - endPos):Normalized() * 30
+		Point2D(startPos - endPos):Normalized() * 30
 	local startPos, endPos, p1, p2 = self:FixPos(startPos), self:FixPos(endPos), self:FixPos(p1), self:FixPos(p2)
 	DrawLine(startPos.x, startPos.y, endPos.x, endPos.y, 1, color)
 	DrawLine(p1.x, p1.y, endPos.x, endPos.y, 1, color)
@@ -2016,7 +2038,7 @@ function JEvade:GetMovementSpeed(extra, evadeSpell)
 		return 1.35 * moveSpeed
 	elseif name == "KaisaE-" then
 		return ({ 1.55, 1.60, 1.65, 1.70, 1.75 })[lvl] *
-		moveSpeed                                                                       -- need myHero.bonusattackSpeed for +1% per 1% Bonus attack speed
+			moveSpeed -- need myHero.bonusattackSpeed for +1% per 1% Bonus attack speed
 	elseif name == "KayleW-" then
 		return ({ 1.24, 1.28, 1.32, 1.36, 1.40 })[lvl] + (0.08 * MathFloor(myHero.ap / 100)) * moveSpeed
 	elseif name == "KatarinaW-" then
@@ -2027,13 +2049,14 @@ function JEvade:GetMovementSpeed(extra, evadeSpell)
 		return ({ 1.10, 1.15, 1.20, 1.25, 1.30 })[lvl] * moveSpeed
 	elseif name == "ShyvanaW-" then
 		return ({ 1.30, 1.35, 1.40, 1.45, 1.50 })[lvl] +
-		(0.08 * MathFloor(myHero.ap / 100)) * moveSpeed                                                                         -- +8% per 100 AP
+			(0.08 * MathFloor(myHero.ap / 100)) *
+			moveSpeed                             -- +8% per 100 AP
 	elseif name == "SkarnerW-" then
 		return ({ 1.08, 1.10, 1.12, 1.14, 1.16 })[lvl] * moveSpeed
 	elseif name == "SonaE-" then
 		return 1.20 +
-		(0.02 * MathFloor(myHero.ap / 100)) *
-		moveSpeed                                                                                                               -- Aura bonus to allies would be ({1.1, 1.11, 1.12, 1.13, 1.14})[lvl] + (0.02 * MathFloor(myHero.ap / 100)) * moveSpeed
+			(0.02 * MathFloor(myHero.ap / 100)) *
+			moveSpeed -- Aura bonus to allies would be ({1.1, 1.11, 1.12, 1.13, 1.14})[lvl] + (0.02 * MathFloor(myHero.ap / 100)) * moveSpeed
 	elseif name == "TeemoW-" then
 		return ({ 1.20, 1.28, 1.26, 1.44, 1.52 })[lvl] * moveSpeed
 	elseif name == "UdyrE-" then
@@ -2109,8 +2132,10 @@ function JEvade:LoadEvadeSpells()
 
 	for i = 0, 3 do
 		local eS = EvadeSpells[myHero.charName]
-		if eS and eS[i] then TableInsert(self.EvadeSpellData,
-				{ name = eS[i].name, slot = eS[i].slot, slot2 = eS[i].slot2, range = eS[i].range, type = eS[i].type }) end
+		if eS and eS[i] then
+			TableInsert(self.EvadeSpellData,
+				{ name = eS[i].name, slot = eS[i].slot, slot2 = eS[i].slot2, range = eS[i].range, type = eS[i].type })
+		end
 	end
 end
 
@@ -2357,8 +2382,10 @@ function JEvade:OnProcessSpell(unit, spell)
 				local startPos, placementPos = self:To2D(spell.startPos), self:To2D(spell.placementPos)
 				local endPos, range = self:CalculateEndPos(startPos, placementPos, unitPos, data.speed, data.range,
 					data.radius, data.collision, data.type, data.extend)
-				if unit.charName == "Yasuo" or unit.charName == "Yone" then endPos = startPos +
-					self:To2D(unit.dir) * data.range end
+				if unit.charName == "Yasuo" or unit.charName == "Yone" then
+					endPos = startPos +
+						self:To2D(unit.dir) * data.range
+				end
 				data.range, data.radius, data.y = range,
 					data.radius + (self.JEMenu.Spells[name]["ER" .. name]:Value() or 0), spell.placementPos.y
 				local path, path2 = self:GetPaths(startPos, endPos, data, name)
@@ -2436,7 +2463,8 @@ function OnLoad()
 	--print("Loading JustEvade...")
 	DelayAction(function()
 		JEvade:__init()
-		ReleaseEvadeAPI(); AutoUpdate()
+		ReleaseEvadeAPI();
+		AutoUpdate()
 	end, MathMax(0.07, 30 - GameTimer()))
 end
 
