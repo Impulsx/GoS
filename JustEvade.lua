@@ -1,5 +1,5 @@
-local Version = 1.30
-local IntVer = "1.3.0"
+local Version = 1.31
+local IntVer = "1.3.1"
 --[[
 
 	_________                _____ __________                _________
@@ -13,8 +13,12 @@ local IntVer = "1.3.0"
 	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu, Hightail, Icebear, zgjfjfl
 
 	Changelog:
+	v1.3.1
+	+ OnCreateMissile nil misName
+
 	v1.3.0
-	+  ZeriQ.. Png
+	+ ZeriQ.. Png
+
 	v1.2.8 + 9
 	+ Formating
 
@@ -1419,8 +1423,7 @@ function JEvade:__init()
 					if not self.JEMenu.Spells[j] then
 						self.JEMenu.Spells:MenuElement({
 							id = j,
-							name = "" ..
-								enemy .. " " .. self.SpellSlot[spell.slot] .. " - " .. spell.displayName,
+							name = "" .. enemy .. " " .. self.SpellSlot[spell.slot] .. " - " .. spell.displayName,
 							leftIcon = spell.icon,
 							type =
 								MENU
@@ -2052,7 +2055,7 @@ function JEvade:GetMovementSpeed(extra, evadeSpell)
 	elseif name == "ShyvanaW-" then
 		return ({ 1.30, 1.35, 1.40, 1.45, 1.50 })[lvl] +
 			(0.08 * MathFloor(myHero.ap / 100)) *
-			moveSpeed                             -- +8% per 100 AP
+			moveSpeed -- +8% per 100 AP
 	elseif name == "SkarnerW-" then
 		return ({ 1.08, 1.10, 1.12, 1.14, 1.16 })[lvl] * moveSpeed
 	elseif name == "SonaE-" then
@@ -2424,8 +2427,9 @@ function JEvade:OnCreateMissile(unit, missile)
 	for i, val in pairs(SpellDatabase[unit.charName]) do
 		if val.fow then
 			local tested = val.missileName
+			if tested == nil then break end
 			local found = string.find(name, tested)
-			if found then
+			if tested and found then
 				menuName = i
 				break
 			end
