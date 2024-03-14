@@ -1,3 +1,4 @@
+local Version, IntVer = 1.24, "1.2.4"
 --[[
 
 	_________                _____ __________                _________
@@ -11,6 +12,9 @@
 	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu, Icebear, Hightail
 
 	Changelog:
+	v1.2.4 //
+	+ OnCreateMissile nil check
+
 	v1.2.3 //
 	+ Gwen.png fix
 
@@ -136,7 +140,6 @@ local function ReadFile(file)
 	txt:close(); return result
 end
 
-local Version, IntVer = 1.23, "1.2.3"
 local function AutoUpdate()
 	DownloadFile("https://raw.githubusercontent.com/Impulsx/GoS/master/JustEvade.version",
 		SCRIPT_PATH .. "JustEvade.version")
@@ -2370,7 +2373,8 @@ function JEvade:OnCreateMissile(unit, missile)
 	for i, val in pairs(SpellDatabase[unit.charName]) do
 		if val.fow then
 			local tested = val.missileName
-			if string.find(name, tested) then
+			local found = string.find(name, tested)
+			if found then
 				menuName = i
 				break
 			end
