@@ -1,5 +1,5 @@
-local Version = 1.26
-	local IntVer = "1.2.6"
+local Version = 1.27
+	local IntVer = "1.2.7"
 --[[
 
 	_________                _____ __________                _________
@@ -13,6 +13,12 @@ local Version = 1.26
 	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu, Hightail, Icebear, zgjfjfl
 
 	Changelog:
+	v1.2.8
+	+
+
+	v1.2.6 + 7 //
+	+ Updated load & update structure & console text
+
 	v1.2.5 //
 	+ Define class()/Class() in _G
 
@@ -147,10 +153,12 @@ end
 local function AutoUpdate()
 	DownloadFile("https://raw.githubusercontent.com/Impulsx/GoS/master/JustEvade.version",
 		SCRIPT_PATH .. "JustEvade.version")
-	if tonumber(ReadFile(SCRIPT_PATH .. "JustEvade.version")) > Version then
-		print("JustEvade: Found update! Downloading...")
+	local newVersion = tonumber(ReadFile(SCRIPT_PATH .. "JustEvade.version"))
+	if newVersion > Version then
 		DownloadFile("https://raw.githubusercontent.com/Impulsx/GoS/master/JustEvade.lua", SCRIPT_PATH .. "JustEvade.lua")
-		print("JustEvade: Successfully updated. Use 2x F6!")
+		print("*WARNING* New JustEvade [ver. " .. tostring(newVersion) .. "] Downloaded - Please RELOAD with [ F6 ]")
+	else
+		print("| JustEvade |" .. "[ver." .. tostring(IntVer) .. "] successfully loaded!")
 	end
 end
 
@@ -2425,10 +2433,9 @@ function JEvade:OnCreateMissile(unit, missile)
 end
 
 function OnLoad()
-	print("Loading JustEvade...")
+	--print("Loading JustEvade...")
 	DelayAction(function()
 		JEvade:__init()
-		print("JustEvade".."[ver."..IntVer.."] successfully loaded!")
 		ReleaseEvadeAPI(); AutoUpdate()
 	end, MathMax(0.07, 30 - GameTimer()))
 end
