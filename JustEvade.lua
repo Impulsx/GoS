@@ -11,6 +11,9 @@
 	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu, Icebear, Hightail
 
 	Changelog:
+	v1.2.3 //
+	+ Gwen.png fix
+
 	v1.2.2 //
 	+ Viego.png fix
 
@@ -133,7 +136,7 @@ local function ReadFile(file)
 	txt:close(); return result
 end
 
-local Version, IntVer = 1.22, "1.2.2"
+local Version, IntVer = 1.23, "1.2.3"
 local function AutoUpdate()
 	DownloadFile("https://raw.githubusercontent.com/Impulsx/GoS/master/JustEvade.version",
 		SCRIPT_PATH .. "JustEvade.version")
@@ -307,8 +310,8 @@ local SpellDatabase = {
 		["GravesChargeShot"] = { icon = Icons .. "GravesR" .. Png, displayName = "Charge Shot", missileName = "GravesChargeShotShot", slot = _R, type = "polygon", speed = 2100, range = 1000, delay = 0.25, radius = 100, danger = 5, cc = false, collision = false, windwall = true, hitbox = true, fow = true, exception = false, extend = true },
 	},
 	["Gwen"] = {
-		["GwenQ"] = { icon = Icons .. "GwenQ", displayName = "Snip Snip!", slot = _Q, type = "circular", speed = 1500, range = 450, delay = 0, radius = 275, danger = 2, cc = false, collision = false, windwall = true, hitbox = false, fow = true, exception = false, extend = true },
-		["GwenR"] = { icon = Icons .. "GwenR", displayName = "Needlework", missileName = "GwenRMissile", slot = _R, type = "linear", speed = 1800, range = 1230, delay = 0.25, radius = 250, danger = 3, cc = true, collision = false, windwall = true, hitbox = false, fow = true, exception = false, extend = true },
+		["GwenQ"] = { icon = Icons .. "GwenQ" .. Png, displayName = "Snip Snip!", slot = _Q, type = "circular", speed = 1500, range = 450, delay = 0, radius = 275, danger = 2, cc = false, collision = false, windwall = true, hitbox = false, fow = true, exception = false, extend = true },
+		["GwenR"] = { icon = Icons .. "GwenR" .. Png, displayName = "Needlework", missileName = "GwenRMissile", slot = _R, type = "linear", speed = 1800, range = 1230, delay = 0.25, radius = 250, danger = 3, cc = true, collision = false, windwall = true, hitbox = false, fow = true, exception = false, extend = true },
 	},
 	["Hecarim"] = {
 		["HecarimUlt"] = { icon = Icons .. "HecarimR" .. Png, displayName = "Onslaught of Shadows", missileName = "HecarimUltMissile", slot = _R, type = "linear", speed = 1100, range = 1650, delay = 0.2, radius = 280, danger = 4, cc = true, collision = false, windwall = false, hitbox = false, fow = true, exception = false, extend = true },
