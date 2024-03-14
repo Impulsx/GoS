@@ -9,7 +9,7 @@ local Version, IntVer = 1.24, "1.2.4"
                                                            Powered by GoS!
 
 	Gigachad: Ark223
-	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu, Icebear, Hightail
+	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu, Hightail, Icebear, zgjfjfl
 
 	Changelog:
 	v1.2.4 //
