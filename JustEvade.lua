@@ -1,4 +1,5 @@
-local Version, IntVer = 1.25, "1.2.5"
+local Version = 1.26
+	local IntVer = "1.2.6"
 --[[
 
 	_________                _____ __________                _________
@@ -2427,7 +2428,7 @@ function OnLoad()
 	print("Loading JustEvade...")
 	DelayAction(function()
 		JEvade:__init()
-		print("JustEvade successfully loaded!")
+		print("JustEvade".."[ver."..IntVer.."] successfully loaded!")
 		ReleaseEvadeAPI(); AutoUpdate()
 	end, MathMax(0.07, 30 - GameTimer()))
 end
