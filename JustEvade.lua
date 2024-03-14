@@ -1,5 +1,5 @@
-local Version = 1.29
-local IntVer = "1.2.9"
+local Version = 1.30
+local IntVer = "1.3.0"
 --[[
 
 	_________                _____ __________                _________
@@ -13,6 +13,8 @@ local IntVer = "1.2.9"
 	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu, Hightail, Icebear, zgjfjfl
 
 	Changelog:
+	v1.3.0
+	+  ZeriQ.. Png
 	v1.2.8 + 9
 	+ Formating
 
@@ -718,7 +720,7 @@ local SpellDatabase = {
 		["ZedQ"] = { icon = Icons .. "ZedQ" .. Png, displayName = "Razor Shuriken", missileName = "ZedQMissile", slot = _Q, type = "linear", speed = 1700, range = 900, delay = 0.25, radius = 50, danger = 1, cc = false, collision = false, windwall = true, hitbox = true, fow = true, exception = true, extend = true },
 	},
 	["Zeri"] = {
-		["ZeriQ"] = { icon = Icons .. "ZeriQ", displayName = "Burst Fire", missileName = "ZeriQMissile", slot = _Q, type = "linear", speed = 1500, range = 840, delay = 0.25, radius = 80, danger = 2, cc = false, collision = true, windwall = true, hitbox = true, fow = true, exception = true, extend = true },
+		["ZeriQ"] = { icon = Icons .. "ZeriQ" .. Png, displayName = "Burst Fire", missileName = "ZeriQMissile", slot = _Q, type = "linear", speed = 1500, range = 840, delay = 0.25, radius = 80, danger = 2, cc = false, collision = true, windwall = true, hitbox = true, fow = true, exception = true, extend = true },
 	},
 	["Ziggs"] = {
 		["ZiggsQ"] = { icon = Icons .. "ZiggsQ" .. Png, displayName = "Bouncing Bomb", missileName = "ZiggsQSpell", slot = _Q, type = "polygon", speed = 1750, range = 850, delay = 0.25, radius = 150, danger = 1, cc = false, collision = true, windwall = true, hitbox = false, fow = true, exception = false, extend = false },
