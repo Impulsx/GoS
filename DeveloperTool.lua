@@ -1,4 +1,6 @@
 local PRINT_CONSOLE = false;
+local SCRIPT_NAME = "DevTool"
+
 
 local myHero = myHero
 local os = os
@@ -90,6 +92,48 @@ local menu = MenuElement({ id = "DeveloperTool", name = "DeveloperTool", type = 
 
 DevTool.Menu = function()
 	if not DevToolMenu then
+		menu:MenuElement({ id = "DevTest", name = "DevTest", type = MENU });
+		menu.DevTest:MenuElement({
+			id = "TestON",
+			name = "[Enable] Test in",
+			drop = { "DRAW", "TICK" },
+			callback = function(value)
+				DevTool.TestON = value
+			end
+		});
+		menu.DevTest:MenuElement({
+			id = "testMouse",
+			name = "testMouse",
+			value = false,
+			callback = function(value)
+				DevTool.testMouse = value
+			end
+		});
+		menu.DevTest:MenuElement({
+			id = "testSpells",
+			name = "testSpells",
+			value = false,
+			callback = function(value)
+				DevTool.testSpells = value
+			end
+		});
+		menu.DevTest:MenuElement({
+			id = "testItems",
+			name = "testItems",
+			value = false,
+			callback = function(value)
+				DevTool.testItems = value
+			end
+		});
+		menu.DevTest:MenuElement({
+			id = "testPathing",
+			name = "testPathing",
+			value = false,
+			callback = function(value)
+				DevTool.testPathing = value
+			end
+		});
+		menu.DevTest:MenuElement({ id = "DevTest", name = "DevTest", value = false });
 		menu:MenuElement({ id = "GameObject", name = "GameObject", type = MENU });
 		menu.GameObject:MenuElement({ id = "GameObject", name = "All GameObjects", value = false });
 		menu.GameObject:MenuElement({ id = "DrawObjectInfo", name = "Object Info", value = false });
@@ -138,7 +182,8 @@ DevTool.Menu = function()
 		menu.particles:MenuElement({ id = "GameObjectTurrets", name = "Turrets", value = false });
 		menu:MenuElement({ type = SPACE })
 		menu:MenuElement({ id = "API", name = "[ Dump API Documentation ]", type = MENU, });
-		menu.API:MenuElement({ id = "APIdump", name = "[ Click to dump API Documentation ]", type = SPACE, tooltip = "Dump to '[os.date]api.lua' in \\LOLEXT\\Scripts\\", onclick = function() local date = os.date() DumpDocumentation(date.."api.lua")  menu.API:Hide() end});
+		menu.API:MenuElement({ id = "APIdump", name = "[ Click to dump API Documentation ]", type = SPACE, tooltip = "Dumps to \\LOLEXT\\Scripts\\'[API].lua'", onclick = function() local date = os.date(); print("| "..SCRIPT_NAME.." | - [DUMP API] to \\LOLEXT\\Scripts\\'[API].lua' @ ["..date.."]"); DumpDocumentation("[API].lua")  menu.API:Hide() end});
+		--local SCRIPT_NAME = string.gsub(string.match(debug.getinfo(1, 'S').short_src, "[^/]+$"), '.lua', '')
 
 		menu:MenuElement({ id = "DevToolLoading", name = "DeveloperTool will load after: ".. menuLoadDelay.." s, to avoid crash", type = SPACE })
 
@@ -254,31 +299,10 @@ table_insert(itemSlots, ITEM_5);
 table_insert(itemSlots, ITEM_6);
 table_insert(itemSlots, ITEM_7);
 
-DevTool.Load = function()
-	if GameTimer() > DevToolLoadDelay then
-		DevToolLoad = true
-	end
-	if not DevToolMenu then
-		DevTool:Menu()
-	end
-	if not DevToolLoad then
-		DelayAction(function()
-			DevTool:Load()
-		end, 1)
-	else
-		Callback.Add("Tick", function()
-			DevTool:Tick()
-		end);
-		Callback.Add("Draw", function()
-			DevTool:Draw()
-		end);
-		--DevTool.GetAllHandles()
-	end
-end
-
 DevTool.Tick = function()
 	Obj_AI_Bases = {};
 	handleToNetworkID = {};
+
 	if menu.GameObject.GameObject:Value() then
 		DevTool.GetAllHandles()
 	end
@@ -291,7 +315,6 @@ DevTool.Tick = function()
 	if menu.GameObject.GameObjectTurrets:Value() then
 		DevTool.Turrets()
 	end
-
 end
 
 DevTool.GetAllHandles = function()
@@ -303,9 +326,7 @@ DevTool.GetAllHandles = function()
 		--Draw.Circle(obj.pos, 5)
 		if isValidTarget(obj) then
 			if isObj_AI_Base(obj) then
-				if isOnScreen(obj) then -- just because of fps
-					table_insert(Obj_AI_Bases, obj);
-				end
+				table_insert(Obj_AI_Bases, obj);
 				handleToNetworkID[obj.handle] = obj.networkID;
 			end
 		end
@@ -367,9 +388,11 @@ DevTool.DrawObjectInfo = function ()
 				drawText(obj, getValue("charName", function()
 					return obj.charName;
 				end));
-				--[[ drawText(obj, getValue("name", function()
-					return obj.name;
-				end)); ]]
+				drawText(obj, getValue("name", function()
+					local name = obj.name
+					if obj.name == myHero.name then name = "[REDACTED]" end
+					return name;
+				end));
 				drawText(obj, getValue("range", function()
 					return obj.range;
 				end));
@@ -491,7 +514,9 @@ DevTool.DrawAttackData = function ()
 			drawText(obj, getValue("target", function()
 				local target = getObjectByHandle(obj.attackData.target);
 				-- return obj.attackData.target
-				return isValidTarget(target) and target.name or "[No Target]";
+				local name = target.name
+				if name == myHero.name then name = "[REDACTED]" end
+				return isValidTarget(target) and name or "[No Target]";
 			end));
 			drawText(obj, getValue("timeLeft", function()
 				return math_max(obj.attackData.endTime - GameTimer(), 0);
@@ -551,11 +576,13 @@ DevTool.DrawBuff = function ()
 			for j = 1, obj.buffCount do
 				local buff = obj:GetBuff(j);
 				if buff ~= nil and buff.count > 0 then
+					local name = buff.sourceName
+					if name == myHero.name then name = "[REDACTED]" end
 					drawText(obj, "type: " .. buff.type ..
 						", name: " .. buff.name ..
 						", stacks: " .. buff.stacks ..
 						", count: " .. buff.count ..
-						", sourceName: " .. buff.sourceName ..
+						", sourceName: " .. name ..
 						", startTime: " .. buff.startTime ..
 						", expireTime: " .. buff.expireTime ..
 						", duration: " .. buff.duration
@@ -569,91 +596,96 @@ end
 DevTool.DrawActiveSpell = function()
 	for i, obj in ipairs(Obj_AI_Bases) do
 		if isOnScreen(obj) then
-						drawText(obj, getValue("activeSpell", function()
+			drawText(obj, getValue("activeSpell", function()
 				return obj.activeSpell;
 			end));
-						drawText(obj, getValue("valid", function()
-				return obj.valid;
+			drawText(obj, getValue("valid", function()
+				return obj.activeSpell.valid;
 			end)); --always use this to check if it's casting
-						drawText(obj, getValue("level", function()
-				return obj.level;
+			drawText(obj, getValue("level", function()
+				return obj.activeSpell.level;
 			end));
-						drawText(obj, getValue("name", function()
-				return obj.name;
+			drawText(obj, getValue("charName", function()
+				return obj.charName;
 			end));
-						drawText(obj, getValue("startPos", function()
-				return obj.startPos;
+			drawText(obj, getValue("name", function()
+				local name = obj.activeSpell.name
+				if name == myHero.name then name = "[REDACTED]" end
+				return name;
+			end));
+			drawText(obj, getValue("startPos", function()
+				return obj.activeSpell.startPos;
 			end)); -- Vector
-						drawText(obj, getValue("placementPos", function()
-				return obj.placementPos;
+			drawText(obj, getValue("placementPos", function()
+				return obj.activeSpell.placementPos;
 			end)); -- Vector
-						drawText(obj, getValue("target", function()
-				return obj.target;
+			drawText(obj, getValue("target", function()
+				return obj.activeSpell.target;
 			end)); -- GameObject handle
-						drawText(obj, getValue("windup", function()
-				return obj.windup;
+			drawText(obj, getValue("windup", function()
+				return obj.activeSpell.windup;
 			end));
-						drawText(obj, getValue("animation", function()
-				return obj.animation;
+			drawText(obj, getValue("animation", function()
+				return obj.activeSpell.animation;
 			end));
-						drawText(obj, getValue("range", function()
-				return obj.range;
+			drawText(obj, getValue("range", function()
+				return obj.activeSpell.range;
 			end));
-						drawText(obj, getValue("mana", function()
-				return obj.mana;
+			drawText(obj, getValue("mana", function()
+				return obj.activeSpell.mana;
 			end));
-						drawText(obj, getValue("width", function()
-				return obj.width;
+			drawText(obj, getValue("width", function()
+				return obj.activeSpell.width;
 			end));
-						drawText(obj, getValue("speed", function()
-				return obj.speed;
+			drawText(obj, getValue("speed", function()
+				return obj.activeSpell.speed;
 			end));
-						drawText(obj, getValue("coneAngle", function()
-				return obj.coneAngle;
+			drawText(obj, getValue("coneAngle", function()
+				return obj.activeSpell.coneAngle;
 			end));
-						drawText(obj, getValue("coneDistance", function()
-				return obj.coneDistance;
+			drawText(obj, getValue("coneDistance", function()
+				return obj.activeSpell.coneDistance;
 			end));
-						drawText(obj, getValue("acceleration", function()
-				return obj.acceleration;
+			drawText(obj, getValue("acceleration", function()
+				return obj.activeSpell.acceleration;
 			end));
-						drawText(obj, getValue("castFrame", function()
-				return obj.castFrame;
+			drawText(obj, getValue("castFrame", function()
+				return obj.activeSpell.castFrame;
 			end));
-						drawText(obj, getValue("maxSpeed", function()
-				return obj.maxSpeed;
+			drawText(obj, getValue("maxSpeed", function()
+				return obj.activeSpell.maxSpeed;
 			end));
-						drawText(obj, getValue("minSpeed", function()
-				return obj.minSpeed;
+			drawText(obj, getValue("minSpeed", function()
+				return obj.activeSpell.minSpeed;
 			end));
-						drawText(obj, getValue("spellWasCast", function()
-				return obj.spellWasCast;
+			drawText(obj, getValue("spellWasCast", function()
+				return obj.activeSpell.spellWasCast;
 			end));
-						drawText(obj, getValue("isAutoAttack", function()
-				return obj.isAutoAttack;
+			drawText(obj, getValue("isAutoAttack", function()
+				return obj.activeSpell.isAutoAttack;
 			end));
-						drawText(obj, getValue("isCharging", function()
-				return obj.isCharging;
+			drawText(obj, getValue("isCharging", function()
+				return obj.activeSpell.isCharging;
 			end));
-						drawText(obj, getValue("isChanneling", function()
-				return obj.isChanneling;
+			drawText(obj, getValue("isChanneling", function()
+				return obj.activeSpell.isChanneling;
 			end));
-						drawText(obj, getValue("startTime", function()
-				return obj.startTime;
+			drawText(obj, getValue("startTime", function()
+				return obj.activeSpell.startTime;
 			end));
-						drawText(obj, getValue("castEndTime", function()
-				return obj.castEndTime;
+			drawText(obj, getValue("castEndTime", function()
+				return obj.activeSpell.castEndTime;
 			end));
-						drawText(obj, getValue("endTime", function()
-				return obj.endTime;
+			drawText(obj, getValue("endTime", function()
+				return obj.activeSpell.endTime;
 			end));
-						drawText(obj, getValue("isStopped", function()
-				return obj.isStopped;
+			drawText(obj, getValue("isStopped", function()
+				return obj.activeSpell.isStopped;
 			end));
-						drawText(obj, getValue("activeSpellSlot", function()
+			drawText(obj, getValue("activeSpellSlot", function()
 				return obj.activeSpellSlot;
 			end)); --use this to determine which spell slot was activated for ".activeSpell"
-						drawText(obj, getValue("isChanneling", function()
+			drawText(obj, getValue("isChanneling", function()
 				return obj.isChanneling;
 			end)); --use this to determine if ".activeSpell" is actually a spell, otherwise it's autoattack
 		end
@@ -670,11 +702,17 @@ DevTool.DrawMissileData = function ()
 				end));
 				drawText(missile, getValue("owner", function()
 					local owner = getObjectByHandle(missile.missileData.owner);
-					return isValidTarget(owner) and owner.name or "";
+					if not owner then return "" end
+					local name = owner.name
+					if name == myHero.name then name = "[REDACTED]" end
+					return isValidTarget(owner) and name or "";
 				end));
 				drawText(missile, getValue("target", function()
 					local target = getObjectByHandle(missile.missileData.target);
-					return isValidTarget(target) and target.name or "";
+					if not target then return "" end
+					local name = target.name
+					if name == myHero.name then name = "[REDACTED]" end
+					return isValidTarget(target) and name or "";
 				end));
 				--[[
 				drawText(missile, getValue("startPos", function()
@@ -721,25 +759,35 @@ DevTool.DrawParticles = function ()
 	end
 end
 
+DevTool.OnPreAttack = function(args)
+	print("OnPreAttack")
+	Draw.Text("OnPreAttack: ", cursorPos);
+end
 
-DevTool.Test = function()
-	--print(Game.HeroCount())
-	for i = 1, Game.HeroCount() do
-		local Hero = Game.Hero(i)
-		if Hero and Hero.isEnemy then
-			Draw.Circle(Hero.pos, 300)
-			Draw.CircleMinimap(Hero.pos, 1000)
-		end
-	end
+DevTool.OnPostAttack = function(args)
+	print("OnPostAttack")
+	Draw.Text("OnPostAttack: ", cursorPos);
+end
+
+
+DevTool.OnAttack = function(args)
+	print("OnAttack")
+	Draw.Text("OnAttack: ", cursorPos);
+end
+
+DevTool.OnPreMovement = function(args)
+	print("OnPreMovement")
+	Draw.Text("OnPreMovement: ", cursorPos);
 end
 
 DevTool.Draw = function()
 	counters = {};
 	DevTool.DrawGameInfo()
-	-- DevTool.Test()
+
 	if menu.GameObject.DrawObjectInfo:Value() then
 		DevTool.DrawObjectInfo()
 	end
+
 	if menu.damage:Value() then
 		DevTool.DrawDamage()
 	end
@@ -805,6 +853,361 @@ DevTool.DrawGameInfo = function()
 	Draw.Text(mapIDText, 12, screenWidth - padding - 100, screenHeight + padding + count, Color.White)
 	count = count + 20
 end
+--[[ DEBUG ]]
+DevTool.LoadDebug = function()
+	if jit then
+		--[[ jit : jitlib = {
+		arch: string,
+		flush: function(func: function | boolean, recursive: boolean),  ---@overload fun()
+		off: function(func: function | boolean, recursive: boolean),  ---@overload fun()
+		on: function(func: function | boolean, recursive: boolean),  ---@overload fun()
+		os: string,
+		status: function(): boolean, ...,  ---@return boolean status
+		version: string,
+		version_num: number,
+		}, ]]
+		--[[ EXTP = {
+		os
+		on
+		off
+		flush
+		attach
+		arch
+		version_num
+		version
+		status
+		opt
+		security
+		}, ]]
+		-- for n in pairs(jit) do print(n) end
+		-- jit.debug()
+		print("| " .. SCRIPT_NAME .. " | - [" .. jit.version .. "] - [ " .. _VERSION .. " ]");
+	else
+		print("| " .. SCRIPT_NAME .. " | - [ " .. _VERSION .. " ]");
+	end
+	DevTool.Debug()
+end
+
+DevTool.Debug = function ()
+	if debug then
+	--[[ debug : debug = {
+		debug: function(),  --- Enters an interactive mode with the user, running each string that the user
+		getfenv: function(o: any): table,  --- Returns the environment of object o.
+		gethook: function(co: thread): function, string, integer,  --- Returns the current hook settings of the thread, as three values: the
+		getinfo: function(thread: thread, f: integer | function, what: infowhat): debuginfo,  --- Returns a table with information about a function. You can give the
+		getlocal: function(thread: thread, level: integer, index: integer): string, any,  --- This function returns the name and the value of the local variable with
+		getmetatable: function(object: any): table,  --- Returns the metatable of the given `value` or **nil** if it does not have a metatable.
+		getregistry: function(): table,  ---Returns the registry table.
+		getupvalue: function(f: function, up: integer): string, any,  -- This function returns the name and the value of the upvalue with index up of the function f. The function returns fail if there is no upvalue with the given index.
+		getuservalue: function(u: userdata, n: number): boolean,  --- Returns the `n`-th user value associated to the userdata `u` plus a boolean, **false** if the userdata does not have that value.
+		setfenv: function(object: T, env: table): T,  -- Sets the environment of the given `object` to the given `table`. Returns `object`.
+		sethook: function(thread: thread, hook: function, mask: hookmask, count: integer),  --- Sets the given function as a hook. The string `mask` and the number `count`
+		setlocal: function(thread: thread, level: integer, index: integer, value: any): string,  --- This function assigns the value `value` to the local variable with
+		setmetatable: function(value: T, meta: table): T,  --- Sets the metatable for the given `object` to the given `table` (which can be **nil**). Returns value.
+		setupvalue: function(f: function, up: integer, value: any): string,  --- This function assigns the value `value` to the upvalue with index `up`
+		setuservalue: function(udata: userdata, value: any, n: integer): userdata,  --- Sets the given *value* as the *n*-th associated to the given *udata*. *udata* must be a full userdata.
+		traceback: function(thread: thread, message: any, level: integer): string,  --- If *message* is present but is neither a string nor **nil**, this function
+		upvalueid: function(f: function(): number, n: integer): lightuserdata,  --- Returns a unique identifier (as a light userdata) for the upvalue numbered
+		upvaluejoin: function(f1: function, n1: integer, f2: function, n2: integer),  --- Make the *n1*-th upvalue of the Lua closure f1 refer to the *n2*-th upvalue of the Lua closure f2.
+	}, ]]
+	--[[ EXTP = {
+	getmetatable
+	setmetatable
+	sethook
+	gethook
+	traceback
+	getuservalue
+	setuservalue
+	upvalueid
+	getregistry
+	getinfo
+	getlocal
+	setlocal
+	getupvalue
+	setupvalue
+	}, ]]
+
+	--[[ what:
+	+> "n" -- `name` and `namewhat`
+	+> "S" -- `source`, `short_src`, `linedefined`, `lastlinedefined`, and `what`
+	+> "l" -- `currentline`
+	+> "t" -- `istailcall`
+	+> "u" -- `nups`, `nparams`, and `isvararg`
+	+> "f" -- `func`
+	+> "L" -- `activelines`
+	]]
+
+	-- for n in pairs(_G) do print(n) end
+	-- print(debug.getinfo(DevTool))
+	-- debug.getinfo(print)
+	end
+end
+
+--[[ TEST ]]
+DevTool.LoadTest = function()
+	--[[
+	DevTool.testMouse = menu.DevTest.testMouse:Value()
+	DevTool.testSpells = menu.DevTest.testSpells:Value()
+	DevTool.testItems = menu.DevTest.testItems:Value()
+	DevTool.testPathing = menu.DevTest.testPathing:Value()
+	]]
+	-- local options = menu.DevTest.TestON.drop()
+	-- for i = 1, #options do
+	if menu.DevTest.TestON:Value() == 1 then
+		Callback.Add("Draw", function()
+			DevTool.Test()
+		end);
+	end
+	if menu.DevTest.TestON:Value() == 2 then
+		Callback.Add("Tick", function()
+			DevTool.Test()
+		end);
+	end
+	-- end
+end
+
+DevTool.Test = function()
+	--print(Game.HeroCount())
+	if DevTool.testMouse then
+		local mouse = mousePos
+		local cursor = cursorPos
+		local offset = 12
+		--local mouseWall = Game.isWall(mousePos)
+		--print(mouseWall)
+		local position = mouse:To2D();
+		-- position.y = position.y + 30 + 18;
+		Draw.Circle(mouse, 10)
+		-- Draw.Text("Game.isWall(mousePos): "..tostring(mouseWall), cursor);
+
+	end
+	if DevTool.testSpells then
+		if Game.CanUseSpell(_Q) then -- == 0  then
+			print("Q: ".. Game.CanUseSpell(_Q))
+			-- Draw.Text("Q: "..Game.CanUseSpell(_Q), cursor);
+			drawText(myHero, getValue("Q", function()
+				return Game.CanUseSpell(_Q);
+			end));
+		end
+		if Game.CanUseSpell(_W) then
+			print("W: "..Game.CanUseSpell(_W))
+			-- Draw.Text("W: "..Game.CanUseSpell(_W), cursor);
+			drawText(myHero, getValue("W", function()
+				return Game.CanUseSpell(_W);
+			end));
+		end
+		if Game.CanUseSpell(_E) then
+			print("E: "..Game.CanUseSpell(_E))
+			-- Draw.Text("E: "..Game.CanUseSpell(_E), cursor);
+			drawText(myHero, getValue("E", function()
+				return Game.CanUseSpell(_E);
+			end));
+		end
+		if Game.CanUseSpell(_R) then
+			print("R: "..Game.CanUseSpell(_R))
+			-- Draw.Text("R: "..Game.CanUseSpell(_R), cursor);
+			drawText(myHero, getValue("R", function()
+				return Game.CanUseSpell(_R);
+			end));
+		end
+	end
+	if DevTool.testItems then
+		local obj = myHero
+		if isOnScreen(obj) then
+			for i, slot in ipairs(itemSlots) do
+				local item = obj:GetItemData(slot);
+				if item ~= nil and item.itemID > 0 then
+					drawText(obj, "itemID: " .. item.itemID ..
+						", stacks: " .. item.stacks ..
+						", ammo: " .. item.ammo ..
+						", stacks: " .. item.stacks ..
+						", CanUseSpell("..slot.."): " .. Game.CanUseSpell(slot) ..
+						", slot["..i.."]: " .. slot
+					);
+				end
+			end
+		end
+		drawText(obj,
+		"ITEM_1: " .. ITEM_1 ..
+		", ITEM_2: " .. ITEM_2 ..
+		", ITEM_3: " .. ITEM_3 ..
+		", ITEM_4: " .. ITEM_4 ..
+		", ITEM_5: " .. ITEM_5 ..
+		", ITEM_6: " .. ITEM_6 ..
+		", ITEM_7: " .. ITEM_7
+	);
+	end
+
+	if DevTool.testPathing then
+		if myHero.pathing then
+			Draw.Text("myHero.pathing.hasMovePath: "..tostring(myHero.pathing.hasMovePath), myHero.pos:To2D())
+		end
+	end
+	--[[ 	for i = 1, Game.HeroCount() do
+		local Hero = Game.Hero(i)
+		if Hero and Hero.isEnemy then
+			Draw.Circle(Hero.pos, 300)
+			Draw.CircleMinimap(Hero.pos, 1000)
+		end
+	end ]]
+	--[[ 	if SDK then
+		SDK.Orbwalker:OnPreAttack(function(...) DevTool:OnPreAttack(...) end)
+		SDK.Orbwalker:OnAttack(function(...) DevTool:OnAttack(...) end)
+		SDK.Orbwalker:OnPostAttack(function(...) DevTool:OnPostAttack(...) end)
+		SDK.Orbwalker:OnPreMovement(function(...) DevTool:OnPreMovement(...) end)
+	elseif PremiumOrbwalker then
+		PremiumOrbwalker:OnPreAttack(function(...) DevTool:OnPreAttack(...) end)
+	end ]]
+	--[[ 	print(
+		" READY: "..READY..
+		" NOTAVAILABLE: "..NOTAVAILABLE..
+		" READYNOCAST: "..READYNOCAST..
+		" NOTLEARNED: "..NOTLEARNED..
+		" ONCOOLDOWN: "..ONCOOLDOWN..
+		" NOMANA: "..NOMANA..
+		" NOMANAONCOOLDOWN: "..NOMANAONCOOLDOWN) ]]
+	if DevTool.Dump_G then
+		for n in pairs(_G) do print(n) end
+	end
+end
+
+--[[ LOAD ]]
+DevTool.Load = function()
+	if GameTimer() > DevToolLoadDelay then
+		DevToolLoad = true
+	end
+	if not DevToolMenu then
+		DevTool:Menu()
+	end
+	if not DevToolLoad then
+		DelayAction(function()
+			DevTool:Load()
+		end, 1)
+	else
+		Callback.Add("Tick", function()
+			DevTool:Tick()
+		end);
+		Callback.Add("Draw", function()
+			DevTool:Draw()
+		end);
+		DevTool.GetAllHandles()
+		DevTool.LoadTest()
+		DevTool.LoadDebug()
+	end
+end
+
+-- [[ Update ]] --
+--[[
+local Author = "Impuls"
+do
+    local SCRIPT_NAME = string.gsub(string.match(debug.getinfo(1, 'S').short_src, "[^/]+$"), '.lua', '')
+    -- local SCRIPT_NAME = "DamageLib"
+    local gitHub = "https://raw.githubusercontent.com/"..Author.."x/GoS/master/"
+    local Files = {
+      Lua = {
+        Path = COMMON_PATH,
+        Name = SCRIPT_NAME..".lua",
+      },
+      Version = {
+        Path = COMMON_PATH,
+        Name = SCRIPT_NAME..".version",
+      }
+    }
+
+    local function update()
+      local function DownloadFile(path, fileName)
+        DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
+        while not FileExist(path .. fileName) do end
+      end
+
+      local function ReadFile(path, fileName)
+        local file = assert(io.open(path .. fileName, "r"))
+        local result = file:read()
+        file:close()
+        return result
+      end
+
+      DownloadFile(Files.Version.Path, Files.Version.Name)
+      local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
+      if NewVersion > Version then
+        DownloadFile(Files.Lua.Path, Files.Lua.Name)
+        print("*WARNING* New "..SCRIPT_NAME.." [ver. " .. tostring(NewVersion) .. "] Downloaded - Please RELOAD with [ F6 ]")
+      else
+        print("| "..SCRIPT_NAME.." | [ver. " .. tostring(Version) .. "] loaded!")
+      end
+    end
+    update()
+end
+
+-- [[ AsyncUpdate ]] --
+--[[ local Author = "Impuls"
+do
+  --local SCRIPT_NAME = string.gsub(string.match(debug.getinfo(1, 'S').short_src, "[^/]+$"), '.lua', '')
+  local SCRIPT_NAME = "DamageLib"
+  local gitHub = "https://raw.githubusercontent.com/" .. Author .. "x/GoS/master/"
+  local Files = {
+    -- self = self,
+    lua = ".lua",         --string
+    version = ".version", --string
+    Lua = {
+      Path = COMMON_PATH,
+      Name = SCRIPT_NAME .. self.lua,
+    },
+    source = self.Lua.Path .. self.Lua.Name,
+    Version = {
+      Path = COMMON_PATH,
+      Name = SCRIPT_NAME .. self.version,
+    },
+    versource = self.Version.Path .. self.Version.Name,
+  }
+  local function update()
+    local function readAll(file)
+      local f = assert(io.open(file, "r"))
+      local content = f:read("*all")
+      f:close()
+      return content
+    end
+    local function downloadFile(path, fileName)
+      DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
+      while not FileExist(path .. fileName) do end
+    end
+    local function readFile(path, fileName)
+      local file = assert(io.open(path .. fileName, "r"))
+      local result = file:read()
+      file:close()
+      return result
+    end
+    local function initializeScript()
+      local function writeModule(content)
+        local f = assert(io.open(Files.source, content and "a" or "w"))
+        if content then
+          f:write(content)
+        end
+        f:close()
+      end
+      --
+      writeModule()
+      --Write the core module
+      writeModule(readAll(Files.source))
+      -- writeModule(readAll(AUTO_PATH..coreName))
+      -- writeModule(readAll(CHAMP_PATH..charName..dotlua))
+      --Load the active module
+      dofile(Files.source)
+    end
+
+    downloadFile(Files.Version.Path, Files.Version.Name)
+    local NewVersion = tonumber(readFile(Files.Version.Path, Files.Version.Name))
+    if NewVersion > Version then
+      downloadFile(Files.Lua.Path, Files.Lua.Name)
+      -- print("*WARNING* New "..SCRIPT_NAME.." [ver. " .. tostring(NewVersion) .. "] Downloaded - Please RELOAD with [ F6 ]")
+      print("*WARNING* New " .. SCRIPT_NAME .. " [ver. " .. tostring(NewVersion) .. "] Downloaded - RELOADING")
+      initializeScript()
+    else
+      print("| " .. SCRIPT_NAME .. " | [ver. " .. tostring(Version) .. "] loaded!")
+    end
+  end
+  update()
+end
+]]
 
 Callback.Add("Load", function()
 	DevTool:Load()
@@ -813,4 +1216,6 @@ Callback.Add("Load", function()
 			menuLoadDelay = string.format("%2.1f", DevToolLoadDelay-GameTimer())
 		end
 	end);
+	-- print("| "..ScriptName.." | - [ ]  ["..var.."]");
+	-- print("| "..SCRIPT_NAME.." |");
 end);
