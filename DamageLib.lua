@@ -1,4 +1,4 @@
-local Version = 14.6
+local Version = 14.61
 
 --[[
 Usage:
@@ -10267,12 +10267,12 @@ do
       Path = COMMON_PATH,
       Name = SCRIPT_NAME .. self.lua,
     },
-    source = self.Lua.Path .. self.Lua.Name,
+    --source = self.Lua.Path .. self.Lua.Name,
     Version = {
       Path = COMMON_PATH,
       Name = SCRIPT_NAME .. self.version,
     },
-    versource = self.Version.Path .. self.Version.Name,
+    --versource = self.Version.Path .. self.Version.Name,
   }
   local function update()
     local function readAll(file)
