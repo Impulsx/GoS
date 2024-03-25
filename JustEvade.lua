@@ -1,5 +1,5 @@
-local Version = 1.31
-local IntVer = "1.3.1"
+local Version = 1.32
+local IntVer = "1.3.2"
 --[[
 
 	_________                _____ __________                _________
@@ -13,6 +13,9 @@ local IntVer = "1.3.1"
 	Credits: Gamsteron, Maxxxel, Mad & Noddy, Zbysiu, Hightail, Icebear, zgjfjfl
 
 	Changelog:
+	v1.3.2 //
+	+ revert v1.2.5 class()/Class()
+
 	v1.3.1
 	+ OnCreateMissile nil misName
 
@@ -972,26 +975,13 @@ local Minions = {
 	["HA_OrderMinionSiege"] = true
 }
 
-function Class()
+local function Class()
 	local cls = {}; cls.__index = cls
-	return setmetatable(cls, {
-		__call = function(c, ...)
-			local instance = setmetatable({}, cls)
-			if cls.__init then cls.__init(instance, ...) end
-			return instance
-		end
-	})
-end
-
-function class()
-	local cls = {}; cls.__index = cls
-	return setmetatable(cls, {
-		__call = function(c, ...)
-			local instance = setmetatable({}, cls)
-			if cls.__init then cls.__init(instance, ...) end
-			return instance
-		end
-	})
+	return setmetatable(cls, {__call = function (c, ...)
+		local instance = setmetatable({}, cls)
+		if cls.__init then cls.__init(instance, ...) end
+		return instance
+	end})
 end
 
 --[[
