@@ -1,4 +1,4 @@
-local Version = 14.61
+local Version = 14.62
 
 --[[
 Usage:
@@ -10261,16 +10261,16 @@ do
   local gitHub = "https://raw.githubusercontent.com/" .. Author .. "x/GoS/master/"
   local Files = {
     -- self = self,
-    lua = ".lua",         --string
-    version = ".version", --string
+    -- lua = ".lua",         --string
+    -- version = ".version", --string
     Lua = {
       Path = COMMON_PATH,
-      Name = SCRIPT_NAME .. self.lua,
+      Name = SCRIPT_NAME .. ".lua",
     },
     --source = self.Lua.Path .. self.Lua.Name,
     Version = {
       Path = COMMON_PATH,
-      Name = SCRIPT_NAME .. self.version,
+      Name = SCRIPT_NAME .. ".version",
     },
     --versource = self.Version.Path .. self.Version.Name,
   }
@@ -10293,7 +10293,7 @@ do
     end
     local function initializeScript()
       local function writeModule(content)
-        local f = assert(io.open(Files.source, content and "a" or "w"))
+        local f = assert(io.open(Files.Lua.Path .. Files.Lua.Name, content and "a" or "w"))
         if content then
           f:write(content)
         end
@@ -10302,11 +10302,11 @@ do
       --
       writeModule()
       --Write the core module
-      writeModule(readAll(Files.source))
+      writeModule(readAll(Files.Lua.Path .. Files.Lua.Name))
       -- writeModule(readAll(AUTO_PATH..coreName))
       -- writeModule(readAll(CHAMP_PATH..charName..dotlua))
       --Load the active module
-      dofile(Files.source)
+      dofile(Files.Lua.Path .. Files.Lua.Name)
     end
 
     downloadFile(Files.Version.Path, Files.Version.Name)
