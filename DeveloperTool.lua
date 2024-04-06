@@ -6,6 +6,7 @@ local myHero = myHero
 local os = os
 local math = math
 local string = string
+local table = table
 local Game = Game
 local Vector = Vector
 local Control = Control
@@ -27,39 +28,40 @@ local table_insert = assert(table.insert)
 local pairs = pairs
 local ipairs = ipairs
 
-local GameTickCount = GetTickCount
-local GameFPS = Game.FPS
-local GameTick = Game.TICK
-local GameTimer = Game.Timer
-local GameLatency = Game.Latency
-local GameResolution = Game.Resolution
-local GameIsOnTop = Game.IsOnTop
-local GameIsChatOpen = Game.IsChatOpen
-local GameCanUseSpell = Game.CanUseSpell
-
-local GameWard = Game.Ward
-local GameHero = Game.Hero
-local GameObject = Game.Object
-local GameTurret = Game.Turret
-local GameMinion = Game.Minion
-local GameMissile = Game.Missile
-local GameParticle = Game.Particle
-
-local GameWardCount = Game.WardCount
-local GameHeroCount = Game.HeroCount
-local GameObjectCount = Game.ObjectCount
-local GameTurretCount = Game.TurretCount
-local GameMinionCount = Game.MinionCount
-local GameMissileCount = Game.MissileCount
-local GameParticleCount = Game.ParticleCount
-
-local GameGetObjectByNetID = Game.GetObjectByNetID
+--[[ Game = {
+	FPS = Game.FPS,
+	TICK = Game.TICK,
+	Timer = Game.Timer,
+	Latency = Game.Latency,
+	Resolution = Game.Resolution,
+	IsOnTop = Game.IsOnTop,
+	IsChatOpen = Game.IsChatOpen,
+	CanUseSpell = Game.CanUseSpell,
+	--
+	Ward = Game.Ward,
+	Hero = Game.Hero,
+	Object = Game.Object,
+	Turret = Game.Turret,
+	Minion = Game.Minion,
+	Missile = Game.Missile,
+	Particle = Game.Particle,
+	--
+	WardCount = Game.WardCount,
+	HeroCount = Game.HeroCount,
+	ObjectCount = Game.ObjectCount,
+	TurretCount = Game.TurretCount,
+	MinionCount = Game.MinionCount,
+	MissileCount = Game.MissileCount,
+	ParticleCount = Game.ParticleCount,
+	--
+	GetObjectByNetID = Game.GetObjectByNetID,
+} ]]
 
 local DevTool = {}
 local DevToolLoad = false
 local DevToolMenu = false
 local DevToolLoadDelay = 5
-local menuLoadDelay = DevToolLoadDelay
+local menuLoadDelay = string.format("%2.1f", DevToolLoadDelay-Game.Timer())
 
 local Color = {
     Red = Draw.Color(255, 255, 0, 0),
@@ -76,6 +78,71 @@ local Color = {
 
 local Obj_AI_Bases = {}
 
+DevTool.buffType = {
+	CCImmune = 0,
+	Dodge = 0,
+	Stun = 5,
+	Silence = 7,
+	Taunt = 8,
+	Poly = 10,
+	Slow = 11,
+	Root = 12,
+	Invulnerable = 18,
+	Nearsighted = 20,
+	Fear = 22,
+	Charm = 23,
+	Supression = 25,
+	Blind = 26,
+	Flee = 29,
+	Knockup = 30,
+	Knockback = 31,
+	Disarm = 32,
+	Grounded = 33,
+	Drowsy = 34,
+	Asleep = 35,
+	--[[ 	enum class BuffType {
+		Internal = 0,
+		Aura = 1,
+		CombatEnchancer = 2,
+		CombatDehancer = 3,
+		SpellShield = 4,
+		Stun = 5,
+		Invisibility = 6,
+		Silence = 7,
+		Taunt = 8,
+		Berserk = 9,
+		Polymorph = 10,
+		Slow = 11,
+		Snare = 12,
+		Damage = 13,
+		Heal = 14,
+		Haste = 15,
+		SpellImmunity = 16,
+		PhysicalImmunity = 17,
+		Invulnerability = 18,
+		AttackSpeedSlow = 19,
+		NearSight = 20,
+		Fear = 22,
+		Charm = 23,
+		Poison = 24,
+		Suppression = 25,
+		Blind = 26,
+		Counter = 27,
+		Currency = 21,
+		Shred = 28,
+		Flee = 29,
+		Knockup = 30,
+		Knockback = 31,
+		Disarm = 32,
+		Grounded = 33,
+		Drowsy = 34,
+		Asleep = 35,
+		Obscured = 36,
+		ClickProofToEnemies = 37,
+		Unkillable = 38
+	};
+	--]]
+}
 DevTool.Object = {
 	spawn = Obj_AI_SpawnPoint,
 	camp = Obj_AI_Camp,
@@ -93,43 +160,28 @@ local menu = MenuElement({ id = "DeveloperTool", name = "DeveloperTool", type = 
 DevTool.Menu = function()
 	if not DevToolMenu then
 		menu:MenuElement({ id = "DevTest", name = "DevTest", type = MENU });
-		menu.DevTest:MenuElement({
-			id = "TestON",
-			name = "[Enable] Test in",
-			drop = { "DRAW", "TICK" },
+		menu.DevTest:MenuElement({ id = "TestON", name = "[Enable] Test in", drop = { "DRAW", "TICK" },
 			callback = function(value)
 				DevTool.TestON = value
 			end
 		});
-		menu.DevTest:MenuElement({
-			id = "testMouse",
-			name = "testMouse",
-			value = false,
+		menu.DevTest:MenuElement({ id = "testMouse", name = "testMouse", value = false,
 			callback = function(value)
 				DevTool.testMouse = value
 			end
 		});
-		menu.DevTest:MenuElement({
-			id = "testSpells",
-			name = "testSpells",
-			value = false,
+		menu.DevTest:MenuElement({ id = "testSpells", name = "testSpells", value = false,
 			callback = function(value)
 				DevTool.testSpells = value
 			end
 		});
-		menu.DevTest:MenuElement({
-			id = "testItems",
-			name = "testItems",
-			value = false,
+		menu.DevTest:MenuElement({ id = "testItems", name = "testItems", value = false,
 			callback = function(value)
 				DevTool.testItems = value
 			end
 		});
-		menu.DevTest:MenuElement({
-			id = "testPathing",
-			name = "testPathing",
-			value = false,
-			callback = function(value)
+		menu.DevTest:MenuElement({ id = "testPathing", name = "testPathing", value = false,
+		callback = function(value)
 				DevTool.testPathing = value
 			end
 		});
@@ -207,7 +259,7 @@ local function getObjectByHandle(handle)
 		return nil;
 	end
 	local networkID = handleToNetworkID[handle];
-	return networkID ~= nil and GameGetObjectByNetID(networkID) or nil;
+	return networkID ~= nil and Game.GetObjectByNetID(networkID) or nil;
 end
 
 local function isObj_AI_Base(obj)
@@ -261,6 +313,17 @@ local function drawText(target, value)
 	end
 	local position = target.pos:To2D();
 	position.y = position.y + 30 + 18 * counters[target.networkID];
+	Draw.Text(tostring(value), position);
+end
+
+local function drawTextPos(pos, value)
+	if counters[pos] == nil then
+		counters[pos] = 0;
+	else
+		counters[pos] = counters[pos] + 1;
+	end
+	local position = pos:To2D();
+	position.y = position.y + 30 + 18 * counters[pos];
 	Draw.Text(tostring(value), position);
 end
 
@@ -334,8 +397,8 @@ DevTool.GetAllHandles = function()
 end
 
 DevTool.Heros = function()
-	for i = 1, GameHeroCount() do
-		local obj = GameHero(i);
+	for i = 1, Game.HeroCount() do
+		local obj = Game.Hero(i);
 		if isValidTarget(obj) then
 			if isObj_AI_Base(obj) then
 				if isOnScreen(obj) then -- just because of fps
@@ -348,8 +411,8 @@ DevTool.Heros = function()
 end
 
 DevTool.Minions = function()
-	for i = 1, GameMinionCount() do
-		local obj = GameMinion(i);
+	for i = 1, Game.MinionCount() do
+		local obj = Game.Minion(i);
 		if isValidTarget(obj) then
 			if isObj_AI_Base(obj) then
 				if isOnScreen(obj) then -- just because of fps
@@ -362,8 +425,8 @@ DevTool.Minions = function()
 end
 
 DevTool.Turrets = function()
-	for i = 1, GameTurretCount() do
-		local obj = GameTurret(i);
+	for i = 1, Game.TurretCount() do
+		local obj = Game.Turret(i);
 		if isValidTarget(obj) then
 			if isObj_AI_Base(obj) then
 				if isOnScreen(obj) then -- just because of fps
@@ -519,7 +582,7 @@ DevTool.DrawAttackData = function ()
 				return isValidTarget(target) and name or "[No Target]";
 			end));
 			drawText(obj, getValue("timeLeft", function()
-				return math_max(obj.attackData.endTime - GameTimer(), 0);
+				return math_max(obj.attackData.endTime - Game.Timer(), 0);
 			end));
 		end
 	end
@@ -582,6 +645,7 @@ DevTool.DrawBuff = function ()
 						", name: " .. buff.name ..
 						", stacks: " .. buff.stacks ..
 						", count: " .. buff.count ..
+						", sourcenID: " .. buff.sourcenID ..
 						", sourceName: " .. name ..
 						", startTime: " .. buff.startTime ..
 						", expireTime: " .. buff.expireTime ..
@@ -693,8 +757,8 @@ DevTool.DrawActiveSpell = function()
 end
 
 DevTool.DrawMissileData = function ()
-	for i = 1, GameMissileCount() do
-		local missile = GameMissile(i);
+	for i = 1, Game.MissileCount() do
+		local missile = Game.Missile(i);
 		if isValidMissile(missile) then
 			if isOnScreen(missile) then
 				drawText(missile, getValue("name", function()
@@ -746,8 +810,8 @@ DevTool.DrawMissileData = function ()
 end
 
 DevTool.DrawParticles = function ()
-	for i = 1, GameParticleCount() do
-		local particle = GameParticle(i);
+	for i = 1, Game.ParticleCount() do
+		local particle = Game.Particle(i);
 		Draw.Circle(mousePos, 200)
 		if particle ~= nil and not particle.dead and particle.pos:DistanceTo(mousePos) <= 200 then
 			if isOnScreen(particle) then -- just because of fps
@@ -768,7 +832,6 @@ DevTool.OnPostAttack = function(args)
 	print("OnPostAttack")
 	Draw.Text("OnPostAttack: ", cursorPos);
 end
-
 
 DevTool.OnAttack = function(args)
 	print("OnAttack")
@@ -822,33 +885,53 @@ DevTool.Draw = function()
 end
 
 DevTool.DrawGameInfo = function()
-	local screenRes = GameResolution()
+	local screenRes = Game.Resolution()
 	local screenWidth = screenRes.x
 	local screenHeight = screenRes.y
+	drawText(myHero, "screenRes: "..tostring(screenRes))
+	drawText(myHero, "screenWidth: "..tostring(screenWidth))
+	drawText(myHero, "screenHeight: "..tostring(screenHeight))
     local padding = 10
 	local mapID = Game.mapID
 	local count = 0
-
+--[[ 	if not Game then
+		local DrawGameInfo = "GameInfo Loading: " .. tostring(Game)
+		drawTextPos(myHero, DrawGameInfo)
+		return
+	end ]]
 	-- Display fps
-	local fpsText = "FPS: " .. tostring(GameFPS())
+	drawText(myHero, "Game.FPS(): "..tostring(Game.FPS()))
+
+	local fpsText = "FPS: " .. tostring(Game.FPS())
 	Draw.Text(fpsText, 12, screenWidth - padding - 100, screenHeight + padding, Color.White)
 	count = count + 20
 	-- Display tick
-	local tickText = "Tick: " .. tostring(GameTick())
+	drawText(myHero, "Game.TICK(): "..tostring(Game.TICK()))
+
+	local tickText = "Tick: " .. tostring(Game.TICK())
 	Draw.Text(tickText, 12, screenWidth - padding - 100, screenHeight + padding + count, Color.White)
 	count = count + 20
 	-- Display tick
-	local tickText = "Tickcount: " .. tostring(GameTickCount())
+	drawText(myHero, "GetTickCount: "..tostring(GetTickCount()))
+
+	local tickText = "Tickcount: " .. tostring(GetTickCount())
 	Draw.Text(tickText, 12, screenWidth - padding - 100, screenHeight + padding + count, Color.White)
 	count = count + 20
-	local timerText = "Timer: " .. tostring(GameTimer())
+
+	drawText(myHero, "Game.Timer(): "..tostring(Game.Timer()))
+
+	local timerText = "Timer: " .. tostring(Game.Timer())
 	Draw.Text(timerText, 12, screenWidth - padding - 100, screenHeight + padding + count, Color.White)
 	count = count + 20
 	-- Display latency
-	local latencyText = "Latency: " .. tostring(GameLatency()) .. "ms" -- * 0.001
+	drawText(myHero, "Game.Latency(): "..tostring(Game.Latency()))
+
+	local latencyText = "Latency: " .. tostring(Game.Latency()) .. "ms" -- * 0.001
 	Draw.Text(latencyText, 12, screenWidth - padding - 100, screenHeight + padding + count, Color.White)
 	count = count + 20
 	-- Display mapID
+	drawText(myHero, "mapID: "..tostring(mapID))
+
 	local mapIDText = "mapID: " .. tostring(mapID)
 	Draw.Text(mapIDText, 12, screenWidth - padding - 100, screenHeight + padding + count, Color.White)
 	count = count + 20
@@ -856,6 +939,7 @@ end
 --[[ DEBUG ]]
 DevTool.LoadDebug = function()
 	if jit then
+		DevTool.EXTP = true
 		--[[ jit : jitlib = {
 		arch: string,
 		flush: function(func: function | boolean, recursive: boolean),  ---@overload fun()
@@ -881,9 +965,18 @@ DevTool.LoadDebug = function()
 		}, ]]
 		-- for n in pairs(jit) do print(n) end
 		-- jit.debug()
+		local debuggsub = string.gsub(string.match(debug.getinfo(1, 'S').short_src, "[^/]+$"), '.lua', '')
+		-- local ngsub = string:gsub(".lua$", "")
+		local ngsub = string.gsub(string.match(debug.getinfo(1, 'S').short_src, "[^/]+$"), '.lua$', '')
+		-- :gsub(".lua$", "")
+		-- print("* | ngsub | - [ ".. ngsub .." ]");
+		-- print("* | debuggsub '.lua' | - [ "..debuggsub.." ]");
+		-- print("* | ngsub '.lua$' | - [ ".. ngsub .." ]");
+
 		print("| " .. SCRIPT_NAME .. " | - [" .. jit.version .. "] - [ " .. _VERSION .. " ]");
 	else
-		print("| " .. SCRIPT_NAME .. " | - [ " .. _VERSION .. " ]");
+		DevTool.EXTP = false
+		print("| " .. SCRIPT_NAME .. " | - [ EXTP: " .. tostring(DevTool.EXTP) .. "] - [ " .. _VERSION .. " ]");
 	end
 	DevTool.Debug()
 end
@@ -940,19 +1033,29 @@ DevTool.Debug = function ()
 	-- for n in pairs(_G) do print(n) end
 	-- print(debug.getinfo(DevTool))
 	-- debug.getinfo(print)
+
+
+--
 	end
 end
 
 --[[ TEST ]]
 DevTool.LoadTest = function()
-	--[[
 	DevTool.testMouse = menu.DevTest.testMouse:Value()
 	DevTool.testSpells = menu.DevTest.testSpells:Value()
 	DevTool.testItems = menu.DevTest.testItems:Value()
 	DevTool.testPathing = menu.DevTest.testPathing:Value()
-	]]
-	-- local options = menu.DevTest.TestON.drop()
+	if menu.DevTest.TestON:Value() then
+
+	end
+
+	local options = menu.DevTest.TestON
 	-- for i = 1, #options do
+	DevTool.TestTick()
+	-- end
+end
+
+DevTool.TestTick = function()
 	if menu.DevTest.TestON:Value() == 1 then
 		Callback.Add("Draw", function()
 			DevTool.Test()
@@ -965,6 +1068,7 @@ DevTool.LoadTest = function()
 	end
 	-- end
 end
+
 
 DevTool.Test = function()
 	--print(Game.HeroCount())
@@ -981,37 +1085,56 @@ DevTool.Test = function()
 
 	end
 	if DevTool.testSpells then
-		if Game.CanUseSpell(_Q) then -- == 0  then
-			print("Q: ".. Game.CanUseSpell(_Q))
+		for i, obj in ipairs(Obj_AI_Bases) do
+			if isOnScreen(obj) then
+				for j, slot in ipairs(slots) do
+					local spellData = obj:GetSpellData(slot);
+					if spellData ~= nil and spellData.name ~= "" and spellData.name ~= "BaseSpell" then
+						if obj.name == myHero.name then break end
+--[[ 					drawText(obj, "name: " .. spellData.name ..
+						", toggleState: " .. spellData.toggleState ..
+						", cd: " .. spellData.cd ..
+						", currentCd: " .. spellData.currentCd ..
+						", slot: " .. slot ..
+						", CanUseSpell("..slot.."): " .. Game.CanUseSpell(slot) ..
+						", obj:GetSpellData("..slot..").currentCd: " .. obj:GetSpellData(slot).currentCd
+						); ]]
+					end
+				end
+			end
+		end
+--[[ 		if Game.CanUseSpell(_Q) then -- == 0  then
+			--print("Q: ".. Game.CanUseSpell(_Q))
+			-- print("Q: ".. myHero:GetSpellData(_Q).currentCd)
 			-- Draw.Text("Q: "..Game.CanUseSpell(_Q), cursor);
 			drawText(myHero, getValue("Q", function()
 				return Game.CanUseSpell(_Q);
 			end));
 		end
 		if Game.CanUseSpell(_W) then
-			print("W: "..Game.CanUseSpell(_W))
+			--print("W: "..Game.CanUseSpell(_W))
 			-- Draw.Text("W: "..Game.CanUseSpell(_W), cursor);
 			drawText(myHero, getValue("W", function()
 				return Game.CanUseSpell(_W);
 			end));
 		end
 		if Game.CanUseSpell(_E) then
-			print("E: "..Game.CanUseSpell(_E))
+			--print("E: "..Game.CanUseSpell(_E))
 			-- Draw.Text("E: "..Game.CanUseSpell(_E), cursor);
 			drawText(myHero, getValue("E", function()
 				return Game.CanUseSpell(_E);
 			end));
 		end
 		if Game.CanUseSpell(_R) then
-			print("R: "..Game.CanUseSpell(_R))
+			--print("R: "..Game.CanUseSpell(_R))
 			-- Draw.Text("R: "..Game.CanUseSpell(_R), cursor);
 			drawText(myHero, getValue("R", function()
 				return Game.CanUseSpell(_R);
 			end));
-		end
+		end ]]
 	end
 	if DevTool.testItems then
-		local obj = myHero
+	--[[ 		local obj = myHero
 		if isOnScreen(obj) then
 			for i, slot in ipairs(itemSlots) do
 				local item = obj:GetItemData(slot);
@@ -1021,12 +1144,31 @@ DevTool.Test = function()
 						", ammo: " .. item.ammo ..
 						", stacks: " .. item.stacks ..
 						", CanUseSpell("..slot.."): " .. Game.CanUseSpell(slot) ..
+
 						", slot["..i.."]: " .. slot
 					);
 				end
 			end
+		end ]]
+		for i, obj in ipairs(Obj_AI_Bases) do
+			if isOnScreen(obj) then
+				for j, slot in ipairs(itemSlots) do
+					local item = obj:GetItemData(slot);
+					if item ~= nil and item.itemID > 0 then
+						if obj.name == myHero.name then break end
+						drawText(obj, "itemID: " .. item.itemID ..
+						", stacks: " .. item.stacks ..
+						", ammo: " .. item.ammo ..
+						", stacks: " .. item.stacks ..
+						", slot: " .. slot ..
+						", CanUseSpell("..slot.."): " .. Game.CanUseSpell(slot) ..
+						", obj:GetSpellData("..slot..").currentCd: " .. obj:GetSpellData(slot).currentCd
+					);
+					end
+				end
+			end
 		end
-		drawText(obj,
+--[[ 		drawText(obj,
 		"ITEM_1: " .. ITEM_1 ..
 		", ITEM_2: " .. ITEM_2 ..
 		", ITEM_3: " .. ITEM_3 ..
@@ -1034,7 +1176,7 @@ DevTool.Test = function()
 		", ITEM_5: " .. ITEM_5 ..
 		", ITEM_6: " .. ITEM_6 ..
 		", ITEM_7: " .. ITEM_7
-	);
+	); ]]
 	end
 
 	if DevTool.testPathing then
@@ -1065,14 +1207,38 @@ DevTool.Test = function()
 		" ONCOOLDOWN: "..ONCOOLDOWN..
 		" NOMANA: "..NOMANA..
 		" NOMANAONCOOLDOWN: "..NOMANAONCOOLDOWN) ]]
+
+	for i, obj in ipairs(Obj_AI_Bases) do
+		if isOnScreen(obj) then
+		local baseHP = obj.baseHP
+		local hpPerLevel = obj.hpPerLevel
+		local hp = baseHP + (hpPerLevel * (obj.levelData.lvl - 1)) * (0.7025 + (0.0175 * (obj.levelData.lvl - 1)))
+		local maxHP = obj.maxHealth
+		-- print()
+		drawText(obj, "baseHP: " .. baseHP ..
+						", hpPerLevel: " .. hpPerLevel ..
+						", hp: " .. hp ..
+						", maxHP: " .. maxHP
+		);
+		end
+	end
 	if DevTool.Dump_G then
 		for n in pairs(_G) do print(n) end
 	end
 end
 
 --[[ LOAD ]]
+DevTool.callbacks = {
+	Load = "Load",
+	UnLoad = "UnLoad",
+	GameEnd = "GameEnd",
+	Tick = "Tick",
+	Draw = "Draw",
+	WndMsg = "WndMsg", -- (msg, wParam)
+	ProcessRecall = "ProcessRecall" -- (unit, proc)
+ }
 DevTool.Load = function()
-	if GameTimer() > DevToolLoadDelay then
+	if Game.Timer() > DevToolLoadDelay then
 		DevToolLoad = true
 	end
 	if not DevToolMenu then
@@ -1083,6 +1249,7 @@ DevTool.Load = function()
 			DevTool:Load()
 		end, 1)
 	else
+		--for
 		Callback.Add("Tick", function()
 			DevTool:Tick()
 		end);
@@ -1094,6 +1261,19 @@ DevTool.Load = function()
 		DevTool.LoadDebug()
 	end
 end
+--[[ 	Callback.Add("Tick", function()
+		if not DevToolLoad then
+			menuLoadDelay = string.format("%2.1f", DevToolLoadDelay-Game.Timer())
+		end
+	end);
+	Callback.Add("Tick", function()self:Tick() end)
+	Callback.Add("Draw", function()self:Draw() end)
+	--Callback.Add("Tick", OnProcessSpell)
+	Callback.Add("UnLoad", function()
+
+	end);
+]]
+
 
 -- [[ Update ]] --
 --[[
@@ -1137,27 +1317,30 @@ do
     end
     update()
 end
+]]
+
 
 -- [[ AsyncUpdate ]] --
---[[ local Author = "Impuls"
+--[[
+local Author = "Impuls"
 do
   --local SCRIPT_NAME = string.gsub(string.match(debug.getinfo(1, 'S').short_src, "[^/]+$"), '.lua', '')
-  local SCRIPT_NAME = "DamageLib"
+  local SCRIPT_NAME = "DeveloperTool"
   local gitHub = "https://raw.githubusercontent.com/" .. Author .. "x/GoS/master/"
   local Files = {
     -- self = self,
-    lua = ".lua",         --string
-    version = ".version", --string
+    -- lua = ".lua",         --string
+    -- version = ".version", --string
     Lua = {
       Path = COMMON_PATH,
-      Name = SCRIPT_NAME .. self.lua,
+      Name = SCRIPT_NAME .. ".lua",
     },
-    source = self.Lua.Path .. self.Lua.Name,
+    --source = self.Lua.Path .. self.Lua.Name,
     Version = {
       Path = COMMON_PATH,
-      Name = SCRIPT_NAME .. self.version,
+      Name = SCRIPT_NAME .. ".version",
     },
-    versource = self.Version.Path .. self.Version.Name,
+    --versource = self.Version.Path .. self.Version.Name,
   }
   local function update()
     local function readAll(file)
@@ -1178,7 +1361,7 @@ do
     end
     local function initializeScript()
       local function writeModule(content)
-        local f = assert(io.open(Files.source, content and "a" or "w"))
+        local f = assert(io.open(Files.Lua.Path .. Files.Lua.Name, content and "a" or "w"))
         if content then
           f:write(content)
         end
@@ -1187,18 +1370,18 @@ do
       --
       writeModule()
       --Write the core module
-      writeModule(readAll(Files.source))
+      writeModule(readAll(Files.Lua.Path .. Files.Lua.Name))
       -- writeModule(readAll(AUTO_PATH..coreName))
       -- writeModule(readAll(CHAMP_PATH..charName..dotlua))
       --Load the active module
-      dofile(Files.source)
+      dofile(Files.Lua.Path .. Files.Lua.Name)
     end
 
     downloadFile(Files.Version.Path, Files.Version.Name)
     local NewVersion = tonumber(readFile(Files.Version.Path, Files.Version.Name))
     if NewVersion > Version then
       downloadFile(Files.Lua.Path, Files.Lua.Name)
-      -- print("*WARNING* New "..SCRIPT_NAME.." [ver. " .. tostring(NewVersion) .. "] Downloaded - Please RELOAD with [ F6 ]")
+    --   print("*WARNING* New "..SCRIPT_NAME.." [ver. " .. tostring(NewVersion) .. "] Downloaded - Please RELOAD with [ F6 ]")
       print("*WARNING* New " .. SCRIPT_NAME .. " [ver. " .. tostring(NewVersion) .. "] Downloaded - RELOADING")
       initializeScript()
     else
@@ -1208,14 +1391,24 @@ do
   update()
 end
 ]]
+--[[
+		Callback API: {
+		Add = Adds a new Callback; Input: (iType, function); Return: callbackID
+		Del = Deletes a callback, Input: (iType, callbackID)
+	}
 
+	iTypes: {
+		"Load",
+		"UnLoad",
+		"GameEnd",
+		"Tick",
+		"Draw",
+		"WndMsg", -- (msg, wParam)
+		"ProcessRecall" -- (unit, proc)
+	}
+ ]]
+--uwu
 Callback.Add("Load", function()
 	DevTool:Load()
-	Callback.Add("Tick", function()
-		if not DevToolLoad then
-			menuLoadDelay = string.format("%2.1f", DevToolLoadDelay-GameTimer())
-		end
-	end);
-	-- print("| "..ScriptName.." | - [ ]  ["..var.."]");
 	-- print("| "..SCRIPT_NAME.." |");
 end);
