@@ -1,6 +1,6 @@
 local PRINT_CONSOLE = false;
 local SCRIPT_NAME = "DevTool"
-
+local skipOnScreen = false
 
 local myHero = myHero
 local os = os
@@ -332,7 +332,7 @@ local function isValidMissile(missile)
 end
 
 local function isOnScreen(obj)
-	if (obj.handle == myHero.handle) then return true end;
+	if skipOnScreen or (obj.handle == myHero.handle) then return true end;
 	return obj.pos:To2D().onScreen;
 end
 
@@ -523,13 +523,13 @@ DevTool.DrawObjectInfo = function ()
 					return obj.hudMaxAmmo;
 				end));
 				if obj.type == DevTool.Object.hero then --Obj_AI_Hero
-					drawText(obj, getValue("lvl", function()
+					drawText(obj, getValue("levelData.lvl", function()
 						return obj.levelData.lvl;
 					end));
-					drawText(obj, getValue("lvlPts", function()
+					drawText(obj, getValue("levelData.lvlPts", function()
 						return obj.levelData.lvlPts;
 					end));
-					drawText(obj, getValue("exp", function()
+					drawText(obj, getValue("levelData.exp", function()
 						return obj.levelData.exp;
 					end));
 				end
@@ -594,28 +594,28 @@ end
 DevTool.DrawAttackData = function ()
 	for i, obj in ipairs(Obj_AI_Bases) do
 		if isOnScreen(obj) and obj.type == Obj_AI_Hero then
-			drawText(obj, getValue("state", function()
+			drawText(obj, getValue("attackData.state", function()
 				return convertState(obj.attackData.state);
 			end));
-			drawText(obj, getValue("windUpTime", function()
+			drawText(obj, getValue("attackData.windUpTime", function()
 				return obj.attackData.windUpTime;
 			end));
-			drawText(obj, getValue("windDownTime", function()
+			drawText(obj, getValue("attackData.windDownTime", function()
 				return obj.attackData.windDownTime;
 			end));
-			drawText(obj, getValue("animationTime", function()
+			drawText(obj, getValue("attackData.animationTime", function()
 				return obj.attackData.animationTime;
 			end));
-			drawText(obj, getValue("endTime", function()
+			drawText(obj, getValue("attackData.endTime", function()
 				return obj.attackData.endTime;
 			end));
-			drawText(obj, getValue("castFrame", function()
+			drawText(obj, getValue("attackData.castFrame", function()
 				return obj.attackData.castFrame;
 			end));
-			drawText(obj, getValue("projectileSpeed", function()
+			drawText(obj, getValue("attackData.projectileSpeed", function()
 				return obj.attackData.projectileSpeed;
 			end));
-			drawText(obj, getValue("target", function()
+			drawText(obj, getValue("attackData.target", function()
 				local target = obj.attackData.target;
 				-- return obj.attackData.target
 --[[ 				if target.name then
@@ -625,7 +625,10 @@ DevTool.DrawAttackData = function ()
 				end ]]
 				return target--isValidTarget(target) or "[No Target]";
 			end));
-			drawText(obj, getValue("timeLeft", function()
+			drawText(obj, getValue("attackData.timeLeft", function()
+				return obj.attackData.endTime;
+			end));
+			drawText(obj, getValue("endTime - Game.Timer()", function()
 				return math_max(obj.attackData.endTime - Game.Timer(), 0);
 			end));
 		end
@@ -638,9 +641,9 @@ DevTool.DrawItem = function ()
 			for j, slot in ipairs(itemSlots) do
 				local item = obj:GetItemData(slot);
 				if item ~= nil and item.itemID > 0 then
-					drawText(obj, "itemID: " .. item.itemID ..
-						", stacks: " .. item.stacks ..
-						", ammo: " .. item.ammo
+					drawText(obj, "item.itemID: " .. item.itemID ..
+						", item.stacks: " .. item.stacks ..
+						", item.ammo: " .. item.ammo
 					);
 				end
 			end
@@ -654,22 +657,22 @@ DevTool.DrawSpellData = function ()
 			for j, slot in ipairs(slots) do
 				local spellData = obj:GetSpellData(slot);
 				if spellData ~= nil and spellData.name ~= "" and spellData.name ~= "BaseSpell" then
-					drawText(obj, "name: " .. spellData.name ..
-						", castTime: " .. spellData.castTime ..
-						", range: " .. spellData.range ..
-						", width: " .. spellData.width ..
-						", speed: " .. spellData.speed ..
-						", targetingType: " .. spellData.targetingType ..
-						", coneAngle: " .. spellData.coneAngle ..
-						", ammo: " .. spellData.ammo ..
-						", toggleState: " .. spellData.toggleState ..
-						", level: " .. spellData.level ..
-						", cd: " .. spellData.cd ..
-						", currentCd: " .. spellData.currentCd ..
-						", castFrame: " .. spellData.castFrame ..
-						", ammoTime: " .. spellData.ammoTime ..
-						", ammoCd: " .. spellData.ammoCd ..
-						", ammoCurrentCd: " .. spellData.ammoCurrentCd
+					drawText(obj, "spellData.name: " .. spellData.name ..
+						", spellData.castTime: " .. spellData.castTime ..
+						", spellData.range: " .. spellData.range ..
+						", spellData.width: " .. spellData.width ..
+						", spellData.speed: " .. spellData.speed ..
+						", spellData.targetingType: " .. spellData.targetingType ..
+						", spellData.coneAngle: " .. spellData.coneAngle ..
+						", spellData.ammo: " .. spellData.ammo ..
+						", spellData.toggleState: " .. spellData.toggleState ..
+						", spellData.level: " .. spellData.level ..
+						", spellData.cd: " .. spellData.cd ..
+						", spellData.currentCd: " .. spellData.currentCd ..
+						", spellData.castFrame: " .. spellData.castFrame ..
+						", spellData.ammoTime: " .. spellData.ammoTime ..
+						", spellData.ammoCd: " .. spellData.ammoCd ..
+						", spellData.ammoCurrentCd: " .. spellData.ammoCurrentCd
 					);
 				end
 			end
@@ -685,15 +688,15 @@ DevTool.DrawBuff = function ()
 				if buff ~= nil and buff.count > 0 then
 					local name = buff.sourceName
 					if name == myHero.name then name = "[REDACTED]" end
-					drawText(obj, "type: " .. buff.type ..
-						", name: " .. buff.name ..
-						", stacks: " .. buff.stacks ..
-						", count: " .. buff.count ..
-						", sourcenID: " .. buff.sourcenID ..
-						", sourceName: " .. name ..
-						", startTime: " .. buff.startTime ..
-						", expireTime: " .. buff.expireTime ..
-						", duration: " .. buff.duration
+					drawText(obj, "buff.type: " .. buff.type ..
+						", buff.name: " .. buff.name ..
+						", buff.stacks: " .. buff.stacks ..
+						", buff.count: " .. buff.count ..
+						", buff.sourcenID: " .. buff.sourcenID ..
+						", buff.sourceName: " .. name ..
+						", buff.startTime: " .. buff.startTime ..
+						", buff.expireTime: " .. buff.expireTime ..
+						", buff.duration: " .. buff.duration
 					);
 				end
 			end
@@ -707,87 +710,87 @@ DevTool.DrawActiveSpell = function()
 			drawText(obj, getValue("activeSpell", function()
 				return obj.activeSpell;
 			end));
-			drawText(obj, getValue("valid", function()
+			drawText(obj, getValue("activeSpell.valid", function()
 				return obj.activeSpell.valid;
 			end)); --always use this to check if it's casting
-			drawText(obj, getValue("level", function()
+			drawText(obj, getValue("activeSpell.level", function()
 				return obj.activeSpell.level;
 			end));
 			drawText(obj, getValue("charName", function()
 				return obj.charName;
 			end));
-			drawText(obj, getValue("name", function()
+			drawText(obj, getValue("activeSpell.name", function()
 				local name = obj.activeSpell.name
 				if name == myHero.name then name = "[REDACTED]" end
 				return name;
 			end));
-			drawText(obj, getValue("startPos", function()
+			drawText(obj, getValue("activeSpell.startPos", function()
 				return obj.activeSpell.startPos;
 			end)); -- Vector
-			drawText(obj, getValue("placementPos", function()
+			drawText(obj, getValue("activeSpell.placementPos", function()
 				return obj.activeSpell.placementPos;
 			end)); -- Vector
-			drawText(obj, getValue("target", function()
+			drawText(obj, getValue("activeSpell.target", function()
 				return obj.activeSpell.target;
 			end)); -- GameObject handle
-			drawText(obj, getValue("windup", function()
+			drawText(obj, getValue("activeSpell.windup", function()
 				return obj.activeSpell.windup;
 			end));
-			drawText(obj, getValue("animation", function()
+			drawText(obj, getValue("activeSpell.animation", function()
 				return obj.activeSpell.animation;
 			end));
-			drawText(obj, getValue("range", function()
+			drawText(obj, getValue("activeSpell.range", function()
 				return obj.activeSpell.range;
 			end));
-			drawText(obj, getValue("mana", function()
+			drawText(obj, getValue("activeSpell.mana", function()
 				return obj.activeSpell.mana;
 			end));
-			drawText(obj, getValue("width", function()
+			drawText(obj, getValue("activeSpell.width", function()
 				return obj.activeSpell.width;
 			end));
-			drawText(obj, getValue("speed", function()
+			drawText(obj, getValue("activeSpell.speed", function()
 				return obj.activeSpell.speed;
 			end));
-			drawText(obj, getValue("coneAngle", function()
+			drawText(obj, getValue("activeSpell.coneAngle", function()
 				return obj.activeSpell.coneAngle;
 			end));
-			drawText(obj, getValue("coneDistance", function()
+			drawText(obj, getValue("activeSpell.coneDistance", function()
 				return obj.activeSpell.coneDistance;
 			end));
-			drawText(obj, getValue("acceleration", function()
+			drawText(obj, getValue("activeSpell.acceleration", function()
 				return obj.activeSpell.acceleration;
 			end));
-			drawText(obj, getValue("castFrame", function()
+			drawText(obj, getValue("activeSpell.castFrame", function()
 				return obj.activeSpell.castFrame;
 			end));
-			drawText(obj, getValue("maxSpeed", function()
+			drawText(obj, getValue("activeSpell.maxSpeed", function()
 				return obj.activeSpell.maxSpeed;
 			end));
-			drawText(obj, getValue("minSpeed", function()
+			drawText(obj, getValue("activeSpell.minSpeed", function()
 				return obj.activeSpell.minSpeed;
 			end));
-			drawText(obj, getValue("spellWasCast", function()
+			drawText(obj, getValue("activeSpell.spellWasCast", function()
 				return obj.activeSpell.spellWasCast;
 			end));
-			drawText(obj, getValue("isAutoAttack", function()
+			drawText(obj, getValue("activeSpell.isAutoAttack", function()
 				return obj.activeSpell.isAutoAttack;
 			end));
-			drawText(obj, getValue("isCharging", function()
+			drawText(obj, getValue("activeSpell.isCharging", function()
 				return obj.activeSpell.isCharging;
 			end));
-			drawText(obj, getValue("isChanneling", function()
+			drawText(obj, getValue("activeSpell.isChanneling", function()
 				return obj.activeSpell.isChanneling;
 			end));
-			drawText(obj, getValue("startTime", function()
+			drawText(obj, getValue("activeSpell.startTime", function()
 				return obj.activeSpell.startTime;
 			end));
-			drawText(obj, getValue("castEndTime", function()
+			drawText(obj, getValue("activeSpell.castEndTime", function()
 				return obj.activeSpell.castEndTime;
 			end));
-			drawText(obj, getValue("endTime", function()
+			drawText(obj, getValue("activeSpell.endTime", function()
 				return obj.activeSpell.endTime;
 			end));
-			drawText(obj, getValue("isStopped", function()
+			drawText(obj, getValue("activeSpell.isStopped", function()
 				return obj.activeSpell.isStopped;
 			end));
 			drawText(obj, getValue("activeSpellSlot", function()
@@ -805,17 +808,17 @@ DevTool.DrawMissileData = function ()
 		local missile = Game.Missile(i);
 		if isValidMissile(missile) then
 			if isOnScreen(missile) then
-				drawText(missile, getValue("name", function()
+				drawText(missile, getValue("missileData.name", function()
 					return missile.missileData.name;
 				end));
-				drawText(missile, getValue("owner", function()
+				drawText(missile, getValue("missileData.owner", function()
 					local owner = getObjectByHandle(missile.missileData.owner);
 					if not owner then return "" end
 					local name = owner.name
 					if name == myHero.name then name = "[REDACTED]" end
 					return isValidTarget(owner) and name or "";
 				end));
-				drawText(missile, getValue("target", function()
+				drawText(missile, getValue("missileData.target", function()
 					local target = getObjectByHandle(missile.missileData.target);
 					if not target then return "" end
 					local name = target.name
@@ -833,19 +836,19 @@ DevTool.DrawMissileData = function ()
 					return missile.missileData.placementPos;
 				end));
 				]]
-				drawText(missile, getValue("range", function()
+				drawText(missile, getValue("missileData.range", function()
 					return missile.missileData.range;
 				end));
-				drawText(missile, getValue("delay", function()
+				drawText(missile, getValue("missileData.delay", function()
 					return missile.missileData.delay;
 				end));
-				drawText(missile, getValue("speed", function()
+				drawText(missile, getValue("missileData.speed", function()
 					return missile.missileData.speed;
 				end));
-				drawText(missile, getValue("width", function()
+				drawText(missile, getValue("missileData.width", function()
 					return missile.missileData.width;
 				end));
-				drawText(missile, getValue("manaCost", function()
+				drawText(missile, getValue("missileData.manaCost", function()
 					return missile.missileData.manaCost;
 				end));
 			end
@@ -857,9 +860,9 @@ DevTool.DrawParticles = function ()
 	for i = 1, Game.ParticleCount() do
 		local particle = Game.Particle(i);
 		Draw.Circle(mousePos, 200)
-		if particle ~= nil and not particle.dead and particle.pos:DistanceTo(mousePos) <= 200 then
+		if particle ~= nil then --and not particle.dead and particle.pos:DistanceTo(mousePos) <= 200 then
 			if isOnScreen(particle) then -- just because of fps
-				drawText(particle, getValue("name", function()
+				drawText(particle, getValue("particle.name", function()
 					return particle.name;
 				end));
 			end
