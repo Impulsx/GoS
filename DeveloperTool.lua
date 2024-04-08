@@ -332,6 +332,7 @@ local function isValidMissile(missile)
 end
 
 local function isOnScreen(obj)
+	if (obj.handle == myHero.handle) then return true end;
 	return obj.pos:To2D().onScreen;
 end
 
@@ -354,14 +355,16 @@ local function drawText(target, value)
 	Draw.Text(tostring(value), position);
 end
 
+local poscounters = {};
 local function drawTextPos(pos, value)
-	if counters[pos] == nil then
-		counters[pos] = 0;
+	if poscounters[myHero.networkID] == nil then
+		poscounters[myHero.networkID] = 0;
 	else
-		counters[pos] = counters[pos] + 1;
+		poscounters[myHero.networkID] = poscounters[myHero.networkID] + 1;
 	end
-	local position = pos:To2D();
-	position.y = position.y + 30 + 18 * counters[pos];
+	local position = pos
+	-- local position = pos
+	position.y = position.y + 30 + 18 * poscounters[myHero.networkID];
 	Draw.Text(tostring(value), position);
 end
 
@@ -613,11 +616,14 @@ DevTool.DrawAttackData = function ()
 				return obj.attackData.projectileSpeed;
 			end));
 			drawText(obj, getValue("target", function()
-				local target = getObjectByHandle(obj.attackData.target);
+				local target = obj.attackData.target;
 				-- return obj.attackData.target
-				local name = target.name
-				if name == myHero.name then name = "[REDACTED]" end
-				return isValidTarget(target) and name or "[No Target]";
+--[[ 				if target.name then
+					local name = target.name
+					if name == myHero.name then name = "[REDACTED]" end
+					return name
+				end ]]
+				return target--isValidTarget(target) or "[No Target]";
 			end));
 			drawText(obj, getValue("timeLeft", function()
 				return math_max(obj.attackData.endTime - Game.Timer(), 0);
@@ -883,6 +889,7 @@ end
 
 DevTool.Draw = function()
 	counters = {};
+	poscounters = {};
 	DevTool.DrawGameInfo()
 
 	if menu.GameObject.DrawObjectInfo:Value() then
@@ -923,56 +930,72 @@ DevTool.Draw = function()
 end
 
 DevTool.DrawGameInfo = function()
-	local screenRes = Game.Resolution()
-	local screenWidth = screenRes.x
-	local screenHeight = screenRes.y
-	drawText(myHero, "screenRes: "..tostring(screenRes))
-	drawText(myHero, "screenWidth: "..tostring(screenWidth))
-	drawText(myHero, "screenHeight: "..tostring(screenHeight))
-    local padding = 10
-	local mapID = Game.mapID
 	local count = 0
+	local mapID = Game.mapID
+	local screenRes = Game.Resolution()
+	local padding = 10
+	local pos = {
+		x = screenRes.x - padding,
+		y = screenRes.y - padding - 100,
+	}
+	-- drawText(myHero, "screenRes: " .. tostring(screenRes))
+	-- drawText(myHero, "Game.Resolution(): " .. tostring(Game.Resolution()))
+	-- drawTextPos(pos, "screenRes: " .. tostring(screenRes))
+	-- drawTextPos(pos, "Game.Resolution(): " .. tostring(Game.Resolution()))
+	-- drawText(myHero, "screenRes: " .. screenRes)
+	-- drawText(myHero, "Game.Resolution(): " .. Game.Resolution())
 --[[ 	if not Game then
 		local DrawGameInfo = "GameInfo Loading: " .. tostring(Game)
 		drawTextPos(myHero, DrawGameInfo)
 		return
 	end ]]
+	-- drawTextPos(screenRes - padding, "Game.FPS(): " .. tostring(Game.FPS()))
+--[[ 	drawTextPos(pos, "Game.Resolution(): " .. tostring(Game.Resolution()) ..
+	", Game.FPS(): " .. tostring(Game.FPS()) ..
+	", Game.TICK(): " .. tostring(Game.TICK()) ..
+	", GetTickCount: " .. tostring(GetTickCount()) ..
+	", Game.Timer(): " .. tostring(Game.Timer()) ..
+	", Game.Latency(): " .. tostring(Game.Latency()) ..
+	", mapID: " .. tostring(mapID)
+	); ]]
+--[[
 	-- Display fps
-	drawText(myHero, "Game.FPS(): "..tostring(Game.FPS()))
+	-- drawText(myHero, "Game.FPS(): "..tostring(Game.FPS()))
 
 	local fpsText = "FPS: " .. tostring(Game.FPS())
 	Draw.Text(fpsText, 12, screenWidth - padding - 100, screenHeight + padding, Color.White)
 	count = count + 20
 	-- Display tick
-	drawText(myHero, "Game.TICK(): "..tostring(Game.TICK()))
+	-- drawText(myHero, "Game.TICK(): "..tostring(Game.TICK()))
 
 	local tickText = "Tick: " .. tostring(Game.TICK())
 	Draw.Text(tickText, 12, screenWidth - padding - 100, screenHeight + padding + count, Color.White)
 	count = count + 20
 	-- Display tick
-	drawText(myHero, "GetTickCount: "..tostring(GetTickCount()))
+	-- drawText(myHero, "GetTickCount: "..tostring(GetTickCount()))
 
 	local tickText = "Tickcount: " .. tostring(GetTickCount())
 	Draw.Text(tickText, 12, screenWidth - padding - 100, screenHeight + padding + count, Color.White)
 	count = count + 20
 
-	drawText(myHero, "Game.Timer(): "..tostring(Game.Timer()))
+	-- drawText(myHero, "Game.Timer(): "..tostring(Game.Timer()))
 
 	local timerText = "Timer: " .. tostring(Game.Timer())
 	Draw.Text(timerText, 12, screenWidth - padding - 100, screenHeight + padding + count, Color.White)
 	count = count + 20
 	-- Display latency
-	drawText(myHero, "Game.Latency(): "..tostring(Game.Latency()))
+	-- drawText(myHero, "Game.Latency(): "..tostring(Game.Latency()))
 
 	local latencyText = "Latency: " .. tostring(Game.Latency()) .. "ms" -- * 0.001
 	Draw.Text(latencyText, 12, screenWidth - padding - 100, screenHeight + padding + count, Color.White)
 	count = count + 20
 	-- Display mapID
-	drawText(myHero, "mapID: "..tostring(mapID))
+	-- drawText(myHero, "mapID: "..tostring(mapID))
 
 	local mapIDText = "mapID: " .. tostring(mapID)
 	Draw.Text(mapIDText, 12, screenWidth - padding - 100, screenHeight + padding + count, Color.White)
 	count = count + 20
+	]]
 end
 --[[ DEBUG ]]
 DevTool.LoadDebug = function()
