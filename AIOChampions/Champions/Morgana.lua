@@ -268,7 +268,7 @@ function LoadScript()
 	DetectedMissiles = {}; DetectedSpells = {}; Target = nil; Timer = 0
 
 	Menu = MenuElement({ type = MENU, id = "PussyAIO" .. myHero.charName, name = myHero.charName })
-	Menu:MenuElement({ name = " ", drop = { "Version 0.12" } })
+	Menu:MenuElement({ name = " ", drop = { "Version 0.13" } })
 
 	--AutoE
 	Menu:MenuElement({ id = "AutoE", name = "AutoE if Ground Controled", type = MENU })
@@ -618,7 +618,7 @@ function AutoW()
 		if myHero.pos:DistanceTo(target.pos) < 900 and IsImmobileTarget(target) and Menu.AutoW.UseW:Value() and Ready(_W) then
 			Control.CastSpell(HK_W, target.pos)
 		elseif myHero.pos:DistanceTo(target.pos) > 900 and myHero.pos:DistanceTo(target.pos) < 1175 and IsImmobileTarget(target) and Menu.AutoW.UseW:Value() and Ready(_W) then
-			local WPos = myHero.pos:Shortened(target.pos - 900)
+			local WPos = target.pos:Shortened(target.pos, 900) --(myHero.pos:DistanceTo(target.pos, ) - 900) --target.pos - 900
 			Control.SetCursorPos(WPos)
 			Control.KeyDown(HK_W)
 			Control.KeyUp(HK_W)

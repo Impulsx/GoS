@@ -63,7 +63,7 @@ Data = {
         },
         Morgana = {
             Changelog = "Morgana Changelog Here",
-            Version = 0.12,
+            Version = 0.13,
         },
         Kassadin = {
             Changelog = "Kassadin Changelog Here",
