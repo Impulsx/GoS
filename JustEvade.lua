@@ -3983,10 +3983,10 @@ end
 
 function OnLoad()
 	print("Loading JustEvade...")
+	AutoUpdate()
 	DelayAction(function()
 		JEvade:__init()
 		print("JustEvade successfully loaded!")
 		ReleaseEvadeAPI();
-		-- AutoUpdate()
 	end, MathMax(0.07, 10 - GameTimer()))
 end
