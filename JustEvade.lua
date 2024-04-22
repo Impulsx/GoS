@@ -1,4 +1,4 @@
-local IntVer = 1.33
+local IntVer = 1.34
 
 --[[
 
@@ -136,7 +136,7 @@ local function AutoUpdate()
 	DownloadFile("https://raw.githubusercontent.com/Impulsx/GoS/master/JustEvade.version",
 		SCRIPT_PATH .. "JustEvade.version")
 	local newVersion = tonumber(ReadFile(SCRIPT_PATH .. "JustEvade.version"))
-	if newVersion > Version then
+	if newVersion > IntVer then
 		DownloadFile("https://raw.githubusercontent.com/Impulsx/GoS/master/JustEvade.lua", SCRIPT_PATH .. "JustEvade.lua")
 		print("*WARNING* New JustEvade [ver. " .. tostring(newVersion) .. "] Downloaded - Please RELOAD with [ F6 ]")
 	else
