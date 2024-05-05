@@ -332,7 +332,7 @@ local function isValidMissile(missile)
 end
 
 local function isOnScreen(obj)
-	if skipOnScreen or (obj.handle == myHero.handle) then return true end;
+	if (skipOnScreen) or (obj.handle == myHero.handle) or (obj == myHero) then return true end;
 	return obj.pos:To2D().onScreen;
 end
 
@@ -1149,24 +1149,24 @@ DevTool.Test = function()
 
 	end
 	if DevTool.testSpells then
-		for i, obj in ipairs(Obj_AI_Bases) do
+		--[[ for i, obj in ipairs(Obj_AI_Bases) do
 			if isOnScreen(obj) then
 				for j, slot in ipairs(slots) do
 					local spellData = obj:GetSpellData(slot);
 					if spellData ~= nil and spellData.name ~= "" and spellData.name ~= "BaseSpell" then
-						if obj.name == myHero.name then break end
---[[ 					drawText(obj, "name: " .. spellData.name ..
+						-- if obj.name == myHero.name then break end
+						drawText(obj, "name: " .. spellData.name ..
 						", toggleState: " .. spellData.toggleState ..
 						", cd: " .. spellData.cd ..
 						", currentCd: " .. spellData.currentCd ..
 						", slot: " .. slot ..
 						", CanUseSpell("..slot.."): " .. Game.CanUseSpell(slot) ..
 						", obj:GetSpellData("..slot..").currentCd: " .. obj:GetSpellData(slot).currentCd
-						); ]]
+						);
 					end
 				end
 			end
-		end
+		end ]]
 --[[ 		if Game.CanUseSpell(_Q) then -- == 0  then
 			--print("Q: ".. Game.CanUseSpell(_Q))
 			-- print("Q: ".. myHero:GetSpellData(_Q).currentCd)
@@ -1214,7 +1214,7 @@ DevTool.Test = function()
 				end
 			end
 		end ]]
-		for i, obj in ipairs(Obj_AI_Bases) do
+--[[ 		for i, obj in ipairs(Obj_AI_Bases) do
 			if isOnScreen(obj) then
 				for j, slot in ipairs(itemSlots) do
 					local item = obj:GetItemData(slot);
@@ -1231,7 +1231,7 @@ DevTool.Test = function()
 					end
 				end
 			end
-		end
+		end ]]
 --[[ 		drawText(obj,
 		"ITEM_1: " .. ITEM_1 ..
 		", ITEM_2: " .. ITEM_2 ..
@@ -1272,7 +1272,7 @@ DevTool.Test = function()
 		" NOMANA: "..NOMANA..
 		" NOMANAONCOOLDOWN: "..NOMANAONCOOLDOWN) ]]
 
-	for i, obj in ipairs(Obj_AI_Bases) do
+--[[ 	for i, obj in ipairs(Obj_AI_Bases) do
 		if isOnScreen(obj) then
 		local baseHP = obj.baseHP
 		local hpPerLevel = obj.hpPerLevel
@@ -1285,7 +1285,7 @@ DevTool.Test = function()
 						", maxHP: " .. maxHP
 		);
 		end
-	end
+	end ]]
 	if DevTool.Dump_G then
 		for n in pairs(_G) do print(n) end
 	end
