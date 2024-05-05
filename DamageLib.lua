@@ -1,4 +1,8 @@
-local Version = 14.7
+local version = 14.9
+local scriptPath = debug.getinfo(1, "S").source:sub(2)
+local fileName = scriptPath:match("[\\/]([^\\/]-)$")
+local SCRIPT_NAME = fileName:gsub("%.lua$", "")
+local DamageLib = {}
 
 --[[
 Usage:
@@ -196,11 +200,10 @@ Rift Herald Rift Herald
   REMOVED: No longer has a respawn time of 6 minutes.
   NEW EFFECT - HERALD'S GAZE: Now takes 50% reduced damage from the last enemy that it attacked for 8 seconds, refreshing with each attack. This may only affect one enemy at a time.
 
-Profane Hydra
-Stormsurge
-Stridebreaker
-Hextech Rocketbelt
-
+  Profane Hydra
+  Stormsurge
+  Stridebreaker
+  Hextech Rocketbelt
 ]]
 
 --[[
@@ -223,7 +226,6 @@ local DAMAGE_TYPE_TRUE = DAMAGE_TYPE_TRUE or 3
 
 local myHero = myHero
 local Game, Draw, Callback = _G.Game, _G.Draw, _G.Callback
-local GameTimer = Game.Timer
 local io = io
 local math = math
 local table = table
@@ -342,174 +344,174 @@ local TurretToMinionPercent = {
   [superMinionList] = 0.07,
 }
 
-local Hero = {
-  Aatrox = { true, 0.651 },
-  Ahri = { false, 0.668 },
-  Akali = { true, 0.625 },
-  Akshan = { false, 0.638 },
-  Alistar = { true, 0.625 },
-  Amumu = { true, 0.736 },
-  Anivia = { false, 0.658 },
-  Annie = { false, 0.61 },
-  Aphelios = { false, 0.64 },
-  Ashe = { false, 0.658 },
-  AurelionSol = { false, 0.625 },
-  Azir = { true, 0.625 },
-  Bard = { false, 0.625 },
-  Belveth = { true, 0.85 },
-  Blitzcrank = { true, 0.625 },
-  Brand = { false, 0.681 },
-  Braum = { true, 0.644 },
-  Briar = { true, 0.669 },
-  Caitlyn = { false, 0.681 },
-  Camille = { true, 0.644 },
-  Cassiopeia = { false, 0.647 },
-  Chogath = { true, 0.625 },
-  Corki = { false, 0.638 },
-  Darius = { true, 0.625 },
-  Diana = { true, 0.694 },
-  Draven = { false, 0.67 },
-  DrMundo = { true, 0.679 },
-  Ekko = { true, 0.688 },
-  Elise = { false, 0.625 },
-  Evelynn = { true, 0.667 },
-  Ezreal = { false, 0.625 },
-  FiddleSticks = { false, 0.625 },
-  Fiora = { true, 0.69 },
-  Fizz = { true, 0.658 },
-  Galio = { true, 0.625 },
-  Gangplank = { true, 0.658 },
-  Garen = { true, 0.625 },
-  Gnar = { false, 0.625 },
-  Gragas = { true, 0.675 },
-  Graves = { false, 0.475 },
-  Gwen = { true, 0.69 },
-  Hecarim = { true, 0.67 },
-  Heimerdinger = { false, 0.658 },
-  Hwei = { false, 0.69 },
-  Illaoi = { true, 0.625 },
-  Irelia = { true, 0.656 },
-  Ivern = { true, 0.644 },
-  Janna = { false, 0.625 },
-  JarvanIV = { true, 0.658 },
-  Jax = { true, 0.638 },
-  Jayce = { false, 0.658 },
-  Jhin = { false, 0.625 },
-  Jinx = { false, 0.625 },
-  Kaisa = { false, 0.625 },
-  Kalista = { false, 0.644 },
-  Karma = { false, 0.625 },
-  Karthus = { false, 0.625 },
-  Kassadin = { true, 0.625 },
-  Katarina = { true, 0.64 },
-  Kayle = { false, 0.658 },
-  Kayn = { true, 0.669 },
-  Kennen = { false, 0.669 },
-  Khazix = { true, 0.625 },
-  Kindred = { false, 0.668 },
-  Kled = { true, 0.625 },
-  KogMaw = { false, 0.625 },
-  KSante = { true, 0.665 },
-  Leblanc = { false, 0.658 },
-  LeeSin = { true, 0.651 },
-  Leona = { true, 0.625 },
-  Lillia = { true, 0.625 },
-  Lissandra = { false, 0.656 },
-  Lucian = { false, 0.638 },
-  Lulu = { false, 0.625 },
-  Lux = { false, 0.669 },
-  Malphite = { true, 0.736 },
-  Malzahar = { false, 0.625 },
-  Maokai = { true, 0.8 },
-  MasterYi = { true, 0.679 },
-  Milio = { false, 0.625 },
-  MissFortune = { false, 0.656 },
-  MonkeyKing = { true, 0.69 },
-  Mordekaiser = { true, 0.625 },
-  Morgana = { false, 0.625 },
-  Naafiri = { true, 0.663 },
-  Nami = { false, 0.644 },
-  Nasus = { true, 0.638 },
-  Nautilus = { true, 0.706 },
-  Neeko = { false, 0.625 },
-  Nidalee = { false, 0.638 },
-  Nilah = { true, 0.697 },
-  Nocturne = { true, 0.721 },
-  Nunu = { true, 0.625 },
-  Olaf = { true, 0.694 },
-  Orianna = { false, 0.658 },
-  Ornn = { true, 0.625 },
-  Pantheon = { true, 0.658 },
-  Poppy = { true, 0.625 },
-  Pyke = { true, 0.667 },
-  Qiyana = { true, 0.688 },
-  Quinn = { false, 0.668 },
-  Rakan = { true, 0.635 },
-  Rammus = { true, 0.656 },
-  RekSai = { true, 0.667 },
-  Rell = { true, 0.625 },
-  Renata = { false, 0.625 },
-  Renekton = { true, 0.665 },
-  Rengar = { true, 0.667 },
-  Riven = { true, 0.625 },
-  Rumble = { true, 0.644 },
-  Ryze = { false, 0.658 },
-  Samira = { false, 0.658 },
-  Sejuani = { true, 0.688 },
-  Senna = { true, 0.625 },
-  Seraphine = { false, 0.669 },
-  Sett = { true, 0.625 },
-  Shaco = { true, 0.694 },
-  Shen = { true, 0.751 },
-  Shyvana = { true, 0.658 },
-  Singed = { true, 0.625 },
-  Sion = { true, 0.679 },
-  Sivir = { false, 0.625 },
-  Skarner = { true, 0.625 },
-  Smolder = { false, 0.638 },
-  Sona = { false, 0.644 },
-  Soraka = { false, 0.625 },
-  Swain = { false, 0.625 },
-  Sylas = { true, 0.645 },
-  Syndra = { false, 0.658 },
-  TahmKench = { true, 0.658 },
-  Taliyah = { false, 0.658 },
-  Talon = { true, 0.625 },
-  Taric = { true, 0.625 },
-  Teemo = { false, 0.69 },
-  Thresh = { true, 0.625 },
-  Tristana = { false, 0.656 },
-  Trundle = { true, 0.67 },
-  Tryndamere = { true, 0.67 },
-  TwistedFate = { false, 0.625 },
-  Twitch = { false, 0.679 },
-  Udyr = { true, 0.65 },
-  Urgot = { true, 0.625 },
-  Varus = { false, 0.658 },
-  Vayne = { false, 0.658 },
-  Veigar = { false, 0.625 },
-  Velkoz = { false, 0.643 },
-  Vex = { false, 0.669 },
-  Vi = { true, 0.644 },
-  Viego = { true, 0.658 },
-  Viktor = { false, 0.658 },
-  Vladimir = { false, 0.658 },
-  Volibear = { true, 0.625 },
-  Warwick = { true, 0.638 },
-  Xayah = { false, 0.658 },
-  Xerath = { false, 0.658 },
-  XinZhao = { true, 0.645 },
-  Yasuo = { true, 0.697 },
-  Yone = { true, 0.625 },
-  Yorick = { true, 0.625 },
-  Yuumi = { false, 0.625 },
-  Zac = { true, 0.736 },
-  Zed = { true, 0.651 },
-  Zeri = { false, 0.658 },
-  Ziggs = { false, 0.656 },
-  Zilean = { false, 0.658 },
-  Zoe = { false, 0.658 },
-  Zyra = { false, 0.681 },
+local HEROES = {
+  Aatrox = { 3, true, 0.651 },
+  Ahri = { 4, false, 0.668 },
+  Akali = { 4, true, 0.625 },
+  Akshan = { 5, false, 0.638 },
+  Alistar = { 1, true, 0.625 },
+  Amumu = { 1, true, 0.736 },
+  Anivia = { 4, false, 0.625 },
+  Annie = { 4, false, 0.61 },
+  Aphelios = { 5, false, 0.64 },
+  Ashe = { 5, false, 0.658 },
+  AurelionSol = { 4, false, 0.625 },
+  Azir = { 4, true, 0.625 },
+  Bard = { 3, false, 0.625 },
+  Belveth = { 4, true, 0.85 },
+  Blitzcrank = { 1, true, 0.625 },
+  Brand = { 4, false, 0.625 },
+  Braum = { 1, true, 0.644 },
+  Briar = { 4, true, 0.664 },
+  Caitlyn = { 5, false, 0.681 },
+  Camille = { 3, true, 0.644 },
+  Cassiopeia = { 4, false, 0.647 },
+  Chogath = { 1, true, 0.625 },
+  Corki = { 5, false, 0.638 },
+  Darius = { 2, true, 0.625 },
+  Diana = { 4, true, 0.625 },
+  DrMundo = { 1, true, 0.67 },
+  Draven = { 5, false, 0.679 },
+  Ekko = { 4, true, 0.688 },
+  Elise = { 3, false, 0.625 },
+  Evelynn = { 4, true, 0.667 },
+  Ezreal = { 5, false, 0.625 },
+  FiddleSticks = { 3, false, 0.625 },
+  Fiora = { 3, true, 0.69 },
+  Fizz = { 4, true, 0.658 },
+  Galio = { 1, true, 0.625 },
+  Gangplank = { 4, true, 0.658 },
+  Garen = { 1, true, 0.625 },
+  Gnar = { 1, false, 0.625 },
+  Gragas = { 2, true, 0.675 },
+  Graves = { 4, false, 0.475 },
+  Gwen = { 4, true, 0.69 },
+  Hecarim = { 2, true, 0.67 },
+  Heimerdinger = { 3, false, 0.625 },
+  Hwei = { 4, false, 0.69 },
+  Illaoi = { 3, true, 0.625 },
+  Irelia = { 3, true, 0.656 },
+  Ivern = { 1, true, 0.644 },
+  Janna = { 2, false, 0.625 },
+  JarvanIV = { 3, true, 0.658 },
+  Jax = { 3, true, 0.638 },
+  Jayce = { 4, false, 0.658 },
+  Jhin = { 5, false, 0.625 },
+  Jinx = { 5, false, 0.625 },
+  KSante = { 1, true, 0.625 },
+  Kaisa = { 5, false, 0.644 },
+  Kalista = { 5, false, 0.694 },
+  Karma = { 4, false, 0.625 },
+  Karthus = { 4, false, 0.625 },
+  Kassadin = { 4, true, 0.64 },
+  Katarina = { 4, true, 0.658 },
+  Kayle = { 4, false, 0.625 },
+  Kayn = { 4, true, 0.669 },
+  Kennen = { 4, false, 0.625 },
+  Khazix = { 4, true, 0.668 },
+  Kindred = { 4, false, 0.625 },
+  Kled = { 2, true, 0.625 },
+  KogMaw = { 5, false, 0.665 },
+  Leblanc = { 4, false, 0.658 },
+  LeeSin = { 3, true, 0.651 },
+  Leona = { 1, true, 0.625 },
+  Lillia = { 4, false, 0.625 },
+  Lissandra = { 4, false, 0.656 },
+  Lucian = { 5, false, 0.638 },
+  Lulu = { 3, false, 0.625 },
+  Lux = { 4, false, 0.669 },
+  Malphite = { 1, true, 0.736 },
+  Malzahar = { 3, false, 0.625 },
+  Maokai = { 2, true, 0.8 },
+  MasterYi = { 5, true, 0.679 },
+  Milio = { 3, false, 0.625 },
+  MissFortune = { 5, false, 0.656 },
+  MonkeyKing = { 3, true, 0.69 },
+  Mordekaiser = { 4, true, 0.625 },
+  Morgana = { 3, false, 0.625 },
+  Naafiri = { 4, true, 0.663 },
+  Nami = { 3, false, 0.644 },
+  Nasus = { 2, true, 0.638 },
+  Nautilus = { 1, true, 0.706 },
+  Neeko = { 4, false, 0.625 },
+  Nidalee = { 4, false, 0.638 },
+  Nilah = { 5, true, 0.697 },
+  Nocturne = { 4, true, 0.721 },
+  Nunu = { 2, true, 0.625 },
+  Olaf = { 2, true, 0.694 },
+  Orianna = { 4, false, 0.658 },
+  Ornn = { 2, true, 0.625 },
+  Pantheon = { 3, true, 0.658 },
+  Poppy = { 2, true, 0.625 },
+  Pyke = { 4, true, 0.667 },
+  Qiyana = { 4, true, 0.688 },
+  Quinn = { 5, false, 0.668 },
+  Rakan = { 3, true, 0.635 },
+  Rammus = { 1, true, 0.656 },
+  RekSai = { 2, true, 0.667 },
+  Rell = { 1, true, 0.625 },
+  Renata = { 2, false, 0.625 },
+  Renekton = { 2, true, 0.665 },
+  Rengar = { 4, true, 0.667 },
+  Riven = { 4, true, 0.625 },
+  Rumble = { 4, true, 0.644 },
+  Ryze = { 4, false, 0.658 },
+  Samira = { 5, false, 0.658 },
+  Sejuani = { 2, true, 0.688 },
+  Senna = { 5, false, 0.625 },
+  Seraphine = { 3, false, 0.669 },
+  Sett = { 2, true, 0.625 },
+  Shaco = { 4, true, 0.694 },
+  Shen = { 1, true, 0.751 },
+  Shyvana = { 2, true, 0.658 },
+  Singed = { 1, true, 0.625 },
+  Sion = { 1, true, 0.679 },
+  Sivir = { 5, false, 0.625 },
+  Skarner = { 2, true, 0.625 },
+  Smolder = { 5, false, 0.638 },
+  Sona = { 3, false, 0.644 },
+  Soraka = { 3, false, 0.625 },
+  Swain = { 3, false, 0.625 },
+  Sylas = { 4, true, 0.645 },
+  Syndra = { 4, false, 0.625 },
+  TahmKench = { 1, true, 0.658 },
+  Taliyah = { 4, false, 0.625 },
+  Talon = { 4, true, 0.625 },
+  Taric = { 1, true, 0.625 },
+  Teemo = { 4, false, 0.69 },
+  Thresh = { 1, true, 0.625 },
+  Tristana = { 5, false, 0.656 },
+  Trundle = { 2, true, 0.67 },
+  Tryndamere = { 4, true, 0.67 },
+  TwistedFate = { 4, false, 0.651 },
+  Twitch = { 5, false, 0.679 },
+  Udyr = { 2, true, 0.65 },
+  Urgot = { 2, true, 0.625 },
+  Varus = { 5, false, 0.658 },
+  Vayne = { 5, false, 0.658 },
+  Veigar = { 4, false, 0.625 },
+  Velkoz = { 4, false, 0.643 },
+  Vex = { 4, false, 0.669 },
+  Vi = { 2, true, 0.644 },
+  Viego = { 4, true, 0.658 },
+  Viktor = { 4, false, 0.658 },
+  Vladimir = { 3, false, 0.658 },
+  Volibear = { 2, true, 0.625 },
+  Warwick = { 2, true, 0.638 },
+  Xayah = { 5, false, 0.658 },
+  Xerath = { 4, false, 0.658 },
+  XinZhao = { 3, true, 0.645 },
+  Yasuo = { 4, true, 0.697 },
+  Yone = { 4, true, 0.625 },
+  Yorick = { 2, true, 0.625 },
+  Yuumi = { 3, false, 0.625 },
+  Zac = { 1, true, 0.736 },
+  Zed = { 4, true, 0.651 },
+  Zeri = { 5, false, 0.658 },
+  Ziggs = { 4, false, 0.656 },
+  Zilean = { 3, false, 0.658 },
+  Zoe = { 4, false, 0.658 },
+  Zyra = { 2, false, 0.681 },
 }
 
 local ARAM = {
@@ -699,13 +701,13 @@ local ARAM = {
     other = nil,
   },
   ["Hwei"] = {
-    dmgDealt = nil,
-    dmgReceived = nil,
+    dmgDealt = 1.00,
+    dmgReceived = 1.00,
     other = nil,
   },
   ["Illaoi"] = {
     dmgDealt = 0.95,
-    dmgReceived = 1.10,
+    dmgReceived = 1.05,
     other = nil,
   },
   ["Irelia"] = {
@@ -825,7 +827,7 @@ local ARAM = {
   },
   ["Leona"] = {
     dmgDealt = 0.90,
-    dmgReceived = 1.05,
+    dmgReceived = 1.00,
     other = nil,
   },
   ["Lillia"] = {
@@ -894,7 +896,7 @@ local ARAM = {
     other = nil,
   },
   ["Nami"] = {
-    dmgDealt = nil,
+    dmgDealt = 0.95,
     dmgReceived = 1.05,
     other = nil,
   },
@@ -1053,6 +1055,11 @@ local ARAM = {
     dmgReceived = 1.00,
     other = nil,
   },
+  ["Smolder"] = {
+    dmgDealt = 1.00,
+    dmgReceived = 1.05,
+    other = nil,
+  },
   ["Sona"] = {
     dmgDealt = 1.00,
     dmgReceived = 1.10,
@@ -1194,8 +1201,8 @@ local ARAM = {
     other = nil,
   },
   ["Xerath"] = {
-    dmgDealt = 0.93,
-    dmgReceived = nil,
+    dmgDealt = 0.95,
+    dmgReceived = 1.00,
     other = nil,
   },
   ["XinZhao"] = {
@@ -1234,7 +1241,7 @@ local ARAM = {
     other = nil,
   },
   ["Ziggs"] = {
-    dmgDealt = 0.85,
+    dmgDealt = 0.90,
     dmgReceived = 1.20,
     other = nil,
   },
@@ -1275,7 +1282,7 @@ Stormsurge
 }
 
 local URF = {
- -- rotator
+  -- rotator
 }
 
 local HeroSpecialMelees = {
@@ -1894,30 +1901,9 @@ local getBaseHealth = function(unit)
   --NEW API
   local baseHP = unit.baseHP
   local hpPerLevel = unit.hpPerLevel
-  local hp = baseHP + (hpPerLevel * unit.levelData.lvl - 1) * (0.7025 + (0.0175 * (unit.levelData.lvl - 1)))
+  local hp = baseHP + (hpPerLevel * unit.levelData.lvl - 1)
+      * (0.7025 + (0.0175 * (unit.levelData.lvl - 1)))
   return hp
-  --
---[[   if unit.charName == "Sylas" then
-    return 575 + (129 * (unit.levelData.lvl - 1)) * (0.7025 + (0.0175 * (unit.levelData.lvl - 1)))
-  elseif unit.charName == "Chogath" then
-    return 607 + (110 * (unit.levelData.lvl - 1)) * (0.7025 + (0.0175 * (unit.levelData.lvl - 1)))
-  elseif unit.charName == "Volibear" then
-    return 650 + (104 * (unit.levelData.lvl - 1)) * (0.7025 + (0.0175 * (unit.levelData.lvl - 1)))
-  elseif unit.charName == "Vladimir" then
-    return 537 + (96 * (unit.levelData.lvl - 1)) * (0.7025 + (0.0175 * (unit.levelData.lvl - 1)))
-  elseif unit.charName == "DrMundo" then
-    return 653 + (103 * (unit.levelData.lvl - 1)) * (0.7025 + (0.0175 * (unit.levelData.lvl - 1)))
-  elseif unit.charName == "Maokai" then
-    return 635 + (109 * (unit.levelData.lvl - 1)) * (0.7025 + (0.0175 * (unit.levelData.lvl - 1)))
-  elseif unit.charName == "Galio" then
-    return 632 + (126 * (unit.levelData.lvl - 1)) * (0.7025 + (0.0175 * (unit.levelData.lvl - 1)))
-  elseif unit.charName == "KSante" then
-    return 625 + (115 * (unit.levelData.lvl - 1)) * (0.7025 + (0.0175 * (unit.levelData.lvl - 1)))
-  elseif unit.charName == "Sett" then
-    return 670 + (114 * (unit.levelData.lvl - 1)) * (0.7025 + (0.0175 * (unit.levelData.lvl - 1)))
-  elseif unit.charName == "Nunu" then
-    return 610 + (90 * (unit.levelData.lvl - 1)) * (0.7025 + (0.0175 * (unit.levelData.lvl - 1)))
-  end ]]
 end
 
 local getBonusHealth = function(unit)
@@ -1937,7 +1923,7 @@ local getBaseMana = function(unit)
 end
 
 local getBaseAttackspeed = function(unit)
-  local baseattackspeed = Hero[unit.charName][2]
+  local baseattackspeed = HEROES[unit.charName][3]
   if baseattackspeed then
     return baseattackspeed
   end
@@ -1985,7 +1971,7 @@ end
 local hasPoison = function(unit)
   for i = 0, unit.buffCount do
     local buff = unit:GetBuff(i)
-    if buff.type == 24 and GameTimer() < buff.expireTime - 0.141 then
+    if buff.type == 24 and Game.Timer() < buff.expireTime - 0.125 then
       return true
     end
   end
@@ -2011,7 +1997,7 @@ local getTurretType = function(name, type)
 end
 
 local isMelee = function(unit)
-  local IsHeroMelee = Hero[unit.charName][1]
+  local IsHeroMelee = HEROES[unit.charName][2]
   local IsHeroSpecialMelee = HeroSpecialMelees[unit.charName]
   if IsHeroMelee or (IsHeroSpecialMelee and IsHeroSpecialMelee()) then
     return true
@@ -2028,10 +2014,57 @@ local isARAM = function()
   end
 end
 
+local getMapIDName = function(mapID)
+  -- TODO:
+  -- Example usage: -- getMapIDName(Game.mapID)
+  -- local myMapID = 13 -- Change this to test different map IDs
+  -- getMapIDName(myMapID)
+  local mapNames = {
+    [12] = "HOWLING_ABYSS",
+    [11] = "SUMMONERS_RIFT",
+    [10] = "TWISTED_TREELINE",
+    [8] = "CRYSTAL_SCAR",
+    [30] = "THE_ARENA"
+    --COSMIC_RUINS (Dark Star)
+    --Crash Site (Odyssey: Extraction)
+    --Substructure 43 (PROJECT: OVERCHARGE)
+    --Temple of Lily and Lotus (Nexus Blitz)
+    --Valoran City Park (Star Guardians)
+
+    --Modes:
+    -- 5v5 Normal & Ranked (Summoner’s Rift)
+    -- 3v3 Normal & Ranked (Twisted Treeline)
+    -- Dominion (Crystal Scar)
+    -- Ascension (Crystal Scar)
+    -- Black Market Brawlers (Summoner’s Rift)
+    -- Dark Star: Singularity (Cosmic Ruins)
+    -- Definitely Not Dominion (Crystal Scar)
+    -- Doom Bots (Summoner’s Rift)
+    -- Hexakill (Summoner’s Rift)
+    -- Hunt of the Blood Moon (Summoner’s Rift)
+    -- Invasion (Valoran City Park)
+    -- Nemesis Draft (Summoner’s Rift)
+    -- Nexus Blitz (Temple of Lily and Lotus)
+    -- Nexus Siege (Summoner’s Rift)
+    -- Odyssey: Extraction (Crash Site)
+    -- One for All (Summoner’s Rift)
+    -- OVERCHARGE (Substructure 43)
+    -- Ultra Rapid Fire (Summoner’s Rift)
+    -- Ultimate Spellbook (Summoner’s Rift)
+  }
+  local mapName = mapNames[mapID]
+  if mapName then
+    return mapName
+  else
+    return mapID
+  end
+end
+
 -- [[ Calc Damage Tables ]] --
 local DamageReductionBuffsTable = {
   --["Annie"] = {buff = "AnnieE", amount = function(target) return ({0.10,0.13,0.16,0.19,0.22})[target:GetSpellData(_E).level] end},
-  ["Alistar"] = { buff = "FerociousHowl", amount = function(source, target, DamageType, amount) return ({ 0.55, 0.65, 0.75 })[target:GetSpellData(_R).level] end },
+  ["Alistar"] = { buff = "FerociousHowl", amount = function(source, target, DamageType, amount) return ({ 0.55, 0.65, 0.75 })
+    [target:GetSpellData(_R).level] end },
   --MOVED is flatreduction["Amumu"] = {buff = "Tantrum", DamageType = 1, amount = function(target) return (({5, 7, 9, 11, 13})[target:GetSpellData(_E).level] + (0.03 * target.bonusMagicResist) + (0.03 * target.bonusArmor)) end}, --max 50%
   ["Belveth"] = {
     buff = "BelvethE",
@@ -2047,8 +2080,8 @@ local DamageReductionBuffsTable = {
           ({ 0.3, 0.325, 0.35, 0.375, 0.4 })[target:GetSpellData(_E).level]
     end
   },
-  ["Briar"] = { buff = "BriarE", amount = function(source, target, DamageType, amount) return  0.35 end }, -- check buff name
-  ["Galio"] = { --magic + physical
+  ["Briar"] = { buff = "BriarE", amount = function(source, target, DamageType, amount) return 0.35 end },  -- check buff name
+  ["Galio"] = {                                                                                            --magic + physical
     buff = "galiowpassivedefense" or "GalioW",
     DamageType = 2 or 1,
     amount = function(source, target, DamageType, amount)
@@ -2056,17 +2089,18 @@ local DamageReductionBuffsTable = {
         ap = ({ 0.25, 0.30, 0.35, 0.40, 0.45 })[target.level],
         ad = ({ 0.125, 0.15, 0.175, 0.20, 0.225 })[target.level],
       }
-      local reduction
+      local reduction = 0
       if DamageType == 2 then
         reduction = reduct.ap
       else
         reduction = reduct.ad
       end
-      return  reduction + (0.04 * math.floor(target.ap / 100)) +
-          (0.08 * math.floor(target.bonusMagicResist / 100)) + (0.01 * math.floor((getBonusHealth(target))/100)) --target.bonusHealth
+      return reduction + (0.04 * math.floor(target.ap / 100)) +
+          (0.08 * math.floor(target.bonusMagicResist / 100)) +
+          (0.01 * math.floor((getBonusHealth(target)) / 100))                                                    --target.bonusHealth
     end
   },
-  ["Garen"] = { buff = "GarenW", amount = function(source, target, DamageType, amount) return  0.3 end },
+  ["Garen"] = { buff = "GarenW", amount = function(source, target, DamageType, amount) return 0.3 end },
   ["Gragas"] = {
     buff = "GragasWSelf",
     amount = function(source, target)
@@ -2082,7 +2116,7 @@ local DamageReductionBuffsTable = {
           (0.40 + 0.25 / 17 * (target.levelData.lvl - 1))
     end
   },
-  ["Malzahar"] = { buff = "malzaharpassiveshield", amount = function(source, target, DamageType, amount) return  0.9 end },
+  ["Malzahar"] = { buff = "malzaharpassiveshield", amount = function(source, target, DamageType, amount) return 0.9 end },
   ["MasterYi"] = {
     buff = "Meditate",
     amount = function(source, target)
@@ -2090,7 +2124,7 @@ local DamageReductionBuffsTable = {
           ({ 0.45, 0.475, 0.50, 0.525, 0.55 })[target:GetSpellData(_W).level] / (source.type == Obj_AI_Turret and 2 or 1)
     end
   },
-  ["NilahW"] = { buff = "NilahW", DamageType = 2, amount = function(source, target, DamageType, amount) return  0.25 end }, --TODO:
+  ["NilahW"] = { buff = "NilahW", DamageType = 2, amount = function(source, target, DamageType, amount) return 0.25 end },  --TODO:
 }
 
 local DamageReductionItemsTable = {
@@ -2098,7 +2132,7 @@ local DamageReductionItemsTable = {
     IsAA = true,
     amount = function(source, target, DamageType, amount) --3047 Plated Steelcaps
       --if AA and not SourceIsTurret then dmg = dmg * (1-0.12)
-      return  0.12
+      return 0.12
     end
   },
   [ItemID.FrozenHeart] = {
@@ -2130,7 +2164,7 @@ local DamageReductionItemsTable = {
     amount = function(source, target, DamageType, amount)
       --if buff and magic damage then ( 0.25)
       if DamageType == 2 then
-        return ( 0.25)
+        return (0.25)
       end
     end
   },
@@ -2384,9 +2418,20 @@ local HeroPassiveDamageTable = {
   end,
 
   ["Graves"] = function(args) --Graves
+    local t = (100 * 0.6895 + 0.01765 * args.source.levelData.lvl * (0.5955 + 0.0225 * (args.source.levelData.lvl - 1)))
+    local t2 = t * 0.33302
+    local t3 = t * (1 + 3 * 0.33302)
+    if args.CriticalStrike then
+      local modCrit = 1.45 + (Item:HasItem(args.source, ItemID.InfinityEdge) and 0.50 or 0)
+      t3            = t * (1 + 5 * 0.33302) * (50 * 0.45 / 100)
+    end
+    local math = t3
+    args.RawTotal = args.RawTotal * math
+  end,
+  --[[ ["Graves"] = function(args) --Graves
     local t = { 70, 71, 72, 74, 75, 76, 78, 80, 81, 83, 85, 87, 89, 91, 95, 96, 97, 100 }
     args.RawTotal = args.RawTotal * t[math.max(math.min(args.source.levelData.lvl, 18), 1)] * 0.01
-  end,
+  end, ]]
 
   ["Jhin"] = function(args) --Jhin 4thshot/AA
     if Buff:HasBuff(args.source, "jhinpassiveattackbuff") then
@@ -2606,7 +2651,7 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 50, 75, 100, 125, 150 })
+        return ({ 45, 70, 95, 120, 145 })
             [level] + 0.30 * source.ap
       end
     },
@@ -2615,7 +2660,7 @@ local SpellDamageTable = {
       Stage = 2,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 12, 19.5, 27, 34.5, 42 })
+        return ({ 13.5, 21, 28.5, 36, 43.5 })
             [level] + 0.09 * source.ap
       end
     }, --additional damage
@@ -2738,8 +2783,8 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 1,
       Damage = function(source, target, level)
-        return ({ 20, 25, 30 })[level] +
-            (0.10 * source.totalDamage) + (1 + (0.50 * source.critChance)) * (0.03 * (getPercentHP(target)))
+        return ({ 25, 35, 45 })[level] +
+            (0.15 * source.totalDamage) + (1 + (0.50 * source.critChance)) * (0.02 * (getPercentHP(target)))
       end
     }, -- min per bullet stored
     {
@@ -2747,8 +2792,8 @@ local SpellDamageTable = {
       Stage = 2,
       DamageType = 1,
       Damage = function(source, target, level)
-        return ({ 80, 100, 120 })[level] +
-            (0.40 * source.totalDamage) + (1 + (0.50 * source.critChance)) * (0.03 * (getPercentHP(target)))
+        return ({ 75, 105, 135 })[level] +
+            (0.45 * source.totalDamage) + (1 + (0.50 * source.critChance)) * (0.02 * (getPercentHP(target)))
       end
     }, -- max per bullet stored
     {
@@ -2756,9 +2801,9 @@ local SpellDamageTable = {
       Stage = 3,
       DamageType = 1,
       Damage = function(source, target, level)
-        return ({ 100, 150, 210 })[level] +
-            (({ 0.50, 0.60, 0.70 })[level] * source.totalDamage) +
-            (1 + (0.50 * source.critChance)) * (0.03 * (getPercentHP(target)))
+        return ({ 125, 210, 315 })[level] +
+            (({ 75, 90, 105 })[level]/100 * source.totalDamage) +
+            (1 + (0.50 * source.critChance)) * (0.02 * (getPercentHP(target)))
       end
     }, -- minimum charged damage
   },
@@ -3061,7 +3106,8 @@ local SpellDamageTable = {
       Stage = 2,
       DamageType = 2,
       Damage = function(source, target, level)
-        local starduststacks = Buff:GetBuffStacks(target, "AurelionSolPassive"); return ({ 55, 65, 75, 85, 95 })[level] +
+        local starduststacks = Buff:GetBuffStacks(target, "AurelionSolPassive");
+        return ({ 55, 65, 75, 85, 95 })[level] +
             0.30 * source.ap + (((3.1 / 100) * starduststacks) * target.maxHealth)
       end
     }, -- bonus damage --old (20+10/17*(source.levelData.lvl-1))+
@@ -3070,19 +3116,32 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
+        local starduststacks = Buff:GetBuffStacks(target, "AurelionSolPassive");
         return ({ 2.5, 3.75, 5, 6.25, 7.5 })
-            [level] + 0.05 * source.ap
+            [level] + 0.04 * source.ap
+            + ( 0.05 + ( 0.026 * starduststacks) * target.maxHealth)
       end
     }, --per tick    damage to non-epic monster targets @ 5% (+ 2.6% Stardust stacks) of their maximum health are also executed
+    {
+      Slot = "E",
+      Stage = 2,
+      DamageType = 2,
+      Damage = function(source, target, level)
+        return ({ 2.5, 3.75, 5, 6.25, 7.5 })
+            [level] + 0.04 * source.ap
+      end
+    },
     {
       Slot = "R",
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        local dmg = ({ 150, 250, 350 })[level] + 0.65 * source.ap; if source:GetSpellData(_R).name == "AurelionSolR2" then
-          dmg =
-              dmg * 1.25
-        end; return dmg
+        local dmg = ({ 150, 250, 350 })[level] + 0.65 * source.ap;
+        local starduststacks = Buff:GetBuffStacks(target, "AurelionSolPassive");
+        if source:GetSpellData(_R).name == "AurelionSolR2" or starduststacks >= 75 then
+          dmg = dmg * 1.25
+        end;
+        return dmg
       end
     },
     --{Slot = "R", Stage = 2, DamageType = 2, Damage = function(source, target, level) return ({187.5, 312.5, 437.5})[level] + 0.8125 * source.ap end}, --75 stardust stacks empowers for 25% more dmg
@@ -3114,7 +3173,7 @@ local SpellDamageTable = {
       Damage = function(source, target, level)
         local azirLevel = source.levelData.lvl
         local wDmg = ({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 7, 12, 17, 29, 41, 53, 65, 77 })(azirLevel)
-        return wDmg + ({ 50, 67, 84, 101, 118 })[level] + 0.55 * source.ap
+        return wDmg + ({ 50, 65, 50, 95, 110 })[level] + 0.55 * source.ap
       end
     },
     {
@@ -3155,7 +3214,7 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 1,
       Damage = function(source, target, level)
-        local dmg = (({ 10, 15, 20, 25, 30 })[level] + (1.10 * source.totalDamage)); if target.type == Obj_AI_Camp then dmg = (dmg * 1.40) elseif target.type == Obj_AI_Minion then dmg = (dmg * (({ 60, 70, 80, 90, 100 })[level] / 100)) end; return
+        local dmg = (({ 10, 15, 20, 25, 30 })[level] + (1.00 * source.totalDamage)); if target.type == Obj_AI_Camp then dmg = (dmg + ({ 45, 55, 65, 75, 85 })[level]) elseif target.type == Obj_AI_Minion then dmg = (dmg * (({ 60, 70, 80, 90, 100 })[level] / 100)) end; return
             dmg
       end
     },
@@ -3410,8 +3469,8 @@ local SpellDamageTable = {
       Damage = function(source, target, level)
         return ({ 70, 100, 130, 160, 190 })
             [level] + 0.6 * source.bonusDamage
-            + (({6 / 6.5 / 7 / 7.5 / 8})[level]/100
-            + (0.025 * math.floor(source.bonusDamage / 100)) * target.maxHealth)
+            + (({ 6 / 6.5 / 7 / 7.5 / 8 })[level] / 100
+              + (0.025 * math.floor(source.bonusDamage / 100)) * target.maxHealth)
       end
     },
 
@@ -3460,8 +3519,8 @@ local SpellDamageTable = {
       DamageType = 2,
       Damage = function(source, target, level)
         return 48 +
-            4 * source.levelData.lvl + 0.1 * source.ap +
-            (hasPoison(target) and ({ 20, 40, 60, 80, 100 })[level] + 0.6 * source.ap or 0)
+            4 * source.levelData.lvl + 0.10 * source.ap +
+            (hasPoison(target) and ({ 20, 40, 60, 80, 100 })[level] + 0.70 * source.ap or 0)
       end
     },
     {
@@ -3702,7 +3761,7 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 1,
       Damage = function(source, target, level)
-        return ({ 40, 45, 50, 55, 60 })
+        return ({ 45, 50, 55, 60, 65 })
             [level] + (({ 0.75, 0.85, 0.95, 1.05, 1.15 })[level] * source.bonusDamage)
       end
     },
@@ -3802,9 +3861,20 @@ local SpellDamageTable = {
       DamageType = 2,
       Damage = function(source, target, level)
         return ({ 25, 30, 35, 40, 45 })
-            [level] + 0.30 * source.ap
+            [level] + 0.25 * source.ap
       end
     }, --TODO: bonus damage next 3 AA or spells
+    {
+      Slot = "W",
+      Stage = 1,
+      DamageType = 2,
+      Damage = function(source, target, level)
+        local dmg = 0
+        local mdmg = ({ 250, 300, 350, 400, 450 })[level] + 0.60 * source.ap
+        if target.type == Obj_AI_Camp then dmg = dmg + mdmg end
+        return dmg
+      end
+    }, --non-empowered
     {
       Slot = "E",
       Stage = 1,
@@ -3829,8 +3899,9 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        local dmg = ({ 125, 250, 375 })[level] + 0.75 * source.ap
-        if getPercentHP(target) > 30 then return dmg * 1.4 end; return dmg
+        local dmg = ({ 125, 250, 375 })[level] + 0.65 * source.ap
+        if getPercentHP(target) >= 30 then return dmg * 1.4 end;
+        return dmg
       end
     },
   },
@@ -4001,7 +4072,8 @@ local SpellDamageTable = {
             [level] + 0.70 * source.ap
       end
     },
-    { Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return (0.025 + (0.01 * math.floor(source.ap/100))) * target.maxHealth end }, --tornado per tick/every 0.5 sec
+    { Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return (0.025 + (0.01 * math.floor(source.ap / 100))) *
+      target.maxHealth end },                                                                                                                                       --tornado per tick/every 0.5 sec
     {
       Slot = "W",
       Stage = 1,
@@ -4605,7 +4677,7 @@ local SpellDamageTable = {
         elseif jannalvl >= 16 then
           wScaler = 4
         end
-        return ({ 55, 90, 125, 160, 195 })[level] + 0.60 * source.ap + (({ 20, 25, 30, 35 })[wScaler] / 100 * source.ms)
+        return ({ 55, 85, 115, 145, 175 })[level] + 0.50 * source.ap + (({ 20, 25, 30, 35 })[wScaler] / 100 * source.ms)
       end
     }, --movespeed janna lives again!
   },
@@ -4734,7 +4806,7 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         return ({ 45, 70, 95, 120, 145 })
-            [level] + (({ 0.35, 0.425, 0.5, 0.575, 0.65 })[level] * source.totalDamage) + 0.6 * source.ap
+            [level]-1 + (({ 0.44, 0.515, 0.59, 0.665, 0.74 })[level] * source.totalDamage) + 0.60 * source.ap
       end
     },
     {
@@ -4743,25 +4815,16 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         return ({ 60, 95, 130, 165, 200 })
-            [level] + 0.5 * source.totalDamage
-      end
-    },
-    {
-      Slot = "W",
-      Stage = 2,
-      DamageType = 1,
-      Damage = function(source, target, level)
-        return ({ 37.5, 63.75, 90, 116.25, 142.5 })
-            [level] + 0.375 * source.totalDamage
+            [level] + 0.50 * source.totalDamage
       end
     },
     {
       Slot = "E",
-      Stage = 2,
-      DamageType = 1,
+      Stage = 1,
+      DamageType = 2,
       Damage = function(source, target, level)
         return ({ 20, 80, 140, 200, 260 })
-            [level] + (1.2 * source.totalDamage) + source.ap
+            [level] + (1.00 * source.totalDamage) + (1.00 * source.ap)
       end
     },
     {
@@ -4778,8 +4841,9 @@ local SpellDamageTable = {
       Stage = 2,
       DamageType = 1,
       Damage = function(source, target, level)
-        return ({ 256, 616, 976 })[level] +
-            (1.00 * source.totalDamage) + (0.03 * getPercentHP(target))
+        if args then args.CriticalStrike = true end
+        return ({ 128, 308, 488 })[level] +
+            (0.50 * source.totalDamage) + (0.03 * getPercentHP(target))
       end
     } -- max
   },
@@ -4834,7 +4898,7 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         return ({ 40, 55, 70, 85, 100 })
-            [level] + (0.50 * source.bonusDamage) + (0.20 * source.ap)
+            [level] + (0.55 * source.bonusDamage) + (0.20 * source.ap)
       end
     },
     {
@@ -4910,8 +4974,6 @@ local SpellDamageTable = {
           if table_contains(epicMonster, monsterName) then
             dmg = dmg * 0.50;
           end;
-          --[[         if table_contains(Monstertable, monsterName) and epicMonster[monsterName].epicMonster then --epicMonster[monsterName] then -- table_contains(epicMonster, monsterName)
-          dmg = dmg * 0.50; end;  ]]
         end;
         return dmg
       end,
@@ -5022,7 +5084,7 @@ local SpellDamageTable = {
       DamageType = 2,
       Damage = function(source, target, level)
         return ({ 60, 90, 120, 150, 180 })
-            [level] + 0.80 * source.ap
+            [level] + 0.70 * source.ap
       end
     },
     {
@@ -5032,7 +5094,7 @@ local SpellDamageTable = {
       Damage = function(source, target, level)
         local stacks = Buff:GetBuffCount(source, "RiftWalk")
         local stackDmg = (({ 35, 45, 55 })[level] + (0.10 * source.ap) + (0.01 * source.maxMana)) * stacks
-        return ({ 70, 90, 110 })[level] + (0.60 * source.ap) + (0.02 * source.maxMana) + stackDmg
+        return ({ 70, 90, 110 })[level] + (0.50 * source.ap) + (0.02 * source.maxMana) + stackDmg
       end
     },
     {
@@ -5380,7 +5442,7 @@ local SpellDamageTable = {
             [level] +
             (({ 4.5, 5, 5.5, 6, 6.5 })[level] / 100 + (0.05 * math.floor(source.bonusDamage / 100)) * target.maxHealth)
       end
-    }, --needs to be (+ 5% per 100 bonus AD)
+    },
     {
       Slot = "E",
       Stage = 1,
@@ -5395,10 +5457,10 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 1,
       Damage = function(source, target, level)
-        local dmg = (({ 4, 5, 6 })[level] / 100 + 0.04 * math.floor(source.bonusDamage / 100) * target.maxHealth); return
-            dmg
+        --0.08 * (0.16sec * spell.isChanneling.time)
+          return (({ 4, 5, 6 })[level] / 100 + 0.04 * math.floor(source.bonusDamage / 100) * target.maxHealth)
       end
-    }, --0.08 * (0.16sec * spell.isChanneling.time)
+    },
   },
 
   ["KSante"] = {
@@ -5407,42 +5469,26 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 1,
       Damage = function(source, target, level)
-        return ({ 30, 55, 80, 105, 130 })
-            [level] + (0.40 * source.totalDamage) + (0.30 * source.bonusArmor) + (0.30 * source.bonusMagicResist)
+        return ({ 30, 55, 80, 105, 130 })[level]
+        + (0.40 * source.totalDamage) + (0.30 * source.bonusArmor) + (0.30 * source.bonusMagicResist)
       end
     },
-    {
+  {
       Slot = "W",
       Stage = 1,
       DamageType = 1,
       Damage = function(source, target, level)
-        -- local dmg = ((({4.25, 4.50, 4.75, 5.00, 5.25})[level]/100) * target.maxHealth)
-        local dmg = ({ 20, 40, 60, 80, 100 })[level] + (0.50 * source.totalDamage) + (0.50 * source.bonusArmor) +
-            (0.50 * source.bonusMagicResist) + ((({ 6, 7, 8, 9, 10 })[level] / 100) * target.maxHealth)
-        -- if Buff:HasBuff(source, "KSanteRTransform") then dmg = dmg + ({25, 35, 45, 55, 65})[level] + (0.50 * source.totalDamage)
-        -- end
-        return dmg
+        return ({ 20, 40, 60, 80, 100 })[level]
+        + (0.50 * source.totalDamage) + (0.50 * source.bonusArmor) + (0.50 * source.bonusMagicResist)
+        + ((({ 6, 7, 8, 9, 10 })[level] / 100) * target.maxHealth)
       end
-    }, --min
-    {
-      Slot = "W",
-      Stage = 2,
-      DamageType = 1,
-      Damage = function(source, target, level) -- 13.20 removed, don't use
-        -- local dmg = ((({8.25, 8.50, 8.75, 9.00, 9.25})[level]/100) * target.maxHealth)
-        local dmg = ({ 25, 35, 45, 55, 65 })[level] + (0.50 * source.totalDamage)
-        -- if Buff:HasBuff(source, "KSanteRTransform") then dmg = dmg + ({110, 170, 230, 290, 350})[level] + (0.50 * source.totalDamage)
-        -- end
-        return dmg
-      end
-    }, --total max dmg
+    },  --min
     {
       Slot = "R",
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 70, 110, 150 })[level] +
-            0.65 * source.ap
+        return ({ 70, 110, 150 })[level] + 0.65 * source.ap
       end
     }, --No wall
     {
@@ -5450,8 +5496,7 @@ local SpellDamageTable = {
       Stage = 2,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 140, 220, 300 })[level] +
-            1.30 * source.ap
+        return ({ 140, 220, 300 })[level] + 1.30 * source.ap
       end
     }, --Hit Wall
   },
@@ -5462,7 +5507,7 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 65, 90, 115, 140, 165 })
+        return ({ 70, 95, 120, 145, 170 })
             [level] + 0.45 * source.ap
       end
     },
@@ -5546,8 +5591,8 @@ local SpellDamageTable = {
       Stage = 2,
       DamageType = 1,
       Damage = function(source, target, level)
-        return ({ 55, 80, 105, 130, 155 })
-            [level] + 1.15 * source.bonusDamage * (1 + 0.01 * (getPercentMissingHP(target)))
+        return (({ 55, 80, 105, 130, 155 })
+            [level] + 1.15 * source.bonusDamage) * (1 + 0.01 * (getPercentMissingHP(target)))
       end
     },
     {
@@ -5937,7 +5982,7 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 3,
       Damage = function(source, target, level)
-        return ({ 30, 35, 40, 45, 50 })
+        return ({ 20, 25, 30, 35, 40 })
             [level] + 0.30 * source.bonusDamage
       end
     },
@@ -6050,7 +6095,7 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 80, 95, 110, 125, 140 })
+        return ({ 70, 85, 100, 115, 130 })
             [level] + 0.60 * source.ap
       end
     },
@@ -6306,7 +6351,7 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         return (1 + math.min(1, 1 * source.critChance)) *
-            (({ 5, 10, 15, 20, 25 })[level] + (({ 0.90, 0.975, 1.05, 1.125, 1.20 })[level] * source.totalDamage))
+            (({ 5, 10, 15, 20, 25 })[level] + (({ 0.90, 0.95, 1.00, 1.05, 1.10 })[level] * source.totalDamage))
       end
     },
     {
@@ -6483,8 +6528,9 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 1,
       Damage = function(source, target, level)
+        local monsterdmg = target.type == Obj_AI_Camp and ({10, 25, 40, 55, 70})[level] or 0
         return ({ 65, 115, 165, 215, 265 })
-            [level] + source.bonusDamage
+            [level] + source.bonusDamage + monsterdmg
       end
     },
     {
@@ -6919,7 +6965,7 @@ local SpellDamageTable = {
             [level] + 0.60 * source.ap
       end
     },
---[[     {
+    --[[     {
       Slot = "Q",
       Stage = 2,
       DamageType = 2,
@@ -6937,7 +6983,7 @@ local SpellDamageTable = {
             [level] + 0.60 * source.ap
       end
     }, -- if mounted
---[[     {
+    --[[     {
       Slot = "W",
       Stage = 2,
       DamageType = 2,
@@ -6955,7 +7001,7 @@ local SpellDamageTable = {
             [level] + 0.50 * source.ap + 0.003 * target.maxHealth
       end
     },
---[[     {
+    --[[     {
       Slot = "E",
       Stage = 2,
       DamageType = 2,
@@ -7272,7 +7318,7 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 80, 130, 180, 230, 280 })
+        return ({ 90, 140, 190, 240, 290 })
             [level] + 0.60 * source.ap
       end
     },
@@ -7281,8 +7327,8 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 10, 15, 20, 25, 3040 })
-            [level] + (0.20 * source.ap) + (0.02 * source.maxHealth)
+        return ({ 5, 15, 25, 35, 45 })
+            [level] + (0.20 * source.ap) + (0.04 * source.maxHealth)
       end
     }, --swing
     {
@@ -7290,8 +7336,8 @@ local SpellDamageTable = {
       Stage = 2,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 20, 60, 100, 140, 180 })
-            [level] + (0.60 * source.ap) + (0.06 * source.maxHealth)
+        return ({ 5, 25, 45, 65, 85 })
+            [level] + (0.60 * source.ap) + (0.08 * source.maxHealth)
       end
     }, --lash
     {
@@ -7350,7 +7396,7 @@ local SpellDamageTable = {
       DamageType = 2,
       Damage = function(source, target, level)
         return ({ 60, 85, 110, 135, 160 })
-            [level] + (0.50 * source.ap) * (1 + (0.06 * (math.min(getMissingHP(target), 75) / 7.5)))
+            [level] + (0.60 * source.ap) * (1 + (0.06 * (math.min(getMissingHP(target), 75) / 7.5)))
       end
     }, --min damage
     {
@@ -7359,7 +7405,7 @@ local SpellDamageTable = {
       DamageType = 2,
       Damage = function(source, target, level)
         return ({ 96, 136, 176, 216, 256 })
-            [level] + (0.80 * source.ap) * (1 + (0.06 * (math.min(getMissingHP(target), 75) / 7.5)))
+            [level] + (0.96 * source.ap) * (1 + (0.06 * (math.min(getMissingHP(target), 75) / 7.5)))
       end
     }, --enchanced dmg
     {
@@ -7664,21 +7710,27 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         return ({ 10, 20, 30, 40, 50 })[level]
-        + (0.40 * source.bonusDamage)
-        + (0.06 * getBonusHealth(source))
-        + (0.15 * target.maxHealth)
-        -- x3 AA's
-        --[[ (({ 10, 20, 30, 40, 350 })[level])
-            + (0.40 * source.bonusDamage)
-            + (0.06 * getBonusHealth(source)) ]]
+            + (0.60 * source.bonusDamage)
+            + (0.05 * getBonusHealth(source))
       end
-    },
+    }, --AA
+    {
+      Slot = "Q",
+      Stage = 2,
+      DamageType = 1,
+      Damage = function(source, target, level)
+        return ({ 10, 20, 30, 40, 50 })[level]
+            + (0.60 * source.bonusDamage)
+            + (0.05 * getBonusHealth(source))
+            + (0.15 * target.maxHealth)
+      end
+    }, --3rdAA Slam/Throw
     {
       Slot = "W",
       Stage = 1,
       DamageType = 2,
       Damage = function(source, target, level)
-        return ({ 60, 90, 120, 150, 180 })[level]
+        return ({ 50, 70, 90, 110, 130 })[level]
             + (0.80 * source.ap)
       end
     },
@@ -8331,7 +8383,7 @@ local SpellDamageTable = {
   },
 
   ["Taliyah"] = {
-    {
+    { --TODO: Bonus damage per stone shard, and boulder vs monster?
       Slot = "Q",
       Stage = 1,
       DamageType = 2,
@@ -8614,7 +8666,7 @@ local SpellDamageTable = {
             [level] + (0.35 * source.bonusDamage) + ({ 20, 35, 50, 65, 80 })[level] + (0.30 * source.ap)
       end
     },                                                                                                                      --mixed damage
-    { Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({ 40, 55, 70 })[level] end }, --bonus attack range
+    { Slot = "R", Stage = 2, DamageType = 1, Damage = function(source, target, level) return ({ 30, 45, 60 })[level] end }, --bonus attack range
   },
 
   ["Udyr"] = {
@@ -9663,55 +9715,60 @@ local SpellDamageTable = {
 }
 
 -- [[ Calc Local Functions ]] --
-local SetSpecialAADamageTable = function(args)
+DamageLib.SetSpecialAADamageTable = function(args)
   local s = SpecialAADamageTable[args.source.charName]
   if s then
     s(args)
   end
 end
 
-local SetHeroPassiveDamageTable = function(args)
+DamageLib.SetHeroPassiveDamageTable = function(args)
   local s = HeroPassiveDamageTable[args.source.charName]
   if s then
     s(args)
   end
 end
 
-local SetItemDamageTable = function(id, args)
+DamageLib.SetItemDamageTable = function(id, args)
   local s = ItemDamageTable[id]
   if s then
     s(args)
   end
 end
 
-local GetCriticalStrikePercent = function(source)
-  local baseCriticalDamage = 1.75
-  local percentMod = 1
-  local fixedMod = 0
-  if Item:HasItem(source, ItemID.InfinityEdge) and source.critChance >= 0.60 then --Infinity Edge
-    baseCriticalDamage = baseCriticalDamage + 0.35 or 2.10
+DamageLib.GetCriticalStrikePercent = function(source)
+  local criticalStrikePercent = 1
+  local hasInfinityEdge = ((Item:HasItem(source, ItemID.InfinityEdge)) and 0.50 or 0)
+  local critDamage = 1.75 + hasInfinityEdge
+  local fullCrit = source.critChance >= 1
+  if fullCrit then
+    criticalStrikePercent = critDamage
+  else
+    local avgMod = 0.0075
+    local bonusCriticalDamage = avgMod * critDamage
+    local avgCriticalDamage = 1 + (source.critChance * (avgMod * bonusCriticalDamage))
+    criticalStrikePercent = avgCriticalDamage
   end
+  local heroMod = 1
   if source.charName == "Akshan" then --TODO: additional shot after AA
-    percentMod = 0.70
+    heroMod = 0.70
   elseif source.charName == "Ashe" then
-    baseCriticalDamage = 1
+    criticalStrikePercent = 1
   elseif source.charName == "Fiora" then
-    baseCriticalDamage = ({ 1.60, 1.70, 1.80, 1.90, 2.00 })[source:GetSpellData(_W).level]
+    criticalStrikePercent = ({ 1.60, 1.70, 1.80, 1.90, 2.00 })[source:GetSpellData(_W).level]
   elseif source.charName == "Jhin" then
-    percentMod = 0.86
+    heroMod = 0.86
   elseif source.charName == "Kalista" then
-    percentMod = 0.90
+    heroMod = 0.90
   elseif source.charName == "Yasuo" then
-    percentMod = 0.90
+    heroMod = 0.90
   elseif source.charName == "Yone" then
-    percentMod = 0.90
+    heroMod = 0.90
   end
-  local modCrit = baseCriticalDamage +
-      (((Item:HasItem(source, ItemID.InfinityEdge)) and (source.critChance >= 0.60) and 0.35) or 0) --TODO:
-  return baseCriticalDamage * percentMod
+  return criticalStrikePercent * heroMod
 end
 
-local PassivePercentMod = function(source, target, DamageType, amount)
+DamageLib.PassivePercentMod = function(source, target, DamageType, amount)
   local targetIsHero = target.type == Obj_AI_Hero;
   local sourceIsHero = source.type == Obj_AI_Hero;
   if sourceIsHero then
@@ -9733,7 +9790,7 @@ local PassivePercentMod = function(source, target, DamageType, amount)
   return amount
 end
 
-local DamageReductionMod = function(source, target, DamageType, amount)
+DamageLib.DamageReductionMod = function(source, target, DamageType, amount)
   local targetIsHero = target.type == Obj_AI_Hero;
   local sourceIsHero = source.type == Obj_AI_Hero;
 
@@ -9786,7 +9843,7 @@ local DamageReductionMod = function(source, target, DamageType, amount)
   return amount
 end
 
-local GetHeroAADamage = function(source, target, SpecialAA)
+DamageLib.GetHeroAADamage = function(source, target, SpecialAA)
   local args = {
     source = source,
     Target = target,
@@ -9810,7 +9867,7 @@ local GetHeroAADamage = function(source, target, SpecialAA)
   if args.TargetIsMinion and args.Target.maxHealth <= 6 then
     return 1
   end
-  SetHeroPassiveDamageTable(args)
+  DamageLib.SetHeroPassiveDamageTable(args)
   if args.DamageType == DAMAGE_TYPE_PHYSICAL then
     args.RawPhysical = args.RawPhysical + args.RawTotal
   elseif args.DamageType == DAMAGE_TYPE_MAGICAL then
@@ -9864,13 +9921,13 @@ local GetHeroAADamage = function(source, target, SpecialAA)
     end
   end
   local percentMod = 1
-  if args.source.critChance - 1 == 0 or args.CriticalStrike then
-    percentMod = percentMod * GetCriticalStrikePercent(args.source)
+  if args.source.critChance or args.CriticalStrike then
+    percentMod = percentMod * DamageLib.GetCriticalStrikePercent(args.source)
   end
   return percentMod * args.CalculatedPhysical + args.CalculatedMagical + args.CalculatedTrue
 end
 
-local GetSpecialAADamage = function(source, target, targetIsMinion)
+DamageLib.GetSpecialAADamage = function(source, target, targetIsMinion)
   local args = {
     source = source,
     Target = target,
@@ -9883,14 +9940,14 @@ local GetSpecialAADamage = function(source, target, targetIsMinion)
     DamageType = DAMAGE_TYPE_PHYSICAL,
     TargetIsMinion = targetIsMinion,
   }
-  SetSpecialAADamageTable(args)
+  DamageLib.SetSpecialAADamageTable(args)
   local HashSet = {}
   for i = 1, #ItemSlots do
     local slot = ItemSlots[i]
     local item = args.source:GetItemData(slot)
     if item ~= nil and item.itemID > 0 then
       if HashSet[item.itemID] == nil then
-        SetItemDamageTable(item.itemID, args)
+        DamageLib.SetItemDamageTable(item.itemID, args)
         HashSet[item.itemID] = true
       end
     end
@@ -9911,7 +9968,7 @@ GetAADamage = function(source, target, respectPassives, IsAA)
   local targetIsMinion = targetType == Obj_AI_Minion;
   local sourceIsHero = sourceType == Obj_AI_Hero;
   if respectPassives and sourceIsHero then
-    return GetHeroAADamage(source, target, GetSpecialAADamage(source, target, targetIsMinion))
+    return DamageLib.GetHeroAADamage(source, target, DamageLib.GetSpecialAADamage(source, target, targetIsMinion))
   end
   if targetIsMinion then --wards?
     if target.maxHealth <= 6 then
@@ -9925,6 +9982,7 @@ GetAADamage = function(source, target, respectPassives, IsAA)
 end
 
 CalcDamage = function(source, target, DamageType, amount, IsAA)
+
   local targetType = target.type
   local sourceType = source.type
 
@@ -10022,8 +10080,8 @@ CalcDamage = function(source, target, DamageType, amount, IsAA)
   local bonusPercent = (sourceIsMinion and targetIsMinion) and (1 + source.bonusDamagePercent) or 1
   local flatreduction = targetIsMinion and (-target.flatDamageReduction) or 0
 
-  local ppmod = PassivePercentMod(source, target, DamageType, postMitigation)
-  local dmgmod = DamageReductionMod(source, target, DamageType, ppmod * (amount + flatPassive))
+  local ppmod = DamageLib.PassivePercentMod(source, target, DamageType, postMitigation)
+  local dmgmod = DamageLib.DamageReductionMod(source, target, DamageType, ppmod * (amount + flatPassive))
   local dmg = math.max(math.floor(bonusPercent * dmgmod + flatreduction), 0)
   if isARAM() then
     local dmgD = 1
@@ -10120,7 +10178,7 @@ getdmg = function(spell, target, source, stage, level)
   end
   if spell == "AA" then
     local targetIsMinion = targetType == Obj_AI_Minion;
-    local SpecialAADamage = GetSpecialAADamage(source, targetIsMinion)
+    local SpecialAADamage = DamageLib.GetSpecialAADamage(source, targetIsMinion)
     return GetAADamage(source, target, SpecialAADamage, true)
   end
   local Ignite = getSummonerSpell("dot")
@@ -10210,20 +10268,54 @@ function getcacheddmg(spell, target, source, stage, level, refreshtime)
   local key = createKey(spell, target, source, stage)
   local cachedValue = cache[key]
   if cachedValue then
-    if cachedValue.timestamp + refreshtime > GameTimer() then
+    if cachedValue.timestamp + refreshtime > Game.Timer() then
       return cachedValue.value
     end
   end
   local value = cachegetdmg(spell, target, source, stage, level)
-  --print("getcacheddmg: ",GameTimer())
-  cache[key] = { value = value, timestamp = GameTimer() }
+  --print("getcacheddmg: ",Game.Timer())
+  cache[key] = { value = value, timestamp = Game.Timer() }
   return value
 end
 
--- getdmg call overrides
-if not jdk then
-  getdmg = function(...) return getcacheddmg(...) end
+-- pool
+local pool = {}
+local poolmt = { __index = pool }
+
+function pool.create(newObject, poolSize)
+  poolSize = poolSize or 16
+  assert(newObject, "A function that returns new objects for the pool is required.")
+
+  local freeObjects = {}
+  for _ = 1, poolSize do
+    table.insert(freeObjects, newObject())
+  end
+
+  return setmetatable({
+      freeObjects = freeObjects,
+      newObject = newObject
+    },
+    poolmt
+  )
 end
+
+function pool:obtain()
+  return #self.freeObjects == 0 and self.newObject() or table.remove(self.freeObjects)
+end
+
+function pool:free(obj)
+  assert(obj, "An object to be freed must be passed.")
+
+  table.insert(self.freeObjects, obj)
+  if obj.reset then obj.reset() end
+end
+
+function pool:clear()
+  for k in pairs(self.freeObjects) do
+    self.freeObjects[k] = nil
+  end
+end
+
 --
 
 -- Callbacks --
@@ -10241,45 +10333,52 @@ Callback.Add("Load", function()
   Data = _G.SDK.Data
   Cursor = _G.SDK.Cursor
   IsRecalling = _G.SDK.IsRecalling
+    -- getdmg call overrides
+    DamageLib.EXTP = jit and true or false
+    if not DamageLib.EXTP then
+      getdmg = function(...) return getcacheddmg(...) end
+    end
   Callback.Add("Tick", function()
     --
     table.insert(_G.SDK.OnTick, function() end)
   end)
 end)
-
 -- [[ Update ]] --
-local Author = "Impuls"
-do
-  --local SCRIPT_NAME = string.gsub(string.match(debug.getinfo(1, 'S').short_src, "[^/]+$"), '.lua', '')
-  local SCRIPT_NAME = "DamageLib"
-  local gitHub = "https://raw.githubusercontent.com/" .. Author .. "x/GoS/master/"
-  local commonFile = {
-    -- self = self,
-    -- lua = ".lua",         --string
-    -- version = ".version", --string
-    lua = {
-      path = COMMON_PATH,
-      name = SCRIPT_NAME .. ".lua",
-    },
-    --source = self.Lua.Path .. self.Lua.Name,
-    version = {
-      path = COMMON_PATH,
-      name = SCRIPT_NAME .. ".version",
-    },
-    --versource = self.Version.Path .. self.Version.Name,
-  }
-  local scriptFile = {
-    lua = {
+local mapName = getMapIDName(Game.mapID)
+  local localName = scriptPath:match("[\\/]([^\\/]-)$")
+  local map
+  local author = "Impuls"
+  local AUTHOR_NAME = author
+  local gitHub = "https://raw.githubusercontent.com/" .. author .. "x/GoS/master/" .. localName
+  local file = {
+    script = {
       path = SCRIPT_PATH,
-      name = SCRIPT_NAME .. ".lua",
+      name = SCRIPT_NAME .. ".lua"
+    },
+    common = {
+      path = COMMON_PATH,
+      name = SCRIPT_NAME .. ".lua"
+    },
+    sprite = {
+      path = SPRITE_PATH,
+      name = SCRIPT_NAME .. ".png"
+    },
+    sounds = {
+      path = SOUNDS_PATH,
+      name = SCRIPT_NAME .. ".mp3"
+    },
+    fonts = {
+      path = FONTS_PATH,
+      name = SCRIPT_NAME .. ".ttf"
     },
     version = {
-      path = SCRIPT_PATH,
-      name = SCRIPT_NAME .. ".version",
-    },
+      scriptpath = SCRIPT_PATH,
+      commonpath = COMMON_PATH,
+      name = SCRIPT_NAME .. ".version"
+    }
   }
   local function update()
-    local function readAll(file)
+    local function readAll(fileName)
       local f = assert(io.open(file, "r"))
       local content = f:read("*all")
       f:close()
@@ -10297,7 +10396,7 @@ do
     end
     local function initializeScript()
       local function writeModule(content)
-        local f = assert(io.open(commonFile.lua.path .. commonFile.lua.name, content and "a" or "w"))
+        local f = assert(io.open(file.common.path .. file.lua.name, content and "a" or "w"))
         if content then
           f:write(content)
         end
@@ -10305,42 +10404,57 @@ do
       end
       --
       writeModule()
-      local NewVersion = Version
+      local newVersion = version
       --Write the core module
-      writeModule(readAll(commonFile.lua.path .. commonFile.lua.name))
+      writeModule(readAll(file.common.path .. file.common.name))
       -- writeModule(readAll(AUTO_PATH..coreName))
       -- writeModule(readAll(CHAMP_PATH..charName..dotlua))
       --Load the active module
-      dofile(commonFile.lua.path .. commonFile.lua.name)
-      if NewVersion > Version then
-        print("*ERR* | " .. SCRIPT_NAME .. " | - [REinitialize] - [NEW ver. " .. tostring(NewVersion) .. "] > [ver. " .. tostring(Version) .. "]")
+      dofile(file.common.path .. file.common.name)
+      if newVersion > version then
+        print("*ERR* | " ..
+        SCRIPT_NAME ..
+        " | - [RE.initialize] - [*NEW* ver. " .. tostring(newVersion) .. "] > [ver. " .. tostring(version) .. "]")
       end
     end
 
-    downloadFile(commonFile.version.path, commonFile.version.name)
-    local NewVersion = tonumber(readFile(commonFile.version.path, commonFile.version.name))
-    if NewVersion > Version then
-      downloadFile(commonFile.lua.path, commonFile.lua.name)
-      print("*WARN* NEW | "..SCRIPT_NAME.." | - [ver. " .. tostring(NewVersion) .. "] Downloaded - Please RELOAD with [ F6 ]")
+    downloadFile(file.version.commonpath, file.version.name)
+    local NewVersion = tonumber(readFile(file.version.commonpath, file.version.name))
+    if NewVersion > version then
+      downloadFile(file.common.path, file.common.name)
+      print("*WARN* NEW | " ..
+      SCRIPT_NAME .. " | - [ver. " .. tostring(NewVersion) .. "] Downloaded - Please RELOAD with [F6]")
       -- print("*WARNING* New " .. SCRIPT_NAME .. " [ver. " .. tostring(NewVersion) .. "] Downloaded - RELOADING")
       -- initializeScript()
     else
-      print("| " .. SCRIPT_NAME .. " | - [ver. " .. tostring(Version) .. "] loaded!")
+      local jitStatus = jit and "enabled" or "disabled"
+        print("| " .. SCRIPT_NAME .. " | - [ver. " .. version .. " | EXTP: " .. jitStatus .. "] - Welcome to: " .. mapName .. "!");
     end
   end
-  update()
-end
 
-_G.DamageLib = {
-  ItemID = ItemID,
-  RuneID = RuneID,
-  Heros = Hero,
-  MeleeHeros = Hero[1],
-  HerosBaseAS = Hero[2],
-  ARAM = ARAM,
-  BuffType = buffType,
-  --monsterType = Monstertable,
-  IsMelee = function(unit)
-    return isMelee(unit) --returns bool
-  end,
-}
+  update()
+  _G.DamageLib = {
+    ItemID = ItemID,
+    RuneID = RuneID,
+    Heros = HEROES,
+    HerosPrio = HEROES[1],
+    MeleeHeros = HEROES[2],
+    HerosBaseAS = HEROES[3],
+    ARAM = ARAM,
+    BuffType = buffType,
+    --monsterType = Monstertable,
+    GetBaseAttackspeed = function(unit)
+      return getBaseAttackspeed(unit)
+    end,
+    IsMelee = function(unit)
+      return isMelee(unit) --returns bool
+    end,
+    pool = pool,
+    file = file,
+    EXTP = DamageLib.EXTP,
+    GetMapIDName = function(mapID)
+      return getMapIDName(mapID)
+    end,
+  --
+  }
+return DamageLib
