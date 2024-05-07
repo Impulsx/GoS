@@ -1,4 +1,4 @@
-local version = 14.9
+local version = 14.91
 local scriptPath = debug.getinfo(1, "S").source:sub(2)
 local fileName = scriptPath:match("[\\/]([^\\/]-)$")
 local SCRIPT_NAME = fileName:gsub("%.lua$", "")
@@ -10453,7 +10453,8 @@ local mapName = getMapIDName(Game.mapID)
     file = file,
     EXTP = DamageLib.EXTP,
     GetMapIDName = function(mapID)
-      return getMapIDName(mapID)
+      map = getMapIDName(mapID)
+      return map
     end,
   --
   }
