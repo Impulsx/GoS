@@ -2,7 +2,7 @@ local Heroes = {
     "Urgot",
 }
 local Champion = myHero.charName
-local version = 0.07
+local version = 0.08
 local author = "Impuls"
 
 local scriptPath = debug.getinfo(1, "S").source:sub(2)
@@ -50,7 +50,7 @@ local Q = {
     Range = UrgotQ.range,
     Speed = UrgotQ.speed,
     Collision = false,
-    Type = GGPrediction.SPELLTYPE_CIRCLE,
+    Type = GGPrediction and GGPrediction.SPELLTYPE_CIRCLE or 1,
 }
 local W = {
     Delay = UrgotW.delay,
@@ -58,7 +58,7 @@ local W = {
     Range = UrgotW.range,
     Speed = UrgotW.speed,
     Collision = false,
-    Type = GGPrediction.SPELLTYPE_CIRCLE,
+    Type = GGPrediction and GGPrediction.SPELLTYPE_CIRCLE or 1,
 }
 local E = {
     Delay = UrgotE.delay,
@@ -67,9 +67,9 @@ local E = {
     Speed = UrgotE.speed,
     Collision = UrgotE.collision,
     CollisionTypes = {
-        GGPrediction.COLLISION_ENEMYHERO,
+        GGPrediction and GGPrediction.COLLISION_ENEMYHERO or 2,
     },
-    Type = GGPrediction.SPELLTYPE_LINE,
+    Type = GGPrediction and GGPrediction.SPELLTYPE_LINE or 0,
 }
 local R = {
     Delay = UrgotR.delay,
@@ -78,9 +78,9 @@ local R = {
     Speed = UrgotR.speed,
     Collision = UrgotR.collision,
     CollisionTypes = {
-        GGPrediction.COLLISION_ENEMYHERO,
+        GGPrediction and GGPrediction.COLLISION_ENEMYHERO or 2,
     },
-    Type = GGPrediction.SPELLTYPE_LINE,
+    Type = GGPrediction and GGPrediction.SPELLTYPE_LINE or 0,
 }
 
 local DrawInfo = false
@@ -231,7 +231,7 @@ local function update()
         -- initializeScript()
     else
         local jitStatus = jit and "enabled" or "disabled"
-        print("| " .. SCRIPT_NAME .. " | - [ver. " .. version .. " | EXTP: " .. jitStatus .. "] - Welcome to: " ..
+        print("| " .. SCRIPT_NAME .. " | - [ver. " .. version .. "] - Welcome to: " ..
             "URGOD" .. "!"); -- mapName
     end
 end
@@ -257,6 +257,14 @@ end
 
 if not FileExist(COMMON_PATH .. "GGPrediction.lua") then
     DownloadFileAsync("https://raw.githubusercontent.com/gamsteron/GG/master/GGPrediction.lua",
+        COMMON_PATH .. "GGPrediction.lua", function()
+        end)
+    print("GGPrediction installed Press 2x F6")
+    return
+end
+
+if not FileExist(COMMON_PATH .. "KillerAIO\\KillerLib.lua") then
+    DownloadFileAsync("https://raw.githubusercontent.com/Henslock/GoS-EXT/main/KillerAIO/KillerLib.lua",
         COMMON_PATH .. "GGPrediction.lua", function()
         end)
     print("GGPrediction installed Press 2x F6")
@@ -2849,6 +2857,7 @@ function Urgot:LoadSpells()
             PredLoaded = true
         end
         if self.UrgotMenu.Pred.Change:Value() == 3 then
+            require("GGPrediction")
             require "KillerAIO\\KillerLib"
             PredLoaded = true
         end
