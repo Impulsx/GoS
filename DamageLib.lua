@@ -1,4 +1,4 @@
-local version = 14.91
+local version = 14.93
 local scriptPath = debug.getinfo(1, "S").source:sub(2)
 local fileName = scriptPath:match("[\\/]([^\\/]-)$")
 local SCRIPT_NAME = fileName:gsub("%.lua$", "")
@@ -2063,8 +2063,13 @@ end
 -- [[ Calc Damage Tables ]] --
 local DamageReductionBuffsTable = {
   --["Annie"] = {buff = "AnnieE", amount = function(target) return ({0.10,0.13,0.16,0.19,0.22})[target:GetSpellData(_E).level] end},
-  ["Alistar"] = { buff = "FerociousHowl", amount = function(source, target, DamageType, amount) return ({ 0.55, 0.65, 0.75 })
-    [target:GetSpellData(_R).level] end },
+  ["Alistar"] = {
+    buff = "FerociousHowl",
+    amount = function(source, target, DamageType, amount)
+      return ({ 0.55, 0.65, 0.75 })
+          [target:GetSpellData(_R).level]
+    end
+  },
   --MOVED is flatreduction["Amumu"] = {buff = "Tantrum", DamageType = 1, amount = function(target) return (({5, 7, 9, 11, 13})[target:GetSpellData(_E).level] + (0.03 * target.bonusMagicResist) + (0.03 * target.bonusArmor)) end}, --max 50%
   ["Belveth"] = {
     buff = "BelvethE",
@@ -2080,8 +2085,8 @@ local DamageReductionBuffsTable = {
           ({ 0.3, 0.325, 0.35, 0.375, 0.4 })[target:GetSpellData(_E).level]
     end
   },
-  ["Briar"] = { buff = "BriarE", amount = function(source, target, DamageType, amount) return 0.35 end },  -- check buff name
-  ["Galio"] = {                                                                                            --magic + physical
+  ["Briar"] = { buff = "BriarE", amount = function(source, target, DamageType, amount) return 0.35 end }, -- check buff name
+  ["Galio"] = {                                                                                           --magic + physical
     buff = "galiowpassivedefense" or "GalioW",
     DamageType = 2 or 1,
     amount = function(source, target, DamageType, amount)
@@ -2097,7 +2102,7 @@ local DamageReductionBuffsTable = {
       end
       return reduction + (0.04 * math.floor(target.ap / 100)) +
           (0.08 * math.floor(target.bonusMagicResist / 100)) +
-          (0.01 * math.floor((getBonusHealth(target)) / 100))                                                    --target.bonusHealth
+          (0.01 * math.floor((getBonusHealth(target)) / 100)) --target.bonusHealth
     end
   },
   ["Garen"] = { buff = "GarenW", amount = function(source, target, DamageType, amount) return 0.3 end },
@@ -2124,7 +2129,7 @@ local DamageReductionBuffsTable = {
           ({ 0.45, 0.475, 0.50, 0.525, 0.55 })[target:GetSpellData(_W).level] / (source.type == Obj_AI_Turret and 2 or 1)
     end
   },
-  ["NilahW"] = { buff = "NilahW", DamageType = 2, amount = function(source, target, DamageType, amount) return 0.25 end },  --TODO:
+  ["NilahW"] = { buff = "NilahW", DamageType = 2, amount = function(source, target, DamageType, amount) return 0.25 end }, --TODO:
 }
 
 local DamageReductionItemsTable = {
@@ -2802,7 +2807,7 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         return ({ 125, 210, 315 })[level] +
-            (({ 75, 90, 105 })[level]/100 * source.totalDamage) +
+            (({ 75, 90, 105 })[level] / 100 * source.totalDamage) +
             (1 + (0.50 * source.critChance)) * (0.02 * (getPercentHP(target)))
       end
     }, -- minimum charged damage
@@ -3119,7 +3124,7 @@ local SpellDamageTable = {
         local starduststacks = Buff:GetBuffStacks(target, "AurelionSolPassive");
         return ({ 2.5, 3.75, 5, 6.25, 7.5 })
             [level] + 0.04 * source.ap
-            + ( 0.05 + ( 0.026 * starduststacks) * target.maxHealth)
+            + (0.05 + (0.026 * starduststacks) * target.maxHealth)
       end
     }, --per tick    damage to non-epic monster targets @ 5% (+ 2.6% Stardust stacks) of their maximum health are also executed
     {
@@ -4072,8 +4077,15 @@ local SpellDamageTable = {
             [level] + 0.70 * source.ap
       end
     },
-    { Slot = "Q", Stage = 2, DamageType = 2, Damage = function(source, target, level) return (0.025 + (0.01 * math.floor(source.ap / 100))) *
-      target.maxHealth end },                                                                                                                                       --tornado per tick/every 0.5 sec
+    {
+      Slot = "Q",
+      Stage = 2,
+      DamageType = 2,
+      Damage = function(source, target, level)
+        return (0.025 + (0.01 * math.floor(source.ap / 100))) *
+            target.maxHealth
+      end
+    }, --tornado per tick/every 0.5 sec
     {
       Slot = "W",
       Stage = 1,
@@ -4806,7 +4818,7 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         return ({ 45, 70, 95, 120, 145 })
-            [level]-1 + (({ 0.44, 0.515, 0.59, 0.665, 0.74 })[level] * source.totalDamage) + 0.60 * source.ap
+            [level] - 1 + (({ 0.44, 0.515, 0.59, 0.665, 0.74 })[level] * source.totalDamage) + 0.60 * source.ap
       end
     },
     {
@@ -5458,7 +5470,7 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         --0.08 * (0.16sec * spell.isChanneling.time)
-          return (({ 4, 5, 6 })[level] / 100 + 0.04 * math.floor(source.bonusDamage / 100) * target.maxHealth)
+        return (({ 4, 5, 6 })[level] / 100 + 0.04 * math.floor(source.bonusDamage / 100) * target.maxHealth)
       end
     },
   },
@@ -5470,19 +5482,19 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         return ({ 30, 55, 80, 105, 130 })[level]
-        + (0.40 * source.totalDamage) + (0.30 * source.bonusArmor) + (0.30 * source.bonusMagicResist)
+            + (0.40 * source.totalDamage) + (0.30 * source.bonusArmor) + (0.30 * source.bonusMagicResist)
       end
     },
-  {
+    {
       Slot = "W",
       Stage = 1,
       DamageType = 1,
       Damage = function(source, target, level)
         return ({ 20, 40, 60, 80, 100 })[level]
-        + (0.50 * source.totalDamage) + (0.50 * source.bonusArmor) + (0.50 * source.bonusMagicResist)
-        + ((({ 6, 7, 8, 9, 10 })[level] / 100) * target.maxHealth)
+            + (0.50 * source.totalDamage) + (0.50 * source.bonusArmor) + (0.50 * source.bonusMagicResist)
+            + ((({ 6, 7, 8, 9, 10 })[level] / 100) * target.maxHealth)
       end
-    },  --min
+    }, --min
     {
       Slot = "R",
       Stage = 1,
@@ -5592,7 +5604,7 @@ local SpellDamageTable = {
       DamageType = 1,
       Damage = function(source, target, level)
         return (({ 55, 80, 105, 130, 155 })
-            [level] + 1.15 * source.bonusDamage) * (1 + 0.01 * (getPercentMissingHP(target)))
+          [level] + 1.15 * source.bonusDamage) * (1 + 0.01 * (getPercentMissingHP(target)))
       end
     },
     {
@@ -6528,7 +6540,7 @@ local SpellDamageTable = {
       Stage = 1,
       DamageType = 1,
       Damage = function(source, target, level)
-        local monsterdmg = target.type == Obj_AI_Camp and ({10, 25, 40, 55, 70})[level] or 0
+        local monsterdmg = target.type == Obj_AI_Camp and ({ 10, 25, 40, 55, 70 })[level] or 0
         return ({ 65, 115, 165, 215, 265 })
             [level] + source.bonusDamage + monsterdmg
       end
@@ -9982,7 +9994,6 @@ GetAADamage = function(source, target, respectPassives, IsAA)
 end
 
 CalcDamage = function(source, target, DamageType, amount, IsAA)
-
   local targetType = target.type
   local sourceType = source.type
 
@@ -10318,6 +10329,32 @@ end
 
 --
 
+_G.DamageLib = {
+  ItemID = ItemID,
+  RuneID = RuneID,
+  Heros = HEROES,
+  HerosPrio = HEROES[1],
+  MeleeHeros = HEROES[2],
+  HerosBaseAS = HEROES[3],
+  ARAM = ARAM,
+  BuffType = buffType,
+  --monsterType = Monstertable,
+  GetBaseAttackspeed = function(unit)
+    return getBaseAttackspeed(unit)
+  end,
+  IsMelee = function(unit)
+    return isMelee(unit) --returns bool
+  end,
+  pool = pool,
+  file = file,
+  EXTP = DamageLib.EXTP,
+  GetMapIDName = function(mapID)
+    map = getMapIDName(mapID)
+    return map
+  end,
+  --
+}
+
 -- Callbacks --
 Callback.Add("Load", function()
   --
@@ -10333,129 +10370,108 @@ Callback.Add("Load", function()
   Data = _G.SDK.Data
   Cursor = _G.SDK.Cursor
   IsRecalling = _G.SDK.IsRecalling
-    -- getdmg call overrides
-    DamageLib.EXTP = jit and true or false
-    if not DamageLib.EXTP then
-      getdmg = function(...) return getcacheddmg(...) end
-    end
+  -- getdmg call overrides
+  DamageLib.EXTP = jit and true or false
+  if not DamageLib.EXTP then
+    getdmg = function(...) return getcacheddmg(...) end
+  end
   Callback.Add("Tick", function()
     --
     table.insert(_G.SDK.OnTick, function() end)
   end)
 end)
+
 -- [[ Update ]] --
 local mapName = getMapIDName(Game.mapID)
-  local localName = scriptPath:match("[\\/]([^\\/]-)$")
-  local map
-  local author = "Impuls"
-  local AUTHOR_NAME = author
-  local gitHub = "https://raw.githubusercontent.com/" .. author .. "x/GoS/master/" .. localName
-  local file = {
-    script = {
-      path = SCRIPT_PATH,
-      name = SCRIPT_NAME .. ".lua"
-    },
-    common = {
-      path = COMMON_PATH,
-      name = SCRIPT_NAME .. ".lua"
-    },
-    sprite = {
-      path = SPRITE_PATH,
-      name = SCRIPT_NAME .. ".png"
-    },
-    sounds = {
-      path = SOUNDS_PATH,
-      name = SCRIPT_NAME .. ".mp3"
-    },
-    fonts = {
-      path = FONTS_PATH,
-      name = SCRIPT_NAME .. ".ttf"
-    },
-    version = {
-      scriptpath = SCRIPT_PATH,
-      commonpath = COMMON_PATH,
-      name = SCRIPT_NAME .. ".version"
-    }
+local localName = scriptPath:match("[\\/]([^\\/]-)$")
+local map
+local author = "Impuls"
+local AUTHOR_NAME = author
+local gitHub = "https://raw.githubusercontent.com/" .. author .. "x/GoS/master/" .. localName
+local file = {
+  script = {
+    path = SCRIPT_PATH,
+    name = SCRIPT_NAME .. ".lua"
+  },
+  common = {
+    path = COMMON_PATH,
+    name = SCRIPT_NAME .. ".lua"
+  },
+  sprite = {
+    path = SPRITE_PATH,
+    name = SCRIPT_NAME .. ".png"
+  },
+  sounds = {
+    path = SOUNDS_PATH,
+    name = SCRIPT_NAME .. ".mp3"
+  },
+  fonts = {
+    path = FONTS_PATH,
+    name = SCRIPT_NAME .. ".ttf"
+  },
+  version = {
+    scriptpath = SCRIPT_PATH,
+    commonpath = COMMON_PATH,
+    name = SCRIPT_NAME .. ".version"
   }
-  local function update()
-    local function readAll(fileName)
-      local f = assert(io.open(file, "r"))
-      local content = f:read("*all")
-      f:close()
-      return content
-    end
-    local function downloadFile(path, fileName)
-      DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
-      while not FileExist(path .. fileName) do end
-    end
-    local function readFile(path, fileName)
-      local file = assert(io.open(path .. fileName, "r"))
-      local result = file:read()
-      file:close()
-      return result
-    end
-    local function initializeScript()
-      local function writeModule(content)
-        local f = assert(io.open(file.common.path .. file.lua.name, content and "a" or "w"))
-        if content then
-          f:write(content)
-        end
-        f:close()
+}
+local function update()
+  local function readAll(fileName)
+    local f = assert(io.open(file, "r"))
+    local content = f:read("*all")
+    f:close()
+    return content
+  end
+  local function downloadFile(path, fileName)
+    local startTime = os.clock()
+    DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
+    repeat until os.clock() - startTime > 3 or FileExists(path .. fileName)
+  end
+  local function readFile(path, fileName)
+    local file = assert(io.open(path .. fileName, "r"))
+    local result = file:read()
+    file:close()
+    return result
+  end
+  local function initializeScript()
+    local function writeModule(content)
+      local f = assert(io.open(file.common.path .. file.lua.name, content and "a" or "w"))
+      if content then
+        f:write(content)
       end
-      --
-      writeModule()
-      local newVersion = version
-      --Write the core module
-      writeModule(readAll(file.common.path .. file.common.name))
-      -- writeModule(readAll(AUTO_PATH..coreName))
-      -- writeModule(readAll(CHAMP_PATH..charName..dotlua))
-      --Load the active module
-      dofile(file.common.path .. file.common.name)
-      if newVersion > version then
-        print("*ERR* | " ..
+      f:close()
+    end
+    --
+    writeModule()
+    local newVersion = version
+    --Write the core module
+    writeModule(readAll(file.common.path .. file.common.name))
+    -- writeModule(readAll(AUTO_PATH..coreName))
+    -- writeModule(readAll(CHAMP_PATH..charName..dotlua))
+    --Load the active module
+    dofile(file.common.path .. file.common.name)
+    if newVersion > version then
+      print("*ERR* | " ..
         SCRIPT_NAME ..
         " | - [RE.initialize] - [*NEW* ver. " .. tostring(newVersion) .. "] > [ver. " .. tostring(version) .. "]")
-      end
-    end
-
-    downloadFile(file.version.commonpath, file.version.name)
-    local NewVersion = tonumber(readFile(file.version.commonpath, file.version.name))
-    if NewVersion > version then
-      downloadFile(file.common.path, file.common.name)
-      print("*WARN* NEW | " ..
-      SCRIPT_NAME .. " | - [ver. " .. tostring(NewVersion) .. "] Downloaded - Please RELOAD with [F6]")
-      -- print("*WARNING* New " .. SCRIPT_NAME .. " [ver. " .. tostring(NewVersion) .. "] Downloaded - RELOADING")
-      -- initializeScript()
-    else
-      local jitStatus = jit and "enabled" or "disabled"
-        print("| " .. SCRIPT_NAME .. " | - [ver. " .. version .. " | EXTP: " .. jitStatus .. "] - Welcome to: " .. mapName .. "!");
     end
   end
 
-  update()
-  _G.DamageLib = {
-    ItemID = ItemID,
-    RuneID = RuneID,
-    Heros = HEROES,
-    HerosPrio = HEROES[1],
-    MeleeHeros = HEROES[2],
-    HerosBaseAS = HEROES[3],
-    ARAM = ARAM,
-    BuffType = buffType,
-    --monsterType = Monstertable,
-    GetBaseAttackspeed = function(unit)
-      return getBaseAttackspeed(unit)
-    end,
-    IsMelee = function(unit)
-      return isMelee(unit) --returns bool
-    end,
-    pool = pool,
-    file = file,
-    EXTP = DamageLib.EXTP,
-    GetMapIDName = function(mapID)
-      map = getMapIDName(mapID)
-      return map
-    end,
-  --
-  }
+  downloadFile(file.version.commonpath, file.version.name)
+  local newVersion = tonumber(readFile(file.version.commonpath, file.version.name))
+  if newVersion > version then
+    downloadFile(file.common.path, file.common.name)
+    print("*WARN* NEW | " ..
+      SCRIPT_NAME ..
+      "ver. " .. version .. " | < [ver. " .. tostring(newVersion) .. "] Downloaded - Please RELOAD with [F6]")
+    -- print("*WARNING* New " .. SCRIPT_NAME .. " [ver. " .. tostring(NewVersion) .. "] Downloaded - RELOADING")
+    -- initializeScript()
+  else
+    local jitStatus = jit and "enabled" or "disabled"
+    print("| " ..
+      SCRIPT_NAME .. " | - [ver. " .. version .. " | EXTP: " .. jitStatus .. "] - Welcome to: " .. mapName .. "!");
+  end
+end
+update()
+
 return DamageLib
