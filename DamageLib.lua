@@ -1,4 +1,4 @@
-local version = 14.95
+local version = 14.96
 local scriptPath = debug.getinfo(1, "S").source:sub(2)
 local fileName = scriptPath:match("[\\/]([^\\/]-)$")
 local SCRIPT_NAME = fileName:gsub("%.lua$", "")
@@ -10401,7 +10401,7 @@ local function update()
     end
   end
   local function readAll(fileName)
-    local f = assert(io.open(file, "r"))
+    local f = assert(io.open(fileName, "r"))
     local content = f:read("*all")
     f:close()
     return content
@@ -10451,7 +10451,9 @@ end
     -- print("*WARNING* New " .. SCRIPT_NAME .. " [ver. " .. tostring(NewVersion) .. "] Downloaded - RELOADING")
     -- initializeScript()
   else
-    local jitStatus = jit and "enabled" or "disabled"
+    local hasjit = false
+    if jit then hasjit = true end
+    local jitStatus = hasjit and "enabled" or "disabled"
     print("| " ..
       SCRIPT_NAME .. " | - [ver. " .. version .. " | EXTP: " .. jitStatus .. "] - Welcome to: " .. mapName .. "!");
   end
