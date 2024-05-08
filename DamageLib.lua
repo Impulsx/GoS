@@ -1,4 +1,4 @@
-local version = 14.93
+local version = 14.94
 local scriptPath = debug.getinfo(1, "S").source:sub(2)
 local fileName = scriptPath:match("[\\/]([^\\/]-)$")
 local SCRIPT_NAME = fileName:gsub("%.lua$", "")
@@ -10329,32 +10329,6 @@ end
 
 --
 
-_G.DamageLib = {
-  ItemID = ItemID,
-  RuneID = RuneID,
-  Heros = HEROES,
-  HerosPrio = HEROES[1],
-  MeleeHeros = HEROES[2],
-  HerosBaseAS = HEROES[3],
-  ARAM = ARAM,
-  BuffType = buffType,
-  --monsterType = Monstertable,
-  GetBaseAttackspeed = function(unit)
-    return getBaseAttackspeed(unit)
-  end,
-  IsMelee = function(unit)
-    return isMelee(unit) --returns bool
-  end,
-  pool = pool,
-  file = file,
-  EXTP = DamageLib.EXTP,
-  GetMapIDName = function(mapID)
-    map = getMapIDName(mapID)
-    return map
-  end,
-  --
-}
-
 -- Callbacks --
 Callback.Add("Load", function()
   --
@@ -10415,6 +10389,33 @@ local file = {
     name = SCRIPT_NAME .. ".version"
   }
 }
+
+_G.DamageLib = {
+  ItemID = ItemID,
+  RuneID = RuneID,
+  Heros = HEROES,
+  HerosPrio = HEROES[1],
+  MeleeHeros = HEROES[2],
+  HerosBaseAS = HEROES[3],
+  ARAM = ARAM,
+  BuffType = buffType,
+  --monsterType = Monstertable,
+  GetBaseAttackspeed = function(unit)
+    return getBaseAttackspeed(unit)
+  end,
+  IsMelee = function(unit)
+    return isMelee(unit) --returns bool
+  end,
+  pool = pool,
+  file = file,
+  EXTP = DamageLib.EXTP,
+  GetMapIDName = function(mapID)
+    map = getMapIDName(mapID)
+    return map
+  end,
+  --
+}
+
 local function update()
   local function readAll(fileName)
     local f = assert(io.open(file, "r"))
