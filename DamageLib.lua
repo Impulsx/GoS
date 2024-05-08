@@ -1,4 +1,4 @@
-local version = 14.94
+local version = 14.95
 local scriptPath = debug.getinfo(1, "S").source:sub(2)
 local fileName = scriptPath:match("[\\/]([^\\/]-)$")
 local SCRIPT_NAME = fileName:gsub("%.lua$", "")
@@ -10329,32 +10329,6 @@ end
 
 --
 
--- Callbacks --
-Callback.Add("Load", function()
-  --
-  Item = _G.SDK.ItemManager
-  Buff = _G.SDK.BuffManager
-
-  Target = _G.SDK.TargetSelector
-  Orbwalker = _G.SDK.Orbwalker
-  Damage = _G.SDK.Damage
-  Spell = _G.SDK.Spell
-  Object = _G.SDK.ObjectManager
-  Attack = _G.SDK.Attack
-  Data = _G.SDK.Data
-  Cursor = _G.SDK.Cursor
-  IsRecalling = _G.SDK.IsRecalling
-  -- getdmg call overrides
-  DamageLib.EXTP = jit and true or false
-  if not DamageLib.EXTP then
-    getdmg = function(...) return getcacheddmg(...) end
-  end
-  Callback.Add("Tick", function()
-    --
-    table.insert(_G.SDK.OnTick, function() end)
-  end)
-end)
-
 -- [[ Update ]] --
 local mapName = getMapIDName(Game.mapID)
 local localName = scriptPath:match("[\\/]([^\\/]-)$")
@@ -10417,6 +10391,15 @@ _G.DamageLib = {
 }
 
 local function update()
+  local function FileExists(path)
+    local file = io.open(path, "r")
+    if file ~= nil then
+      io.close(file)
+      return true
+    else
+      return false
+    end
+  end
   local function readAll(fileName)
     local f = assert(io.open(file, "r"))
     local content = f:read("*all")
@@ -10427,7 +10410,7 @@ local function update()
     local startTime = os.clock()
     DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
     repeat until os.clock() - startTime > 3 or FileExists(path .. fileName)
-  end
+end
   local function readFile(path, fileName)
     local file = assert(io.open(path .. fileName, "r"))
     local result = file:read()
@@ -10475,4 +10458,30 @@ local function update()
 end
 update()
 
+
+-- Callbacks --
+Callback.Add("Load", function()
+  --
+  Item = _G.SDK.ItemManager
+  Buff = _G.SDK.BuffManager
+
+  Target = _G.SDK.TargetSelector
+  Orbwalker = _G.SDK.Orbwalker
+  Damage = _G.SDK.Damage
+  Spell = _G.SDK.Spell
+  Object = _G.SDK.ObjectManager
+  Attack = _G.SDK.Attack
+  Data = _G.SDK.Data
+  Cursor = _G.SDK.Cursor
+  IsRecalling = _G.SDK.IsRecalling
+  -- getdmg call overrides
+  DamageLib.EXTP = jit and true or false
+  if not DamageLib.EXTP then
+    getdmg = function(...) return getcacheddmg(...) end
+  end
+  Callback.Add("Tick", function()
+    --
+    table.insert(_G.SDK.OnTick, function() end)
+  end)
+end)
 return DamageLib
