@@ -1,7 +1,8 @@
-local version = 14.96
-local scriptPath = debug.getinfo(1, "S").source:sub(2)
-local fileName = scriptPath:match("[\\/]([^\\/]-)$")
-local SCRIPT_NAME = fileName:gsub("%.lua$", "")
+local version = 14.97
+-- local scriptPath = debug.getinfo(1, "S").source:sub(2)
+-- local fileName = scriptPath:match("[\\/]([^\\/]-)$")
+-- local SCRIPT_NAME = fileName:gsub("%.lua$", "")
+local SCRIPT_NAME = "DamageLib"
 local DamageLib = {}
 
 --[[
@@ -10331,11 +10332,11 @@ end
 
 -- [[ Update ]] --
 local mapName = getMapIDName(Game.mapID)
-local localName = scriptPath:match("[\\/]([^\\/]-)$")
+-- local localName = scriptPath:match("[\\/]([^\\/]-)$")
 local map
-local author = "Impuls"
+local author = "Impulsx"
 local AUTHOR_NAME = author
-local gitHub = "https://raw.githubusercontent.com/" .. author .. "x/GoS/master/" .. localName
+local gitHub = "https://raw.githubusercontent.com/" .. author .. "/GoS/master/"
 local file = {
   script = {
     path = SCRIPT_PATH,
@@ -10391,7 +10392,7 @@ _G.DamageLib = {
 }
 
 local function update()
-  local function FileExists(path)
+  local function fileExists(path)
     local file = io.open(path, "r")
     if file ~= nil then
       io.close(file)
@@ -10409,15 +10410,15 @@ local function update()
   local function downloadFile(path, fileName)
     local startTime = os.clock()
     DownloadFileAsync(gitHub .. fileName, path .. fileName, function() end)
-    repeat until os.clock() - startTime > 3 or FileExists(path .. fileName)
-end
+    repeat until os.clock() - startTime > 3 or fileExists(path .. fileName)
+  end
   local function readFile(path, fileName)
     local file = assert(io.open(path .. fileName, "r"))
     local result = file:read()
     file:close()
     return result
   end
-  local function initializeScript()
+  --[[ local function initializeScript()
     local function writeModule(content)
       local f = assert(io.open(file.common.path .. file.lua.name, content and "a" or "w"))
       if content then
@@ -10439,7 +10440,7 @@ end
         SCRIPT_NAME ..
         " | - [RE.initialize] - [*NEW* ver. " .. tostring(newVersion) .. "] > [ver. " .. tostring(version) .. "]")
     end
-  end
+  end ]]
 
   downloadFile(file.version.commonpath, file.version.name)
   local newVersion = tonumber(readFile(file.version.commonpath, file.version.name))
@@ -10449,7 +10450,6 @@ end
       SCRIPT_NAME ..
       "ver. " .. version .. " | < [ver. " .. tostring(newVersion) .. "] Downloaded - Please RELOAD with [F6]")
     -- print("*WARNING* New " .. SCRIPT_NAME .. " [ver. " .. tostring(NewVersion) .. "] Downloaded - RELOADING")
-    -- initializeScript()
   else
     local hasjit = false
     if jit then hasjit = true end
